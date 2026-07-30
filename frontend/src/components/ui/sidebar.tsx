@@ -42,23 +42,28 @@ export function useSidebar() {
 }
 
 export function SidebarProvider({
-  defaultOpen = false,
+  defaultOpen = true,
   children,
   className,
 }: React.PropsWithChildren<{ defaultOpen?: boolean; className?: string }>) {
   const isDesktop = useIsDesktop();
-  const [openMobile, setOpenMobile] = React.useState(defaultOpen);
-  const open = isDesktop || openMobile;
+  const [openDesktop, setOpenDesktop] = React.useState(defaultOpen);
+  const [openMobile, setOpenMobile] = React.useState(false);
+  const open = isDesktop ? openDesktop : openMobile;
   const setOpen = React.useCallback(
     (value: React.SetStateAction<boolean>) => {
-      if (!isDesktop) {
+      if (isDesktop) {
+        setOpenDesktop(value);
+      } else {
         setOpenMobile(value);
       }
     },
     [isDesktop],
   );
   const toggleSidebar = React.useCallback(() => {
-    if (!isDesktop) {
+    if (isDesktop) {
+      setOpenDesktop((prev) => !prev);
+    } else {
       setOpenMobile((prev) => !prev);
     }
   }, [isDesktop]);
@@ -120,7 +125,13 @@ export function SidebarContent({
   children,
 }: React.PropsWithChildren<{ className?: string }>) {
   return (
-    <div data-slot="sidebar-content" className={cn("flex-1 overflow-y-auto p-3", className)}>
+    <div
+      data-slot="sidebar-content"
+      className={cn(
+        "flex-1 overflow-y-auto p-3 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden",
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -333,7 +344,7 @@ export function SidebarMenuButton({
 }) {
   const { open } = useSidebar();
   const classes = cn(
-    "group flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-sm font-medium transition",
+    "group flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-sm font-medium transition hover:cursor-pointer",
     isActive
       ? "bg-[#1e2a46] text-white shadow-[inset_0_0_0_1px_rgba(148,163,184,.22)]"
       : "text-slate-200 hover:bg-white/10 hover:text-white",
@@ -373,7 +384,7 @@ export function SidebarTrigger({
       type="button"
       onClick={toggleSidebar}
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-200 transition hover:bg-white/10",
+        "inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-200 transition hover:bg-white/10 hover:cursor-pointer",
         className
       )}
       {...props}

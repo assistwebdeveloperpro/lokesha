@@ -192,7 +192,7 @@ export default function IconTileSelect<T extends string>({
                     return (
                       <label
                         key={dropdownOption.id}
-                        className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+                        className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-slate-800 transition-colors hover:bg-slate-50"
                       >
                         <input
                           type="checkbox"

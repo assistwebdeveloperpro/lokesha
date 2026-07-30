@@ -1,6 +1,18 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
 
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+
+export function getAssetUrl(path: string) {
+  if (!path) {
+    return path;
+  }
+  if (/^https?:\/\//.test(path)) {
+    return path;
+  }
+  return `${API_ORIGIN}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export class ApiError extends Error {
   status: number;
   errors?: string[];

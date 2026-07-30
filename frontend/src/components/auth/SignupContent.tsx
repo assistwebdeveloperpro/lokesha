@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import FloatingInput from "./FloatingInput";
+import FloatingInput from "@/components/shared/FloatingInput";
 import MathCaptcha, { type MathCaptchaHandle } from "./MathCaptcha";
 import { ApiError } from "@/services/apiClient";
 import { signup } from "@/services/auth.service";

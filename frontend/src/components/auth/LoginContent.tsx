@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import FloatingInput from "./FloatingInput";
+import FloatingInput from "@/components/shared/FloatingInput";
 import MathCaptcha, { type MathCaptchaHandle } from "./MathCaptcha";
 import VerifyForm from "./VerifyForm";
 import { login } from "@/services/auth.service";

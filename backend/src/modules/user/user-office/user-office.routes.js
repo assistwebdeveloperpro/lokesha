@@ -8,9 +8,15 @@ const { officeDetailsSchema } = require("./user-office.validation");
 const router = express.Router();
 
 function attachOfficePhotos(req, res, next) {
-  if (req.files && req.files.length > 0) {
-    req.body.officePhotos = req.files.map((file) => `/uploads/office-photos/${file.filename}`);
-  }
+  const existingPhotos = req.body.officePhotos
+    ? Array.isArray(req.body.officePhotos)
+      ? req.body.officePhotos
+      : [req.body.officePhotos]
+    : [];
+  const uploadedPhotos = (req.files || []).map(
+    (file) => `/uploads/office-photos/${file.filename}`
+  );
+  req.body.officePhotos = [...existingPhotos, ...uploadedPhotos];
   next();
 }
 

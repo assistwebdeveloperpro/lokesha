@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import FloatingInput from "./FloatingInput";
+import FloatingInput from "@/components/shared/FloatingInput";
 import IconTileSelect from "./IconTileSelect";
 import {
   BUSINESS_DESCRIPTION_MIN_LENGTH,
@@ -26,7 +26,7 @@ import {
   propertyTypeOptions,
   residentialPropertyOptions,
   transactionTypeOptions,
-} from "./businessDetailsForm.shared";
+} from "@/components/user-profile/businessDetailsForm.shared";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError } from "@/services/apiClient";
 import { getToken } from "@/services/session";
@@ -34,6 +34,8 @@ import { saveBusinessDetails } from "@/services/userBusiness.service";
 
 export default function UserRegistrationStep2Content() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const { showToast } = useToast();
 
   const [dealingIn, setDealingIn] = useState<(typeof dealingInOptions)[number]["id"][]>([]);
@@ -159,7 +161,11 @@ export default function UserRegistrationStep2Content() {
         token,
       );
       showToast("Business details submitted successfully.");
-      router.push("/user-registration-step-3");
+      router.push(
+        redirectTo === "edit-company-details"
+          ? "/user/profile/edit-company-details"
+          : "/user-registration-step-3",
+      );
     } catch (error) {
       showToast(
         error instanceof ApiError ? error.message : "Something went wrong. Please try again.",
@@ -269,6 +275,7 @@ export default function UserRegistrationStep2Content() {
               id="operatingSince"
               label="Operating Since"
               variant="underline"
+              prominentLabel
               options={operatingSinceYears}
               value={operatingSince}
               onChange={(value) => {
@@ -282,6 +289,7 @@ export default function UserRegistrationStep2Content() {
               id="expertiseIn"
               label="Expertise In"
               variant="underline"
+              prominentLabel
               options={expertiseOptions}
               value={expertiseIn}
               onChange={(value) => {
@@ -295,6 +303,7 @@ export default function UserRegistrationStep2Content() {
           <FloatingTextarea
             id="businessDescription"
             label="Brief Description of Your Business (Min 100, Max 3000 Characters)"
+            prominentLabel
             value={businessDescription}
             onChange={(value) => {
               setBusinessDescription(value);
@@ -306,6 +315,7 @@ export default function UserRegistrationStep2Content() {
           <FloatingTextarea
             id="authorizedAgents"
             label="Authorized Agents / Dealers of (Max 3000 Characters)"
+            prominentLabel
             value={authorizedAgents}
             onChange={setAuthorizedAgents}
           />
@@ -344,6 +354,7 @@ export default function UserRegistrationStep2Content() {
                     id={`client-name-${client.id}`}
                     label="Name"
                     variant="underline"
+                    prominentLabel
                     value={client.name}
                     onChange={(value) => updateClient(client.id, "name", value)}
                   />
@@ -351,6 +362,7 @@ export default function UserRegistrationStep2Content() {
                     id={`client-deal-${client.id}`}
                     label="Deal Values"
                     variant="underline"
+                    prominentLabel
                     value={client.dealValue}
                     onChange={(value) => updateClient(client.id, "dealValue", value)}
                   />

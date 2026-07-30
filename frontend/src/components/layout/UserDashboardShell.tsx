@@ -2,6 +2,8 @@
 
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Home,
   LogOut,
   Menu,
@@ -51,7 +53,7 @@ export default function UserDashboardShell({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider className="h-screen overflow-hidden">
+    <SidebarProvider defaultOpen className="h-screen overflow-hidden">
       <UserDashboardShellInner>{children}</UserDashboardShellInner>
     </SidebarProvider>
   );
@@ -65,7 +67,7 @@ function UserDashboardShellInner({
   const pathname = usePathname();
   const router = useRouter();
   const { userName = "User", logout } = useAuth();
-  const { open, setOpen } = useSidebar();
+  const { open, isDesktop, setOpen } = useSidebar();
   const activeSectionHref = useMemo(() => getActiveSectionHref(pathname), [pathname]);
   const [expandedSectionHref, setExpandedSectionHref] = useState<string | null>(activeSectionHref);
 
@@ -211,7 +213,7 @@ function UserDashboardShellInner({
         </SidebarFooter>
       </Sidebar>
 
-      {open && (
+      {open && !isDesktop && (
         <button
           type="button"
           aria-label="Close sidebar"
@@ -225,10 +227,28 @@ function UserDashboardShellInner({
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2">
               <SidebarTrigger
-                aria-label={open ? "Close sidebar" : "Open sidebar"}
-                className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 lg:hidden"
+                aria-label={
+                  isDesktop
+                    ? open
+                      ? "Collapse sidebar"
+                      : "Expand sidebar"
+                    : open
+                      ? "Close sidebar"
+                      : "Open sidebar"
+                }
+                className="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
               >
-                {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                {isDesktop ? (
+                  open ? (
+                    <ChevronLeft className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )
+                ) : open ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <Menu className="h-4 w-4" />
+                )}
               </SidebarTrigger>
               <div>
                 <p className="font-display text-xl font-bold ps-3 text-slate-900">{currentSection}</p>
@@ -236,7 +256,7 @@ function UserDashboardShellInner({
             </div>
 
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-1.5 py-1.5 shadow-sm">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-slate-700">
                   {initialFromName(userName)}
                 </span>

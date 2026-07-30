@@ -18,7 +18,13 @@ type CustomDropdownProps = {
   onChange?: (value: string) => void;
   hasError?: boolean;
   variant?: "boxed" | "underline";
+  prominentLabel?: boolean;
+  staticLabel?: boolean;
+  blackText?: boolean;
+  menuClassName?: string;
 };
+
+const staticLabelClasses = "mb-2.5 block text-sm font-semibold text-slate-700";
 
 export default function CustomDropdown({
   id,
@@ -30,6 +36,10 @@ export default function CustomDropdown({
   onChange,
   hasError = false,
   variant = "underline",
+  prominentLabel = false,
+  staticLabel = false,
+  blackText = false,
+  menuClassName,
 }: CustomDropdownProps) {
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(
@@ -42,14 +52,19 @@ export default function CustomDropdown({
   const selectedOption =
     options.find((option) => option.value === selectedValue) ?? options[0];
 
-  const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm text-slate-800 outline-none transition-colors ${
+  const fieldTextColor = blackText ? "text-black" : "text-slate-800";
+
+  const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none transition-colors ${
     hasError
       ? "border-red-500 focus:border-red-500"
       : "border-slate-300 focus:border-sky-600"
   }`;
 
-  const underlineLabelClasses =
-    "pointer-events-none absolute left-0 top-1 origin-left scale-[0.85] text-sm text-slate-500";
+  const underlineLabelClasses = prominentLabel
+    ? blackText
+      ? "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-black"
+      : "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-slate-800"
+    : "pointer-events-none absolute left-0 top-1 origin-left scale-[0.85] text-sm text-slate-500";
 
   const handleSelect = (nextValue: string) => {
     if (!isControlled) {
@@ -84,39 +99,57 @@ export default function CustomDropdown({
   }, []);
 
   const hasLabel = Boolean(label);
+  const fieldTopPadding = hasLabel
+    ? staticLabel
+      ? "pt-2"
+      : prominentLabel
+        ? "pt-7"
+        : "pt-6"
+    : "pt-2";
 
   return (
-    <div className="relative" ref={containerRef}>
-      <button
-        id={id}
-        type="button"
-        aria-label={label ?? ariaLabel}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-invalid={hasError}
-        onClick={() => setIsOpen((open) => !open)}
-        className={`${underlineFieldClasses} ${hasLabel ? "pt-6" : "pt-2"} pr-6`}
-      >
-        <span className="font-medium">{selectedOption?.value}</span>
-        <ChevronDown
-          className={`pointer-events-none absolute right-0 bottom-3 h-4 w-4 text-slate-400 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          aria-hidden
-        />
-      </button>
-
-      {hasLabel && (
-        <label htmlFor={id} className={underlineLabelClasses}>
+    <div className="w-full min-w-0">
+      {staticLabel && hasLabel && (
+        <label htmlFor={id} className={staticLabelClasses}>
           {label}
         </label>
       )}
+      <div className="relative w-full min-w-0" ref={containerRef}>
+        <button
+          id={id}
+          type="button"
+          aria-label={label ?? ariaLabel}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          aria-invalid={hasError}
+          onClick={() => setIsOpen((open) => !open)}
+          className={`${underlineFieldClasses} ${fieldTopPadding} cursor-pointer pr-6`}
+        >
+          <span className={!selectedValue ? "text-slate-400" : fieldTextColor}>
+            {selectedOption?.label ?? selectedOption?.value}
+          </span>
+          <ChevronDown
+            className={`pointer-events-none absolute right-0 bottom-3 h-4 w-4 text-slate-400 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+            aria-hidden
+          />
+        </button>
+
+        {hasLabel && !staticLabel && (
+          <label htmlFor={id} className={underlineLabelClasses}>
+            {label}
+          </label>
+        )}
 
       {isOpen && (
         <ul
           role="listbox"
           aria-label={label ?? ariaLabel}
-          className="absolute left-0 z-20 mt-1 max-h-48 w-44 overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
+          className={
+            menuClassName ??
+            "absolute left-0 z-20 mt-1 max-h-48 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
+          }
         >
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
@@ -127,10 +160,10 @@ export default function CustomDropdown({
                   role="option"
                   aria-selected={isSelected}
                   onClick={() => handleSelect(option.value)}
-                  className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                  className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
                     isSelected
-                      ? "bg-sky-50 font-medium text-sky-800"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? `bg-sky-50 font-medium ${fieldTextColor}`
+                      : `${fieldTextColor} hover:bg-slate-50`
                   }`}
                 >
                   <span>{option.label}</span>
@@ -143,6 +176,7 @@ export default function CustomDropdown({
           })}
         </ul>
       )}
+      </div>
     </div>
   );
 }

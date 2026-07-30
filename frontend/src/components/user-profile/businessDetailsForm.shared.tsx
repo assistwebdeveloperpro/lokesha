@@ -138,6 +138,7 @@ export function FloatingTextarea({
   onChange,
   maxLength = 3000,
   error,
+  prominentLabel = false,
 }: {
   id: string;
   label: string;
@@ -145,19 +146,25 @@ export function FloatingTextarea({
   onChange: (value: string) => void;
   maxLength?: number;
   error?: string;
+  prominentLabel?: boolean;
 }) {
   const hasError = Boolean(error);
 
   return (
     <div>
-      <label htmlFor={id} className="mb-2.5 block text-sm font-semibold text-slate-700">
+      <label
+        htmlFor={id}
+        className={`mb-2.5 block font-semibold ${
+          prominentLabel ? "text-base text-slate-800" : "text-sm text-slate-700"
+        }`}
+      >
         {label}
       </label>
       <textarea
         id={id}
         value={value}
         maxLength={maxLength}
-        rows={4}
+        rows={3}
         aria-invalid={hasError}
         onChange={(event) => onChange(event.target.value)}
         className={`w-full resize-y border-0 border-b bg-transparent px-0 pb-2.5 pt-2 text-sm leading-relaxed text-slate-800 outline-none transition-colors ${
