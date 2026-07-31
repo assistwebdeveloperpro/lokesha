@@ -31,16 +31,16 @@ function FormRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2 border-b border-slate-100 py-4 last:border-b-0 sm:grid-cols-[minmax(10rem,12rem)_1fr] sm:items-start sm:gap-6">
+    <div className="grid grid-cols-1 gap-2 border-b border-slate-200 px-4 py-4 sm:grid-cols-[minmax(10rem,17rem)_1fr] sm:gap-0 sm:px-0 sm:py-0">
       <label
         htmlFor={htmlFor}
-        className="text-sm font-semibold text-slate-700 sm:pt-2.5 sm:text-right"
+        className="text-sm font-semibold leading-snug text-slate-700 sm:border-r sm:border-slate-200 sm:bg-slate-50 sm:px-5 sm:py-4 sm:text-sm sm:font-semibold sm:normal-case sm:tracking-normal sm:text-slate-500"
       >
         {label}
         {required ? <span className="text-red-500"> *</span> : null}
         <span className="hidden sm:inline"> :</span>
       </label>
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 sm:bg-white sm:px-5 sm:py-4">{children}</div>
     </div>
   );
 }
@@ -237,18 +237,14 @@ export default function ChangePasswordPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <form onSubmit={handleSubmit} noValidate className="px-4 sm:px-5">
-          <p className="border-b border-slate-100 py-4 text-xs text-slate-500">
-            (* denotes mandatory fields)
+        <form onSubmit={handleSubmit} noValidate>
+          <p className="border-b border-slate-200 px-4 py-3 text-xs leading-relaxed text-slate-500 sm:px-5">
+            <span className="text-red-500">*</span> denotes mandatory fields
           </p>
-          <FormRow label="Email ID" htmlFor="email-id">
-            <input
-              id="email-id"
-              type="email"
-              readOnly
-              value={isLoadingEmail ? "Loading…" : email || "—"}
-              className={`${inputClassName} cursor-default bg-slate-50 text-slate-700`}
-            />
+          <FormRow label="Email ID">
+            <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700">
+              {isLoadingEmail ? "Loading…" : email || "—"}
+            </p>
           </FormRow>
 
           <FormRow label="Old Password" required htmlFor="old-password">
@@ -297,7 +293,7 @@ export default function ChangePasswordPage() {
             />
           </FormRow>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-100 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:justify-end sm:px-5">
             <Link
               href="/user/profile/account-details"
               className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"

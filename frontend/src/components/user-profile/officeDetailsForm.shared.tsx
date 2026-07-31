@@ -40,10 +40,29 @@ export function createOfficePhotoFromStoredPath(
 
 export function KycWarning({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-md border border-amber-200/80 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+    <div className="flex items-start gap-2.5 rounded-lg border border-amber-200/80 bg-amber-50 px-3 py-3 text-xs leading-relaxed text-amber-900 sm:rounded-md sm:px-3 sm:py-2.5">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
       <p>{children}</p>
     </div>
+  );
+}
+
+function PhotoRemoveButton({
+  index,
+  onRemove,
+}: {
+  index: number;
+  onRemove: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/75 text-white shadow-sm backdrop-blur-sm transition hover:bg-slate-900"
+      aria-label={`Remove office photo ${index + 1}`}
+    >
+      <X className="h-3.5 w-3.5" aria-hidden />
+    </button>
   );
 }
 
@@ -63,73 +82,78 @@ export function OfficePhotoUpload({
   const remainingSlots = MAX_OFFICE_PHOTOS - photos.length;
   const slots = Array.from({ length: MAX_OFFICE_PHOTOS }, (_, index) => photos[index] ?? null);
 
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
   const scrollCarousel = (direction: "left" | "right") => {
     const container = scrollRef.current;
     if (!container) {
       return;
     }
-    const offset = direction === "left" ? -220 : 220;
+    const offset = Math.round(container.clientWidth * 0.72) * (direction === "left" ? -1 : 1);
     container.scrollBy({ left: offset, behavior: "smooth" });
   };
 
   return (
     <div>
-      <p className="mb-2.5 text-sm font-semibold text-slate-700">
-        Office Photos (Upload upto 10) (jpeg, jpg, png, gif format)
-      </p>
+      <div className="mb-3 space-y-1 sm:mb-2.5 sm:space-y-0">
+        <p className="text-xs leading-relaxed text-slate-500 sm:text-sm sm:font-semibold sm:text-slate-700">
+          <span className="sm:hidden">
+            Upload up to {MAX_OFFICE_PHOTOS} photos (jpeg, jpg, png, gif).
+          </span>
+          <span className="hidden sm:inline">
+            Office Photos (Upload upto {MAX_OFFICE_PHOTOS}) (jpeg, jpg, png, gif format)
+          </span>
+        </p>
+      </div>
 
-      <div className="relative rounded-xl bg-slate-100/80 px-2 py-4">
-        {photos.length < MAX_OFFICE_PHOTOS && (
-          <button
-            type="button"
-            onClick={() => scrollCarousel("left")}
-            className="absolute top-1/2 left-1 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-700"
-            aria-label="Scroll photos left"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden />
-          </button>
-        )}
+      <div className="relative rounded-xl bg-slate-100/80 px-1 py-3.5 sm:px-2 sm:py-4">
+        <button
+          type="button"
+          onClick={() => scrollCarousel("left")}
+          className="absolute top-[calc(50%-0.75rem)] left-0.5 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-700 sm:top-1/2 sm:left-1 sm:h-8 sm:w-8"
+          aria-label="Scroll photos left"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden />
+        </button>
 
         <div
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scroll-smooth px-8 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto scroll-smooth px-10 [-ms-overflow-style:none] scrollbar-none sm:gap-3 sm:px-8 [&::-webkit-scrollbar]:hidden"
         >
           {slots.map((photo, index) => (
-            <div key={photo?.id ?? `empty-${index}`} className="w-28 shrink-0">
+            <div
+              key={photo?.id ?? `empty-${index}`}
+              className="w-[7.25rem] shrink-0 snap-start sm:w-28"
+            >
               {photo ? (
                 <div className="relative">
-                  <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <div className="relative flex h-28 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white sm:h-24">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={photo.previewUrl}
                       alt={`Office photo ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
+                    <PhotoRemoveButton index={index} onRemove={() => onRemove(photo.id)} />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemove(photo.id)}
-                    className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-white shadow-sm transition hover:bg-slate-700"
-                    aria-label={`Remove office photo ${index + 1}`}
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden />
-                  </button>
                 </div>
               ) : (
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={openFilePicker}
                   disabled={remainingSlots === 0}
-                  className="flex h-24 w-full flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-400 transition hover:border-sky-400 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-28 w-full flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-400 transition hover:border-sky-400 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-50 sm:h-24"
                 >
                   <ImagePlus className="h-7 w-7" aria-hidden />
                 </button>
               )}
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={openFilePicker}
                 disabled={remainingSlots === 0 && !photo}
-                className="mt-2 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-medium text-slate-600 transition hover:border-sky-300 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-2 w-full rounded-md border border-slate-200 bg-white px-2 py-2 text-xs font-medium text-slate-600 transition hover:border-sky-300 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50 sm:py-1.5"
               >
                 Add Photo
               </button>
@@ -137,17 +161,19 @@ export function OfficePhotoUpload({
           ))}
         </div>
 
-        {photos.length < MAX_OFFICE_PHOTOS && (
-          <button
-            type="button"
-            onClick={() => scrollCarousel("right")}
-            className="absolute top-1/2 right-1 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-700"
-            aria-label="Scroll photos right"
-          >
-            <ChevronRight className="h-4 w-4" aria-hidden />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => scrollCarousel("right")}
+          className="absolute top-[calc(50%-0.75rem)] right-0.5 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-700 sm:top-1/2 sm:right-1 sm:h-8 sm:w-8"
+          aria-label="Scroll photos right"
+        >
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </button>
       </div>
+
+      <p className="mt-2 text-xs text-slate-500 sm:hidden">
+        {photos.length} of {MAX_OFFICE_PHOTOS} photos uploaded · swipe or use arrows to browse
+      </p>
 
       <input
         ref={fileInputRef}

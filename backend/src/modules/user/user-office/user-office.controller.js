@@ -29,4 +29,15 @@ async function getOfficeDetails(req, res) {
   }
 }
 
-module.exports = { saveOfficeDetails, getOfficeDetails };
+async function uploadContactPersonPhoto(req, res) {
+  try {
+    const officeDetails = await service.uploadContactPersonPhoto(req.user.id, req.file);
+    return res
+      .status(200)
+      .json({ message: "Contact person photo uploaded successfully", officeDetails });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+module.exports = { saveOfficeDetails, getOfficeDetails, uploadContactPersonPhoto };

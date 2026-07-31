@@ -63,7 +63,7 @@ export type GetBusinessDetailsResponse = {
 };
 
 export function saveBusinessDetails(payload: BusinessDetailsPayload, token: string) {
-  return apiFetch<BusinessDetailsResponse>("/user/business", {
+  return apiFetch<BusinessDetailsResponse>("/user/company", {
     method: "POST",
     body: payload,
     headers: { Authorization: `Bearer ${token}` },
@@ -71,8 +71,19 @@ export function saveBusinessDetails(payload: BusinessDetailsPayload, token: stri
 }
 
 export function getBusinessDetails(token: string) {
-  return apiFetch<GetBusinessDetailsResponse>("/user/business/me", {
+  return apiFetch<GetBusinessDetailsResponse>("/user/company/me", {
     method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function uploadCompanyLogo(file: File, token: string) {
+  const formData = new FormData();
+  formData.append("companyLogo", file);
+
+  return apiFetch<BusinessDetailsResponse>("/user/company/company-logo", {
+    method: "POST",
+    body: formData,
     headers: { Authorization: `Bearer ${token}` },
   });
 }

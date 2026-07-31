@@ -1,4 +1,4 @@
-const repository = require("./user-business.repository");
+const repository = require("./user-company.repository");
 
 class AppError extends Error {
   constructor(message, statusCode) {
@@ -51,4 +51,13 @@ async function getBusinessDetails(userId) {
   return { ...businessDetail, clients };
 }
 
-module.exports = { saveBusinessDetails, getBusinessDetails, AppError };
+async function uploadCompanyLogo(userId, file) {
+  if (!file) {
+    throw new AppError("Company logo file is required", 400);
+  }
+
+  const companyLogoPath = `/uploads/company-logos/${file.filename}`;
+  return repository.upsertCompanyLogo(userId, companyLogoPath);
+}
+
+module.exports = { saveBusinessDetails, getBusinessDetails, uploadCompanyLogo, AppError };

@@ -30,7 +30,7 @@ import {
 import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError } from "@/services/apiClient";
 import { getToken } from "@/services/session";
-import { saveBusinessDetails } from "@/services/userBusiness.service";
+import { saveBusinessDetails } from "@/services/userCompany.service";
 
 export default function UserRegistrationStep2Content() {
   const router = useRouter();

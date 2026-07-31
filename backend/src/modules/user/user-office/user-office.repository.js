@@ -23,4 +23,12 @@ async function upsertOfficeDetails(userId, data) {
   return officeDetail;
 }
 
-module.exports = { findByUserId, upsertOfficeDetails };
+async function updateContactPersonPhoto(userId, contactPersonPhotoPath) {
+  const [officeDetail] = await db(TABLE)
+    .where({ user_id: userId })
+    .update({ contact_person_photo: contactPersonPhotoPath, updated_at: db.fn.now() })
+    .returning("*");
+  return officeDetail;
+}
+
+module.exports = { findByUserId, upsertOfficeDetails, updateContactPersonPhoto };

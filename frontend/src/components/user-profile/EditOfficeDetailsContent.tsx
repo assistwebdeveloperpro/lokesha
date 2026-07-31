@@ -35,40 +35,40 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-100 bg-linear-to-b from-slate-50/80 to-white p-4 sm:p-5">
-      <div className="mb-4 flex items-start gap-3 border-b border-slate-200/70 pb-3.5">
+    <section className="border-b border-slate-100 px-4 py-5 last:border-b-0 sm:rounded-xl sm:border sm:border-slate-100 sm:bg-linear-to-b sm:from-slate-50/80 sm:to-white sm:p-5 sm:last:border-b">
+      <div className="mb-4 flex items-start gap-3 sm:border-b sm:border-slate-200/70 sm:pb-3.5">
         <span
           className="mt-0.5 h-5 w-1 shrink-0 rounded-full bg-sky-500"
           aria-hidden
         />
-        <div>
-          <h2 className="text-md font-semibold tracking-tight text-slate-800">{title}</h2>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-tight text-slate-800 sm:text-md">{title}</h2>
           {description ? (
             <p className="mt-0.5 text-sm leading-relaxed text-slate-500">{description}</p>
           ) : null}
         </div>
       </div>
-      <div className="space-y-5 sm:space-y-6">{children}</div>
+      <div className="space-y-4 sm:space-y-6">{children}</div>
     </section>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-hidden>
+    <div className="space-y-0 animate-pulse overflow-hidden -mx-4 sm:mx-0 sm:space-y-4 sm:rounded-xl sm:border sm:border-slate-100" aria-hidden>
       {[1, 2].map((section) => (
         <div
           key={section}
-          className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5"
+          className="border-b border-slate-100 px-4 py-5 last:border-b-0 sm:rounded-xl sm:border sm:border-slate-100 sm:bg-slate-50/50 sm:p-5"
         >
-          <div className="mb-4 flex items-center gap-3 border-b border-slate-200/70 pb-3.5">
+          <div className="mb-4 flex items-center gap-3 sm:border-b sm:border-slate-200/70 sm:pb-3.5">
             <div className="h-4 w-1 rounded-full bg-slate-200" />
             <div className="h-4 w-36 rounded bg-slate-200" />
           </div>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-            <div className="h-23 rounded-xl bg-slate-200/80 sm:min-h-25" />
-            <div className="h-23 rounded-xl bg-slate-200/80 sm:min-h-25" />
-            <div className="hidden h-23 rounded-xl bg-slate-200/80 sm:block sm:min-h-25" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-2.5">
+            <div className="aspect-square rounded-xl bg-slate-200/80 sm:aspect-auto sm:h-25 sm:min-h-25" />
+            <div className="aspect-square rounded-xl bg-slate-200/80 sm:aspect-auto sm:h-25 sm:min-h-25" />
+            <div className="hidden aspect-square rounded-xl bg-slate-200/80 sm:block sm:aspect-auto sm:h-25 sm:min-h-25" />
           </div>
         </div>
       ))}
@@ -91,7 +91,7 @@ function OfficeDetailsRequiredNotice() {
       </div>
       <Link
         href="/user-registration-step-3?redirect=edit-office-details"
-        className="inline-flex items-center justify-center rounded-xl bg-linear-to-r-navy-blue px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-slate-900/15 transition hover:shadow-slate-900/25 active:scale-[0.99]"
+        className="inline-flex w-full items-center justify-center rounded-xl bg-linear-to-r-navy-blue px-5 py-3 text-sm font-semibold text-white shadow-md shadow-slate-900/15 transition hover:shadow-slate-900/25 active:scale-[0.99] sm:w-auto sm:py-2.5"
       >
         Fill Office Details
       </Link>
@@ -305,9 +305,9 @@ export default function EditOfficeDetailsContent() {
   };
 
   return (
-    <section aria-labelledby="edit-office-details-heading" className="max-w-3xl">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+    <section aria-labelledby="edit-office-details-heading" className="w-full max-w-3xl">
+      <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">
             Office profile
           </p>
@@ -323,7 +323,7 @@ export default function EditOfficeDetailsContent() {
         </div>
         <Link
           href="/user/profile/account-details"
-          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 sm:w-auto sm:justify-start sm:py-2"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to profile
@@ -335,21 +335,22 @@ export default function EditOfficeDetailsContent() {
       ) : needsOfficeDetails ? (
         <OfficeDetailsRequiredNotice />
       ) : (
-        <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
-          {loadError && (
-            <p
-              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
-              role="alert"
-            >
-              {loadError}
-            </p>
-          )}
+        <div className="overflow-hidden -mx-4 sm:mx-0 sm:rounded-xl sm:border sm:border-slate-200 sm:bg-white sm:shadow-sm">
+          <form onSubmit={handleSubmit}>
+            {loadError && (
+              <p
+                className="mx-4 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 sm:mx-5 sm:mt-5"
+                role="alert"
+              >
+                {loadError}
+              </p>
+            )}
 
-          <FormSection
-            title="Office location"
-            description="Where your office is based and how buyers can reach you."
-          >
-            <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+            <FormSection
+              title="Office location"
+              description="Where your office is based and how buyers can reach you."
+            >
+              <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
               <FloatingInput
                 id="state"
                 label="State"
@@ -432,12 +433,12 @@ export default function EditOfficeDetailsContent() {
               </KycWarning>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-2.5 text-sm text-slate-600">
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-3 text-sm leading-relaxed text-slate-600 sm:items-center sm:gap-2.5 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
               <input
                 type="checkbox"
                 checked={hidePersonName}
                 onChange={(event) => setHidePersonName(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500 sm:mt-0"
               />
               Hide Person Name
             </label>
@@ -484,22 +485,23 @@ export default function EditOfficeDetailsContent() {
             />
           </FormSection>
 
-          <div className="flex flex-col-reverse gap-3 pt-5 sm:flex-row sm:items-center sm:justify-end">
-            <Link
-              href="/user/profile/account-details"
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-linear-to-r-navy-blue w-full cursor-pointer rounded-xl px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-slate-900/20 transition hover:shadow-slate-900/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-48"
-            >
-              {isSubmitting ? "Saving..." : "Save & Exit"}
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:bg-transparent sm:px-5 sm:py-5">
+              <Link
+                href="/user/profile/account-details"
+                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 sm:order-1"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-linear-to-r-navy-blue order-first w-full cursor-pointer rounded-xl px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-slate-900/20 transition hover:shadow-slate-900/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:order-2 sm:w-auto sm:min-w-48"
+              >
+                {isSubmitting ? "Saving..." : "Save & Exit"}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </section>
   );

@@ -232,7 +232,7 @@ export function YesNoRadioGroup({
 
 /**
  * The backend merges tile selections and "others" dropdown checkboxes into a single
- * deduped column (see user-business.service.js mergeUnique). This splits a merged
+ * deduped column (see user-company.service.js mergeUnique). This splits a merged
  * array back into tile ids vs dropdown-others ids for prefilling the edit form.
  * Note: the "others" tile id and the "others" dropdown-option id are the same
  * literal string, so if present, both are reported as selected — that ambiguity is

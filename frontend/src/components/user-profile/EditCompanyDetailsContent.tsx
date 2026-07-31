@@ -36,7 +36,7 @@ import {
 import { useToast } from "@/components/ui/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { ApiError } from "@/services/apiClient";
-import { getBusinessDetails, saveBusinessDetails } from "@/services/userBusiness.service";
+import { getBusinessDetails, saveBusinessDetails } from "@/services/userCompany.service";
 
 function FormSection({
   title,

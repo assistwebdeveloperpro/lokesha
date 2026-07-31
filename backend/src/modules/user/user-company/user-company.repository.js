@@ -47,4 +47,26 @@ async function upsertBusinessDetails(userId, data, clients) {
   });
 }
 
-module.exports = { findByUserId, findClientsByBusinessDetailId, upsertBusinessDetails };
+async function upsertCompanyLogo(userId, companyLogoPath) {
+  const existing = await db(BUSINESS_TABLE).where({ user_id: userId }).first();
+
+  if (existing) {
+    const [businessDetail] = await db(BUSINESS_TABLE)
+      .where({ id: existing.id })
+      .update({ company_logo: companyLogoPath, updated_at: db.fn.now() })
+      .returning("*");
+    return businessDetail;
+  }
+
+  const [businessDetail] = await db(BUSINESS_TABLE)
+    .insert({ user_id: userId, company_logo: companyLogoPath })
+    .returning("*");
+  return businessDetail;
+}
+
+module.exports = {
+  findByUserId,
+  findClientsByBusinessDetailId,
+  upsertBusinessDetails,
+  upsertCompanyLogo,
+};

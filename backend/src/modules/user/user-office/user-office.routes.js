@@ -1,7 +1,10 @@
 const express = require("express");
 const validate = require("../../../middlewares/validate.middleware");
 const authMiddleware = require("../../../middlewares/auth.middleware");
-const { handleOfficePhotosUpload } = require("../../../middlewares/upload.middleware");
+const {
+  handleOfficePhotosUpload,
+  handleContactPersonPhotoUpload,
+} = require("../../../middlewares/upload.middleware");
 const controller = require("./user-office.controller");
 const { officeDetailsSchema } = require("./user-office.validation");
 
@@ -29,5 +32,11 @@ router.post(
   controller.saveOfficeDetails
 );
 router.get("/me", authMiddleware, controller.getOfficeDetails);
+router.post(
+  "/contact-person-photo",
+  authMiddleware,
+  handleContactPersonPhotoUpload,
+  controller.uploadContactPersonPhoto
+);
 
 module.exports = router;

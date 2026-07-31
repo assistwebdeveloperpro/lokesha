@@ -83,7 +83,14 @@ function UserDashboardShellInner({
     setExpandedSectionHref((current) => (current === href ? null : href));
   };
 
+  const closeSidebarOnMobile = () => {
+    if (!isDesktop) {
+      setOpen(false);
+    }
+  };
+
   const handleLogout = () => {
+    closeSidebarOnMobile();
     logout();
     router.replace("/");
   };
@@ -100,6 +107,7 @@ function UserDashboardShellInner({
           >
             <Link
               href="/"
+              onClick={closeSidebarOnMobile}
               className={cn(
                 "flex items-center transition hover:bg-white/10",
                 open
@@ -167,7 +175,11 @@ function UserDashboardShellInner({
                           asChild
                           isActive={!hasChildren && isNavItemActive(pathname, item.href)}
                         >
-                          <Link href={item.href} title={!open ? item.label : undefined}>
+                          <Link
+                            href={item.href}
+                            title={!open ? item.label : undefined}
+                            onClick={closeSidebarOnMobile}
+                          >
                             <ItemIcon className="h-5 w-5 shrink-0" />
                             {open && <span className="truncate">{item.label}</span>}
                           </Link>
@@ -183,7 +195,7 @@ function UserDashboardShellInner({
                                   asChild
                                   isActive={isNavItemActive(pathname, child.href)}
                                 >
-                                  <Link href={child.href}>
+                                  <Link href={child.href} onClick={closeSidebarOnMobile}>
                                     <span className="truncate">{child.label}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
@@ -256,7 +268,7 @@ function UserDashboardShellInner({
             </div>
 
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
+              <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 shadow-sm">
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-slate-700">
                   {initialFromName(userName)}
                 </span>

@@ -18,4 +18,13 @@ async function getProfile(req, res) {
   }
 }
 
-module.exports = { getProfile };
+async function updateLoginDetails(req, res) {
+  try {
+    const profile = await service.updateLoginDetails(req.user.id, req.body);
+    return res.status(200).json({ message: "Login details updated successfully", profile });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+module.exports = { getProfile, updateLoginDetails };
