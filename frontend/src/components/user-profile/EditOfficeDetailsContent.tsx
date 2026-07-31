@@ -141,6 +141,19 @@ export default function EditOfficeDetailsContent() {
         const { officeDetails } = await getOfficeDetails(token!);
         if (cancelled) return;
 
+        const hasCoreOfficeDetails =
+          Boolean(officeDetails.state?.trim()) ||
+          Boolean(officeDetails.city?.trim()) ||
+          Boolean(officeDetails.locality?.trim()) ||
+          Boolean(officeDetails.contact_person_name?.trim()) ||
+          Boolean(officeDetails.agency_company_name?.trim());
+
+        if (!hasCoreOfficeDetails) {
+          setNeedsOfficeDetails(true);
+          setIsLoading(false);
+          return;
+        }
+
         setState(officeDetails.state as IndianState);
         setCity(officeDetails.city);
         setLocality(officeDetails.locality);
