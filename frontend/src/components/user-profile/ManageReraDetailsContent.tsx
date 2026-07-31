@@ -134,7 +134,7 @@ function ReraEntryCard({
   const documentUrl = entry.documentUrl;
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white">
+    <article className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
         <h3 className="text-base font-semibold text-slate-900">{entry.state}</h3>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -157,38 +157,38 @@ function ReraEntryCard({
         </div>
       </div>
 
-      <div className="grid gap-4 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-start sm:px-5">
-        <dl className="space-y-3">
-          <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(9rem,11rem)_1fr] sm:gap-4">
+      <div className="grid gap-4 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-6 sm:px-5">
+        <dl className="min-w-0 space-y-3">
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(9rem,11rem)_minmax(0,1fr)] sm:gap-4">
             <dt className="text-sm text-slate-500">RERA ID</dt>
-            <dd className="text-sm font-medium text-slate-900">{entry.reraId}</dd>
+            <dd className="break-all text-sm font-medium text-slate-900">{entry.reraId}</dd>
           </div>
-          <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(9rem,11rem)_1fr] sm:gap-4">
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(9rem,11rem)_minmax(0,1fr)] sm:gap-4">
             <dt className="text-sm text-slate-500">Validity</dt>
             <dd className="text-sm font-medium text-slate-900">
               {formatValidity(entry.validityMonth, entry.validityYear)}
             </dd>
           </div>
-          <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(9rem,11rem)_1fr] sm:gap-4">
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-[minmax(9rem,11rem)_minmax(0,1fr)] sm:gap-4">
             <dt className="text-sm text-slate-500">Supporting document</dt>
-            <dd className="text-sm font-medium">
+            <dd className="min-w-0 text-sm font-medium">
               {documentUrl ? (
                 <a
                   href={documentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sky-700 underline decoration-sky-700/30 underline-offset-2 transition hover:text-sky-600"
+                  className="break-all text-sky-700 underline decoration-sky-700/30 underline-offset-2 transition hover:text-sky-600"
                 >
                   {entry.documentFileName}
                 </a>
               ) : (
-                <span className="text-slate-900">{entry.documentFileName}</span>
+                <span className="break-all text-slate-900">{entry.documentFileName}</span>
               )}
             </dd>
           </div>
         </dl>
 
-        <span className="inline-flex w-fit items-center rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 ring-1 ring-rose-100">
+        <span className="inline-flex w-fit shrink-0 self-start items-center rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 ring-1 ring-rose-100">
           Verification Pending
         </span>
       </div>
