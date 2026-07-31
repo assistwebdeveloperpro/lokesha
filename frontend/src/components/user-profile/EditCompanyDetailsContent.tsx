@@ -117,7 +117,7 @@ function BusinessProfileRequiredNotice() {
 export default function EditCompanyDetailsContent() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { token, isLoggedIn } = useAuth();
+  const { token, isLoggedIn, isAuthReady } = useAuth();
 
   const [dealingIn, setDealingIn] = useState<(typeof dealingInOptions)[number]["id"][]>([]);
   const [propertyType, setPropertyType] =
@@ -147,6 +147,10 @@ export default function EditCompanyDetailsContent() {
   const [needsBusinessDetails, setNeedsBusinessDetails] = useState(false);
 
   useEffect(() => {
+    if (!isAuthReady) {
+      return;
+    }
+
     if (!isLoggedIn || !token) {
       setIsLoading(false);
       return;
@@ -252,7 +256,7 @@ export default function EditCompanyDetailsContent() {
     return () => {
       cancelled = true;
     };
-  }, [isLoggedIn, token]);
+  }, [isAuthReady, isLoggedIn, token]);
 
   const showResidentialProperty =
     !propertyType.includes("commercial") || propertyType.includes("residential");
@@ -389,7 +393,7 @@ export default function EditCompanyDetailsContent() {
         </Link>
       </div>
 
-      {isLoading ? (
+      {!isAuthReady || isLoading ? (
         <LoadingSkeleton />
       ) : needsBusinessDetails ? (
         <BusinessProfileRequiredNotice />

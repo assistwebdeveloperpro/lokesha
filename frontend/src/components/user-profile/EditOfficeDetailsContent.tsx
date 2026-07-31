@@ -102,7 +102,7 @@ function OfficeDetailsRequiredNotice() {
 export default function EditOfficeDetailsContent() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { token, isLoggedIn } = useAuth();
+  const { token, isLoggedIn, isAuthReady } = useAuth();
 
   const [state, setState] = useState<IndianState | "">("");
   const [city, setCity] = useState("");
@@ -127,6 +127,10 @@ export default function EditOfficeDetailsContent() {
   );
 
   useEffect(() => {
+    if (!isAuthReady) {
+      return;
+    }
+
     if (!isLoggedIn || !token) {
       setIsLoading(false);
       return;
@@ -188,7 +192,7 @@ export default function EditOfficeDetailsContent() {
     return () => {
       cancelled = true;
     };
-  }, [isLoggedIn, token]);
+  }, [isAuthReady, isLoggedIn, token]);
 
   const clearError = (field: keyof FormErrors) => {
     setErrors((current) => {
@@ -343,7 +347,7 @@ export default function EditOfficeDetailsContent() {
         </Link>
       </div>
 
-      {isLoading ? (
+      {!isAuthReady || isLoading ? (
         <LoadingSkeleton />
       ) : needsOfficeDetails ? (
         <OfficeDetailsRequiredNotice />

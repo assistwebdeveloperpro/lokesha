@@ -15,6 +15,7 @@ export type AuthState = {
   role: Role | null;
   userName: string;
   displayInitial: string;
+  isAuthReady: boolean;
 };
 
 type SessionState = {
@@ -45,6 +46,7 @@ export function useAuth() {
   // Session is read from localStorage only after mount; name always comes from API.
   const [session, setSession] = useState<SessionState>(INITIAL_SESSION);
   const [userName, setUserName] = useState("User");
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   const refresh = useCallback(() => {
     setSession(readSessionState());
@@ -52,6 +54,7 @@ export function useAuth() {
 
   useEffect(() => {
     refresh();
+    setIsAuthReady(true);
 
     const handleSessionChange = () => refresh();
     window.addEventListener(SESSION_CHANGE_EVENT, handleSessionChange);
@@ -101,6 +104,7 @@ export function useAuth() {
     ...session,
     userName,
     displayInitial,
+    isAuthReady,
     logout,
     refresh,
   };
