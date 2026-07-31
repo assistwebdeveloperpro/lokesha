@@ -23,12 +23,29 @@ async function upsertOfficeDetails(userId, data) {
   return officeDetail;
 }
 
-async function updateContactPersonPhoto(userId, contactPersonPhotoPath) {
+async function upsertContactPersonPhoto(userId, contactPersonPhotoPath) {
+  const existing = await db(TABLE).where({ user_id: userId }).first();
+
+  if (existing) {
+    const [officeDetail] = await db(TABLE)
+      .where({ id: existing.id })
+      .update({ contact_person_photo: contactPersonPhotoPath, updated_at: db.fn.now() })
+      .returning("*");
+    return officeDetail;
+  }
+
   const [officeDetail] = await db(TABLE)
-    .where({ user_id: userId })
-    .update({ contact_person_photo: contactPersonPhotoPath, updated_at: db.fn.now() })
+    .insert({
+      user_id: userId,
+      contact_person_photo: contactPersonPhotoPath,
+      state: "",
+      city: "",
+      locality: "",
+      contact_person_name: "",
+      agency_company_name: "",
+    })
     .returning("*");
   return officeDetail;
 }
 
-module.exports = { findByUserId, upsertOfficeDetails, updateContactPersonPhoto };
+module.exports = { findByUserId, upsertOfficeDetails, upsertContactPersonPhoto };

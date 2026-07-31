@@ -38,13 +38,8 @@ async function uploadContactPersonPhoto(userId, file) {
     throw new AppError("Contact person photo file is required", 400);
   }
 
-  const existing = await repository.findByUserId(userId);
-  if (!existing) {
-    throw new AppError("Please complete your office details before uploading a photo", 404);
-  }
-
   const contactPersonPhotoPath = `/uploads/contact-person-photos/${file.filename}`;
-  return repository.updateContactPersonPhoto(userId, contactPersonPhotoPath);
+  return repository.upsertContactPersonPhoto(userId, contactPersonPhotoPath);
 }
 
 module.exports = { saveOfficeDetails, getOfficeDetails, uploadContactPersonPhoto, AppError };
