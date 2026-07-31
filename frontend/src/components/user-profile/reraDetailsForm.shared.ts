@@ -37,22 +37,6 @@ export const RERA_ID_MAX_LENGTH = 50;
 
 const RERA_ID_GENERAL_PATTERN = /^[A-Za-z0-9][A-Za-z0-9/_-]*[A-Za-z0-9]$|^[A-Za-z0-9]{1,4}$/;
 
-const STATE_RERA_PATTERNS: Partial<Record<IndianState, RegExp>> = {
-  Maharashtra: /^[A-Z]\d{4,}[A-Z0-9]*$|^[A-Z0-9]{5,50}$/i,
-  Gujarat: /^[A-Z0-9/]{5,50}$/i,
-  Karnataka: /^PRM\/KA\/RERA\/\d+\/\d{4}$/i,
-  "Tamil Nadu": /^TN\/(Agent|Agency)\/Reg\.No\/\d+\/\d{4}$/i,
-  Delhi: /^DLRERA\d{4,}$/i,
-  "Uttar Pradesh": /^UPRERA(AGT|PRJ)\d{4,}$/i,
-  Haryana: /^HRERA-[A-Z0-9-]{3,}$/i,
-  Rajasthan: /^RAJ\/P\/[A-Z]\/\d{4}\/\d+$/i,
-  Telangana: /^TS\/RERA\/\d+\/\d{4}$/i,
-  Kerala: /^K-RERA\/\d+\/\d{4}$/i,
-  "Madhya Pradesh": /^MP\/RERA\/\d+\/\d{4}$/i,
-  Punjab: /^PBRERA-(AGT|PRJ)-\d+$/i,
-  "West Bengal": /^HIRA\/[A-Z]\/\d+\/\d{4}$/i,
-};
-
 export const MONTH_OPTIONS = [
   { value: "", label: "Month" },
   { value: "01", label: "January" },
@@ -102,7 +86,7 @@ function isValidityInPast(month: string, year: string) {
   return validityEnd.getTime() < Date.now();
 }
 
-export function validateReraId(reraId: string, state?: IndianState) {
+export function validateReraId(reraId: string) {
   const trimmed = reraId.trim();
 
   if (!trimmed) {
@@ -133,10 +117,6 @@ export function validateReraId(reraId: string, state?: IndianState) {
     return "RERA ID must start and end with a letter or number.";
   }
 
-  if (state && STATE_RERA_PATTERNS[state] && !STATE_RERA_PATTERNS[state]!.test(trimmed)) {
-    return `RERA ID format is invalid for ${state}.`;
-  }
-
   return undefined;
 }
 
@@ -165,10 +145,7 @@ export function validateReraForm(
     errors.state = "RERA details for this state already exist.";
   }
 
-  const reraIdError = validateReraId(
-    values.reraId,
-    values.state ? (values.state as IndianState) : undefined,
-  );
+  const reraIdError = validateReraId(values.reraId);
   if (reraIdError) {
     errors.reraId = reraIdError;
   }

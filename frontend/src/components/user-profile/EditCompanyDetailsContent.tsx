@@ -161,9 +161,22 @@ export default function EditCompanyDetailsContent() {
         const { businessDetails } = await getBusinessDetails(token!);
         if (cancelled) return;
 
-        setDealingIn(businessDetails.dealing_in as (typeof dealingInOptions)[number]["id"][]);
+        const hasCoreBusinessDetails =
+          (businessDetails.dealing_in?.length ?? 0) > 0 ||
+          (businessDetails.property_type?.length ?? 0) > 0 ||
+          businessDetails.operating_since != null;
+
+        if (!hasCoreBusinessDetails) {
+          setNeedsBusinessDetails(true);
+          setIsLoading(false);
+          return;
+        }
+
+        setDealingIn(
+          (businessDetails.dealing_in ?? []) as (typeof dealingInOptions)[number]["id"][],
+        );
         setPropertyType(
-          businessDetails.property_type as (typeof propertyTypeOptions)[number]["id"][],
+          (businessDetails.property_type ?? []) as (typeof propertyTypeOptions)[number]["id"][],
         );
 
         const transactionSplit = splitMergedSelections(
@@ -190,9 +203,11 @@ export default function EditCompanyDetailsContent() {
         setCommercialProperty(commercialSplit.tileSelections);
         setCommercialPropertyOthers(commercialSplit.othersSelections);
 
-        setOperatingSince(String(businessDetails.operating_since));
-        setExpertiseIn(businessDetails.expertise_in);
-        setBusinessDescription(businessDetails.business_description);
+        setOperatingSince(
+          businessDetails.operating_since != null ? String(businessDetails.operating_since) : "",
+        );
+        setExpertiseIn(businessDetails.expertise_in ?? "");
+        setBusinessDescription(businessDetails.business_description ?? "");
         setAuthorizedAgents(businessDetails.authorized_agents ?? "");
         setPropertyRegistry(
           businessDetails.property_registry === true
@@ -209,7 +224,7 @@ export default function EditCompanyDetailsContent() {
               : "",
         );
         setClients(
-          businessDetails.clients.length > 0
+          businessDetails.clients?.length > 0
             ? businessDetails.clients.map((client) => ({
                 id: client.id,
                 name: client.name ?? "",
