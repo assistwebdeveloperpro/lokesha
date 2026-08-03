@@ -167,7 +167,7 @@ export function FloatingTextarea({
         rows={3}
         aria-invalid={hasError}
         onChange={(event) => onChange(event.target.value)}
-        className={`w-full resize-y border-0 border-b bg-transparent px-0 pb-2.5 pt-2 text-sm leading-relaxed text-slate-800 outline-none transition-colors ${
+        className={`w-full resize-y border-0 border-b bg-transparent px-0 pb-2.5 pt-2 text-sm font-medium leading-relaxed text-slate-900 outline-none transition-colors ${
           hasError ? "border-red-500 focus:border-red-500" : "border-slate-300 focus:border-sky-600"
         }`}
       />

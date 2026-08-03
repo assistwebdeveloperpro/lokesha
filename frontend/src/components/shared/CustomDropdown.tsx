@@ -52,7 +52,7 @@ export default function CustomDropdown({
   const selectedOption =
     options.find((option) => option.value === selectedValue) ?? options[0];
 
-  const fieldTextColor = blackText ? "text-black" : "text-slate-800";
+  const fieldTextColor = blackText ? "text-black font-medium" : "text-slate-900 font-medium";
 
   const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none transition-colors ${
     hasError
@@ -162,7 +162,7 @@ export default function CustomDropdown({
                   onClick={() => handleSelect(option.value)}
                   className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
                     isSelected
-                      ? `bg-sky-50 font-medium ${fieldTextColor}`
+                      ? `bg-sky-100 font-medium ${fieldTextColor}`
                       : `${fieldTextColor} hover:bg-slate-50`
                   }`}
                 >

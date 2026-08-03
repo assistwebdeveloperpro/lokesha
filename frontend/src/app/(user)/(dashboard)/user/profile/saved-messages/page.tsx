@@ -61,7 +61,7 @@ const SAVED_MESSAGE_TABS = [
 type SavedMessageTabId = (typeof SAVED_MESSAGE_TABS)[number]["id"];
 
 const inputClassName =
-  "min-h-52 w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm leading-relaxed text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20";
+  "min-h-52 w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-medium leading-relaxed text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-normal focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20";
 
 function createEmptyMessages(): Record<SavedMessageTabId, string> {
   return {
@@ -247,7 +247,7 @@ export default function SavedMessagesPage() {
           >
             Saved Messages
           </h1>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+          <p className="profile-description mt-1.5">
             Create reusable messages for property, requirement, agent, and builder listings so you
             can respond quickly without retyping every time.
           </p>
@@ -303,7 +303,7 @@ export default function SavedMessagesPage() {
                   <h2 className="font-display text-base font-bold text-slate-900 sm:text-lg">
                     {activeTabConfig.label}
                   </h2>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+                  <p className="profile-description mt-1.5">
                     {activeTabConfig.description} In case you want to update the message, please
                     edit & save it.
                   </p>

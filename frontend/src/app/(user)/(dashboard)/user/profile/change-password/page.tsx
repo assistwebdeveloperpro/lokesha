@@ -17,7 +17,7 @@ type FormErrors = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20";
+  "w-full rounded-xl border bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-normal border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20";
 
 function FormRow({
   label,
@@ -223,7 +223,7 @@ export default function ChangePasswordPage() {
           >
             Change Password
           </h1>
-          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">
+          <p className="profile-description mt-1.5 max-w-xl">
             Update your password to keep your account secure.
           </p>
         </div>
@@ -238,7 +238,7 @@ export default function ChangePasswordPage() {
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <form onSubmit={handleSubmit} noValidate>
-          <p className="border-b border-slate-200 px-4 py-3 text-xs leading-relaxed text-slate-500 sm:px-5">
+          <p className="profile-description-sm border-b border-slate-200 px-4 py-3 sm:px-5">
             <span className="text-red-500">*</span> denotes mandatory fields
           </p>
           <FormRow label="Email ID">

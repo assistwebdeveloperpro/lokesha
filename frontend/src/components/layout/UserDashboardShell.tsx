@@ -17,8 +17,9 @@ import { cn } from "@/lib/utils";
 import {
   getActiveNavLabel,
   getActiveSectionHref,
+  getRestrictedNavRedirect,
+  getUserDashboardNavItems,
   isNavItemActive,
-  userDashboardNavItems,
 } from "@/components/layout/user-dashboard-nav";
 import {
   Sidebar,
@@ -66,9 +67,13 @@ function UserDashboardShellInner({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { userName = "User", logout } = useAuth();
+  const { userName = "User", logout, role } = useAuth();
   const { open, isDesktop, setOpen } = useSidebar();
-  const activeSectionHref = useMemo(() => getActiveSectionHref(pathname), [pathname]);
+  const navItems = useMemo(() => getUserDashboardNavItems(role), [role]);
+  const activeSectionHref = useMemo(
+    () => getActiveSectionHref(pathname, role),
+    [pathname, role]
+  );
   const [expandedSectionHref, setExpandedSectionHref] = useState<string | null>(activeSectionHref);
 
   useEffect(() => {
@@ -77,7 +82,7 @@ function UserDashboardShellInner({
     }
   }, [activeSectionHref]);
 
-  const currentSection = useMemo(() => getActiveNavLabel(pathname), [pathname]);
+  const currentSection = useMemo(() => getActiveNavLabel(pathname, role), [pathname, role]);
 
   const toggleSection = (href: string) => {
     setExpandedSectionHref((current) => (current === href ? null : href));
@@ -93,6 +98,19 @@ function UserDashboardShellInner({
     closeSidebarOnMobile();
     logout();
     router.replace("/");
+  };
+
+  const handleNavClick = (
+    href: string,
+    event: React.MouseEvent<HTMLAnchorElement>
+  ) => {
+    const redirectTo = getRestrictedNavRedirect(href, role);
+    closeSidebarOnMobile();
+
+    if (redirectTo) {
+      event.preventDefault();
+      router.push(redirectTo);
+    }
   };
 
   return (
@@ -144,13 +162,13 @@ function UserDashboardShellInner({
             <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {userDashboardNavItems.map((item) => {
+                {navItems.map((item) => {
                   const ItemIcon = item.icon;
                   const hasChildren = Boolean(item.children?.length);
                   const isExpanded = expandedSectionHref === item.href;
 
                   return (
-                    <SidebarMenuItem key={item.href}>
+                    <SidebarMenuItem key={item.label}>
                       {hasChildren && open ? (
                         <SidebarMenuButton
                           type="button"
@@ -159,7 +177,7 @@ function UserDashboardShellInner({
                           onClick={() => toggleSection(item.href)}
                           className="justify-between gap-2"
                         >
-                          <span className="flex min-w-0 flex-1 items-center gap-3">
+                          <span className="flex min-w-0 flex-1 items-center gap-3 font-semibold">
                             <ItemIcon className="h-5 w-5 shrink-0" />
                             <span className="truncate">{item.label}</span>
                           </span>
@@ -173,12 +191,12 @@ function UserDashboardShellInner({
                       ) : (
                         <SidebarMenuButton
                           asChild
-                          isActive={!hasChildren && isNavItemActive(pathname, item.href)}
+                          isActive={!hasChildren && isNavItemActive(pathname, item.href, role)}
                         >
                           <Link
                             href={item.href}
                             title={!open ? item.label : undefined}
-                            onClick={closeSidebarOnMobile}
+                            onClick={(event) => handleNavClick(item.href, event)}
                           >
                             <ItemIcon className="h-5 w-5 shrink-0" />
                             {open && <span className="truncate">{item.label}</span>}
@@ -190,12 +208,16 @@ function UserDashboardShellInner({
                         <SidebarMenuSubCollapsible open={isExpanded}>
                           <SidebarMenuSub>
                             {item.children!.map((child) => (
-                              <SidebarMenuSubItem key={child.href}>
+                              <SidebarMenuSubItem key={`${item.label}-${child.label}`}>
                                 <SidebarMenuSubButton
                                   asChild
-                                  isActive={isNavItemActive(pathname, child.href)}
+                                  isActive={isNavItemActive(pathname, child.href, role)}
+                                  className="font-semibold"
                                 >
-                                  <Link href={child.href} onClick={closeSidebarOnMobile}>
+                                  <Link
+                                    href={child.href}
+                                    onClick={(event) => handleNavClick(child.href, event)}
+                                  >
                                     <span className="truncate">{child.label}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
@@ -218,6 +240,7 @@ function UserDashboardShellInner({
             type="button"
             onClick={handleLogout}
             title={!open ? "Sign out" : undefined}
+            className="font-semibold"
           >
             <LogOut className="h-5 w-5 shrink-0" />
             {open && "Sign Out"}
@@ -263,7 +286,7 @@ function UserDashboardShellInner({
                 )}
               </SidebarTrigger>
               <div>
-                <p className="font-display text-xl font-bold ps-3 text-slate-900">{currentSection}</p>
+                <p className="font-display text-md sm:text-xl font-bold ps-3 text-slate-900">{currentSection}</p>
               </div>
             </div>
 
@@ -272,7 +295,7 @@ function UserDashboardShellInner({
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-slate-700">
                   {initialFromName(userName)}
                 </span>
-                <span className="hidden text-sm font-medium text-slate-700 sm:inline">{userName}</span>
+                <span className="hidden text-sm font-semibold text-slate-700 sm:inline">{userName}</span>
               </div>
             </div>
           </div>

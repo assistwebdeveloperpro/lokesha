@@ -42,7 +42,7 @@ export default function FloatingInput({
   const isUnderline = variant === "underline";
   const isSelect = Boolean(options?.length);
   const hasError = Boolean(error) || invalid;
-  const fieldTextColor = blackText ? "text-black" : "text-slate-800";
+  const fieldTextColor = blackText ? "text-black font-medium" : "text-slate-900 font-medium";
 
   const underlineFieldClasses = `w-full border-0 border-b bg-transparent px-0 pb-2.5 text-sm ${fieldTextColor} outline-none transition-colors ${
     staticLabel ? "pt-2" : prominentLabel ? "pt-7" : "pt-6"

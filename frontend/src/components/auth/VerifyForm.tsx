@@ -4,6 +4,7 @@ import { ChevronLeft, Phone, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { verifyOtp } from "@/services/auth.service";
+import { getDefaultUserDashboardRoute } from "@/components/layout/user-dashboard-nav";
 import { setSession } from "@/services/session";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -98,7 +99,7 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
       });
       setSession(token, role);
       showToast("OTP verified successfully.");
-      router.push("/user/dashboard");
+      router.push(getDefaultUserDashboardRoute(role));
     } catch {
       setOtpError(true);
       showToast("OTP is not verified. Please try again.", "error");

@@ -98,7 +98,7 @@ export function OfficePhotoUpload({
   return (
     <div>
       <div className="mb-3 space-y-1 sm:mb-2.5 sm:space-y-0">
-        <p className="text-xs leading-relaxed text-slate-500 sm:text-sm sm:font-semibold sm:text-slate-700">
+        <p className="profile-description-sm sm:text-sm sm:font-semibold sm:text-slate-700">
           <span className="sm:hidden">
             Upload up to {MAX_OFFICE_PHOTOS} photos (jpeg, jpg, png, gif).
           </span>

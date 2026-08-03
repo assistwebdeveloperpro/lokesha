@@ -79,7 +79,7 @@ const MathCaptcha = forwardRef<MathCaptchaHandle, MathCaptchaProps>(
             }}
             placeholder="Enter answer"
             aria-invalid={Boolean(error)}
-            className={`h-13 min-w-0 w-full rounded-xl border bg-white px-4 text-sm text-slate-800 shadow-sm outline-none sm:flex-1 ${
+            className={`h-13 min-w-0 w-full rounded-xl border bg-white px-4 text-sm font-medium text-slate-900 shadow-sm outline-none sm:flex-1 ${
               error
                 ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
                 : "border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"

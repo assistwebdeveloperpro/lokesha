@@ -504,7 +504,7 @@ export default function ManageReraDetailsContent() {
                   }}
                   error={errors.verificationLink}
                 />
-                <p className="text-xs leading-relaxed text-slate-500">
+                <p className="profile-description-sm">
                   Please share official RERA website link of your RERA Registration. Eg -
                   PR/GJ/AHMEDABAD/AHMEDABAD CITY/AUDA/RAA09493/181221
                 </p>
@@ -539,7 +539,7 @@ export default function ManageReraDetailsContent() {
                     {errors.supportingDocument}
                   </p>
                 ) : null}
-                <p className="text-xs leading-relaxed text-slate-500">
+                <p className="profile-description-sm">
                   Please upload your RERA registration supporting document
                 </p>
               </div>

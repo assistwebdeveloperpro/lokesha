@@ -1,4 +1,5 @@
 import RequireAuth from "@/components/auth/RequireAuth";
+import RequireUserDashboardAccess from "@/components/auth/RequireUserDashboardAccess";
 import UserDashboardShell from "@/components/layout/UserDashboardShell";
 
 export default function Layout({
@@ -8,7 +9,9 @@ export default function Layout({
 }>) {
   return (
     <RequireAuth>
-      <UserDashboardShell>{children}</UserDashboardShell>
+      <RequireUserDashboardAccess>
+        <UserDashboardShell>{children}</UserDashboardShell>
+      </RequireUserDashboardAccess>
     </RequireAuth>
   );
 }

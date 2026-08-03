@@ -5,8 +5,8 @@
   --foreground: #171717;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter, var(--font-geist-sans));
-  --font-display: var(--font-inter, var(--font-geist-sans));
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-inter);
   --font-mono: var(--font-geist-mono);
   --color-lokesha-teal: #0a7a6e;
   --color-lokesha-blue: #0b3d5c;
@@ -24,6 +24,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.6;
 }
 
 html,
@@ -34,6 +35,20 @@ body {
 .font-display {
   font-family: var(--font-display), system-ui, sans-serif;
   letter-spacing: -0.025em;
+}
+
+.profile-description {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-weight: 500;
+  @apply text-slate-500;
+}
+
+.profile-description-sm {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  font-weight: 500;
+  @apply text-slate-500;
 }
 
 .auth-panel-body {

@@ -44,7 +44,7 @@ function FormSection({
         <div className="min-w-0">
           <h2 className="text-base font-semibold tracking-tight text-slate-800 sm:text-md">{title}</h2>
           {description ? (
-            <p className="mt-0.5 text-sm leading-relaxed text-slate-500">{description}</p>
+            <p className="profile-description mt-0.5">{description}</p>
           ) : null}
         </div>
       </div>
@@ -84,7 +84,7 @@ function OfficeDetailsRequiredNotice() {
       </span>
       <div className="max-w-sm">
         <h2 className="text-xl font-semibold text-slate-800">Office details not added yet</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+        <p className="profile-description mt-1.5">
           You haven't filled in your office details yet. Please complete this step first so
           we can show your office profile here.
         </p>
@@ -334,13 +334,13 @@ export default function EditOfficeDetailsContent() {
           >
             Edit Office Details
           </h1>
-          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">
+          <p className="profile-description mt-1.5 max-w-xl">
             Keep your office information accurate so buyers and partners can find and reach you.
           </p>
         </div>
         <Link
           href="/user/profile/account-details"
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 sm:w-auto sm:justify-start sm:py-2"
+          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to profile

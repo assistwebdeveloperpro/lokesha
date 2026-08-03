@@ -261,7 +261,7 @@ export default function ManageProfilePhotosPage() {
           >
             Manage Profile Photos
           </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500">
+          <p className="profile-description mt-1.5 max-w-2xl">
             Upload your company logo and contact photo in .jpg, .gif, .png, or .bmp format. Each
             file must be 1 MB or smaller.
           </p>

@@ -57,7 +57,7 @@ function FormSection({
         <div>
           <h2 className="text-md font-semibold tracking-tight text-slate-800">{title}</h2>
           {description ? (
-            <p className="mt-0.5 text-sm leading-relaxed text-slate-500">{description}</p>
+            <p className="profile-description mt-0.5">{description}</p>
           ) : null}
         </div>
       </div>
@@ -99,7 +99,7 @@ function BusinessProfileRequiredNotice() {
         <h2 className="text-xl font-semibold text-slate-800">
           Business details not added yet
         </h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+        <p className="profile-description mt-1.5">
           You haven't filled in your business details yet. Please complete this step first
           so we can show your company profile here.
         </p>
@@ -379,7 +379,7 @@ export default function EditCompanyDetailsContent() {
           >
             Edit Company Details
           </h1>
-          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">
+          <p className="profile-description mt-1.5 max-w-xl">
             Keep your business information accurate so buyers and partners see the right
             details about your company.
           </p>

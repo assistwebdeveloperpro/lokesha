@@ -97,7 +97,7 @@ export default function AccountDetailsPage() {
         >
           Profile Details
         </h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+        <p className="profile-description mt-1.5 ">
           View and manage your account information.
         </p>
       </div>
