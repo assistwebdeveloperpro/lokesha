@@ -21,4 +21,13 @@ const loginDetailsSchema = Joi.object({
   }),
 });
 
-module.exports = { loginDetailsSchema };
+const whatsappNumberSchema = Joi.object({
+  whatsappNumber: Joi.string()
+    .pattern(/^\d{10}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "Please enter a valid 10-digit mobile number.",
+    }),
+});
+
+module.exports = { loginDetailsSchema, whatsappNumberSchema };

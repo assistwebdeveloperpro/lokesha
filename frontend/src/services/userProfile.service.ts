@@ -16,6 +16,7 @@ export type ProfileDetails = {
   is_primary_mobile_virtual: boolean;
   hide_contact_details: boolean;
   agreed_to_terms: boolean;
+  whatsapp_number: string | null;
   city: string | null;
   company_name: string | null;
   company_logo: string | null;
@@ -56,6 +57,26 @@ export type UpdateLoginDetailsResponse = {
 
 export function updateLoginDetails(payload: UpdateLoginDetailsPayload, token: string) {
   return apiFetch<UpdateLoginDetailsResponse>("/user/profile/login-details", {
+    method: "PUT",
+    body: payload,
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export type UpdateWhatsappNumberPayload = {
+  whatsappNumber: string;
+};
+
+export type UpdateWhatsappNumberResponse = {
+  message: string;
+  profile: ProfileDetails;
+};
+
+export function updateWhatsappNumber(
+  payload: UpdateWhatsappNumberPayload,
+  token: string,
+) {
+  return apiFetch<UpdateWhatsappNumberResponse>("/user/profile/whatsapp-number", {
     method: "PUT",
     body: payload,
     headers: { Authorization: `Bearer ${token}` },

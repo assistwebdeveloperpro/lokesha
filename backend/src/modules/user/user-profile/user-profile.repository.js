@@ -24,6 +24,7 @@ async function findProfileByUserId(userId) {
       `${USERS_TABLE}.is_primary_mobile_virtual`,
       `${USERS_TABLE}.hide_contact_details`,
       `${USERS_TABLE}.agreed_to_terms`,
+      `${USERS_TABLE}.whatsapp_number`,
       `${USERS_TABLE}.created_at`,
       `${USERS_TABLE}.updated_at`,
       `${OFFICE_TABLE}.city`,
@@ -49,4 +50,17 @@ async function updateLoginDetails(userId, data) {
   return user;
 }
 
-module.exports = { findProfileByUserId, findUserByMobileNumber, updateLoginDetails };
+async function updateWhatsappNumber(userId, whatsappNumber) {
+  const [user] = await db(USERS_TABLE)
+    .where({ id: userId })
+    .update({ whatsapp_number: whatsappNumber, updated_at: db.fn.now() })
+    .returning("*");
+  return user;
+}
+
+module.exports = {
+  findProfileByUserId,
+  findUserByMobileNumber,
+  updateLoginDetails,
+  updateWhatsappNumber,
+};

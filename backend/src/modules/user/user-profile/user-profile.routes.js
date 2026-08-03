@@ -2,7 +2,7 @@ const express = require("express");
 const validate = require("../../../middlewares/validate.middleware");
 const authMiddleware = require("../../../middlewares/auth.middleware");
 const controller = require("./user-profile.controller");
-const { loginDetailsSchema } = require("./user-profile.validation");
+const { loginDetailsSchema, whatsappNumberSchema } = require("./user-profile.validation");
 
 const router = express.Router();
 
@@ -12,6 +12,12 @@ router.put(
   authMiddleware,
   validate(loginDetailsSchema),
   controller.updateLoginDetails
+);
+router.put(
+  "/whatsapp-number",
+  authMiddleware,
+  validate(whatsappNumberSchema),
+  controller.updateWhatsappNumber
 );
 
 module.exports = router;

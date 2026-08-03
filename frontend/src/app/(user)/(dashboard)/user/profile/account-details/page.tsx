@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import AddWhatsappModal from "@/components/user-profile/AddWhatsappModal";
+import { useToast } from "@/components/ui/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getProfileDetails,
+  updateWhatsappNumber,
   type ProfileDetails,
 } from "@/services/userProfile.service";
 
@@ -37,11 +40,23 @@ function ProfileRow({
   );
 }
 
+function hasFullProfileAccess(role: ProfileDetails["role"] | null): boolean {
+  return role === "agent" || role === "builder";
+}
+
 export default function AccountDetailsPage() {
-  const { token, isLoggedIn } = useAuth();
+  const { token, isLoggedIn, role } = useAuth();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<ProfileDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isWhatsappModalOpen, setIsWhatsappModalOpen] = useState(false);
+  const [whatsappDraft, setWhatsappDraft] = useState("");
+  const [whatsappError, setWhatsappError] = useState<string | null>(null);
+  const [isSavingWhatsapp, setIsSavingWhatsapp] = useState(false);
+  const [isSyncingWhatsapp, setIsSyncingWhatsapp] = useState(false);
+  const [whatsappSyncError, setWhatsappSyncError] = useState<string | null>(null);
+  const showOfficeDetails = hasFullProfileAccess(profile?.role ?? role);
 
   useEffect(() => {
     if (!isLoggedIn || !token) {
@@ -85,6 +100,79 @@ export default function AccountDetailsPage() {
     return <span>{value}</span>;
   }
 
+  function openWhatsappModal() {
+    setWhatsappDraft(profile?.whatsapp_number ?? "");
+    setWhatsappError(null);
+    setIsWhatsappModalOpen(true);
+  }
+
+  function closeWhatsappModal() {
+    if (isSavingWhatsapp) return;
+    setIsWhatsappModalOpen(false);
+    setWhatsappDraft("");
+    setWhatsappError(null);
+  }
+
+  async function handleWhatsappUpdate() {
+    const trimmed = whatsappDraft.trim();
+    if (!/^\d{10}$/.test(trimmed)) {
+      setWhatsappError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    if (!token) return;
+
+    const isUpdate = Boolean(profile?.whatsapp_number);
+
+    setIsSavingWhatsapp(true);
+    setWhatsappError(null);
+    try {
+      const { profile: updatedProfile } = await updateWhatsappNumber(
+        { whatsappNumber: trimmed },
+        token,
+      );
+      setProfile(updatedProfile);
+      setIsWhatsappModalOpen(false);
+      setWhatsappDraft("");
+      showToast(
+        isUpdate
+          ? "WhatsApp number updated successfully."
+          : "WhatsApp number added successfully.",
+      );
+    } catch (err) {
+      setWhatsappError(
+        err instanceof Error ? err.message : "Failed to update WhatsApp number",
+      );
+    } finally {
+      setIsSavingWhatsapp(false);
+    }
+  }
+
+  const isWhatsappSameAsMobile = Boolean(
+    profile?.whatsapp_number && profile.whatsapp_number === profile.mobile_number,
+  );
+
+  async function handleSameAsMobileToggle(checked: boolean) {
+    if (!checked || !token || !profile?.mobile_number) return;
+
+    setIsSyncingWhatsapp(true);
+    setWhatsappSyncError(null);
+    try {
+      const { profile: updatedProfile } = await updateWhatsappNumber(
+        { whatsappNumber: profile.mobile_number },
+        token,
+      );
+      setProfile(updatedProfile);
+      showToast("WhatsApp number added successfully.");
+    } catch (err) {
+      setWhatsappSyncError(
+        err instanceof Error ? err.message : "Failed to update WhatsApp number",
+      );
+    } finally {
+      setIsSyncingWhatsapp(false);
+    }
+  }
+
   return (
     <section aria-labelledby="profile-details-heading" className="w-full max-w-3xl">
       <div className="mb-5 sm:mb-6">
@@ -112,9 +200,11 @@ export default function AccountDetailsPage() {
         <dl>
           <ProfileRow label="Name">{renderValue(profile?.name)}</ProfileRow>
 
-          <ProfileRow label="Company Name">
-            {renderValue(profile?.company_name)}
-          </ProfileRow>
+          {showOfficeDetails ? (
+            <ProfileRow label="Company Name">
+              {renderValue(profile?.company_name)}
+            </ProfileRow>
+          ) : null}
 
           <ProfileRow label="Registered As">
             {renderValue(
@@ -122,7 +212,9 @@ export default function AccountDetailsPage() {
             )}
           </ProfileRow>
 
-          <ProfileRow label="City">{renderValue(profile?.city)}</ProfileRow>
+          {showOfficeDetails ? (
+            <ProfileRow label="City">{renderValue(profile?.city)}</ProfileRow>
+          ) : null}
 
           <ProfileRow label="Email">{renderValue(profile?.email)}</ProfileRow>
 
@@ -159,17 +251,45 @@ export default function AccountDetailsPage() {
 
           <ProfileRow label="Whatsapp No">
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2">
-              <Link href="/user/profile/edit-login-details" className={actionLinkClass}>
-                Add
-              </Link>
-              <label className="inline-flex cursor-not-allowed items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-                <input
-                  type="checkbox"
-                  disabled
-                  className="h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500 disabled:cursor-not-allowed"
-                />
-                Same as mobile number
-              </label>
+              {isLoading ? (
+                <span className="text-slate-400">Loading…</span>
+              ) : profile?.whatsapp_number ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span>{profile.whatsapp_number}</span>
+                  <button
+                    type="button"
+                    onClick={openWhatsappModal}
+                    className={`${actionLinkClass} cursor-pointer`}
+                  >
+                    Change Whatsapp No.
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openWhatsappModal}
+                  className={`${actionLinkClass} cursor-pointer`}
+                >
+                  Add
+                </button>
+              )}
+              {!isLoading && !profile?.whatsapp_number ? (
+                <div className="flex flex-col gap-1.5">
+                  <label className="inline-flex items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+                    <input
+                      type="checkbox"
+                      checked={isWhatsappSameAsMobile}
+                      disabled={isSyncingWhatsapp || !profile?.mobile_number}
+                      onChange={(event) => handleSameAsMobileToggle(event.target.checked)}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500 disabled:cursor-not-allowed"
+                    />
+                    {isSyncingWhatsapp ? "Updating…" : "Same as mobile number"}
+                  </label>
+                  {whatsappSyncError ? (
+                    <p className="text-sm text-red-600">{whatsappSyncError}</p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </ProfileRow>
 
@@ -194,6 +314,20 @@ export default function AccountDetailsPage() {
           </button>
         </div>
       </div>
+
+      <AddWhatsappModal
+        isOpen={isWhatsappModalOpen}
+        mode={profile?.whatsapp_number ? "update" : "add"}
+        value={whatsappDraft}
+        onChange={(value) => {
+          setWhatsappDraft(value);
+          if (whatsappError) setWhatsappError(null);
+        }}
+        onCancel={closeWhatsappModal}
+        onUpdate={handleWhatsappUpdate}
+        error={whatsappError}
+        isSaving={isSavingWhatsapp}
+      />
     </section>
   );
 }

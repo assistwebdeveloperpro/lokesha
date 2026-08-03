@@ -45,4 +45,13 @@ async function updateLoginDetails(userId, payload) {
   return profile;
 }
 
-module.exports = { getProfile, updateLoginDetails, AppError };
+async function updateWhatsappNumber(userId, payload) {
+  const profile = await repository.updateWhatsappNumber(userId, payload.whatsappNumber);
+  if (!profile) {
+    throw new AppError("User not found", 404);
+  }
+
+  return profile;
+}
+
+module.exports = { getProfile, updateLoginDetails, updateWhatsappNumber, AppError };

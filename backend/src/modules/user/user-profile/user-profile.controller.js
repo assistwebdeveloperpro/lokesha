@@ -27,4 +27,15 @@ async function updateLoginDetails(req, res) {
   }
 }
 
-module.exports = { getProfile, updateLoginDetails };
+async function updateWhatsappNumber(req, res) {
+  try {
+    const profile = await service.updateWhatsappNumber(req.user.id, req.body);
+    return res
+      .status(200)
+      .json({ message: "Whatsapp number updated successfully", profile });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+module.exports = { getProfile, updateLoginDetails, updateWhatsappNumber };

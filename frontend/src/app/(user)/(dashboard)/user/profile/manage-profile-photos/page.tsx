@@ -14,7 +14,7 @@ const uploadButtonClass =
   "inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-800 transition hover:border-sky-300 hover:bg-sky-100 disabled:pointer-events-none disabled:opacity-60 sm:w-auto sm:justify-start sm:rounded-lg sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:font-semibold sm:text-sky-700 sm:underline sm:decoration-sky-700/30 sm:underline-offset-2 sm:hover:bg-transparent sm:hover:text-sky-600 sm:hover:decoration-sky-600";
 
 const COMPANY_LOGO_PLACEHOLDER = "/no-photo-available.png";
-const CONTACT_PERSON_PLACEHOLDER = "/profile.jpeg";
+const CONTACT_PERSON_PLACEHOLDER = "/no-photo-available.png";
 
 const MAX_PHOTO_SIZE_BYTES = 1 * 1024 * 1024;
 const ACCEPTED_PHOTO_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/bmp"];
