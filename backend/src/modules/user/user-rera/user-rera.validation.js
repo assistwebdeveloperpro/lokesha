@@ -2,7 +2,7 @@ const Joi = require("joi");
 
 const reraDetailsSchema = Joi.object({
   state: Joi.string().max(100).required(),
-  reraId: Joi.string().max(50).required(),
+  reraId: Joi.string().max(100).required(),
   validityMonth: Joi.string()
     .pattern(/^(0[1-9]|1[0-2])$/)
     .required(),

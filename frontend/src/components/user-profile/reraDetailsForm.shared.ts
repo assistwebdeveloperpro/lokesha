@@ -33,7 +33,7 @@ export const ACCEPTED_RERA_DOCUMENT_EXTENSIONS = ".jpeg,.jpg,.pdf,.doc,.docx";
 export const MAX_RERA_DOCUMENT_SIZE_BYTES = 5 * 1024 * 1024;
 
 export const RERA_ID_MIN_LENGTH = 5;
-export const RERA_ID_MAX_LENGTH = 50;
+export const RERA_ID_MAX_LENGTH = 100;
 
 const RERA_ID_GENERAL_PATTERN = /^[A-Za-z0-9][A-Za-z0-9/_-]*[A-Za-z0-9]$|^[A-Za-z0-9]{1,4}$/;
 
