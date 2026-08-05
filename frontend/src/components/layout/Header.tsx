@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Home, Menu } from "lucide-react";
+import { ChevronDown, Home, HousePlus, Menu } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -34,16 +34,30 @@ function NewBadge() {
 }
 
 function PostPropertyButton({ compact = false }: { compact?: boolean }) {
+  const iconSize = compact ? "h-4 w-4" : "h-[18px] w-[18px]";
+  const iconPadding = compact
+    ? "pl-2.5 pr-2 sm:pl-3 sm:pr-2.5"
+    : "pl-3 pr-2.5 sm:pl-3.5 sm:pr-3";
+  const textPadding = compact
+    ? "pl-2 pr-3 sm:pl-2.5 sm:pr-4"
+    : "pl-2.5 pr-4 sm:pl-3 sm:pr-5";
+
   return (
     <Link
       href="/post-property"
-      className={`group relative inline-flex shrink-0 items-center justify-center rounded-full border border-white/20 bg-white font-semibold text-navy-blue shadow-sm transition hover:bg-slate-50 ${
+      className={`group relative inline-flex shrink-0 items-center rounded-full border border-white/20 bg-white font-semibold text-navy-blue shadow-sm transition hover:bg-slate-50 ${
         compact
-          ? "h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
-          : "h-9 px-4 text-sm sm:h-10 sm:px-5"
+          ? "h-8 text-xs sm:h-9 sm:text-sm"
+          : "h-9 text-sm sm:h-10"
       }`}
     >
-      Post Property
+      <span className={`inline-flex items-center ${iconPadding}`}>
+        <HousePlus className={iconSize} strokeWidth={2} aria-hidden />
+      </span>
+      <span className="h-4 w-px shrink-0 bg-slate-300" aria-hidden />
+      <span className={`inline-flex items-center ${textPadding}`}>
+        Post Property
+      </span>
       <FreeBadge className="absolute -right-1 -top-2 sm:-right-1.5 sm:-top-2.5" />
     </Link>
   );
@@ -322,8 +336,8 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-40 w-full">
         {/* Primary bar */}
-        <div className="bg-navy-blue shadow-md shadow-slate-950/10">
-          <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-3 px-4 sm:h-14 lg:h-13">
+        <div className="bg-navy-blue shadow-md shadow-slate-950/10 py-1">
+          <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-3 px-4 sm:h-14 lg:h-13">
             {/* Mobile / tablet: hamburger + Home logo */}
             <div className="flex items-center gap-3 lg:hidden">
               <button
@@ -378,7 +392,7 @@ export default function Header() {
           className="hidden border-b border-slate-200 bg-white lg:block"
           aria-label="Main navigation"
         >
-          <div className="mx-auto flex h-11 max-w-7xl items-center gap-6 px-6">
+          <div className="mx-auto flex h-11 max-w-360 items-center gap-6 px-6">
             {MAIN_NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}

@@ -322,7 +322,7 @@ export default function EditOfficeDetailsContent() {
   };
 
   return (
-    <section aria-labelledby="edit-office-details-heading" className="w-full max-w-3xl">
+    <section aria-labelledby="edit-office-details-heading" className="w-full max-w-4xl">
       <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">

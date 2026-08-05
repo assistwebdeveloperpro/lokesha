@@ -405,7 +405,7 @@ export default function ManageReraDetailsContent() {
 
   if (showForm) {
     return (
-      <section aria-labelledby="rera-details-heading" className="max-w-3xl">
+      <section aria-labelledby="rera-details-heading" className="max-w-4xl">
         <div className="mb-5">
           <h1
             id="rera-details-heading"

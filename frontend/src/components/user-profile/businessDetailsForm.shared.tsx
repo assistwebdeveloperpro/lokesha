@@ -1,15 +1,22 @@
 import {
+  ArrowLeftRight,
+  BedDouble,
   Building,
   Building2,
+  ClipboardList,
+  Factory,
   FileText,
   HardHat,
   Home,
   Key,
   Layers,
+  MapPin,
   MoreHorizontal,
   Store,
   Tag,
   TreePine,
+  Users,
+  Warehouse,
 } from "lucide-react";
 
 export const dealingInOptions = [
@@ -23,9 +30,8 @@ export const propertyTypeOptions = [
 ] as const;
 
 export const transactionTypeOthersOptions = [
-  { id: "original-booking", label: "Original Booking" },
-  { id: "resale", label: "Resale" },
-  { id: "others", label: "Others" },
+  { id: "original-booking", label: "Original Booking", icon: ClipboardList },
+  { id: "resale", label: "Resale", icon: ArrowLeftRight },
 ] as const;
 
 export const transactionTypeOptions = [
@@ -41,11 +47,11 @@ export const transactionTypeOptions = [
 ] as const;
 
 export const residentialPropertyOthersOptions = [
-  { id: "residential-plot", label: "Residential Plot" },
-  { id: "penthouse", label: "Penthouse" },
-  { id: "studio-apartment", label: "Studio Apartment" },
-  { id: "paying-Guest", label: "Paying Guest" },
-  { id: "hostel", label: "Hostel" },
+  { id: "residential-plot", label: "Residential Plot", icon: MapPin },
+  { id: "penthouse", label: "Penthouse", icon: Layers },
+  { id: "studio-apartment", label: "Studio Apartment", icon: Building2 },
+  { id: "paying-Guest", label: "Paying Guest", icon: Users },
+  { id: "hostel", label: "Hostel", icon: BedDouble },
 ] as const;
 
 export const residentialPropertyOptions = [
@@ -63,9 +69,9 @@ export const residentialPropertyOptions = [
 ] as const;
 
 export const commercialPropertyOthersOptions = [
-  { id: "warehouse", label: "Warehouse" },
-  { id: "industrial-shed", label: "Industrial Shed" },
-  { id: "co-working-space", label: "Co-working Space" },
+  { id: "warehouse", label: "Warehouse", icon: Warehouse },
+  { id: "industrial-shed", label: "Industrial Shed", icon: Factory },
+  { id: "co-working-space", label: "Co-working Space", icon: Users },
 ] as const;
 
 export const commercialPropertyOptions = [

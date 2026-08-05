@@ -19,9 +19,11 @@ type CustomDropdownProps = {
   hasError?: boolean;
   variant?: "boxed" | "underline";
   prominentLabel?: boolean;
+  compactProminentLabel?: boolean;
   staticLabel?: boolean;
   blackText?: boolean;
   menuClassName?: string;
+  accentColor?: "sky" | "teal";
 };
 
 const staticLabelClasses = "mb-2.5 block text-sm font-semibold text-slate-700";
@@ -37,10 +39,23 @@ export default function CustomDropdown({
   hasError = false,
   variant = "underline",
   prominentLabel = false,
+  compactProminentLabel = false,
   staticLabel = false,
   blackText = false,
   menuClassName,
+  accentColor = "sky",
 }: CustomDropdownProps) {
+  const focusBorder =
+    accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
+  const underlineLabelClasses = prominentLabel
+    ? blackText
+      ? compactProminentLabel
+        ? "pointer-events-none absolute left-0 top-0.5 origin-left text-sm font-semibold text-black"
+        : "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-black"
+      : compactProminentLabel
+        ? "pointer-events-none absolute left-0 top-0.5 origin-left text-sm font-semibold text-slate-800"
+        : "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-slate-800"
+    : "pointer-events-none absolute left-0 top-1 origin-left scale-[0.85] text-sm text-slate-500";
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(
     defaultValue ?? options[0]?.value ?? "",
@@ -57,14 +72,8 @@ export default function CustomDropdown({
   const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none transition-colors ${
     hasError
       ? "border-red-500 focus:border-red-500"
-      : "border-slate-300 focus:border-sky-600"
+      : `border-slate-300 ${focusBorder}`
   }`;
-
-  const underlineLabelClasses = prominentLabel
-    ? blackText
-      ? "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-black"
-      : "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-slate-800"
-    : "pointer-events-none absolute left-0 top-1 origin-left scale-[0.85] text-sm text-slate-500";
 
   const handleSelect = (nextValue: string) => {
     if (!isControlled) {
@@ -99,13 +108,13 @@ export default function CustomDropdown({
   }, []);
 
   const hasLabel = Boolean(label);
-  const fieldTopPadding = hasLabel
-    ? staticLabel
-      ? "pt-2"
-      : prominentLabel
-        ? "pt-7"
-        : "pt-6"
-    : "pt-2";
+  const fieldTopPadding = staticLabel
+    ? "pt-2"
+    : prominentLabel
+      ? "pt-7"
+      : hasLabel
+        ? "pt-6"
+        : "pt-2";
 
   return (
     <div className="w-full min-w-0">

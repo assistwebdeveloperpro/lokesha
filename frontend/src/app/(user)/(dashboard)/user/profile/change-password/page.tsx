@@ -211,7 +211,7 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <section aria-labelledby="change-password-heading" className="max-w-3xl">
+    <section aria-labelledby="change-password-heading" className="max-w-4xl">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">

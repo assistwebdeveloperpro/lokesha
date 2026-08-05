@@ -99,7 +99,7 @@ export function Sidebar({
       data-state={open ? "expanded" : "collapsed"}
       data-collapsible={open ? "" : "icon"}
       className={cn(
-        "relative h-screen shrink-0 border-r border-slate-700/70 bg-[#12192b] text-slate-100 transition-[width] duration-300 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:hidden data-[state=expanded]:max-lg:flex max-lg:flex-col lg:sticky lg:top-0 lg:flex lg:flex-col",
+        "relative h-screen shrink-0 border-r border-navy-sidebar bg-navy-sidebar text-slate-100 transition-[width] duration-300 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:hidden data-[state=expanded]:max-lg:flex max-lg:flex-col lg:sticky lg:top-0 lg:flex lg:flex-col",
         open ? "w-68" : "w-20",
         className
       )}
@@ -114,7 +114,7 @@ export function SidebarHeader({
   children,
 }: React.PropsWithChildren<{ className?: string }>) {
   return (
-    <div data-slot="sidebar-header" className={cn("border-b border-slate-700/70 p-3", className)}>
+    <div data-slot="sidebar-header" className={cn("border-b border-navy-sidebar p-3", className)}>
       {children}
     </div>
   );
@@ -138,7 +138,7 @@ export function SidebarContent({
 }
 
 export function SidebarSeparator({ className }: { className?: string }) {
-  return <div data-slot="sidebar-separator" className={cn("mx-3 h-px bg-slate-700/70", className)} />;
+  return <div data-slot="sidebar-separator" className={cn("mx-3 h-px bg-navy-sidebar-separator", className)} />;
 }
 
 export function SidebarFooter({
@@ -146,7 +146,7 @@ export function SidebarFooter({
   children,
 }: React.PropsWithChildren<{ className?: string }>) {
   return (
-    <div data-slot="sidebar-footer" className={cn("border-t border-slate-700/70 p-3", className)}>
+    <div data-slot="sidebar-footer" className={cn("border-t border-navy-sidebar p-3", className)}>
       {children}
     </div>
   );
@@ -277,7 +277,7 @@ export function SidebarMenuSub({
   return (
     <ul
       data-slot="sidebar-menu-sub"
-      className={cn("mt-1 space-y-1 border-l border-slate-700/70 pl-3", className)}
+      className={cn("mt-1 space-y-1 border-l border-navy-sidebar pl-3", className)}
     >
       {children}
     </ul>
@@ -308,7 +308,7 @@ export function SidebarMenuSubButton({
   const classes = cn(
     "flex w-full items-center rounded-xl px-2 py-2.5 text-left text-sm font-medium transition",
     isActive
-      ? "bg-[#1e2a46] text-white shadow-[inset_0_0_0_1px_rgba(148,163,184,.22)]"
+      ? "bg-navy-sidebar-active text-white"
       : "text-slate-200 hover:bg-white/10 hover:text-white",
     className
   );
@@ -346,7 +346,7 @@ export function SidebarMenuButton({
   const classes = cn(
     "group flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-sm font-medium transition hover:cursor-pointer",
     isActive
-      ? "bg-[#1e2a46] text-white shadow-[inset_0_0_0_1px_rgba(148,163,184,.22)]"
+      ? "bg-navy-sidebar-active text-white"
       : "text-slate-200 hover:bg-white/10 hover:text-white",
     !open && "mx-auto h-10 w-10 justify-center gap-0 px-0 py-0",
     className

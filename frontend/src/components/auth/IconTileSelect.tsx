@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 export type IconTileDropdownOption = {
   id: string;
   label: string;
+  icon?: LucideIcon;
 };
 
 export type IconTileOption = {
@@ -26,6 +27,7 @@ type IconTileSelectProps<T extends string> = {
   columns?: 2 | 3 | 4 | 5;
   dropdownSelections?: string[];
   onDropdownSelectionsChange?: (selections: string[]) => void;
+  dropdownDisplay?: "dropdown" | "tiles";
   error?: string;
 };
 
@@ -38,8 +40,10 @@ export default function IconTileSelect<T extends string>({
   columns = 2,
   dropdownSelections = [],
   onDropdownSelectionsChange,
+  dropdownDisplay = "dropdown",
   error,
 }: IconTileSelectProps<T>) {
+  const useTileDropdown = dropdownDisplay === "tiles";
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
@@ -63,7 +67,7 @@ export default function IconTileSelect<T extends string>({
     }
 
     onChange([...value, option.id as T]);
-    if (option.hasDropdown && option.dropdownOptions?.length) {
+    if (!useTileDropdown && option.hasDropdown && option.dropdownOptions?.length) {
       setOpenDropdownId(option.id);
     } else {
       setOpenDropdownId(null);
@@ -76,7 +80,7 @@ export default function IconTileSelect<T extends string>({
   };
 
   useEffect(() => {
-    if (!openDropdownId) {
+    if (useTileDropdown || !openDropdownId) {
       return;
     }
 
@@ -102,7 +106,7 @@ export default function IconTileSelect<T extends string>({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [openDropdownId]);
+  }, [openDropdownId, useTileDropdown]);
 
   const gridCols = {
     2: "grid-cols-2",
@@ -114,17 +118,63 @@ export default function IconTileSelect<T extends string>({
   const useEqualTileHeight = columns === 5;
   const hasError = Boolean(error);
 
+  const renderDropdownTile = (
+    dropdownOption: IconTileDropdownOption,
+    parentOption: IconTileOption,
+  ) => {
+    const SubIcon = dropdownOption.icon;
+    const isChecked = dropdownSelections.includes(dropdownOption.id);
+
+    return (
+      <button
+        key={`${parentOption.id}-${dropdownOption.id}`}
+        type="button"
+        role="checkbox"
+        aria-checked={isChecked}
+        onClick={() => toggleDropdownSelection(dropdownOption.id)}
+        className={`relative flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border px-3 py-3.5 text-center text-xs font-medium transition-all sm:px-4 sm:py-4 sm:text-sm${
+          useEqualTileHeight ? " h-full min-h-[5.75rem] sm:min-h-[6.25rem]" : ""
+        } ${
+          isChecked
+            ? "border-sky-500 bg-sky-50 text-sky-800 shadow-sm ring-1 ring-sky-500/30"
+            : hasError
+              ? "border-red-300 bg-white text-slate-600 hover:border-red-400 hover:bg-red-50/40"
+              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+        }`}
+      >
+        {SubIcon ? (
+          <SubIcon
+            className={`h-6 w-6 sm:h-7 sm:w-7 ${isChecked ? "text-sky-600" : "text-slate-400"}`}
+            aria-hidden
+          />
+        ) : null}
+        <span
+          className={`flex items-center justify-center gap-1 leading-tight${
+            useEqualTileHeight ? " min-h-[2.5rem] text-center sm:min-h-[2.75rem]" : ""
+          }`}
+        >
+          {dropdownOption.label}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <fieldset ref={fieldsetRef} aria-invalid={hasError}>
       <legend className="mb-3 text-sm font-semibold text-slate-700">{legend}</legend>
       <div className={`grid gap-2.5 ${gridCols}`} role="group" aria-label={legend}>
-        {options.map((option) => {
+        {options.flatMap((option) => {
           const Icon = option.icon;
           const isSelected = value.includes(option.id as T);
           const isDropdownOpen = openDropdownId === option.id;
           const selectionCount = option.hasDropdown ? dropdownSelections.length : 0;
+          const showExpandedTiles =
+            useTileDropdown &&
+            option.hasDropdown &&
+            isSelected &&
+            Boolean(option.dropdownOptions?.length);
 
-          return (
+          const mainTile = (
             <div key={option.id} className={`relative${useEqualTileHeight ? " h-full" : ""}`}>
               <button
                 type="button"
@@ -153,7 +203,7 @@ export default function IconTileSelect<T extends string>({
                   }`}
                 >
                   {option.label}
-                  {option.hasDropdown && isSelected && (
+                  {!useTileDropdown && option.hasDropdown && isSelected && (
                     <span
                       role="button"
                       tabIndex={0}
@@ -177,14 +227,17 @@ export default function IconTileSelect<T extends string>({
                     </span>
                   )}
                 </span>
-                {option.hasDropdown && selectionCount > 0 && (
+                {option.hasDropdown && !useTileDropdown && selectionCount > 0 && (
                   <span className="absolute -right-1 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-sky-600 px-1 text-[10px] font-semibold leading-none text-white">
                     {selectionCount}
                   </span>
                 )}
               </button>
 
-              {option.hasDropdown && isDropdownOpen && option.dropdownOptions?.length ? (
+              {!useTileDropdown &&
+              option.hasDropdown &&
+              isDropdownOpen &&
+              option.dropdownOptions?.length ? (
                 <div className="absolute left-0 top-full z-10 mt-1 min-w-[12rem] rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg shadow-slate-900/10 sm:left-auto sm:right-0">
                   {option.dropdownOptions.map((dropdownOption) => {
                     const isChecked = dropdownSelections.includes(dropdownOption.id);
@@ -208,6 +261,17 @@ export default function IconTileSelect<T extends string>({
               ) : null}
             </div>
           );
+
+          if (!showExpandedTiles) {
+            return [mainTile];
+          }
+
+          return [
+            ...option.dropdownOptions!.map((dropdownOption) =>
+              renderDropdownTile(dropdownOption, option),
+            ),
+            mainTile,
+          ];
         })}
       </div>
       {error && (

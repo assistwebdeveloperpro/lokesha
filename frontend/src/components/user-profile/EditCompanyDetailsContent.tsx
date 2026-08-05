@@ -367,7 +367,7 @@ export default function EditCompanyDetailsContent() {
   };
 
   return (
-    <section aria-labelledby="edit-company-details-heading" className="max-w-3xl">
+    <section aria-labelledby="edit-company-details-heading" className="max-w-4xl">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">
@@ -458,6 +458,7 @@ export default function EditCompanyDetailsContent() {
                 clearError("transactionType");
               }}
               columns={3}
+              dropdownDisplay="tiles"
               dropdownSelections={transactionTypeOthers}
               onDropdownSelectionsChange={setTransactionTypeOthers}
               error={errors.transactionType}
@@ -480,6 +481,7 @@ export default function EditCompanyDetailsContent() {
                     clearError("residentialProperty");
                   }}
                   columns={5}
+                  dropdownDisplay="tiles"
                   dropdownSelections={residentialPropertyOthers}
                   onDropdownSelectionsChange={setResidentialPropertyOthers}
                   error={errors.residentialProperty}
@@ -497,6 +499,7 @@ export default function EditCompanyDetailsContent() {
                     clearError("commercialProperty");
                   }}
                   columns={5}
+                  dropdownDisplay="tiles"
                   dropdownSelections={commercialPropertyOthers}
                   onDropdownSelectionsChange={setCommercialPropertyOthers}
                   error={errors.commercialProperty}

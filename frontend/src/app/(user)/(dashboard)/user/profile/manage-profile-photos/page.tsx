@@ -252,7 +252,7 @@ export default function ManageProfilePhotosPage() {
   const displayContactName = isLoading ? "Loading…" : contactPersonName;
 
   return (
-    <section aria-labelledby="manage-profile-photos-heading" className="max-w-3xl">
+    <section aria-labelledby="manage-profile-photos-heading" className="max-w-4xl">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0">
           <h1

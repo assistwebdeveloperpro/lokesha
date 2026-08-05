@@ -235,7 +235,7 @@ export default function SavedMessagesPage() {
   }
 
   return (
-    <section aria-labelledby="saved-messages-heading" className="w-full">
+    <section aria-labelledby="saved-messages-heading" className="w-full max-w-4xl">
       <div className="mb-6 flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">

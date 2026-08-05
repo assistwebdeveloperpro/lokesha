@@ -179,12 +179,12 @@ function BuyerCarousel() {
       <div
         ref={scrollRef}
         onScroll={updateScrollState}
-        className="flex gap-4 overflow-x-auto scroll-smooth px-1 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-4 overflow-x-auto scroll-smooth px-1 py-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
       >
         {BUYERS.map((buyer) => (
           <article
             key={buyer.name}
-            className="min-w-[220px] shrink-0 rounded-lg border border-slate-200 bg-white p-4 sm:min-w-[240px]"
+            className="min-w-55 shrink-0 rounded-lg border border-slate-200 bg-white p-4 sm:min-w-60"
           >
             <h4 className="font-semibold text-slate-900">{buyer.name}</h4>
             <dl className="mt-3 space-y-2 text-sm">
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                 </span>
                 <h3 className="font-semibold text-slate-900">Buy a Trial Pack</h3>
               </div>
-              <p className="mt-3 max-w-[400px] text-sm text-sky-700 border border-dashed p-2 rounded-sm border-sky-700">
+              <p className="mt-3 max-w-100 text-sm text-sky-700 border border-dashed p-2 rounded-sm border-sky-700">
                 Save up to Rs.1000 on your first purchase. <br />
                 <span className="font-semibold uppercase pt-2">Limited time offer</span>
               </p>

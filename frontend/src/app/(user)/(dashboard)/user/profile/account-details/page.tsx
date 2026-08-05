@@ -174,7 +174,7 @@ export default function AccountDetailsPage() {
   }
 
   return (
-    <section aria-labelledby="profile-details-heading" className="w-full max-w-3xl">
+    <section aria-labelledby="profile-details-heading" className="w-full max-w-4xl">
       <div className="mb-5 sm:mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">
           Account settings

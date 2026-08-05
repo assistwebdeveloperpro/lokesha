@@ -395,7 +395,7 @@ export default function EditLoginDetailsPage() {
   };
 
   return (
-    <section aria-labelledby="edit-login-details-heading" className="w-full max-w-3xl">
+    <section aria-labelledby="edit-login-details-heading" className="w-full max-w-4xl">
       <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-600">
