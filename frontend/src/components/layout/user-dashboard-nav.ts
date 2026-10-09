@@ -92,7 +92,9 @@ const BUYER_OWNER_RESTRICTED_ROUTE_PREFIXES = [
 ];
 
 function isBuyerOwner(role: Role | null): boolean {
-  return role === "buyer" || role === "owner";
+  return (
+    role === "buyer" || role === "owner" || role === "buyer_owner_tenant"
+  );
 }
 
 function hasFullProfileAccess(role: Role | null): boolean {

@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const ROLE_VALUES = ["buyer", "owner", "agent", "builder"];
+const SIGNUP_ROLE_VALUES = ["buyer_owner_tenant", "agent", "builder"];
 
 const mobileNumber = Joi.string()
   .pattern(/^[0-9]{10,15}$/)
@@ -11,7 +11,7 @@ const mobileNumber = Joi.string()
 
 const signupSchema = Joi.object({
   role: Joi.string()
-    .valid(...ROLE_VALUES)
+    .valid(...SIGNUP_ROLE_VALUES)
     .required(),
   name: Joi.string().min(3).max(100).required(),
   email: Joi.string().email({ tlds: { allow: false } }).required(),
@@ -20,9 +20,6 @@ const signupSchema = Joi.object({
 });
 
 const loginSchema = Joi.object({
-  role: Joi.string()
-    .valid(...ROLE_VALUES)
-    .required(),
   mobile_number: mobileNumber,
 });
 
@@ -36,4 +33,9 @@ const verifyOtpSchema = Joi.object({
     }),
 });
 
-module.exports = { signupSchema, loginSchema, verifyOtpSchema, ROLE_VALUES };
+module.exports = {
+  signupSchema,
+  loginSchema,
+  verifyOtpSchema,
+  SIGNUP_ROLE_VALUES,
+};

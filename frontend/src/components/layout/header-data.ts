@@ -1,3 +1,9 @@
+export const HEADER_CONTACT = {
+  email: "sales@lokesha.com",
+  phoneDisplay: "+91 93274 94799",
+  phoneHref: "+919327494799",
+} as const;
+
 export const MAIN_NAV_ITEMS = [
   { label: "Buy", href: "/buy" },
   { label: "Rent", href: "/rent" },

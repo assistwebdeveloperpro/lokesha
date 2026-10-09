@@ -177,8 +177,8 @@ export default function UserRegistrationStep2Content() {
   };
 
   return (
-    <div className="relative mx-auto my-4 flex min-h-0 w-full max-w-3xl flex-col px-4 py-2 sm:my-4 sm:px-6 sm:py-3 max-h-[calc(100dvh-13rem)] sm:max-h-[calc(100dvh-14rem)] lg:my-6 lg:max-h-[calc(100dvh-9.5rem)] lg:px-8 lg:py-4 xl:px-10">
-      <div className="flex min-h-0 max-h-full w-full flex-1 flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/5 backdrop-blur-sm">
+    <div className="relative mx-auto flex min-h-0 w-full max-w-3xl flex-col py-2 max-h-[calc(100dvh-13rem)] sm:max-h-[calc(100dvh-14rem)] lg:max-h-[calc(100dvh-9.5rem)] lg:py-4">
+      <div className="flex min-h-0 max-h-full w-full flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)]">
         <div className="shrink-0 px-4 pt-4 pb-6 sm:px-5 sm:pt-5 lg:px-6 lg:pt-6 ">
             <h1 className="font-display text-2xl font-bold text-slate-800">Agent Registration</h1>
         </div>

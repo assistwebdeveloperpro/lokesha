@@ -65,6 +65,9 @@ body {
 .bg-navy-blue {
   background-color: var(--color-navy-blue);
 }
+.text-navy-blue {
+  color: var(--color-navy-blue);
+}
 
 .border-navy-blue {
   border-color: var(--color-navy-blue);

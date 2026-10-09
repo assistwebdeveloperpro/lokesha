@@ -1,6 +1,11 @@
 import { apiFetch } from "./apiClient";
 
-export type Role = "buyer" | "owner" | "agent" | "builder";
+export type Role =
+  | "buyer"
+  | "owner"
+  | "buyer_owner_tenant"
+  | "agent"
+  | "builder";
 
 export type SignupPayload = {
   role: Role;
@@ -24,7 +29,6 @@ export type SignupResponse = {
 };
 
 export type LoginPayload = {
-  role: Role;
   mobile_number: string;
 };
 

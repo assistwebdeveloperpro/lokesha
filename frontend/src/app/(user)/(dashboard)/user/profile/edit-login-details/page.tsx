@@ -12,6 +12,7 @@ import { getProfileDetails, updateLoginDetails } from "@/services/userProfile.se
 const USER_TYPE_LABELS: Record<string, string> = {
   buyer: "Buyer",
   owner: "Owner",
+  buyer_owner_tenant: "Buyer/Owner/Tenant",
   agent: "Broker / Agent",
   builder: "Builder",
 };

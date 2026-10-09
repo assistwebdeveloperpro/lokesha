@@ -8,17 +8,9 @@ import VerifyForm from "./VerifyForm";
 import { login } from "@/services/auth.service";
 import { useToast } from "@/components/ui/ToastProvider";
 
-const roles = [
-  { id: "buyer", label: "Buyer" },
-  { id: "owner", label: "Owner" },
-  { id: "agent", label: "Agent" },
-  { id: "builder", label: "Builder" },
-] as const;
-
 export default function LoginContent() {
   const { showToast } = useToast();
   const mathCaptchaRef = useRef<MathCaptchaHandle>(null);
-  const [role, setRole] = useState<(typeof roles)[number]["id"]>("buyer");
   const [step, setStep] = useState<"login" | "verify">("login");
   const [mobile, setMobile] = useState("");
   const [mathAnswer, setMathAnswer] = useState("");
@@ -30,7 +22,7 @@ export default function LoginContent() {
   }>({});
 
   const requestOtp = async (mobileDigits: string) => {
-    const response = await login({ role, mobile_number: mobileDigits });
+    const response = await login({ mobile_number: mobileDigits });
     setOtpExpiresIn(response.otp_expires_in);
     showToast("OTP sent successfully.");
     return response.otp_expires_in;
@@ -75,39 +67,15 @@ export default function LoginContent() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-lg px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-0 xl:px-10">
-      <div className="w-full overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-xl shadow-slate-900/5 backdrop-blur-sm">
+    <div className="relative mx-auto w-full max-w-md">
+      <div className="w-full overflow-hidden rounded-2xl bg-white shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)]">
         <div className="p-4 sm:p-5 lg:p-6">
               {step === "login" ? (
                 <>
                   <h1 className="font-display text-2xl font-bold text-slate-800">Login</h1>
+                  <p className="pt-1.5 text-sm text-gray-500">Please fill your below information.</p> 
 
                   <form className="mt-4 space-y-4 sm:mt-5 sm:space-y-5" onSubmit={handleLoginNext}>
-                    <fieldset>
-                      <legend className="mb-3 text-sm font-semibold text-slate-700">
-                        Are you
-                      </legend>
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-                        {roles.map((item) => {
-                          const isActive = role === item.id;
-                          return (
-                            <button
-                              key={item.id}
-                              type="button"
-                              onClick={() => setRole(item.id)}
-                              className={`rounded-full border-2 px-3 py-2.5 text-sm font-semibold transition-all sm:px-4 hover:cursor-pointer ${
-                                isActive
-                                  ? "border-lokesha-teal text-lokesha-teal bg-lokesha-teal/5 shadow-sm"
-                                  : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                              }`}
-                            >
-                              {item.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </fieldset>
-
                     <FloatingInput
                       id="mobile"
                       label="Enter Mobile No."

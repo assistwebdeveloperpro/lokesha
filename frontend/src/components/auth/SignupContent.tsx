@@ -11,8 +11,7 @@ import { signup } from "@/services/auth.service";
 import { useToast } from "@/components/ui/ToastProvider";
 
 const userTypes = [
-  { id: "buyer", label: "Buyer" },
-  { id: "owner", label: "Owner" },
+  { id: "buyer_owner_tenant", label: "Buyer/Owner/Tenant" },
   { id: "agent", label: "Agent" },
   { id: "builder", label: "Builder" },
 ] as const;
@@ -21,7 +20,8 @@ export default function SignupContent() {
   const router = useRouter();
   const { showToast } = useToast();
   const mathCaptchaRef = useRef<MathCaptchaHandle>(null);
-  const [userType, setUserType] = useState<(typeof userTypes)[number]["id"]>("buyer");
+  const [userType, setUserType] =
+    useState<(typeof userTypes)[number]["id"]>("buyer_owner_tenant");
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -118,8 +118,8 @@ export default function SignupContent() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-lg px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-0 xl:px-10">
-          <div className="w-full rounded-2xl border border-white/80 bg-white/95 p-4 shadow-xl shadow-slate-900/5 backdrop-blur-sm sm:p-5 lg:p-6">
+    <div className="relative mx-auto w-full max-w-md">
+          <div className="w-full rounded-2xl bg-white p-4 shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)] sm:p-5 lg:p-6">
             <Link
               href="/login"
               className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-sky-700 lg:mb-3"
@@ -133,7 +133,7 @@ export default function SignupContent() {
                 <legend className="mb-3 text-sm font-semibold text-slate-700">
                   I am
                 </legend>
-                <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-4">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 max-[400px]:grid-cols-1 sm:flex sm:flex-row sm:flex-wrap sm:gap-4">
                   {userTypes.map((type) => (
                     <label
                       key={type.id}

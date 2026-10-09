@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Home, HousePlus, Menu } from "lucide-react";
+import { ChevronDown, Home, HousePlus, Mail, Menu, Phone, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -11,6 +11,7 @@ import {
   LOGGED_IN_ACTIVITY_LINKS,
   LOGGED_IN_PREMIUM_LINK,
   LOGGED_IN_PROFILE_LINK,
+  HEADER_CONTACT,
   MAIN_NAV_ITEMS,
 } from "./header-data";
 import MobileSidebar from "@/components/layout/MobileSidebar";
@@ -84,7 +85,7 @@ function GuestDropdown({ onClose }: { onClose: () => void }) {
   const router = useRouter();
 
   return (
-    <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl sm:w-72">
+    <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl sm:w-60">
       <MenuSectionDivider label="My Activity" />
 
       <ul>
@@ -186,14 +187,20 @@ function ProfileMenuLink({
 }
 
 function LoggedInDropdown({
+  userName,
   onClose,
   onLogout,
 }: {
+  userName: string;
   onClose: () => void;
   onLogout: () => void;
 }) {
   return (
-    <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl sm:w-72">
+    <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl sm:w-60">
+      <p className="px-4 pb-2 pt-1 text-sm font-semibold text-slate-800 cursor-pointer hover:text-navy-blue/80">
+        Hi, {userName}
+      </p>
+
       <ProfileMenuLink
         href={LOGGED_IN_PREMIUM_LINK.href}
         label={LOGGED_IN_PREMIUM_LINK.label}
@@ -228,17 +235,45 @@ function LoggedInDropdown({
 
       <div className="mx-4 border-t border-slate-200" />
 
-      <button
-        type="button"
-        onClick={() => {
-          onClose();
-          onLogout();
-        }}
-        className="w-full cursor-pointer px-4 py-3 text-left text-sm font-medium text-slate-800 transition hover:bg-slate-50 hover:text-sky-700"
-      >
-        Sign Out
-      </button>
+      <div className="p-4 pt-2">
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onLogout();
+          }}
+          className="w-full cursor-pointer rounded-4xl bg-linear-to-r-navy-blue py-2 text-sm font-semibold text-white transition hover:opacity-95"
+        >
+          Sign Out
+        </button>
+      </div>
     </div>
+  );
+}
+
+function UserMenuTrigger({
+  isLoggedIn,
+  displayInitial,
+}: {
+  isLoggedIn: boolean;
+  displayInitial: string;
+}) {
+  return (
+    <>
+      <span className="inline-flex items-center pl-2.5 pr-2 sm:pl-3 sm:pr-2.5">
+        <Menu className="h-4 w-4 text-navy-blue" strokeWidth={2} aria-hidden />
+      </span>
+      <span className="h-4 w-px shrink-0 bg-slate-300" aria-hidden />
+      <span className="inline-flex items-center pl-2 pr-2.5 sm:pl-2.5 sm:pr-3">
+        {isLoggedIn ? (
+          <UserAvatar initial={displayInitial} size="sm" />
+        ) : (
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-black rounded-full bg-sky-200">
+            <User className="h-4 w-4 text-black" strokeWidth={2} aria-hidden />
+          </span>
+        )}
+      </span>
+    </>
   );
 }
 
@@ -284,27 +319,21 @@ function DesktopUserMenu({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-white transition hover:bg-white/10"
+        className="inline-flex h-8 shrink-0 cursor-pointer items-center rounded-full border border-white/20 bg-white font-semibold text-navy-blue shadow-sm transition hover:bg-slate-50 sm:h-9"
         aria-expanded={open}
         aria-haspopup="true"
+        aria-label={isLoggedIn ? `Account menu for ${userName}` : "Open account menu"}
       >
-        {isLoggedIn ? (
-          <>
-            <UserAvatar initial={displayInitial} size="sm" />
-            <span className="hidden sm:inline">Hi, {userName}</span>
-          </>
-        ) : (
-          <span>Login</span>
-        )}
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden
-        />
+        <UserMenuTrigger isLoggedIn={isLoggedIn} displayInitial={displayInitial} />
       </button>
 
       {open &&
         (isLoggedIn ? (
-          <LoggedInDropdown onClose={close} onLogout={onLogout} />
+          <LoggedInDropdown
+            userName={userName}
+            onClose={close}
+            onLogout={onLogout}
+          />
         ) : (
           <GuestDropdown onClose={close} />
         ))}
@@ -335,6 +364,27 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 w-full">
+        <div className="bg-white text-navy-blue ">
+          <div className="mx-auto flex h-8 max-w-360 items-center justify-end gap-4 px-3 text-xs sm:h-9 sm:gap-6 sm:px-4 sm:text-sm lg:px-6">
+            <Link
+              href={`mailto:${HEADER_CONTACT.email}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 transition hover:text-navy-blue/80"
+            >
+              <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+              <span className="truncate">{HEADER_CONTACT.email}</span>
+            </Link>
+            <Link
+              href={`tel:${HEADER_CONTACT.phoneHref}`}
+              target="_blank"
+              className="inline-flex shrink-0 items-center gap-1.5 transition hover:text-navy-blue/80"
+            >
+              <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+              {HEADER_CONTACT.phoneDisplay}
+            </Link>
+          </div>
+        </div>
+
         {/* Primary bar */}
         <div className="bg-navy-blue shadow-md shadow-slate-950/10 py-1">
           <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-3 px-2 lg:px-4 sm:h-14 lg:h-13">

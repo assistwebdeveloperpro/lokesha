@@ -17,6 +17,7 @@ const actionLinkClass =
 const ROLE_LABELS: Record<string, string> = {
   buyer: "Buyer",
   owner: "Owner",
+  buyer_owner_tenant: "Buyer/Owner/Tenant",
   agent: "Agent",
   builder: "Builder",
 };
