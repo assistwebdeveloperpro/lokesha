@@ -1,4 +1,4 @@
-import FloatingInput from "@/components/shared/FloatingInput";
+import PostPropertyInput from "./PostPropertyInput";
 import ChipSelectField from "./ChipSelectField";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import {
@@ -10,6 +10,7 @@ import {
   type AgeOfConstructionId,
   type AreaTypeId,
   type ConstructionStatusId,
+  type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
 } from "./postPropertyForm.shared";
 
@@ -22,17 +23,19 @@ const areaTypeDropdownOptions = [
 ];
 
 const dropdownMenuClassName =
-  "absolute left-0 z-20 mt-1 max-h-60 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10";
+  "absolute left-0 z-50 mt-1 max-h-60 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10";
 
 export default function PropertyDetailsField({
   values,
   onChange,
+  errors = {},
 }: {
   values: PropertyDetailsValues;
   onChange: <K extends keyof PropertyDetailsValues>(
     field: K,
     value: PropertyDetailsValues[K],
   ) => void;
+  errors?: PropertyDetailsFieldErrors;
 }) {
   const { options: floorNumberOptions, moreOptions: floorNumberMoreOptions } =
     getFloorNumberOptionGroups(values.totalFloors);
@@ -45,7 +48,7 @@ export default function PropertyDetailsField({
       >
         <div className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-            <FloatingInput
+            <PostPropertyInput
               id="carpetAreaNumber"
               label="Carpet Area Number*"
               placeholder="Enter carpet area"
@@ -53,15 +56,17 @@ export default function PropertyDetailsField({
               type="number"
               staticLabel
               value={values.carpetAreaNumber}
+              error={errors.carpetAreaNumber}
               onChange={(value) => onChange("carpetAreaNumber", value)}
             />
-            <FloatingInput
+            <PostPropertyInput
               id="carpetAreaType"
               label="Carpet Area Type*"
               variant="underline"
               staticLabel
               options={areaTypeDropdownOptions}
               value={values.carpetAreaType}
+              error={errors.carpetAreaType}
               onChange={(value) =>
                 onChange("carpetAreaType", value as AreaTypeId | "")
               }
@@ -70,7 +75,7 @@ export default function PropertyDetailsField({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-            <FloatingInput
+            <PostPropertyInput
               id="superBuildUpNumber"
               label="Super Build up Number"
               placeholder="Enter super build up area"
@@ -80,7 +85,7 @@ export default function PropertyDetailsField({
               type="number"
               onChange={(value) => onChange("superBuildUpNumber", value)}
             />
-            <FloatingInput
+            <PostPropertyInput
               id="superBuildUpType"
               label="Super Build up Type"
               variant="underline"
@@ -98,7 +103,6 @@ export default function PropertyDetailsField({
 
       <PostPropertyFieldSection
         title="Property Transaction & Construction Status"
-        required
         description="Select transaction type and related construction details"
       >
         <ChipSelectField
@@ -111,6 +115,7 @@ export default function PropertyDetailsField({
               (option) => option.id === values.propertyTransaction,
             )?.label ?? ""
           }
+          error={errors.propertyTransaction}
           onChange={(label) => {
             const match = PROPERTY_TRANSACTION_OPTIONS.find(
               (option) => option.label === label,
@@ -131,6 +136,7 @@ export default function PropertyDetailsField({
                   (option) => option.id === values.constructionStatus,
                 )?.label ?? ""
               }
+              error={errors.constructionStatus}
               onChange={(label) => {
                 const match = CONSTRUCTION_STATUS_OPTIONS.find(
                   (option) => option.label === label,
@@ -156,6 +162,7 @@ export default function PropertyDetailsField({
                   (option) => option.id === values.ageOfConstruction,
                 )?.label ?? ""
               }
+              error={errors.ageOfConstruction}
               onChange={(label) => {
                 const match = AGE_OF_CONSTRUCTION_OPTIONS.find(
                   (option) => option.label === label,
@@ -173,7 +180,7 @@ export default function PropertyDetailsField({
       {values.propertyTransaction === "new" ? (
         <PostPropertyFieldSection title="Possession Date" required>
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-            <FloatingInput
+            <PostPropertyInput
               id="possessionDate"
               label="Possession Date (Month - Year)*"
               placeholder="Possession Date"
@@ -181,6 +188,7 @@ export default function PropertyDetailsField({
               type="month"
               staticLabel
               value={values.possessionDate}
+              error={errors.possessionDate}
               onChange={(value) => onChange("possessionDate", value)}
             />
           </div>
@@ -192,6 +200,7 @@ export default function PropertyDetailsField({
         required
         options={["1", "2", "3", "4", "5", "6", "7"]}
         value={values.bedrooms}
+        error={errors.bedrooms}
         onChange={(value) => onChange("bedrooms", value)}
         moreOptions={["8", "9", "10"]}
       />
@@ -201,6 +210,7 @@ export default function PropertyDetailsField({
         required
         options={["0", "1", "2", "3", "4", "5", "6"]}
         value={values.balcony}
+        error={errors.balcony}
         onChange={(value) => onChange("balcony", value)}
         moreOptions={["7", "8", "9", "10"]}
       />
@@ -210,6 +220,7 @@ export default function PropertyDetailsField({
         required
         options={["1", "2", "3", "4", "5", "6", "7"]}
         value={values.totalFloors}
+        error={errors.totalFloors}
         onChange={(value) => onChange("totalFloors", value)}
         moreOptions={[
           "8",
@@ -314,6 +325,7 @@ export default function PropertyDetailsField({
           required
           options={floorNumberOptions}
           value={values.floorNumber}
+          error={errors.floorNumber}
           onChange={(value) => onChange("floorNumber", value)}
           moreOptions={floorNumberMoreOptions}
         />
@@ -324,6 +336,7 @@ export default function PropertyDetailsField({
         required
         options={["1", "2", "3", "4", "5", "6", "7"]}
         value={values.bathrooms}
+        error={errors.bathrooms}
         onChange={(value) => onChange("bathrooms", value)}
       />
 

@@ -1,6 +1,6 @@
 "use client";
 
-import FloatingInput from "@/components/shared/FloatingInput";
+import PostPropertyInput from "./PostPropertyInput";
 import ExpandableIconTileSelect from "./ExpandableIconTileSelect";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import {
@@ -29,7 +29,7 @@ export default function PricingOthersField({
         required
         description="Enter the price you expect for this property"
       >
-        <FloatingInput
+        <PostPropertyInput
           id="expectedPrice"
           label="Expected Price*"
           placeholder="Expected Price"
@@ -68,7 +68,7 @@ export default function PricingOthersField({
         description="Add transfer fee, booking amount, and other details"
       >
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-          <FloatingInput
+          <PostPropertyInput
             id="transferFee"
             label="Transfer Fee"
             placeholder="Transfer Fee"
@@ -78,7 +78,7 @@ export default function PricingOthersField({
             value={values.transferFee}
             onChange={(nextValue) => onChange("transferFee", nextValue)}
           />
-          <FloatingInput
+          <PostPropertyInput
             id="bookingAmount"
             label="Booking Amount*"
             placeholder="Booking Amount"
@@ -88,7 +88,7 @@ export default function PricingOthersField({
             value={values.bookingAmount}
             onChange={(nextValue) => onChange("bookingAmount", nextValue)}
           />
-          <FloatingInput
+          <PostPropertyInput
             id="maintenanceCharges"
             label="Maintenance Charges"
             placeholder="Maintenance Charges"
@@ -98,7 +98,7 @@ export default function PricingOthersField({
             value={values.maintenanceCharges}
             onChange={(nextValue) => onChange("maintenanceCharges", nextValue)}
           />
-          <FloatingInput
+          <PostPropertyInput
             id="benefitsRemarks"
             label="Add benefits/Remarks"
             placeholder="Add benefits/Remarks"

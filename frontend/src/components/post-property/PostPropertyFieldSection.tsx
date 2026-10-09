@@ -1,3 +1,4 @@
+import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
 import {
   POST_PROPERTY_SECTION,
   POST_PROPERTY_SECTION_ACCENT,
@@ -28,11 +29,7 @@ export default function PostPropertyFieldSection({
         <div className="min-w-0 flex-1">
           <h3 className={POST_PROPERTY_SECTION_TITLE}>
             {title}
-            {required ? (
-              <span className="ml-0.5 text-sky-600" aria-hidden>
-                *
-              </span>
-            ) : null}
+            {required ? <PostPropertyRequiredAsterisk /> : null}
           </h3>
           {description ? (
             <p className={POST_PROPERTY_SECTION_DESC}>{description}</p>

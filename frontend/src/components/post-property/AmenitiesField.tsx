@@ -1,9 +1,10 @@
 "use client";
 
-import FloatingInput from "@/components/shared/FloatingInput";
+import PostPropertyInput from "./PostPropertyInput";
 import ChipSelectField from "./ChipSelectField";
 import ExpandableIconTileSelect from "./ExpandableIconTileSelect";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
+import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
 import {
   AMENITY_OPTIONS,
   FACING_OPTIONS,
@@ -109,7 +110,7 @@ export default function AmenitiesField({
             />
             <span className="text-sm font-semibold text-slate-800">
               Car Parking Available
-              <span className="ml-0.5 text-sky-600">*</span>
+              <PostPropertyRequiredAsterisk />
             </span>
           </label>
 
@@ -143,7 +144,7 @@ export default function AmenitiesField({
 
       <PostPropertyFieldSection title="Additional Details">
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-          <FloatingInput
+          <PostPropertyInput
             id="reraNumber"
             label="RERA Number"
             placeholder="RERA Number"
@@ -152,7 +153,7 @@ export default function AmenitiesField({
             value={values.reraNumber}
             onChange={(nextValue) => onChange("reraNumber", nextValue)}
           />
-          <FloatingInput
+          <PostPropertyInput
             id="openSides"
             label="No. of open sides"
             placeholder="No. of open sides"

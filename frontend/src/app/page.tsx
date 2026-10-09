@@ -9,7 +9,7 @@ export default function Home() {
           Welcome to Lokesha
         </h1>
         <p className="mt-2 text-center text-slate-600">
-          Find your dream property — buy, rent, or sell with ease.
+          Find your dream property - buy, rent, or sell with ease.
         </p>
       </main>
     </div>

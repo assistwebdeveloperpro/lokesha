@@ -3,6 +3,7 @@
 import { useState } from "react";
 import MoreOptionsModal from "./MoreOptionsModal";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
+import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
 import { postPropertyChipClass } from "./postPropertyForm.styles";
 
 type ChipSelectFieldProps = {
@@ -13,6 +14,7 @@ type ChipSelectFieldProps = {
   onChange: (value: string) => void;
   moreOptions?: string[];
   bare?: boolean;
+  error?: string;
 };
 
 export default function ChipSelectField({
@@ -23,6 +25,7 @@ export default function ChipSelectField({
   onChange,
   moreOptions,
   bare = false,
+  error,
 }: ChipSelectFieldProps) {
   const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);
   const isMoreValueSelected = Boolean(
@@ -73,6 +76,12 @@ export default function ChipSelectField({
           }}
         />
       ) : null}
+
+      {error ? (
+        <p className="mt-2 text-sm text-red-500" role="alert">
+          {error}
+        </p>
+      ) : null}
     </>
   );
 
@@ -81,11 +90,7 @@ export default function ChipSelectField({
       <div>
         <p className="mb-3 text-sm font-semibold text-slate-700">
           {legend}
-          {required ? (
-            <span className="ml-0.5 text-sky-600" aria-hidden>
-              *
-            </span>
-          ) : null}
+          {required ? <PostPropertyRequiredAsterisk /> : null}
         </p>
         {chipContent}
       </div>

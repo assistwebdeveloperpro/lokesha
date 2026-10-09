@@ -18,11 +18,17 @@ import {
   createEmptyPhotosVideosValues,
   getProgressForStep,
   getStepFromSearchParam,
+  type AddressLocationFieldErrors,
   type AddressLocationValues,
   type AmenitiesValues,
+  hasAddressLocationErrors,
+  validateAddressLocation,
+  hasPropertyDetailsErrors,
+  validatePropertyDetails,
   type ListingTypeId,
   type PhotosVideosValues,
   type PricingOthersValues,
+  type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
@@ -84,6 +90,8 @@ export default function PostPropertyContent() {
   const [propertySubType, setPropertySubType] = useState(
     RESIDENTIAL_SUB_TYPES[0].id,
   );
+  const [addressLocationErrors, setAddressLocationErrors] =
+    useState<AddressLocationFieldErrors>({});
   const [addressLocation, setAddressLocation] = useState<AddressLocationValues>({
     blockNo: "",
     flatNumber: "",
@@ -98,6 +106,8 @@ export default function PostPropertyContent() {
   });
   const [propertyDetails, setPropertyDetails] =
     useState<PropertyDetailsValues>(initialPropertyDetails);
+  const [propertyDetailsErrors, setPropertyDetailsErrors] =
+    useState<PropertyDetailsFieldErrors>({});
   const [amenities, setAmenities] = useState<AmenitiesValues>(initialAmenities);
   const [photosVideos, setPhotosVideos] = useState<PhotosVideosValues>(
     createEmptyPhotosVideosValues(),
@@ -112,6 +122,35 @@ export default function PostPropertyContent() {
     value: AddressLocationValues[K],
   ) => {
     setAddressLocation((current) => ({ ...current, [field]: value }));
+
+    if (
+      field === "societyName" ||
+      field === "locality" ||
+      field === "pinCode" ||
+      field === "propertyDescription"
+    ) {
+      setAddressLocationErrors((current) => {
+        if (!(field in current)) {
+          return current;
+        }
+
+        const next = { ...current };
+        delete next[field as keyof AddressLocationFieldErrors];
+        return next;
+      });
+    }
+  };
+
+  const handleBasicDetailsNext = () => {
+    const errors = validateAddressLocation(addressLocation);
+
+    if (hasAddressLocationErrors(errors)) {
+      setAddressLocationErrors(errors);
+      return;
+    }
+
+    setAddressLocationErrors({});
+    goToStep(2);
   };
 
   const handlePropertyDetailsChange = <
@@ -135,6 +174,59 @@ export default function PostPropertyContent() {
 
       return next;
     });
+
+    setPropertyDetailsErrors((current) => {
+      const fieldsToClear = new Set<keyof PropertyDetailsFieldErrors>();
+
+      if (
+        field === "carpetAreaNumber" ||
+        field === "carpetAreaType" ||
+        field === "propertyTransaction" ||
+        field === "constructionStatus" ||
+        field === "ageOfConstruction" ||
+        field === "possessionDate" ||
+        field === "bedrooms" ||
+        field === "balcony" ||
+        field === "totalFloors" ||
+        field === "floorNumber" ||
+        field === "bathrooms"
+      ) {
+        fieldsToClear.add(field);
+      }
+
+      if (field === "propertyTransaction") {
+        fieldsToClear.add("constructionStatus");
+        fieldsToClear.add("possessionDate");
+        fieldsToClear.add("ageOfConstruction");
+      }
+
+      if (field === "totalFloors") {
+        fieldsToClear.add("floorNumber");
+      }
+
+      const hasFieldsToClear = [...fieldsToClear].some((key) => key in current);
+      if (!hasFieldsToClear) {
+        return current;
+      }
+
+      const next = { ...current };
+      for (const key of fieldsToClear) {
+        delete next[key];
+      }
+      return next;
+    });
+  };
+
+  const handlePropertyDetailsNext = () => {
+    const errors = validatePropertyDetails(propertyDetails);
+
+    if (hasPropertyDetailsErrors(errors)) {
+      setPropertyDetailsErrors(errors);
+      return;
+    }
+
+    setPropertyDetailsErrors({});
+    goToStep(3);
   };
 
   const handleAmenitiesChange = <K extends keyof AmenitiesValues>(
@@ -229,12 +321,13 @@ export default function PostPropertyContent() {
             <AddressLocationField
               values={addressLocation}
               onChange={handleAddressLocationChange}
+              errors={addressLocationErrors}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
-                onClick={() => goToStep(2)}
+                onClick={handleBasicDetailsNext}
                 className={POST_PROPERTY_PRIMARY_BTN}
               >
                 Next, Add Property Details
@@ -260,12 +353,13 @@ export default function PostPropertyContent() {
             <PropertyDetailsField
               values={propertyDetails}
               onChange={handlePropertyDetailsChange}
+              errors={propertyDetailsErrors}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
-                onClick={() => goToStep(3)}
+                onClick={handlePropertyDetailsNext}
                 className={POST_PROPERTY_PRIMARY_BTN}
               >
                 Next, Add Amenities

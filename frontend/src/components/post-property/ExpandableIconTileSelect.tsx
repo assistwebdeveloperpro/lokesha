@@ -4,6 +4,7 @@ import type { StaticImageData } from "next/image";
 import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
+import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
 import { VISIBLE_ICON_TILE_COUNT } from "./postPropertyForm.shared";
 import { postPropertyTileClass } from "./postPropertyForm.styles";
 
@@ -90,7 +91,7 @@ export default function ExpandableIconTileSelect({
         <button
           type="button"
           onClick={() => setIsExpanded((current) => !current)}
-          className="flex min-h-[5.75rem] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-sky-200 bg-sky-50/30 px-2 py-3.5 text-center transition-all hover:cursor-pointer hover:border-sky-300 hover:bg-sky-50/60 sm:min-h-[6.25rem] sm:px-3 sm:py-4"
+          className="flex min-h-23 w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-sky-200 bg-sky-50/30 px-2 py-3.5 text-center transition-all hover:cursor-pointer hover:border-sky-300 hover:bg-sky-50/60 sm:min-h-25 sm:px-3 sm:py-4"
         >
           {isExpanded ? (
             <>
@@ -118,11 +119,7 @@ export default function ExpandableIconTileSelect({
       <div>
         <p className="mb-3 text-sm font-semibold text-slate-700">
           {legend}
-          {required ? (
-            <span className="ml-0.5 text-sky-600" aria-hidden>
-              *
-            </span>
-          ) : null}
+          {required ? <PostPropertyRequiredAsterisk /> : null}
         </p>
         {tileContent}
       </div>

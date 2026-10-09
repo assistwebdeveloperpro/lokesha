@@ -256,6 +256,82 @@ export type AddressLocationValues = {
   propertyDescription: string;
 };
 
+export type AddressLocationFieldErrors = Partial<
+  Record<
+    "societyName" | "locality" | "pinCode" | "propertyDescription",
+    string
+  >
+>;
+
+export function validateAddressLocation(
+  values: AddressLocationValues,
+): AddressLocationFieldErrors {
+  const errors: AddressLocationFieldErrors = {};
+
+  if (!values.societyName.trim()) {
+    errors.societyName =
+      "Please enter the name of society, building, or project name";
+  }
+
+  if (!values.locality.trim()) {
+    errors.locality = "Please enter locality";
+  }
+
+  if (!values.pinCode.trim()) {
+    errors.pinCode = "Please enter pin code";
+  }
+
+  if (!values.propertyDescription.trim()) {
+    errors.propertyDescription = "Please enter property description";
+  }
+
+  return errors;
+}
+
+export function hasAddressLocationErrors(
+  errors: AddressLocationFieldErrors,
+): boolean {
+  return Object.keys(errors).length > 0;
+}
+
+function parseMonthYearValue(
+  value: string,
+): { year: number; month: number } | null {
+  const match = /^(\d{4})-(\d{2})$/.exec(value.trim());
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    month < 1 ||
+    month > 12
+  ) {
+    return null;
+  }
+
+  return { year, month };
+}
+
+export function isFuturePossessionMonth(
+  monthValue: string,
+  referenceDate: Date = new Date(),
+): boolean {
+  const parsed = parseMonthYearValue(monthValue);
+  if (!parsed) {
+    return false;
+  }
+
+  const { year, month } = parsed;
+  const currentYear = referenceDate.getFullYear();
+  const currentMonth = referenceDate.getMonth() + 1;
+
+  return year > currentYear || (year === currentYear && month >= currentMonth);
+}
+
 export type PropertyDetailsValues = {
   carpetAreaNumber: string;
   carpetAreaType: AreaTypeId | "";
@@ -272,6 +348,90 @@ export type PropertyDetailsValues = {
   bathrooms: string;
   lift: string;
 };
+
+export type PropertyDetailsFieldErrors = Partial<
+  Record<
+    | "carpetAreaNumber"
+    | "carpetAreaType"
+    | "propertyTransaction"
+    | "constructionStatus"
+    | "ageOfConstruction"
+    | "possessionDate"
+    | "bedrooms"
+    | "balcony"
+    | "totalFloors"
+    | "floorNumber"
+    | "bathrooms",
+    string
+  >
+>;
+
+export function validatePropertyDetails(
+  values: PropertyDetailsValues,
+): PropertyDetailsFieldErrors {
+  const errors: PropertyDetailsFieldErrors = {};
+
+  if (!values.carpetAreaNumber.trim()) {
+    errors.carpetAreaNumber = "Please enter carpet area";
+  } else {
+    const carpetArea = Number(values.carpetAreaNumber);
+    if (!Number.isFinite(carpetArea) || carpetArea <= 0) {
+      errors.carpetAreaNumber = "Please enter a valid carpet area";
+    }
+  }
+
+  if (!values.carpetAreaType) {
+    errors.carpetAreaType = "Please select carpet area type";
+  }
+
+  if (!values.propertyTransaction) {
+    errors.propertyTransaction = "Please select property transaction";
+  }
+
+  if (values.propertyTransaction === "new") {
+    if (!values.constructionStatus) {
+      errors.constructionStatus = "Please select construction status";
+    }
+
+    if (!values.possessionDate.trim()) {
+      errors.possessionDate = "Please select possession date";
+    } else if (!isFuturePossessionMonth(values.possessionDate)) {
+      errors.possessionDate = "Possession date cannot be in the past";
+    }
+  }
+
+  if (values.propertyTransaction === "resale") {
+    if (!values.ageOfConstruction) {
+      errors.ageOfConstruction = "Please select age of construction";
+    }
+  }
+
+  if (!values.bedrooms) {
+    errors.bedrooms = "Please select number of bedrooms";
+  }
+
+  if (!values.balcony) {
+    errors.balcony = "Please select number of balconies";
+  }
+
+  if (!values.totalFloors) {
+    errors.totalFloors = "Please select total floors";
+  } else if (!values.floorNumber) {
+    errors.floorNumber = "Please select floor number";
+  }
+
+  if (!values.bathrooms) {
+    errors.bathrooms = "Please select number of bathrooms";
+  }
+
+  return errors;
+}
+
+export function hasPropertyDetailsErrors(
+  errors: PropertyDetailsFieldErrors,
+): boolean {
+  return Object.keys(errors).length > 0;
+}
 
 export type ImageTileOption = {
   id: string;

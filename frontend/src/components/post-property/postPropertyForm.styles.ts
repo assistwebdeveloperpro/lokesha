@@ -1,5 +1,5 @@
 export const POST_PROPERTY_SECTION =
-  "post-property-section group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-sky-50/35 p-5 ring-1 ring-slate-100/60 transition-all duration-300 hover:border-sky-200/70 sm:p-6";
+  "post-property-section group relative overflow-visible rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-sky-50/35 p-5 ring-1 ring-slate-100/60 transition-all duration-300 hover:border-sky-200/70 sm:p-6";
 
 export const POST_PROPERTY_SECTION_HEADER =
   "relative mb-5 flex items-start gap-3.5 border-b border-slate-100/90 pb-4 sm:gap-4";
@@ -12,6 +12,8 @@ export const POST_PROPERTY_SECTION_TITLE =
 
 export const POST_PROPERTY_SECTION_DESC =
   "mt-1 text-sm font-medium leading-relaxed text-slate-500";
+
+export const POST_PROPERTY_REQUIRED_ASTERISK = "ml-0.5 text-red-500";
 
 export const POST_PROPERTY_STEP_HEADER =
   "post-property-step-header mb-7 flex items-center gap-4 rounded-xl bg-gradient-to-r from-sky-50/90 via-white/80 to-transparent p-4 ring-1 ring-sky-100/70 sm:mb-8 sm:gap-5 sm:p-5";

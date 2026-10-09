@@ -337,7 +337,7 @@ export default function Header() {
       <header className="sticky top-0 z-40 w-full">
         {/* Primary bar */}
         <div className="bg-navy-blue shadow-md shadow-slate-950/10 py-1">
-          <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-3 px-4 sm:h-14 lg:h-13">
+          <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-3 px-2 lg:px-4 sm:h-14 lg:h-13">
             {/* Mobile / tablet: hamburger + Home logo */}
             <div className="flex items-center gap-3 lg:hidden">
               <button

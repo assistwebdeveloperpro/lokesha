@@ -10,7 +10,7 @@ export type DropdownOption = {
 
 type CustomDropdownProps = {
   id: string;
-  label?: string;
+  label?: React.ReactNode;
   ariaLabel?: string;
   options: DropdownOption[];
   defaultValue?: string;
@@ -22,6 +22,7 @@ type CustomDropdownProps = {
   compactProminentLabel?: boolean;
   staticLabel?: boolean;
   blackText?: boolean;
+  mutedText?: boolean;
   menuClassName?: string;
   accentColor?: "sky" | "teal";
 };
@@ -42,6 +43,7 @@ export default function CustomDropdown({
   compactProminentLabel = false,
   staticLabel = false,
   blackText = false,
+  mutedText = false,
   menuClassName,
   accentColor = "sky",
 }: CustomDropdownProps) {
@@ -67,7 +69,11 @@ export default function CustomDropdown({
   const selectedOption =
     options.find((option) => option.value === selectedValue) ?? options[0];
 
-  const fieldTextColor = blackText ? "text-black font-medium" : "text-slate-900 font-medium";
+  const fieldTextColor = blackText
+    ? "text-black font-medium"
+    : mutedText
+      ? "text-slate-600 font-normal"
+      : "text-slate-900 font-medium";
 
   const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none transition-colors ${
     hasError
@@ -108,6 +114,8 @@ export default function CustomDropdown({
   }, []);
 
   const hasLabel = Boolean(label);
+  const accessibleLabel =
+    ariaLabel ?? (typeof label === "string" ? label : undefined);
   const fieldTopPadding = staticLabel
     ? "pt-2"
     : prominentLabel
@@ -123,11 +131,14 @@ export default function CustomDropdown({
           {label}
         </label>
       )}
-      <div className="relative w-full min-w-0" ref={containerRef}>
+      <div
+        className={`relative w-full min-w-0 ${isOpen ? "z-50" : ""}`}
+        ref={containerRef}
+      >
         <button
           id={id}
           type="button"
-          aria-label={label ?? ariaLabel}
+          aria-label={accessibleLabel}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-invalid={hasError}
@@ -154,10 +165,10 @@ export default function CustomDropdown({
       {isOpen && (
         <ul
           role="listbox"
-          aria-label={label ?? ariaLabel}
+          aria-label={accessibleLabel}
           className={
             menuClassName ??
-            "absolute left-0 z-20 mt-1 max-h-48 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
+            "absolute left-0 z-50 mt-1 max-h-48 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
           }
         >
           {options.map((option) => {

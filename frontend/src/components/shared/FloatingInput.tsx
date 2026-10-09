@@ -2,7 +2,7 @@ import CustomDropdown, { type DropdownOption } from "./CustomDropdown";
 
 type FloatingInputProps = {
   id: string;
-  label?: string;
+  label?: React.ReactNode;
   ariaLabel?: string;
   type?: string;
   variant?: "boxed" | "underline";
@@ -18,6 +18,7 @@ type FloatingInputProps = {
   compactProminentLabel?: boolean;
   staticLabel?: boolean;
   blackText?: boolean;
+  mutedText?: boolean;
   dropdownMenuClassName?: string;
   accentColor?: "sky" | "teal";
 };
@@ -42,6 +43,7 @@ export default function FloatingInput({
   compactProminentLabel = false,
   staticLabel = false,
   blackText = false,
+  mutedText = false,
   dropdownMenuClassName,
   accentColor = "sky",
 }: FloatingInputProps) {
@@ -67,7 +69,11 @@ export default function FloatingInput({
   const isUnderline = variant === "underline";
   const isSelect = Boolean(options?.length);
   const hasError = Boolean(error) || invalid;
-  const fieldTextColor = blackText ? "text-black font-medium" : "text-slate-900 font-medium";
+  const fieldTextColor = blackText
+    ? "text-black font-medium"
+    : mutedText
+      ? "text-slate-600 font-medium"
+      : "text-slate-900 font-medium";
   const hideNumberSpinnerClasses =
     type === "number"
       ? "[appearance:textfield] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0"
@@ -98,6 +104,7 @@ export default function FloatingInput({
           compactProminentLabel={compactProminentLabel}
           staticLabel={staticLabel}
           blackText={blackText}
+          mutedText={mutedText}
           menuClassName={dropdownMenuClassName}
           accentColor={accentColor}
         />
