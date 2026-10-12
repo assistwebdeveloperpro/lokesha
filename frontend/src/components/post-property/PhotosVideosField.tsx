@@ -101,9 +101,11 @@ function AddMoreTile({ onClick }: { onClick: () => void }) {
 export default function PhotosVideosField({
   values,
   onChange,
+  error,
 }: {
   values: PhotosVideosValues;
   onChange: (nextValues: PhotosVideosValues) => void;
+  error?: string;
 }) {
   const [activeCategory, setActiveCategory] = useState<PhotoCategoryId>("bedrooms");
   const [mediaError, setMediaError] = useState<string | null>(null);
@@ -359,6 +361,12 @@ export default function PhotosVideosField({
           {mediaError ? (
             <p className="mt-3 text-sm text-red-500" role="alert">
               {mediaError}
+            </p>
+          ) : null}
+
+          {error && !mediaError ? (
+            <p className="mt-3 text-sm text-red-500" role="alert">
+              {error}
             </p>
           ) : null}
         </div>

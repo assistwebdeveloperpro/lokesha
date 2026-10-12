@@ -11,6 +11,7 @@ import {
   FURNISHING_OPTIONS,
   FURNISHING_STATUS_OPTIONS,
   showsFurnishingField,
+  type AmenitiesFieldErrors,
   type AmenitiesValues,
   type FacingOption,
   type FurnishingStatusId,
@@ -23,8 +24,10 @@ const checkboxClassName =
 export default function AmenitiesField({
   values,
   onChange,
+  errors = {},
 }: {
   values: AmenitiesValues;
+  errors?: AmenitiesFieldErrors;
   onChange: <K extends keyof AmenitiesValues>(
     field: K,
     value: AmenitiesValues[K],
@@ -62,6 +65,7 @@ export default function AmenitiesField({
             )?.label ?? ""
           }
           onChange={handleStatusChange}
+          error={errors.status}
         />
 
         {showFurnishing ? (
@@ -73,6 +77,7 @@ export default function AmenitiesField({
               options={FURNISHING_OPTIONS}
               value={values.furnishing}
               onChange={(nextValue) => onChange("furnishing", nextValue)}
+              error={errors.furnishing}
             />
           </div>
         ) : null}
@@ -84,6 +89,7 @@ export default function AmenitiesField({
         options={AMENITY_OPTIONS}
         value={values.amenities}
         onChange={(nextValue) => onChange("amenities", nextValue)}
+        error={errors.amenities}
       />
 
       <ChipSelectField
@@ -123,6 +129,7 @@ export default function AmenitiesField({
               value={values.carParking}
               onChange={(nextValue) => onChange("carParking", nextValue)}
               moreOptions={["8", "9", "10"]}
+              error={errors.carParking}
             />
           ) : null}
 

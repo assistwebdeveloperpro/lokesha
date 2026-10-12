@@ -533,6 +533,36 @@ export type AmenitiesValues = {
   openSides: string;
 };
 
+export type AmenitiesFieldErrors = Partial<
+  Record<"status" | "furnishing" | "amenities" | "carParking", string>
+>;
+
+export function validateAmenities(
+  values: AmenitiesValues,
+): AmenitiesFieldErrors {
+  const errors: AmenitiesFieldErrors = {};
+
+  if (!values.status) {
+    errors.status = "Please select furnishing status";
+  } else if (showsFurnishingField(values.status) && values.furnishing.length === 0) {
+    errors.furnishing = "Please select at least one furnishing item";
+  }
+
+  if (values.amenities.length === 0) {
+    errors.amenities = "Please select at least one amenity";
+  }
+
+  if (values.carParkingAvailable && !values.carParking) {
+    errors.carParking = "Please select number of car parkings";
+  }
+
+  return errors;
+}
+
+export function hasAmenitiesErrors(errors: AmenitiesFieldErrors): boolean {
+  return Object.keys(errors).length > 0;
+}
+
 export const PHOTO_CATEGORY_OPTIONS = [
   { id: "bedrooms", label: "Bedrooms" },
   { id: "bathrooms", label: "Bathrooms" },
@@ -635,3 +665,33 @@ export type PricingOthersValues = {
   maintenanceCharges: string;
   benefitsRemarks: string;
 };
+
+export type PricingOthersFieldErrors = Partial<
+  Record<"expectedPrice" | "bookingAmount", string>
+>;
+
+export function validatePricingOthers(
+  values: PricingOthersValues,
+): PricingOthersFieldErrors {
+  const errors: PricingOthersFieldErrors = {};
+
+  if (!values.expectedPrice.trim()) {
+    errors.expectedPrice = "Please enter expected price";
+  } else if (Number(values.expectedPrice) < 0) {
+    errors.expectedPrice = "Please enter a valid expected price";
+  }
+
+  if (!values.bookingAmount.trim()) {
+    errors.bookingAmount = "Please enter booking amount";
+  } else if (Number(values.bookingAmount) < 0) {
+    errors.bookingAmount = "Please enter a valid booking amount";
+  }
+
+  return errors;
+}
+
+export function hasPricingOthersErrors(
+  errors: PricingOthersFieldErrors,
+): boolean {
+  return Object.keys(errors).length > 0;
+}

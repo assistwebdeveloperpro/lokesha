@@ -1,4 +1,4 @@
-const OTP_EXPIRY_SECONDS = Number(process.env.OTP_EXPIRY_SECONDS) || 142;
+const OTP_EXPIRY_SECONDS = Number(process.env.OTP_EXPIRY_SECONDS) || 300;
 
 function generateOtp() {
   return String(Math.floor(1000 + Math.random() * 9000));

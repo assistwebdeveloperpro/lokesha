@@ -3,6 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { DEFAULT_STATE } from "@/data/indianStatesCities";
+import { ApiError } from "@/services/apiClient";
+import { createProperty } from "@/services/property.service";
+import { getToken } from "@/services/session";
 import AddressLocationField from "./AddressLocationField";
 import AmenitiesField from "./AmenitiesField";
 import FormStepper from "./FormStepper";
@@ -18,8 +21,15 @@ import {
   createEmptyPhotosVideosValues,
   getProgressForStep,
   getStepFromSearchParam,
+  getTotalMediaCount,
   type AddressLocationFieldErrors,
   type AddressLocationValues,
+  type AmenitiesFieldErrors,
+  hasAmenitiesErrors,
+  validateAmenities,
+  type PricingOthersFieldErrors,
+  hasPricingOthersErrors,
+  validatePricingOthers,
   type AmenitiesValues,
   hasAddressLocationErrors,
   validateAddressLocation,
@@ -32,6 +42,7 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
+import { buildPropertyFormData } from "./postPropertyPayload";
 import {
   POST_PROPERTY_PRIMARY_BTN,
   POST_PROPERTY_STEP_ACCENT,
@@ -114,6 +125,13 @@ export default function PostPropertyContent() {
   );
   const [pricingOthers, setPricingOthers] =
     useState<PricingOthersValues>(initialPricingOthers);
+  const [amenitiesErrors, setAmenitiesErrors] =
+    useState<AmenitiesFieldErrors>({});
+  const [pricingOthersErrors, setPricingOthersErrors] =
+    useState<PricingOthersFieldErrors>({});
+  const [photosError, setPhotosError] = useState("");
+  const [submitErrors, setSubmitErrors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddressLocationChange = <
     K extends keyof AddressLocationValues,
@@ -234,6 +252,32 @@ export default function PostPropertyContent() {
     value: AmenitiesValues[K],
   ) => {
     setAmenities((current) => ({ ...current, [field]: value }));
+
+    setAmenitiesErrors((current) => {
+      const next = { ...current };
+      delete next[field as keyof AmenitiesFieldErrors];
+      if (field === "status") {
+        delete next.furnishing;
+      }
+      if (field === "carParkingAvailable") {
+        delete next.carParking;
+      }
+      return Object.keys(next).length === Object.keys(current).length
+        ? current
+        : next;
+    });
+  };
+
+  const handleAmenitiesNext = () => {
+    const errors = validateAmenities(amenities);
+
+    if (hasAmenitiesErrors(errors)) {
+      setAmenitiesErrors(errors);
+      return;
+    }
+
+    setAmenitiesErrors({});
+    goToStep(4);
   };
 
   const handlePricingOthersChange = <K extends keyof PricingOthersValues>(
@@ -241,20 +285,80 @@ export default function PostPropertyContent() {
     value: PricingOthersValues[K],
   ) => {
     setPricingOthers((current) => ({ ...current, [field]: value }));
+
+    setPricingOthersErrors((current) => {
+      if (!(field in current)) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[field as keyof PricingOthersFieldErrors];
+      return next;
+    });
   };
 
-  const handleSubmit = () => {
-    // TODO: wire up property submission API
-    console.log("Submit property listing", {
-      listingType,
-      propertyType,
-      propertySubType,
-      addressLocation,
-      propertyDetails,
-      amenities,
-      photosVideos,
-      pricingOthers,
-    });
+  const handlePhotosNext = () => {
+    if (getTotalMediaCount(photosVideos) === 0) {
+      setPhotosError("Please add at least one photo");
+      return;
+    }
+
+    setPhotosError("");
+    goToStep(5);
+  };
+
+  const handleSubmit = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    const validationErrors = validatePricingOthers(pricingOthers);
+    if (hasPricingOthersErrors(validationErrors)) {
+      setPricingOthersErrors(validationErrors);
+      return;
+    }
+    setPricingOthersErrors({});
+
+    const token = getToken();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    setSubmitErrors([]);
+    setIsSubmitting(true);
+
+    try {
+      await createProperty(
+        buildPropertyFormData({
+          listingType,
+          propertyType,
+          propertySubType,
+          addressLocation,
+          propertyDetails,
+          amenities,
+          photosVideos,
+          pricingOthers,
+        }),
+        token,
+      );
+      router.push("/user/properties/manage-properties");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (error instanceof ApiError) {
+        setSubmitErrors(
+          error.errors && error.errors.length > 0 ? error.errors : [error.message],
+        );
+      } else {
+        setSubmitErrors(["Something went wrong. Please try again."]);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePropertyTypeChange = (nextPropertyType: PropertyTypeId) => {
@@ -277,7 +381,7 @@ export default function PostPropertyContent() {
   const isPricingOthersStep = currentStep === 5;
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-2 py-8 sm:px-4 sm:py-10 lg:px-4">
+    <div className="mx-auto w-full max-w-360 px-2 py-8 sm:px-4 sm:py-10 lg:px-4">
       <header>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-30">
           <div className="shrink-0">
@@ -324,7 +428,7 @@ export default function PostPropertyContent() {
               errors={addressLocationErrors}
             />
 
-            <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
+            <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
                 onClick={handleBasicDetailsNext}
@@ -356,7 +460,7 @@ export default function PostPropertyContent() {
               errors={propertyDetailsErrors}
             />
 
-            <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
+            <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
                 onClick={handlePropertyDetailsNext}
@@ -385,12 +489,13 @@ export default function PostPropertyContent() {
             <AmenitiesField
               values={amenities}
               onChange={handleAmenitiesChange}
+              errors={amenitiesErrors}
             />
 
-            <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
+            <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
-                onClick={() => goToStep(4)}
+                onClick={handleAmenitiesNext}
                 className={POST_PROPERTY_PRIMARY_BTN}
               >
                 Next, Add Photos & Videos
@@ -415,13 +520,17 @@ export default function PostPropertyContent() {
           <div className="space-y-6">
             <PhotosVideosField
               values={photosVideos}
-              onChange={setPhotosVideos}
+              onChange={(next) => {
+                setPhotosVideos(next);
+                setPhotosError("");
+              }}
+              error={photosError}
             />
 
-            <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
+            <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
-                onClick={() => goToStep(5)}
+                onClick={handlePhotosNext}
                 className={POST_PROPERTY_PRIMARY_BTN}
               >
                 Continue
@@ -449,15 +558,25 @@ export default function PostPropertyContent() {
             <PricingOthersField
               values={pricingOthers}
               onChange={handlePricingOthersChange}
+              errors={pricingOthersErrors}
             />
 
-            <div className="flex justify-center border-t border-slate-100/90 bg-gradient-to-t from-slate-50/50 to-transparent pt-7">
+            {submitErrors.length > 0 ? (
+              <div className="space-y-1 text-center text-sm text-red-500">
+                {submitErrors.map((message) => (
+                  <p key={message}>{message}</p>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
                 onClick={handleSubmit}
-                className={POST_PROPERTY_PRIMARY_BTN}
+                disabled={isSubmitting}
+                className={`${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                Submit
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </div>

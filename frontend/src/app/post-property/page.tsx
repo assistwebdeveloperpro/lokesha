@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import RequireAuth from "@/components/auth/RequireAuth";
 import Header from "@/components/layout/Header";
 import PostPropertyContent from "@/components/post-property/PostPropertyContent";
 
@@ -14,9 +15,11 @@ export default function PostPropertyPage() {
     <div className="post-property-page-bg w-full font-sans">
       <Header />
       <main className="w-full">
-        <Suspense>
-          <PostPropertyContent />
-        </Suspense>
+        <RequireAuth>
+          <Suspense>
+            <PostPropertyContent />
+          </Suspense>
+        </RequireAuth>
       </main>
     </div>
   );

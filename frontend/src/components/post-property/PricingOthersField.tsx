@@ -5,6 +5,7 @@ import ExpandableIconTileSelect from "./ExpandableIconTileSelect";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import {
   PRICE_INCLUSION_OPTIONS,
+  type PricingOthersFieldErrors,
   type PricingOthersValues,
 } from "./postPropertyForm.shared";
 import { POST_PROPERTY_CHECKBOX_ROW } from "./postPropertyForm.styles";
@@ -15,8 +16,10 @@ const checkboxClassName =
 export default function PricingOthersField({
   values,
   onChange,
+  errors = {},
 }: {
   values: PricingOthersValues;
+  errors?: PricingOthersFieldErrors;
   onChange: <K extends keyof PricingOthersValues>(
     field: K,
     value: PricingOthersValues[K],
@@ -38,6 +41,7 @@ export default function PricingOthersField({
           type="number"
           value={values.expectedPrice}
           onChange={(nextValue) => onChange("expectedPrice", nextValue)}
+          error={errors.expectedPrice}
         />
 
         <label className={`mt-4 ${POST_PROPERTY_CHECKBOX_ROW}`}>
@@ -87,6 +91,7 @@ export default function PricingOthersField({
             type="number"
             value={values.bookingAmount}
             onChange={(nextValue) => onChange("bookingAmount", nextValue)}
+            error={errors.bookingAmount}
           />
           <PostPropertyInput
             id="maintenanceCharges"

@@ -197,7 +197,7 @@ function LoggedInDropdown({
 }) {
   return (
     <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-2 shadow-xl sm:w-60">
-      <p className="px-4 pb-2 pt-1 text-sm font-semibold text-slate-800 cursor-pointer hover:text-navy-blue/80">
+      <p className="px-4 pb-2 pt-1 text-sm font-semibold text-slate-800 cursor-pointer hover:bg-slate-50 hover:text-sky-700">
         Hi, {userName}
       </p>
 

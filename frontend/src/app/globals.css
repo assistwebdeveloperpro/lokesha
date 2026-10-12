@@ -3,16 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-display: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
-  --color-lokesha-teal: #0a7a6e;
-  --color-lokesha-blue: #0b3d5c;
   --color-lokesha-emerald: #10b981;
-  --color-navy-blue: #0f172a;
   --color-navy-sidebar: #12192b;
+  --color-navy-blue: var(--color-navy-sidebar);
   --color-navy-sidebar-active: #1e2a46;
   --color-navy-sidebar-active-ring: rgba(148, 163, 184, 0.22);
 }
@@ -73,8 +68,8 @@ body {
   border-color: var(--color-navy-blue);
 }
 
-.text-navy-blue {
-  color: var(--color-navy-blue);
+.border-b-navy-blue {
+  border-bottom-color: var(--color-navy-blue);
 }
 
 .bg-navy-sidebar {
@@ -100,22 +95,6 @@ body {
 
 .bg-linear-to-r-navy-blue:hover {
   background: linear-gradient(to right, #15253a, #1a3348, #23405a);
-}
-
-.bg-lokesha-teal {
-  background-color: var(--color-lokesha-teal);
-}
-
-.text-lokesha-teal {
-  color: var(--color-lokesha-teal);
-}
-
-.bg-linear-to-b-teal {
-  background: linear-gradient(to bottom, #14b8a6, #0a7a6e);
-}
-
-.bg-linear-to-r-teal {
-  background: linear-gradient(to right, #0a7a6e, #0d9488, #14b8a6);
 }
 
 .bg-linear-to-r-progress {
@@ -146,15 +125,6 @@ body:has(.post-property-page-bg) {
     rgba(240, 249, 255, 0.4) 100%
   );
   backdrop-filter: blur(8px);
-}
-
-.post-property-form-card::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 3px;
-  pointer-events: none;
 }
 
 .post-property-section {
@@ -315,11 +285,11 @@ body:has(.post-property-page-bg) {
 }
 
 .lokesha-toast--success .lokesha-toast__progress {
-  background-color: white;
+  background-color: #10b981;
 }
 
 .lokesha-toast--error .lokesha-toast__progress {
-  background-color: white;
+  background-color: #10b981;
 }
 
 .lokesha-toast:hover .lokesha-toast__progress {
@@ -343,5 +313,30 @@ body:has(.post-property-page-bg) {
   }
   to {
     transform: scaleX(0);
+  }
+}
+
+@keyframes new-projects-badge-zoom {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+  }
+  50% {
+    transform: scale(1.18);
+    box-shadow: 0 0 12px 4px rgba(251, 191, 36, 0.7);
+  }
+}
+
+.new-projects-badge {
+  z-index: 1;
+  transform-origin: center center;
+  animation: new-projects-badge-zoom 2s ease-in-out forwards infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-projects-badge {
+    animation: none;
+    box-shadow: none;
   }
 }

@@ -27,10 +27,10 @@ export default function AuthPromoContent() {
 
   return (
     <div className="mx-auto w-full max-w-md lg:max-w-xl">
-      <h2 className="font-display text-[1.375rem] font-bold leading-snug tracking-tight text-slate-900 sm:text-[1.625rem] xl:text-[1.875rem]">
+      <h2 className="font-display text-[1.375rem] font-bold text-center leading-snug tracking-tight  sm:text-[1.625rem] xl:text-[1.895rem]">
         {title}
       </h2>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600 sm:mt-2.5 md:mt-3 xl:mt-4 xl:text-[0.9375rem]">
+      <p className="mt-2 text-sm px-5 leading-relaxed text-center text-slate-500 sm:mt-2.5 md:mt-3 xl:mt-4 xl:text-[0.9375rem]">
         {description}
       </p>
 

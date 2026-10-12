@@ -22,6 +22,7 @@ type ExpandableIconTileSelectProps = {
   onChange: (value: string[]) => void;
   visibleCount?: number;
   bare?: boolean;
+  error?: string;
 };
 
 function getImageSrc(image: StaticImageData | string): string {
@@ -36,6 +37,7 @@ export default function ExpandableIconTileSelect({
   onChange,
   visibleCount = VISIBLE_ICON_TILE_COUNT,
   bare = false,
+  error,
 }: ExpandableIconTileSelectProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -53,6 +55,7 @@ export default function ExpandableIconTileSelect({
     `flex min-h-[5.75rem] w-full flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3.5 text-center sm:min-h-[6.25rem] sm:px-3 sm:py-4 ${postPropertyTileClass(isSelected)}`;
 
   const tileContent = (
+    <>
     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
       {visibleOptions.map((option) => {
         const isSelected = value.includes(option.id);
@@ -112,6 +115,12 @@ export default function ExpandableIconTileSelect({
         </button>
       ) : null}
     </div>
+    {error ? (
+      <p className="mt-2 text-sm text-red-500" role="alert">
+        {error}
+      </p>
+    ) : null}
+    </>
   );
 
   if (bare) {

@@ -14,6 +14,8 @@ const userProfileRoutes = require("./modules/user/user-profile/user-profile.rout
 const userPasswordRoutes = require("./modules/user/user-password/user-password.routes");
 const userSavedMessagesRoutes = require("./modules/user/user-saved-messages/user-saved-messages.routes");
 
+const propertyRoutes = require("./modules/property/property.routes");
+
 const app = express();
 
 app.use(
@@ -35,6 +37,8 @@ app.use("/api/user/rera", userReraRoutes);
 app.use("/api/user/profile", userProfileRoutes);
 app.use("/api/user/password", userPasswordRoutes);
 app.use("/api/user/saved-messages", userSavedMessagesRoutes);
+
+app.use("/api/property", propertyRoutes);
 
 const PORT = process.env.PORT;
 
