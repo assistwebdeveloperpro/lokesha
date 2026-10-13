@@ -4,14 +4,16 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Home,
   LogOut,
   Menu,
+  User,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
@@ -43,9 +45,121 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-function initialFromName(name: string): string {
-  const trimmed = name.trim();
-  return trimmed ? trimmed.charAt(0).toUpperCase() : "U";
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+  }
+  if (parts.length === 1) {
+    return parts[0].charAt(0).toUpperCase();
+  }
+  return "U";
+}
+
+function UserDashboardProfileMenu({
+  userName,
+  onSignOut,
+}: {
+  userName: string;
+  onSignOut: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const initials = initialsFromName(userName);
+
+  const close = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        close();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open, close]);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1.5 shadow-sm transition hover:bg-slate-50 sm:gap-2.5 sm:px-3"
+        aria-expanded={open}
+        aria-haspopup="true"
+        aria-label={`Account menu for ${userName}`}
+      >
+        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-r-navy-blue text-xs font-bold text-white sm:h-8 sm:w-8 sm:text-sm">
+          {initials}
+        </span>
+        <span className="hidden max-w-[140px] truncate text-sm font-semibold text-slate-700 sm:inline">
+          {userName}
+        </span>
+        {open ? (
+          <ChevronUp className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+        ) : (
+          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <p className="px-4 py-3.5 text-base font-bold text-slate-900">
+            Hi, {userName}
+          </p>
+          <div className="border-t border-slate-100" />
+
+          <nav className="py-0" aria-label="Account shortcuts">
+            <Link
+              href="/"
+              onClick={close}
+              className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
+            >
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                <Home className="h-4 w-4 text-slate-600" strokeWidth={2} aria-hidden />
+              </span>
+              Home
+            </Link>
+            <Link
+              href="/user/profile/account-details"
+              onClick={close}
+              className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
+            >
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                <User className="h-4 w-4 text-slate-600" strokeWidth={2} aria-hidden />
+              </span>
+              My Profile
+            </Link>
+          </nav>
+
+          <div className="border-t border-slate-100 p-2">
+            <button
+              type="button"
+              onClick={() => {
+                close();
+                onSignOut();
+              }}
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r-navy-blue py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600 active:scale-[0.99]"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={2} aria-hidden />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function UserDashboardShell({
@@ -97,7 +211,7 @@ function UserDashboardShellInner({
   const handleLogout = () => {
     closeSidebarOnMobile();
     logout();
-    router.replace("/");
+    router.replace("/login");
   };
 
   const handleNavClick = (
@@ -290,14 +404,7 @@ function UserDashboardShellInner({
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 shadow-sm">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-slate-700">
-                  {initialFromName(userName)}
-                </span>
-                <span className="hidden text-sm font-semibold text-slate-700 sm:inline">{userName}</span>
-              </div>
-            </div>
+            <UserDashboardProfileMenu userName={userName} onSignOut={handleLogout} />
           </div>
         </header>
 

@@ -4,13 +4,16 @@ import {
   CarFront,
   Columns2,
   Factory,
+  GraduationCap,
   Home,
   Hotel,
   Landmark,
   LucideIcon,
   LandPlotIcon,
   Map,
+  Briefcase,
   Snowflake,
+  User,
   Sprout,
   Store,
   TreePine,
@@ -72,6 +75,7 @@ import landImage from "../../../public/assets/images/property_type/land.svg";
 import pgImage from "../../../public/assets/images/property_type/pg.svg";
 import plotImage from "../../../public/assets/images/property_type/plot.svg";
 import residentialImage from "../../../public/assets/images/property_type/residential.svg";
+import { parseAmountNumber } from "./postPropertyAmount";
 
 export const FORM_STEPS = [
   { id: 1, label: "Basic Details" },
@@ -84,7 +88,6 @@ export const FORM_STEPS = [
 export const LISTING_TYPES = [
   { id: "sale", label: "Sale" },
   { id: "rent-lease", label: "Rent/ Lease" },
-  { id: "pg-hostel", label: "PG/Hostel" },
 ] as const;
 
 export const PROPERTY_TYPES = [
@@ -179,6 +182,19 @@ export const AGE_OF_CONSTRUCTION_OPTIONS = [
   { id: "3-to-5", label: "3 to 5" },
   { id: "gt-5", label: ">5" },
 ] as const;
+
+export const TENANT_PREFERENCE_OPTIONS = [
+  { id: "family", label: "Family", icon: Home },
+  { id: "bachelor", label: "Bachelor", icon: User },
+  { id: "student", label: "Student", icon: GraduationCap },
+  { id: "professional", label: "Professional", icon: Briefcase },
+] as const;
+
+export const DEFAULT_RENT_AGE_OF_CONSTRUCTION: AgeOfConstructionId = "lt-1";
+
+export function isRentListing(listingType: ListingTypeId): boolean {
+  return listingType === "rent-lease";
+}
 
 export type AreaTypeId = (typeof AREA_TYPE_OPTIONS)[number]["value"];
 export type PropertyTransactionId =
@@ -294,42 +310,81 @@ export function hasAddressLocationErrors(
   return Object.keys(errors).length > 0;
 }
 
-function parseMonthYearValue(
-  value: string,
-): { year: number; month: number } | null {
-  const match = /^(\d{4})-(\d{2})$/.exec(value.trim());
+export function getTodayIsoDate(referenceDate: Date = new Date()): string {
+  const year = referenceDate.getFullYear();
+  const month = String(referenceDate.getMonth() + 1).padStart(2, "0");
+  const day = String(referenceDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseIsoDateValue(value: string): string | null {
+  const trimmed = value.trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
   if (!match) {
     return null;
   }
 
   const year = Number(match[1]);
   const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
   if (
-    !Number.isInteger(year) ||
-    !Number.isInteger(month) ||
-    month < 1 ||
-    month > 12
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
   ) {
     return null;
   }
 
-  return { year, month };
+  return trimmed;
 }
 
-export function isFuturePossessionMonth(
-  monthValue: string,
+export function normalizePossessionDateForInput(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const fullDate = parseIsoDateValue(trimmed);
+  if (fullDate) {
+    return fullDate;
+  }
+
+  const monthMatch = /^(\d{4})-(\d{2})$/.exec(trimmed);
+  if (monthMatch) {
+    return `${monthMatch[1]}-${monthMatch[2]}-01`;
+  }
+
+  return trimmed;
+}
+
+function isAllowedPossessionDate(
+  dateValue: string,
   referenceDate: Date = new Date(),
+  allowedPastDate?: string,
 ): boolean {
-  const parsed = parseMonthYearValue(monthValue);
+  const parsed = parseIsoDateValue(dateValue);
   if (!parsed) {
     return false;
   }
 
-  const { year, month } = parsed;
-  const currentYear = referenceDate.getFullYear();
-  const currentMonth = referenceDate.getMonth() + 1;
+  if (parsed >= getTodayIsoDate(referenceDate)) {
+    return true;
+  }
 
-  return year > currentYear || (year === currentYear && month >= currentMonth);
+  const allowedPast = allowedPastDate
+    ? parseIsoDateValue(allowedPastDate)
+    : null;
+  return Boolean(allowedPast && parsed === allowedPast);
+}
+
+export function getPossessionDateInputMin(currentValue: string): string {
+  const today = getTodayIsoDate();
+  const parsed = parseIsoDateValue(currentValue);
+  if (parsed && parsed < today) {
+    return parsed;
+  }
+  return today;
 }
 
 export type PropertyDetailsValues = {
@@ -347,12 +402,20 @@ export type PropertyDetailsValues = {
   floorNumber: string;
   bathrooms: string;
   lift: string;
+  fullHouse: boolean;
+  sharingBasis: boolean;
+  availableFrom: string;
+  interiorModificationAllowed: boolean;
+  tenantPreferences: string[];
 };
 
 export type PropertyDetailsFieldErrors = Partial<
   Record<
     | "carpetAreaNumber"
     | "carpetAreaType"
+    | "superBuildUpType"
+    | "availableFrom"
+    | "tenantPreferences"
     | "propertyTransaction"
     | "constructionStatus"
     | "ageOfConstruction"
@@ -368,8 +431,14 @@ export type PropertyDetailsFieldErrors = Partial<
 
 export function validatePropertyDetails(
   values: PropertyDetailsValues,
+  options?: {
+    listingType?: ListingTypeId;
+    possessionDatePastAnchor?: string;
+    availableFromPastAnchor?: string;
+  },
 ): PropertyDetailsFieldErrors {
   const errors: PropertyDetailsFieldErrors = {};
+  const isRent = options?.listingType === "rent-lease";
 
   if (!values.carpetAreaNumber.trim()) {
     errors.carpetAreaNumber = "Please enter carpet area";
@@ -384,23 +453,53 @@ export function validatePropertyDetails(
     errors.carpetAreaType = "Please select carpet area type";
   }
 
-  if (!values.propertyTransaction) {
+  if (!values.superBuildUpType) {
+    errors.superBuildUpType = "Please select super build up type";
+  }
+
+  if (isRent) {
+    if (!values.ageOfConstruction) {
+      errors.ageOfConstruction = "Please select age of construction";
+    }
+
+    if (!values.availableFrom.trim()) {
+      errors.availableFrom = "Please select available from date";
+    } else if (
+      !isAllowedPossessionDate(
+        values.availableFrom,
+        new Date(),
+        options?.availableFromPastAnchor,
+      )
+    ) {
+      errors.availableFrom = "Available from date cannot be in the past";
+    }
+
+    if (values.tenantPreferences.length === 0) {
+      errors.tenantPreferences = "Please select at least one tenant preference";
+    }
+  } else if (!values.propertyTransaction) {
     errors.propertyTransaction = "Please select property transaction";
   }
 
-  if (values.propertyTransaction === "new") {
+  if (!isRent && values.propertyTransaction === "new") {
     if (!values.constructionStatus) {
       errors.constructionStatus = "Please select construction status";
     }
 
     if (!values.possessionDate.trim()) {
       errors.possessionDate = "Please select possession date";
-    } else if (!isFuturePossessionMonth(values.possessionDate)) {
+    } else if (
+      !isAllowedPossessionDate(
+        values.possessionDate,
+        new Date(),
+        options?.possessionDatePastAnchor,
+      )
+    ) {
       errors.possessionDate = "Possession date cannot be in the past";
     }
   }
 
-  if (values.propertyTransaction === "resale") {
+  if (!isRent && values.propertyTransaction === "resale") {
     if (!values.ageOfConstruction) {
       errors.ageOfConstruction = "Please select age of construction";
     }
@@ -664,26 +763,74 @@ export type PricingOthersValues = {
   bookingAmount: string;
   maintenanceCharges: string;
   benefitsRemarks: string;
+  monthlyRent: string;
+  noticePeriod: string;
+  depositAmount: string;
 };
 
 export type PricingOthersFieldErrors = Partial<
-  Record<"expectedPrice" | "bookingAmount", string>
+  Record<
+    | "expectedPrice"
+    | "bookingAmount"
+    | "monthlyRent"
+    | "noticePeriod"
+    | "depositAmount",
+    string
+  >
 >;
 
-export function validatePricingOthers(
+export const MAX_NOTICE_PERIOD_MONTHS = 60;
+
+function validateRentPricing(
   values: PricingOthersValues,
 ): PricingOthersFieldErrors {
   const errors: PricingOthersFieldErrors = {};
 
+  if (!values.monthlyRent.trim()) {
+    errors.monthlyRent = "Please enter monthly rent";
+  } else if (parseAmountNumber(values.monthlyRent) < 0) {
+    errors.monthlyRent = "Please enter a valid monthly rent";
+  }
+
+  const noticePeriod = Number(values.noticePeriod);
+  if (!values.noticePeriod.trim()) {
+    errors.noticePeriod = "Please enter notice period";
+  } else if (
+    !Number.isInteger(noticePeriod) ||
+    noticePeriod < 0 ||
+    noticePeriod > MAX_NOTICE_PERIOD_MONTHS
+  ) {
+    errors.noticePeriod = `Notice period must be between 0 and ${MAX_NOTICE_PERIOD_MONTHS} months`;
+  }
+
+  if (!values.depositAmount.trim()) {
+    errors.depositAmount = "Please enter deposit amount";
+  } else if (parseAmountNumber(values.depositAmount) < 0) {
+    errors.depositAmount = "Please enter a valid deposit amount";
+  }
+
+  return errors;
+}
+
+export function validatePricingOthers(
+  values: PricingOthersValues,
+  listingType?: ListingTypeId,
+): PricingOthersFieldErrors {
+  if (listingType === "rent-lease") {
+    return validateRentPricing(values);
+  }
+
+  const errors: PricingOthersFieldErrors = {};
+
   if (!values.expectedPrice.trim()) {
     errors.expectedPrice = "Please enter expected price";
-  } else if (Number(values.expectedPrice) < 0) {
+  } else if (parseAmountNumber(values.expectedPrice) < 0) {
     errors.expectedPrice = "Please enter a valid expected price";
   }
 
   if (!values.bookingAmount.trim()) {
     errors.bookingAmount = "Please enter booking amount";
-  } else if (Number(values.bookingAmount) < 0) {
+  } else if (parseAmountNumber(values.bookingAmount) < 0) {
     errors.bookingAmount = "Please enter a valid booking amount";
   }
 

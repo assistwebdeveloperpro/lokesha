@@ -22,10 +22,12 @@ const checkboxClassName =
   "h-4.5 w-4.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500";
 
 export default function AmenitiesField({
+  isRent = false,
   values,
   onChange,
   errors = {},
 }: {
+  isRent?: boolean;
   values: AmenitiesValues;
   errors?: AmenitiesFieldErrors;
   onChange: <K extends keyof AmenitiesValues>(
@@ -133,33 +135,37 @@ export default function AmenitiesField({
             />
           ) : null}
 
-          <label className={POST_PROPERTY_CHECKBOX_ROW}>
-            <input
-              type="checkbox"
-              checked={values.clubMembership}
-              onChange={(event) =>
-                onChange("clubMembership", event.target.checked)
-              }
-              className={checkboxClassName}
-            />
-            <span className="text-sm font-semibold text-slate-800">
-              Club Membership
-            </span>
-          </label>
+          {isRent ? null : (
+            <label className={POST_PROPERTY_CHECKBOX_ROW}>
+              <input
+                type="checkbox"
+                checked={values.clubMembership}
+                onChange={(event) =>
+                  onChange("clubMembership", event.target.checked)
+                }
+                className={checkboxClassName}
+              />
+              <span className="text-sm font-semibold text-slate-800">
+                Club Membership
+              </span>
+            </label>
+          )}
         </div>
       </PostPropertyFieldSection>
 
       <PostPropertyFieldSection title="Additional Details">
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-          <PostPropertyInput
-            id="reraNumber"
-            label="RERA Number"
-            placeholder="RERA Number"
-            variant="underline"
-            staticLabel
-            value={values.reraNumber}
-            onChange={(nextValue) => onChange("reraNumber", nextValue)}
-          />
+          {isRent ? null : (
+            <PostPropertyInput
+              id="reraNumber"
+              label="RERA Number"
+              placeholder="RERA Number"
+              variant="underline"
+              staticLabel
+              value={values.reraNumber}
+              onChange={(nextValue) => onChange("reraNumber", nextValue)}
+            />
+          )}
           <PostPropertyInput
             id="openSides"
             label="No. of open sides"

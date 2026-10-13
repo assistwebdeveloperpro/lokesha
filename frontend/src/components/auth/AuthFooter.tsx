@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const footerLinks = [
-  { label: "Sitemap", href: "/sitemap" },
-  { label: "About Us", href: "/about" },
-  { label: "Terms & Conditions", href: "/terms" },
-  { label: "Privacy", href: "/privacy" },
+  { label: "Sitemap", href: "#" },
+  { label: "About Us", href: "#" },
+  { label: "Terms & Conditions", href: "#" },
+  { label: "Privacy", href: "#" },
 ];
 
 export default function AuthFooter() {
@@ -17,7 +17,7 @@ export default function AuthFooter() {
           aria-label="Footer"
         >
           {footerLinks.map((link, index) => (
-            <span key={link.href} className="flex items-center gap-2">
+            <span key={link.label} className="flex items-center gap-2">
               {index > 0 && (
                 <span className="text-sky-400/70" aria-hidden>
                   •

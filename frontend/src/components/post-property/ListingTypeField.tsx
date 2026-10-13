@@ -17,15 +17,11 @@ export default function ListingTypeField({
       title="Listing Type"
       description="Choose whether you want to sell or rent your property"
     >
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {LISTING_TYPES.map((type) => {
           const isSelected = value === type.id;
           const subtitle =
-            type.id === "sale"
-              ? "List for buyers"
-              : type.id === "rent-lease"
-                ? "List for tenants"
-                : "List for guests";
+            type.id === "sale" ? "List for buyers" : "List for tenants";
 
           return (
             <button

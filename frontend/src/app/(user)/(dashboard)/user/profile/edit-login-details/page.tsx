@@ -578,7 +578,7 @@ export default function EditLoginDetailsPage() {
               />
               <span>
                 I agree to Lokesha&apos;s{" "}
-                <Link href="/terms" className="font-medium text-sky-700 hover:text-sky-600">
+                <Link href="#" className="font-medium text-sky-700 hover:text-sky-600">
                   Terms & Conditions
                 </Link>
                 . I would like to receive property related communication through Email, Call or

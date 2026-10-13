@@ -21,6 +21,10 @@ type FloatingInputProps = {
   mutedText?: boolean;
   dropdownMenuClassName?: string;
   accentColor?: "sky" | "teal";
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
+  min?: string;
+  max?: string;
 };
 
 const staticLabelClasses = "mb-2.5 block text-sm font-semibold text-slate-700";
@@ -46,6 +50,10 @@ export default function FloatingInput({
   mutedText = false,
   dropdownMenuClassName,
   accentColor = "sky",
+  inputMode,
+  autoComplete,
+  min,
+  max,
 }: FloatingInputProps) {
   const focusBorder =
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
@@ -132,6 +140,10 @@ export default function FloatingInput({
             value={value}
             placeholder={placeholder}
             aria-invalid={hasError}
+            inputMode={inputMode}
+            autoComplete={autoComplete}
+            min={min}
+            max={max}
             onChange={onChange ? (e) => onChange(e.target.value) : undefined}
             className={`${underlineFieldClasses} ${hideNumberSpinnerClasses} placeholder:text-slate-400`}
           />
@@ -157,6 +169,10 @@ export default function FloatingInput({
           placeholder=" "
           value={value}
           aria-invalid={hasError}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          min={min}
+          max={max}
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className={
             isUnderline

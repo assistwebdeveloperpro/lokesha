@@ -16,12 +16,19 @@ export function getAssetUrl(path: string) {
 export class ApiError extends Error {
   status: number;
   errors?: string[];
+  fields?: Record<string, string>;
 
-  constructor(message: string, status: number, errors?: string[]) {
+  constructor(
+    message: string,
+    status: number,
+    errors?: string[],
+    fields?: Record<string, string>,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.errors = errors;
+    this.fields = fields;
   }
 }
 
@@ -30,6 +37,7 @@ type ApiFetchOptions = Omit<RequestInit, "body"> & { body?: unknown };
 type ErrorPayload = {
   message?: string;
   errors?: string[];
+  fields?: Record<string, string>;
 };
 
 export async function apiFetch<TResponse>(
@@ -61,6 +69,7 @@ export async function apiFetch<TResponse>(
       errorPayload.message ?? "Something went wrong. Please try again.",
       response.status,
       errorPayload.errors,
+      errorPayload.fields,
     );
   }
 

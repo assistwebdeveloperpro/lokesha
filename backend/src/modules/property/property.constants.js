@@ -1,4 +1,4 @@
-const LISTING_TYPES = ["sale", "rent-lease", "pg-hostel"];
+const LISTING_TYPES = ["sale", "rent-lease"];
 const PROPERTY_TYPES = ["residential", "commercial", "pg-co-living", "plot", "land"];
 
 const SUB_TYPES_BY_PROPERTY_TYPE = {
@@ -38,6 +38,7 @@ const AREA_UNITS = ["sq-ft", "sq-km", "sq-m", "sq-yd"];
 const PROPERTY_TRANSACTIONS = ["new", "resale"];
 const CONSTRUCTION_STATUSES = ["pre-launch", "under-construction", "ready-to-move"];
 const AGES_OF_CONSTRUCTION = ["lt-1", "1-to-2", "2-to-3", "3-to-5", "gt-5"];
+const TENANT_PREFERENCES = ["family", "bachelor", "student", "professional"];
 const FURNISHING_STATUSES = ["furnished", "semi-furnished", "unfurnished"];
 
 const FURNISHING_ITEMS = [
@@ -134,6 +135,7 @@ module.exports = {
   PROPERTY_TRANSACTIONS,
   CONSTRUCTION_STATUSES,
   AGES_OF_CONSTRUCTION,
+  TENANT_PREFERENCES,
   FURNISHING_STATUSES,
   FURNISHING_ITEMS,
   AMENITIES,

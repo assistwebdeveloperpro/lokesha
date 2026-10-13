@@ -1,7 +1,16 @@
 "use client";
 
 import { CheckCircle2, X, XCircle } from "lucide-react";
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { consumePendingToast } from "./pendingToast";
 
 type ToastType = "success" | "error";
 
@@ -25,6 +34,7 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 const TOAST_DURATION_MS = 3000;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(0);
   const timers = useRef(new Map<number, ToastTimer>());
@@ -75,6 +85,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     [startTimer],
   );
 
+  useEffect(() => {
+    const pending = consumePendingToast();
+    if (pending) {
+      showToast(pending.message, pending.type);
+    }
+  }, [pathname, showToast]);
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
@@ -103,10 +120,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
-            <span
-              className="lokesha-toast__progress"
-              style={{ animationDuration: `${TOAST_DURATION_MS}ms` }}
-            />
+            {toast.type === "success" ? (
+              <span
+                className="lokesha-toast__progress"
+                style={{ animationDuration: `${TOAST_DURATION_MS}ms` }}
+              />
+            ) : null}
           </div>
         ))}
       </div>

@@ -1,7 +1,10 @@
 "use client";
 
-import { AlertTriangle, ImagePlus, Play, Upload, X } from "lucide-react";
+import { AlertTriangle, ImagePlus, Play, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import type { PropertyMedia } from "@/services/property.service";
+import ExistingMediaThumbnail from "./ExistingMediaThumbnail";
+import MediaRemoveButton from "./MediaRemoveButton";
 import {
   ACCEPTED_BROCHURE_EXTENSIONS,
   ACCEPTED_BROCHURE_TYPES,
@@ -26,25 +29,6 @@ const uploadButtonClassName =
 
 const categoryTabClassName = (isSelected: boolean) =>
   `${postPropertyChipClass(isSelected)} px-3.5 py-2 text-sm sm:px-4 sm:py-2.5`;
-
-function MediaRemoveButton({
-  label,
-  onRemove,
-}: {
-  label: string;
-  onRemove: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onRemove}
-      className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/75 text-white shadow-sm backdrop-blur-sm transition hover:bg-slate-900"
-      aria-label={label}
-    >
-      <X className="h-3.5 w-3.5" aria-hidden />
-    </button>
-  );
-}
 
 function MediaThumbnail({
   media,
@@ -102,10 +86,16 @@ export default function PhotosVideosField({
   values,
   onChange,
   error,
+  existingMedia = [],
+  onRemoveExisting,
+  existingBrochureName,
 }: {
   values: PhotosVideosValues;
   onChange: (nextValues: PhotosVideosValues) => void;
   error?: string;
+  existingMedia?: PropertyMedia[];
+  onRemoveExisting?: (mediaId: string) => void;
+  existingBrochureName?: string | null;
 }) {
   const [activeCategory, setActiveCategory] = useState<PhotoCategoryId>("bedrooms");
   const [mediaError, setMediaError] = useState<string | null>(null);
@@ -117,8 +107,11 @@ export default function PhotosVideosField({
   valuesRef.current = values;
 
   const categoryMedia = values.mediaByCategory[activeCategory];
-  const totalMediaCount = getTotalMediaCount(values);
-  const hasCategoryMedia = categoryMedia.length > 0;
+  const categoryExistingMedia = existingMedia.filter(
+    (media) => media.category === activeCategory,
+  );
+  const totalMediaCount = getTotalMediaCount(values) + existingMedia.length;
+  const hasCategoryMedia = categoryMedia.length + categoryExistingMedia.length > 0;
   const showLowPhotosWarning =
     hasCategoryMedia && totalMediaCount < MIN_PHOTOS_FOR_WARNING;
 
@@ -319,6 +312,14 @@ export default function PhotosVideosField({
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 <AddMoreTile onClick={openMediaPicker} />
+                {categoryExistingMedia.map((media, index) => (
+                  <ExistingMediaThumbnail
+                    key={media.id}
+                    media={media}
+                    index={index}
+                    onRemove={() => onRemoveExisting?.(media.id)}
+                  />
+                ))}
                 {categoryMedia.map((media, index) => (
                   <MediaThumbnail
                     key={media.id}
@@ -390,6 +391,15 @@ export default function PhotosVideosField({
         title="Upload Brochure"
         description="Upload brochure max size of 100 mb in pdf format"
       >
+        {existingBrochureName && !values.brochure ? (
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-sky-100 bg-sky-50/40 px-4 py-3">
+            <Upload className="h-5 w-5 shrink-0 text-sky-600" aria-hidden />
+            <span className="flex-1 truncate text-sm font-medium text-slate-700">
+              Current brochure: {existingBrochureName}
+            </span>
+          </div>
+        ) : null}
+
         {values.brochure ? (
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-sky-100 bg-sky-50/40 px-4 py-3">
             <Upload className="h-5 w-5 shrink-0 text-sky-600" aria-hidden />
@@ -411,7 +421,7 @@ export default function PhotosVideosField({
           onClick={openBrochurePicker}
           className={`${uploadButtonClassName} ${values.brochure ? "mt-4" : ""}`}
         >
-          {values.brochure ? "Change Brochure" : "Upload Brochure"}
+          {values.brochure || existingBrochureName ? "Change Brochure" : "Upload Brochure"}
         </button>
 
         {brochureError ? (

@@ -1,15 +1,20 @@
 import PostPropertyInput from "./PostPropertyInput";
 import ChipSelectField from "./ChipSelectField";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
+import TenantPreferenceField from "./TenantPreferenceField";
+import { POST_PROPERTY_CHECKBOX_ROW } from "./postPropertyForm.styles";
 import {
   AGE_OF_CONSTRUCTION_OPTIONS,
   AREA_TYPE_OPTIONS,
   CONSTRUCTION_STATUS_OPTIONS,
   PROPERTY_TRANSACTION_OPTIONS,
   getFloorNumberOptionGroups,
+  getPossessionDateInputMin,
+  isRentListing,
   type AgeOfConstructionId,
   type AreaTypeId,
   type ConstructionStatusId,
+  type ListingTypeId,
   type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
 } from "./postPropertyForm.shared";
@@ -25,11 +30,16 @@ const areaTypeDropdownOptions = [
 const dropdownMenuClassName =
   "absolute left-0 z-50 mt-1 max-h-60 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10";
 
+const checkboxClassName =
+  "h-4.5 w-4.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500";
+
 export default function PropertyDetailsField({
+  listingType,
   values,
   onChange,
   errors = {},
 }: {
+  listingType: ListingTypeId;
   values: PropertyDetailsValues;
   onChange: <K extends keyof PropertyDetailsValues>(
     field: K,
@@ -39,6 +49,7 @@ export default function PropertyDetailsField({
 }) {
   const { options: floorNumberOptions, moreOptions: floorNumberMoreOptions } =
     getFloorNumberOptionGroups(values.totalFloors);
+  const isRent = isRentListing(listingType);
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -87,11 +98,12 @@ export default function PropertyDetailsField({
             />
             <PostPropertyInput
               id="superBuildUpType"
-              label="Super Build up Type"
+              label="Super Build up Type*"
               variant="underline"
               staticLabel
               options={areaTypeDropdownOptions}
               value={values.superBuildUpType}
+              error={errors.superBuildUpType}
               onChange={(value) =>
                 onChange("superBuildUpType", value as AreaTypeId | "")
               }
@@ -101,6 +113,7 @@ export default function PropertyDetailsField({
         </div>
       </PostPropertyFieldSection>
 
+      {isRent ? null : (
       <PostPropertyFieldSection
         title="Property Transaction & Construction Status"
         description="Select transaction type and related construction details"
@@ -176,17 +189,19 @@ export default function PropertyDetailsField({
           </div>
         ) : null}
       </PostPropertyFieldSection>
+      )}
 
-      {values.propertyTransaction === "new" ? (
+      {!isRent && values.propertyTransaction === "new" ? (
         <PostPropertyFieldSection title="Possession Date" required>
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             <PostPropertyInput
               id="possessionDate"
-              label="Possession Date (Month - Year)*"
+              label="Possession Date*"
               placeholder="Possession Date"
               variant="underline"
-              type="month"
+              type="date"
               staticLabel
+              min={getPossessionDateInputMin(values.possessionDate)}
               value={values.possessionDate}
               error={errors.possessionDate}
               onChange={(value) => onChange("possessionDate", value)}
@@ -339,6 +354,99 @@ export default function PropertyDetailsField({
         error={errors.bathrooms}
         onChange={(value) => onChange("bathrooms", value)}
       />
+
+      {isRent ? (
+        <>
+          <ChipSelectField
+            legend="Age of Construction"
+            required
+            options={AGE_OF_CONSTRUCTION_OPTIONS.map((option) => option.label)}
+            value={
+              AGE_OF_CONSTRUCTION_OPTIONS.find(
+                (option) => option.id === values.ageOfConstruction,
+              )?.label ?? ""
+            }
+            error={errors.ageOfConstruction}
+            onChange={(label) => {
+              const match = AGE_OF_CONSTRUCTION_OPTIONS.find(
+                (option) => option.label === label,
+              );
+              onChange(
+                "ageOfConstruction",
+                (match?.id ?? "") as AgeOfConstructionId | "",
+              );
+            }}
+          />
+
+          <PostPropertyFieldSection
+            title="Rental Details"
+            description="Add availability and rental preferences"
+          >
+            <div className="space-y-4">
+              <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                <input
+                  type="checkbox"
+                  checked={values.fullHouse}
+                  onChange={(event) => onChange("fullHouse", event.target.checked)}
+                  className={checkboxClassName}
+                />
+                <span className="text-sm font-semibold text-slate-800">
+                  Full House
+                </span>
+              </label>
+
+              <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                <input
+                  type="checkbox"
+                  checked={values.sharingBasis}
+                  onChange={(event) =>
+                    onChange("sharingBasis", event.target.checked)
+                  }
+                  className={checkboxClassName}
+                />
+                <span className="text-sm font-semibold text-slate-800">
+                  Sharing Basis
+                </span>
+              </label>
+
+              <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+                <PostPropertyInput
+                  id="availableFrom"
+                  label="Available From*"
+                  placeholder="Available From"
+                  variant="underline"
+                  type="date"
+                  staticLabel
+                  min={getPossessionDateInputMin(values.availableFrom)}
+                  value={values.availableFrom}
+                  error={errors.availableFrom}
+                  onChange={(value) => onChange("availableFrom", value)}
+                />
+              </div>
+
+              <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                <input
+                  type="checkbox"
+                  checked={values.interiorModificationAllowed}
+                  onChange={(event) =>
+                    onChange("interiorModificationAllowed", event.target.checked)
+                  }
+                  className={checkboxClassName}
+                />
+                <span className="text-sm font-semibold text-slate-800">
+                  Interior Modification Allowed
+                </span>
+              </label>
+            </div>
+          </PostPropertyFieldSection>
+
+          <TenantPreferenceField
+            value={values.tenantPreferences}
+            error={errors.tenantPreferences}
+            onChange={(next) => onChange("tenantPreferences", next)}
+          />
+        </>
+      ) : null}
 
       <ChipSelectField
         legend="Lift"

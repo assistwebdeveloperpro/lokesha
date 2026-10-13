@@ -16,6 +16,8 @@ const userTypes = [
   { id: "builder", label: "Builder" },
 ] as const;
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function SignupContent() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -49,13 +51,20 @@ export default function SignupContent() {
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(undefined);
+    let showErrorToast = true;
 
     const nextErrors: typeof errors = {};
     if (!name.trim()) {
       nextErrors.name = "Please enter your name.";
+    } else if (name.trim().length < 3) {
+      nextErrors.name = "Name must be at least 3 characters long.";
+    } else if (name.trim().length > 100) {
+      nextErrors.name = "Name must be at most 100 characters long.";
     }
     if (!email.trim()) {
       nextErrors.email = "Please enter your email id.";
+    } else if (!EMAIL_PATTERN.test(email.trim())) {
+      nextErrors.email = "Please enter a valid email id.";
     }
     if (!password.trim()) {
       nextErrors.password = "Please enter password.";
@@ -98,20 +107,36 @@ export default function SignupContent() {
       if (error instanceof ApiError && error.status === 409) {
         if (error.message.toLowerCase().includes("email")) {
           setErrors((prev) => ({ ...prev, email: error.message }));
+          showErrorToast = false;
         } else if (error.message.toLowerCase().includes("mobile")) {
           setErrors((prev) => ({ ...prev, mobile: error.message }));
+          showErrorToast = false;
         } else {
           setFormError(error.message);
+        }
+      } else if (error instanceof ApiError && error.status === 400 && error.fields) {
+        const { name, email, password, mobile_number, ...rest } = error.fields;
+        const fieldErrors = { name, email, password, mobile: mobile_number };
+        setErrors((prev) => ({ ...prev, ...fieldErrors }));
+
+        // Anything not tied to a visible field stays as a general error
+        const unmapped = Object.values(rest);
+        if (unmapped.length > 0) {
+          setFormError(unmapped.join(" "));
+        } else {
+          showErrorToast = false;
         }
       } else if (error instanceof ApiError) {
         setFormError(error.errors?.join(" ") ?? error.message);
       } else {
         setFormError("Something went wrong. Please try again.");
       }
-      showToast(
-        error instanceof ApiError ? error.message : "Registration failed. Please try again.",
-        "error",
-      );
+      if (showErrorToast) {
+        showToast(
+          error instanceof ApiError ? error.message : "Registration failed. Please try again.",
+          "error",
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -251,15 +276,15 @@ export default function SignupContent() {
                   />
                   <span>
                     I agree to Lokesha{" "}
-                    <Link href="/terms" className="font-medium text-sky-700 hover:text-sky-600">
+                    <Link href="#" className="font-medium text-sky-700 hover:text-sky-600">
                       T&amp;C
                     </Link>
                     ,{" "}
-                    <Link href="/privacy" className="font-medium text-sky-700 hover:text-sky-600">
+                    <Link href="#" className="font-medium text-sky-700 hover:text-sky-600">
                       Privacy Policy
                     </Link>
                     , &amp;{" "}
-                    <Link href="/cookies" className="font-medium text-sky-700 hover:text-sky-600">
+                    <Link href="#" className="font-medium text-sky-700 hover:text-sky-600">
                       Cookie Policy
                     </Link>
                   </span>

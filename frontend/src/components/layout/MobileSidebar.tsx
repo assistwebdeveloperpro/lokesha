@@ -156,7 +156,7 @@ export default function MobileSidebar({
                 </li>
 
                 {LOGGED_IN_ACTIVITY_LINKS.map((link) => (
-                  <li key={link.href} className="border-b border-slate-100">
+                  <li key={link.label} className="border-b border-slate-100">
                     <Link
                       href={link.href}
                       onClick={onClose}
@@ -181,7 +181,7 @@ export default function MobileSidebar({
                 </li>
 
                 {GUEST_ACTIVITY_LINKS.map((link) => (
-                  <li key={link.href} className="border-b border-slate-100">
+                  <li key={link.label} className="border-b border-slate-100">
                     <button
                       type="button"
                       onClick={handleGuestMenuClick}
@@ -204,7 +204,7 @@ export default function MobileSidebar({
                 </li>
 
                 {GUEST_SECONDARY_LINKS.map((link) => (
-                  <li key={link.href} className="border-b border-slate-100">
+                  <li key={link.label} className="border-b border-slate-100">
                     <button
                       type="button"
                       onClick={handleGuestMenuClick}
@@ -218,7 +218,7 @@ export default function MobileSidebar({
             )}
 
             {MAIN_NAV_ITEMS.map((item) => (
-              <li key={item.href} className="border-b border-slate-100">
+              <li key={item.label} className="border-b border-slate-100">
                 <Link
                   href={item.href}
                   onClick={onClose}

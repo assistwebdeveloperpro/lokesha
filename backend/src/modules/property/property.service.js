@@ -39,8 +39,11 @@ function toNumber(value) {
 
 function formatPossessionDate(value) {
   if (!value) return null;
-  const date = new Date(value);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  if (value instanceof Date) {
+    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+  }
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
 }
 
 function toColumns(body) {
@@ -64,11 +67,16 @@ function toColumns(body) {
     carpet_area: details.carpetArea,
     carpet_area_unit: details.carpetAreaUnit,
     super_build_up_area: details.superBuildUpArea ?? null,
-    super_build_up_unit: details.superBuildUpArea ? details.superBuildUpUnit || null : null,
-    property_transaction: details.propertyTransaction,
+    super_build_up_unit: details.superBuildUpUnit,
+    property_transaction: details.propertyTransaction || null,
     construction_status: details.constructionStatus || null,
-    possession_date: details.possessionDate ? `${details.possessionDate}-01` : null,
+    possession_date: details.possessionDate || null,
     age_of_construction: details.ageOfConstruction || null,
+    full_house: Boolean(details.fullHouse),
+    sharing_basis: Boolean(details.sharingBasis),
+    available_from: details.availableFrom || null,
+    interior_modification_allowed: Boolean(details.interiorModificationAllowed),
+    tenant_preferences: details.tenantPreferences || [],
     bedrooms: details.bedrooms,
     balconies: details.balconies,
     bathrooms: details.bathrooms,
@@ -82,11 +90,14 @@ function toColumns(body) {
     club_membership: Boolean(amenities.clubMembership),
     rera_number: amenities.reraNumber || null,
     open_sides: amenities.openSides ?? null,
-    expected_price: pricing.expectedPrice,
+    expected_price: pricing.expectedPrice ?? null,
     price_negotiable: Boolean(pricing.priceNegotiable),
     price_inclusions: pricing.priceInclusion || [],
-    booking_amount: pricing.bookingAmount,
+    booking_amount: pricing.bookingAmount ?? null,
     transfer_fee: pricing.transferFee ?? null,
+    monthly_rent: pricing.monthlyRent ?? null,
+    notice_period_months: pricing.noticePeriod ?? null,
+    deposit_amount: pricing.depositAmount ?? null,
     maintenance_charges: pricing.maintenanceCharges ?? null,
     benefits_remarks: pricing.benefitsRemarks || null,
   };
@@ -119,6 +130,7 @@ function toSummaryDto(row) {
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
     expectedPrice: toNumber(row.expected_price),
+    monthlyRent: toNumber(row.monthly_rent),
     mainImage: row.main_image,
     createdAt: row.created_at,
   };
@@ -156,6 +168,11 @@ function toDetailDto(row, amenityRows, mediaRows) {
       constructionStatus: row.construction_status,
       possessionDate: formatPossessionDate(row.possession_date),
       ageOfConstruction: row.age_of_construction,
+      fullHouse: row.full_house,
+      sharingBasis: row.sharing_basis,
+      availableFrom: formatPossessionDate(row.available_from),
+      interiorModificationAllowed: row.interior_modification_allowed,
+      tenantPreferences: row.tenant_preferences,
       bedrooms: row.bedrooms,
       balconies: row.balconies,
       totalFloors: row.total_floors,
@@ -180,6 +197,9 @@ function toDetailDto(row, amenityRows, mediaRows) {
       priceNegotiable: row.price_negotiable,
       transferFee: toNumber(row.transfer_fee),
       bookingAmount: toNumber(row.booking_amount),
+      monthlyRent: toNumber(row.monthly_rent),
+      noticePeriod: row.notice_period_months,
+      depositAmount: toNumber(row.deposit_amount),
       maintenanceCharges: toNumber(row.maintenance_charges),
       benefitsRemarks: row.benefits_remarks,
     },

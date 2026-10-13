@@ -1,13 +1,16 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { setPendingToast } from "@/components/ui/pendingToast";
+import { useToast } from "@/components/ui/ToastProvider";
 import { DEFAULT_STATE } from "@/data/indianStatesCities";
 import { ApiError } from "@/services/apiClient";
-import { createProperty } from "@/services/property.service";
+import { createProperty, type PropertyMedia } from "@/services/property.service";
 import { getToken } from "@/services/session";
 import AddressLocationField from "./AddressLocationField";
 import AmenitiesField from "./AmenitiesField";
+import EditPropertyStatus from "./EditPropertyStatus";
 import FormStepper from "./FormStepper";
 import PhotosVideosField from "./PhotosVideosField";
 import PricingOthersField from "./PricingOthersField";
@@ -16,8 +19,10 @@ import ProgressBar from "./ProgressBar";
 import PropertyDetailsField from "./PropertyDetailsField";
 import PropertyTypeField from "./PropertyTypeField";
 import {
+  DEFAULT_RENT_AGE_OF_CONSTRUCTION,
   RESIDENTIAL_SUB_TYPES,
   SUB_TYPES_BY_PROPERTY_TYPE,
+  isRentListing,
   createEmptyPhotosVideosValues,
   getProgressForStep,
   getStepFromSearchParam,
@@ -42,7 +47,10 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
+import { mapPropertyToFormState } from "./postPropertyEdit";
 import { buildPropertyFormData } from "./postPropertyPayload";
+import { saveEditedProperty } from "./saveEditedProperty";
+import { useEditProperty } from "./useEditProperty";
 import {
   POST_PROPERTY_PRIMARY_BTN,
   POST_PROPERTY_STEP_ACCENT,
@@ -66,9 +74,17 @@ const initialPropertyDetails: PropertyDetailsValues = {
   floorNumber: "",
   bathrooms: "",
   lift: "",
+  fullHouse: false,
+  sharingBasis: false,
+  availableFrom: "",
+  interiorModificationAllowed: false,
+  tenantPreferences: [],
 };
 
 const initialPricingOthers: PricingOthersValues = {
+  monthlyRent: "",
+  noticePeriod: "",
+  depositAmount: "",
   expectedPrice: "",
   priceInclusion: [],
   priceNegotiable: false,
@@ -93,7 +109,15 @@ const initialAmenities: AmenitiesValues = {
 export default function PostPropertyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const currentStep = getStepFromSearchParam(searchParams.get("step"));
+  const editId = searchParams.get("edit");
+  const isEditMode = Boolean(editId);
+  const {
+    property: editProperty,
+    isLoading: isLoadingEdit,
+    error: editError,
+  } = useEditProperty(editId);
 
   const [listingType, setListingType] = useState<ListingTypeId>("sale");
   const [propertyType, setPropertyType] =
@@ -130,8 +154,59 @@ export default function PostPropertyContent() {
   const [pricingOthersErrors, setPricingOthersErrors] =
     useState<PricingOthersFieldErrors>({});
   const [photosError, setPhotosError] = useState("");
-  const [submitErrors, setSubmitErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingMedia, setExistingMedia] = useState<PropertyMedia[]>([]);
+  const [removedMediaIds, setRemovedMediaIds] = useState<string[]>([]);
+  const [possessionDatePastAnchor, setPossessionDatePastAnchor] =
+    useState("");
+  const [availableFromPastAnchor, setAvailableFromPastAnchor] = useState("");
+  const isRent = isRentListing(listingType);
+
+  // Prefill every step once the property being edited has loaded
+  useEffect(() => {
+    if (!editProperty) {
+      return;
+    }
+
+    const state = mapPropertyToFormState(editProperty);
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setListingType(state.listingType);
+    setPropertyType(state.propertyType);
+    setPropertySubType(state.propertySubType);
+    setAddressLocation(state.addressLocation);
+    setPropertyDetails(state.propertyDetails);
+    setPossessionDatePastAnchor(state.propertyDetails.possessionDate);
+    setAvailableFromPastAnchor(state.propertyDetails.availableFrom);
+    setAmenities(state.amenities);
+    setPricingOthers(state.pricingOthers);
+    setExistingMedia(editProperty.media);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [editProperty]);
+
+  const handleListingTypeChange = (nextListingType: ListingTypeId) => {
+    if (nextListingType === listingType) {
+      return;
+    }
+
+    setListingType(nextListingType);
+    setPropertyDetails((current) => ({
+      ...current,
+      propertyTransaction: "",
+      constructionStatus: "",
+      possessionDate: "",
+      ageOfConstruction: isRentListing(nextListingType)
+        ? DEFAULT_RENT_AGE_OF_CONSTRUCTION
+        : "",
+    }));
+    setPropertyDetailsErrors({});
+    setPricingOthersErrors({});
+  };
+
+  const handleRemoveExistingMedia =(mediaId: string) => {
+    setExistingMedia((current) => current.filter((media) => media.id !== mediaId));
+    setRemovedMediaIds((current) => [...current, mediaId]);
+    setPhotosError("");
+  };
 
   const handleAddressLocationChange = <
     K extends keyof AddressLocationValues,
@@ -236,7 +311,11 @@ export default function PostPropertyContent() {
   };
 
   const handlePropertyDetailsNext = () => {
-    const errors = validatePropertyDetails(propertyDetails);
+    const errors = validatePropertyDetails(propertyDetails, {
+      listingType,
+      possessionDatePastAnchor: possessionDatePastAnchor || undefined,
+      availableFromPastAnchor: availableFromPastAnchor || undefined,
+    });
 
     if (hasPropertyDetailsErrors(errors)) {
       setPropertyDetailsErrors(errors);
@@ -298,7 +377,7 @@ export default function PostPropertyContent() {
   };
 
   const handlePhotosNext = () => {
-    if (getTotalMediaCount(photosVideos) === 0) {
+    if (getTotalMediaCount(photosVideos) + existingMedia.length === 0) {
       setPhotosError("Please add at least one photo");
       return;
     }
@@ -307,17 +386,61 @@ export default function PostPropertyContent() {
     goToStep(5);
   };
 
+  const applyFullFormValidation = (): number | null => {
+    const nextAddressErrors = validateAddressLocation(addressLocation);
+    const nextPropertyDetailsErrors = validatePropertyDetails(propertyDetails, {
+      listingType,
+      possessionDatePastAnchor: possessionDatePastAnchor || undefined,
+      availableFromPastAnchor: availableFromPastAnchor || undefined,
+    });
+    const nextAmenitiesErrors = validateAmenities(amenities);
+    const nextPricingErrors = validatePricingOthers(pricingOthers, listingType);
+    const nextPhotosError =
+      getTotalMediaCount(photosVideos) + existingMedia.length === 0
+        ? "Please add at least one photo"
+        : "";
+
+    setAddressLocationErrors(nextAddressErrors);
+    setPropertyDetailsErrors(nextPropertyDetailsErrors);
+    setAmenitiesErrors(nextAmenitiesErrors);
+    setPricingOthersErrors(nextPricingErrors);
+    setPhotosError(nextPhotosError);
+
+    if (hasAddressLocationErrors(nextAddressErrors)) {
+      return 1;
+    }
+    if (hasPropertyDetailsErrors(nextPropertyDetailsErrors)) {
+      return 2;
+    }
+    if (hasAmenitiesErrors(nextAmenitiesErrors)) {
+      return 3;
+    }
+    if (nextPhotosError) {
+      return 4;
+    }
+    if (hasPricingOthersErrors(nextPricingErrors)) {
+      return 5;
+    }
+
+    return null;
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting) {
       return;
     }
 
-    const validationErrors = validatePricingOthers(pricingOthers);
-    if (hasPricingOthersErrors(validationErrors)) {
-      setPricingOthersErrors(validationErrors);
+    const firstInvalidStep = applyFullFormValidation();
+    if (firstInvalidStep !== null) {
+      if (firstInvalidStep !== currentStep) {
+        goToStep(firstInvalidStep);
+      }
+      showToast(
+        "Some required fields are still empty. Please check the highlighted fields.",
+        "error",
+      );
       return;
     }
-    setPricingOthersErrors({});
 
     const token = getToken();
     if (!token) {
@@ -325,23 +448,32 @@ export default function PostPropertyContent() {
       return;
     }
 
-    setSubmitErrors([]);
     setIsSubmitting(true);
 
+    const formState = {
+      listingType,
+      propertyType,
+      propertySubType,
+      addressLocation,
+      propertyDetails,
+      amenities,
+      photosVideos,
+      pricingOthers,
+    };
+
     try {
-      await createProperty(
-        buildPropertyFormData({
-          listingType,
-          propertyType,
-          propertySubType,
-          addressLocation,
-          propertyDetails,
-          amenities,
-          photosVideos,
-          pricingOthers,
-        }),
-        token,
-      );
+      if (editId) {
+        await saveEditedProperty({
+          propertyId: editId,
+          token,
+          state: formState,
+          removedMediaIds,
+        });
+        setPendingToast("Property updated successfully");
+      } else {
+        await createProperty(buildPropertyFormData(formState), token);
+        setPendingToast("Property listed successfully");
+      }
       router.push("/user/properties/manage-properties");
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -350,11 +482,13 @@ export default function PostPropertyContent() {
       }
 
       if (error instanceof ApiError) {
-        setSubmitErrors(
-          error.errors && error.errors.length > 0 ? error.errors : [error.message],
-        );
+        const message =
+          error.errors && error.errors.length > 0
+            ? error.errors[0]
+            : error.message;
+        showToast(message, "error");
       } else {
-        setSubmitErrors(["Something went wrong. Please try again."]);
+        showToast("Something went wrong. Please try again.", "error");
       }
     } finally {
       setIsSubmitting(false);
@@ -369,9 +503,14 @@ export default function PostPropertyContent() {
   };
 
   const goToStep = (step: number) => {
-    const nextUrl =
-      step <= 1 ? "/post-property" : `/post-property?step=${step}`;
-    router.push(nextUrl, { scroll: false });
+    const params = new URLSearchParams();
+    if (editId) params.set("edit", editId);
+    if (step > 1) params.set("step", String(step));
+
+    const query = params.toString();
+    router.push(query ? `/post-property?${query}` : "/post-property", {
+      scroll: false,
+    });
   };
 
   const isBasicDetailsStep = currentStep === 1;
@@ -380,16 +519,20 @@ export default function PostPropertyContent() {
   const isPhotosVideosStep = currentStep === 4;
   const isPricingOthersStep = currentStep === 5;
 
+  if (isEditMode && (isLoadingEdit || editError || !editProperty)) {
+    return <EditPropertyStatus error={editError} />;
+  }
+
   return (
     <div className="mx-auto w-full max-w-360 px-2 py-8 sm:px-4 sm:py-10 lg:px-4">
       <header>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-30">
           <div className="shrink-0">
             <h1 className="font-display text-xl font-bold text-navy-blue sm:text-2xl">
-              Add Property Details
+              {isEditMode ? "Edit Property Details" : "Add Property Details"}
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-600">
-              Sell or rent your property
+              {isEditMode ? "Update your listing" : "Sell or rent your property"}
             </p>
           </div>
           <ProgressBar percent={getProgressForStep(currentStep)} />
@@ -413,7 +556,10 @@ export default function PostPropertyContent() {
           </div>
 
           <div className="space-y-6">
-            <ListingTypeField value={listingType} onChange={setListingType} />
+            <ListingTypeField
+              value={listingType}
+              onChange={handleListingTypeChange}
+            />
 
             <PropertyTypeField
               value={propertyType}
@@ -455,6 +601,7 @@ export default function PostPropertyContent() {
 
           <div className="space-y-6">
             <PropertyDetailsField
+              listingType={listingType}
               values={propertyDetails}
               onChange={handlePropertyDetailsChange}
               errors={propertyDetailsErrors}
@@ -487,6 +634,7 @@ export default function PostPropertyContent() {
 
           <div className="space-y-6">
             <AmenitiesField
+              isRent={isRent}
               values={amenities}
               onChange={handleAmenitiesChange}
               errors={amenitiesErrors}
@@ -525,6 +673,11 @@ export default function PostPropertyContent() {
                 setPhotosError("");
               }}
               error={photosError}
+              existingMedia={existingMedia}
+              onRemoveExisting={handleRemoveExistingMedia}
+              existingBrochureName={
+                editProperty?.brochurePath?.split("/").pop() ?? null
+              }
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
@@ -556,18 +709,11 @@ export default function PostPropertyContent() {
 
           <div className="space-y-6">
             <PricingOthersField
+              isRent={isRent}
               values={pricingOthers}
               onChange={handlePricingOthersChange}
               errors={pricingOthersErrors}
             />
-
-            {submitErrors.length > 0 ? (
-              <div className="space-y-1 text-center text-sm text-red-500">
-                {submitErrors.map((message) => (
-                  <p key={message}>{message}</p>
-                ))}
-              </div>
-            ) : null}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
@@ -576,7 +722,13 @@ export default function PostPropertyContent() {
                 disabled={isSubmitting}
                 className={`${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting
+                  ? isEditMode
+                    ? "Saving..."
+                    : "Submitting..."
+                  : isEditMode
+                    ? "Save Changes"
+                    : "Submit"}
               </button>
             </div>
           </div>

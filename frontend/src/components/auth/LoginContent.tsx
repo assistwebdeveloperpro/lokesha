@@ -114,7 +114,7 @@ export default function LoginContent() {
 
                     <div className="text-right">
                       <Link
-                        href="/help"
+                        href="#"
                         className="text-sm text-slate-500 transition-colors hover:text-sky-700"
                       >
                         Need help?

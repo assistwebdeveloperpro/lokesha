@@ -19,6 +19,7 @@ const SUMMARY_COLUMNS = [
   "p.bedrooms",
   "p.bathrooms",
   "p.expected_price",
+  "p.monthly_rent",
   "p.created_at",
 ];
 

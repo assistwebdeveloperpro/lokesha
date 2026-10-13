@@ -90,7 +90,7 @@ function GuestDropdown({ onClose }: { onClose: () => void }) {
 
       <ul>
         {GUEST_ACTIVITY_LINKS.map((link) => (
-          <li key={link.href}>
+          <li key={link.label}>
             <ProfileMenuLink
               href={link.href}
               label={link.label}
@@ -106,7 +106,7 @@ function GuestDropdown({ onClose }: { onClose: () => void }) {
 
       <ul>
         {GUEST_SECONDARY_LINKS.map((link) => (
-          <li key={link.href}>
+          <li key={link.label}>
             <ProfileMenuLink
               href={link.href}
               label={link.label}
@@ -212,7 +212,7 @@ function LoggedInDropdown({
 
       <ul>
         {LOGGED_IN_ACTIVITY_LINKS.map((link) => (
-          <li key={link.href}>
+          <li key={link.label}>
             <ProfileMenuLink
               href={link.href}
               label={link.label}
@@ -242,7 +242,7 @@ function LoggedInDropdown({
             onClose();
             onLogout();
           }}
-          className="w-full cursor-pointer rounded-4xl bg-linear-to-r-navy-blue py-2 text-sm font-semibold text-white transition hover:opacity-95"
+          className="w-full cursor-pointer rounded-lg bg-linear-to-r-navy-blue py-3 text-sm font-semibold text-white transition hover:opacity-95"
         >
           Sign Out
         </button>
@@ -445,7 +445,7 @@ export default function Header() {
           <div className="mx-auto flex h-11 max-w-360 items-center gap-6 px-6">
             {MAIN_NAV_ITEMS.map((item) => (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href}
                 className="inline-flex items-center gap-1 rounded-md px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-sky-700"
               >
