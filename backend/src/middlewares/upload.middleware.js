@@ -7,7 +7,7 @@ const {
   MAX_BROCHURE_SIZE_BYTES,
   MEDIA_MIME_TYPES,
   MEDIA_EXTENSIONS,
-} = require("../modules/property/property.constants");
+} = require("../modules/landing/property/property.constants");
 
 const OFFICE_PHOTOS_DIR = path.join(__dirname, "../../uploads/office-photos");
 const MAX_OFFICE_PHOTOS = 10;

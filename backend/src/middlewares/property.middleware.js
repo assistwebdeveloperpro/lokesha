@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { listQuerySchema } = require("../modules/property/property.validation");
+const { listQuerySchema } = require("../modules/landing/property/property.validation");
 
 // Deletes uploaded files when the request ends with an error response
 function cleanupUploadsOnError(req, res, next) {

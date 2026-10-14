@@ -1,5 +1,5 @@
-import Header from "@/components/layout/Header";
-import HeroBanner from "@/components/Home/hero-banner/HeroBanner";
+import Header from "@/components/shared/layout/Header";
+import HeroBanner from "@/components/landing/home/hero-banner/HeroBanner";
 
 export default function Home() {
   return (

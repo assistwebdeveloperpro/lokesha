@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/components/ui/ToastProvider";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import { ApiError } from "@/services/apiClient";
 import { getProfileDetails } from "@/services/userProfile.service";
 import { changePassword } from "@/services/userPassword.service";

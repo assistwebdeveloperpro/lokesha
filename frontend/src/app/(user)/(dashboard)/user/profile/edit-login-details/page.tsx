@@ -5,7 +5,7 @@ import { ArrowLeft, Check, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/components/ui/ToastProvider";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import { ApiError } from "@/services/apiClient";
 import { getProfileDetails, updateLoginDetails } from "@/services/userProfile.service";
 

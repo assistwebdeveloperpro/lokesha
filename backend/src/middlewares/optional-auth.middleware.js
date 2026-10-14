@@ -7,7 +7,9 @@ function optionalAuthMiddleware(req, res, next) {
   if (authHeader && authHeader.startsWith("Bearer ")) {
     try {
       const decoded = verifyToken(authHeader.split(" ")[1]);
-      req.user = { id: decoded.id, role: decoded.role };
+      if (decoded.type !== "admin") {
+        req.user = { id: decoded.id, role: decoded.role };
+      }
     } catch (error) {
       // Invalid token is treated as anonymous
     }

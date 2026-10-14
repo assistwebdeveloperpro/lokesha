@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/components/ui/ToastProvider";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import { ApiError, getAssetUrl } from "@/services/apiClient";
 import { getProfileDetails } from "@/services/userProfile.service";
 import { uploadCompanyLogo } from "@/services/userCompany.service";

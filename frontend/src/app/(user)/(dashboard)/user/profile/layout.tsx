@@ -1,4 +1,4 @@
-import RequireProfileAccess from "@/components/auth/RequireProfileAccess";
+import RequireProfileAccess from "@/components/user/auth/RequireProfileAccess";
 
 export default function ProfileLayout({
   children,

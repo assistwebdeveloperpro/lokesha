@@ -1,4 +1,4 @@
-import ManagePropertiesContent from "@/components/manage-properties/ManagePropertiesContent";
+import ManagePropertiesContent from "@/components/user/dashboard/manage-properties/ManagePropertiesContent";
 
 export default function ManagePropertiesPage() {
   return <ManagePropertiesContent />;
