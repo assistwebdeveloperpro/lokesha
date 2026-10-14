@@ -1,6 +1,6 @@
-import RequireAuth from "@/components/auth/RequireAuth";
-import RequireUserDashboardAccess from "@/components/auth/RequireUserDashboardAccess";
-import UserDashboardShell from "@/components/layout/UserDashboardShell";
+import RequireAuth from "@/components/user/auth/RequireAuth";
+import RequireUserDashboardAccess from "@/components/user/auth/RequireUserDashboardAccess";
+import UserDashboardShell from "@/components/user/dashboard/layout/UserDashboardShell";
 
 export default function Layout({
   children,

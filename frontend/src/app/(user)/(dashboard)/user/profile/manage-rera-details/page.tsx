@@ -1,4 +1,4 @@
-import ManageReraDetailsContent from "@/components/user-profile/ManageReraDetailsContent";
+import ManageReraDetailsContent from "@/components/user/dashboard/profile/ManageReraDetailsContent";
 
 export default function ManageReraDetailsPage() {
   return <ManageReraDetailsContent />;

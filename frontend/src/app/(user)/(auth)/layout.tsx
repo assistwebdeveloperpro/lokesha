@@ -1,7 +1,7 @@
-import AuthFooter from "@/components/auth/AuthFooter";
-import AuthHeader from "@/components/auth/AuthHeader";
-import AuthPageBackground from "@/components/auth/AuthPageBackground";
-import AuthPageLayout from "@/components/auth/AuthPageLayout";
+import AuthFooter from "@/components/shared/auth/AuthFooter";
+import AuthHeader from "@/components/shared/auth/AuthHeader";
+import AuthPageBackground from "@/components/shared/auth/AuthPageBackground";
+import AuthPageLayout from "@/components/shared/auth/AuthPageLayout";
 
 export default function AuthLayout({
   children,

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import UserRegistrationStep3Content from "@/components/auth/UserRegistrationStep3Content";
+import UserRegistrationStep3Content from "@/components/user/auth/UserRegistrationStep3Content";
 
 export default function UserRegistrationStep3Page() {
   return (

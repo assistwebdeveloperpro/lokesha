@@ -13,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/ToastProvider";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getSavedMessages,

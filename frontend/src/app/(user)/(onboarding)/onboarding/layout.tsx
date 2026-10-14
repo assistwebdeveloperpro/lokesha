@@ -1,4 +1,4 @@
-import Header from "@/components/layout/Header";
+import Header from "@/components/shared/layout/Header";
 
 export default function OnboardingLayout({
   children,

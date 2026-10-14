@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import AddWhatsappModal from "@/components/user-profile/AddWhatsappModal";
-import { useToast } from "@/components/ui/ToastProvider";
+import AddWhatsappModal from "@/components/user/dashboard/profile/AddWhatsappModal";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getProfileDetails,

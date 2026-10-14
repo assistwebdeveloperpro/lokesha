@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
-import { ToastProvider } from "@/components/ui/ToastProvider";
+import { ToastProvider } from "@/components/shared/ui/ToastProvider";
 import "./globals.css";
 
 const inter = Inter({
