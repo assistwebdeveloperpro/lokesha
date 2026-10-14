@@ -262,7 +262,7 @@ export function getFloorNumberOptionGroups(totalFloors: string): {
 export type AddressLocationValues = {
   blockNo: string;
   flatNumber: string;
-  societyName: string;
+  projectName: string;
   locality: string;
   addressLine2: string;
   landmark: string;
@@ -274,7 +274,7 @@ export type AddressLocationValues = {
 
 export type AddressLocationFieldErrors = Partial<
   Record<
-    "societyName" | "locality" | "pinCode" | "propertyDescription",
+    "projectName" | "locality" | "pinCode" | "propertyDescription",
     string
   >
 >;
@@ -284,8 +284,8 @@ export function validateAddressLocation(
 ): AddressLocationFieldErrors {
   const errors: AddressLocationFieldErrors = {};
 
-  if (!values.societyName.trim()) {
-    errors.societyName =
+  if (!values.projectName.trim()) {
+    errors.projectName =
       "Please enter the name of society, building, or project name";
   }
 
@@ -295,6 +295,8 @@ export function validateAddressLocation(
 
   if (!values.pinCode.trim()) {
     errors.pinCode = "Please enter pin code";
+  } else if (!/^\d{6}$/.test(values.pinCode.trim())) {
+    errors.pinCode = "Pin code must be 6 digits";
   }
 
   if (!values.propertyDescription.trim()) {

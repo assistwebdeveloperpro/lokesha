@@ -27,11 +27,15 @@ function notPastAvailableDate(value, helpers) {
 const addressSchema =Joi.object({
   blockNo: optionalText(50),
   flatNumber: optionalText(50),
-  societyName: Joi.string().trim().max(255).required(),
+  projectName: Joi.string().trim().max(255).required(),
   locality: Joi.string().trim().max(255).required(),
   addressLine2: optionalText(255),
   landmark: optionalText(255),
-  pinCode: Joi.string().trim().max(10).required(),
+  pinCode: Joi.string()
+    .trim()
+    .pattern(/^\d{6}$/)
+    .required()
+    .messages({ "string.pattern.base": "Pincode must be 6 digits" }),
   city: optionalText(100),
   state: Joi.string().trim().max(100).required(),
   propertyDescription: Joi.string().trim().required(),

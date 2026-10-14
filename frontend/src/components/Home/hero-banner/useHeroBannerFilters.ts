@@ -13,6 +13,8 @@ import {
 import {
   AREA_RANGE,
   CATEGORIES,
+  COMMERCIAL_TRANSACTION_OPTIONS,
+  DEFAULT_TRANSACTION_OPTIONS,
   DEFAULT_BUDGET,
   NEW_PROJECTS_HREF,
   PG_BUDGET,
@@ -20,11 +22,13 @@ import {
   categoryPropertyLabel,
   filterSectionsForCategory,
   type FilterSection,
-  type LocationCity,
   type PropertyCategory,
   type SimpleDropdown,
   type TransactionType,
 } from "./heroBanner.shared";
+
+const defaultPropertyTypes = (category: PropertyCategory) =>
+  category === "residential" ? ["Flat/Apartment"] : [];
 
 export function useHeroBannerFilters() {
   const router = useRouter();
@@ -32,8 +36,15 @@ export function useHeroBannerFilters() {
 
   const [activeCategory, setActiveCategory] =
     useState<PropertyCategory>("residential");
-  const [transaction, setTransaction] = useState<TransactionType>("buy");
-  const [location, setLocation] = useState<LocationCity>("gandhinagar");
+  const transactionOptions =
+    activeCategory === "commercial"
+      ? COMMERCIAL_TRANSACTION_OPTIONS
+      : DEFAULT_TRANSACTION_OPTIONS;
+  const [selectedTransaction, setTransaction] =
+    useState<TransactionType>("buy");
+  const transaction = transactionOptions.includes(selectedTransaction)
+    ? selectedTransaction
+    : "buy";
   const [searchText, setSearchText] = useState("");
   const [openDropdown, setOpenDropdown] = useState<SimpleDropdown | null>(
     null,
@@ -43,7 +54,7 @@ export function useHeroBannerFilters() {
   );
 
   const [selectedPropertyTypes, setSelectedPropertyTypes] = useState<string[]>(
-    [],
+    defaultPropertyTypes("residential"),
   );
   const [selectedBedrooms, setSelectedBedrooms] = useState<string[]>([]);
   const [selectedConstruction, setSelectedConstruction] = useState<string[]>(
@@ -86,7 +97,7 @@ export function useHeroBannerFilters() {
   }, [activeCategory, selectedPropertyTypes]);
 
   const resetFiltersForCategory = useCallback((category: PropertyCategory) => {
-    setSelectedPropertyTypes([]);
+    setSelectedPropertyTypes(defaultPropertyTypes(category));
     setSelectedBedrooms([]);
     setSelectedConstruction([]);
     setSelectedOccupancy([]);
@@ -174,9 +185,8 @@ export function useHeroBannerFilters() {
     panelRef,
     activeCategory,
     transaction,
+    transactionOptions,
     setTransaction,
-    location,
-    setLocation,
     searchText,
     setSearchText,
     openDropdown,

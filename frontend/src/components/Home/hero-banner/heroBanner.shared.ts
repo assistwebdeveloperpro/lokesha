@@ -52,8 +52,16 @@ export type PropertyCategory =
   | "plot"
   | "land";
 
-export type TransactionType = "buy" | "rent";
-export type LocationCity = "ahmedabad" | "gandhinagar";
+export type TransactionType = "buy" | "rent" | "lease";
+
+export const TRANSACTION_LABELS: Record<TransactionType, string> = {
+  buy: "Buy",
+  rent: "Rent",
+  lease: "Lease",
+};
+
+export const COMMERCIAL_TRANSACTION_OPTIONS: TransactionType[] = ["buy", "lease"];
+export const DEFAULT_TRANSACTION_OPTIONS: TransactionType[] = ["buy", "rent"];
 
 export type FilterSection =
   | "bedroom"
@@ -62,7 +70,7 @@ export type FilterSection =
   | "area"
   | "occupancy";
 
-export type SimpleDropdown = "transaction" | "location" | "property-panel";
+export type SimpleDropdown = "transaction" | "property-panel";
 
 export const CATEGORIES: {
   id: PropertyCategory;

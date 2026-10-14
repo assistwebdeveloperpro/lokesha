@@ -130,7 +130,7 @@ export default function PostPropertyContent() {
   const [addressLocation, setAddressLocation] = useState<AddressLocationValues>({
     blockNo: "",
     flatNumber: "",
-    societyName: "",
+    projectName: "",
     locality: "",
     addressLine2: "",
     landmark: "",
@@ -217,7 +217,7 @@ export default function PostPropertyContent() {
     setAddressLocation((current) => ({ ...current, [field]: value }));
 
     if (
-      field === "societyName" ||
+      field === "projectName" ||
       field === "locality" ||
       field === "pinCode" ||
       field === "propertyDescription"

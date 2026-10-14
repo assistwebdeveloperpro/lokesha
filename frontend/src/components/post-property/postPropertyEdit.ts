@@ -42,7 +42,7 @@ export function mapPropertyToFormState(property: PropertyDetail): EditFormState 
     addressLocation: {
       blockNo: toText(address.blockNo),
       flatNumber: toText(address.flatNumber),
-      societyName: address.societyName,
+      projectName: address.projectName,
       locality: address.locality,
       addressLine2: toText(address.addressLine2),
       landmark: toText(address.landmark),

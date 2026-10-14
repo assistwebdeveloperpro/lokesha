@@ -57,14 +57,14 @@ export default function AddressLocationField({
 
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           <PostPropertyInput
-            id="societyName"
+            id="projectName"
             label="Name of Society / Building / Project Name*"
             variant="underline"
             prominentLabel
             compactProminentLabel
-            value={values.societyName}
-            error={errors.societyName}
-            onChange={(value) => onChange("societyName", value)}
+            value={values.projectName}
+            error={errors.projectName}
+            onChange={(value) => onChange("projectName", value)}
           />
           <PostPropertyInput
             id="locality"
@@ -109,7 +109,9 @@ export default function AddressLocationField({
             compactProminentLabel
             value={values.pinCode}
             error={errors.pinCode}
-            onChange={(value) => onChange("pinCode", value)}
+            onChange={(value) =>
+              onChange("pinCode", value.replace(/\D/g, "").slice(0, 6))
+            }
           />
           <PostPropertyInput
             id="city"

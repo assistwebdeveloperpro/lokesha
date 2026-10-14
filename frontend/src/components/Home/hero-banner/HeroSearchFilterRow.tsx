@@ -1,14 +1,15 @@
 "use client";
 
-import type { MouseEvent } from "react";
-import { ChevronDown, Search, Sparkles } from "lucide-react";
+import { useEffect, useState, type MouseEvent } from "react";
+import { ChevronDown, MapPin, Sparkles } from "lucide-react";
+import { HeroSearchHintsDropdown } from "./HeroSearchHintsDropdown";
 import {
   BAR_CONTROL,
   BAR_HEIGHT,
   FOCUS_RING,
   MENU_ITEM_ACTIVE,
   MENU_ITEM_DEFAULT,
-  type LocationCity,
+  TRANSACTION_LABELS,
   type SimpleDropdown,
 } from "./heroBanner.shared";
 import { HeroPropertyFilterPanel } from "./HeroPropertyFilterPanel";
@@ -19,15 +20,31 @@ type HeroSearchFilterRowProps = HeroBannerFilters;
 export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
   const {
     transaction,
+    transactionOptions,
     setTransaction,
-    location,
-    setLocation,
     searchText,
     setSearchText,
     openDropdown,
     setOpenDropdown,
     propertySelectorLabel,
   } = filters;
+
+  const [searchHintsOpen, setSearchHintsOpen] = useState(false);
+
+  useEffect(() => {
+    if (openDropdown !== null) {
+      setSearchHintsOpen(false);
+    }
+  }, [openDropdown]);
+
+  useEffect(() => {
+    if (!searchHintsOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSearchHintsOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [searchHintsOpen]);
 
   const toggleDropdown = (event: MouseEvent, key: SimpleDropdown) => {
     event.stopPropagation();
@@ -68,7 +85,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
             className={`${BAR_CONTROL} rounded-tl-lg rounded-tr-lg lg:rounded-none lg:rounded-l-[7px] ${FOCUS_RING}`}
           >
             <span className="min-w-0 flex-1 truncate text-left">
-              {transaction === "buy" ? "Buy" : "Rent"}
+              {TRANSACTION_LABELS[transaction]}
             </span>
             <ChevronDown
               className={chevronClass(openDropdown === "transaction")}
@@ -80,7 +97,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               role="listbox"
               className="absolute left-0 top-full z-50 mt-1 min-w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
             >
-              {(["buy", "rent"] as const).map((option) => (
+              {transactionOptions.map((option) => (
                 <li key={option}>
                   <button
                     type="button"
@@ -97,7 +114,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
                         : MENU_ITEM_DEFAULT
                     }`}
                   >
-                    {option === "buy" ? "Buy" : "Rent"}
+                    {TRANSACTION_LABELS[option]}
                   </button>
                 </li>
               ))}
@@ -108,74 +125,33 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
         {segmentDivider}
 
         <div
-          className={`relative ${
-            openDropdown === "location" ? "z-50" : ""
-          }`}
+          className={`relative flex min-w-0 flex-1 items-stretch ${
+            searchHintsOpen ? "z-50" : ""
+          } ${BAR_HEIGHT}`}
         >
-          <button
-            type="button"
-            aria-expanded={openDropdown === "location"}
-            aria-haspopup="listbox"
-            onClick={(event) => toggleDropdown(event, "location")}
-            className={`${BAR_CONTROL} min-w-36 ${FOCUS_RING}`}
-          >
-            <span className="min-w-0 flex-1 truncate text-left">
-              {location === "ahmedabad" ? "Ahmedabad" : "Gandhinagar"}
-            </span>
-            <ChevronDown
-              className={chevronClass(openDropdown === "location")}
-              aria-hidden
-            />
-          </button>
-          {openDropdown === "location" && (
-            <ul
-              role="listbox"
-              className="absolute left-0 top-full z-50 mt-1 min-w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
-            >
-              {(
-                [
-                  ["ahmedabad", "Ahmedabad"],
-                  ["gandhinagar", "Gandhinagar"],
-                ] as const
-              ).map(([value, label]) => (
-                <li key={value}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={location === value}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setLocation(value as LocationCity);
-                      setOpenDropdown(null);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-sm font-medium focus-visible:outline-none ${
-                      location === value
-                        ? MENU_ITEM_ACTIVE
-                        : MENU_ITEM_DEFAULT
-                    }`}
-                  >
-                    {label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {segmentDivider}
-
-        <div className={`relative flex min-w-0 flex-1 items-stretch ${BAR_HEIGHT}`}>
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          <MapPin
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-600"
             aria-hidden
           />
           <input
             type="search"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Locality, Project, Developer"
+            onFocus={() => {
+              setOpenDropdown(null);
+              setSearchHintsOpen(true);
+            }}
+            onBlur={() => setSearchHintsOpen(false)}
+            placeholder="Enter City, Locality or Project Name"
+            aria-expanded={searchHintsOpen}
+            aria-controls="hero-search-hints"
             className={`${BAR_HEIGHT} w-full border-0 bg-white py-2 pl-10 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:bg-slate-50/50 focus-visible:outline-none ${FOCUS_RING}`}
           />
+          {searchHintsOpen && (
+            <div id="hero-search-hints">
+              <HeroSearchHintsDropdown />
+            </div>
+          )}
         </div>
 
         {segmentDivider}

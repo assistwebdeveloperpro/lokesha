@@ -8,7 +8,7 @@ export type PropertySummary = {
   listingType: string;
   propertyType: string;
   propertySubType: string | null;
-  societyName: string;
+  projectName: string;
   locality: string;
   city: string | null;
   state: string;
@@ -40,7 +40,7 @@ export type PropertyDetail = {
   address: {
     blockNo: string | null;
     flatNumber: string | null;
-    societyName: string;
+    projectName: string;
     locality: string;
     addressLine2: string | null;
     landmark: string | null;

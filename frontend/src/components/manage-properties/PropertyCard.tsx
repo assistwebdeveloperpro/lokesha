@@ -31,7 +31,7 @@ export default function PropertyCard({ property, onDelete }: PropertyCardProps) 
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={getAssetUrl(property.mainImage as string)}
-            alt={property.societyName}
+            alt={property.projectName}
             loading="lazy"
             onError={() => setImageFailed(true)}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
@@ -55,7 +55,7 @@ export default function PropertyCard({ property, onDelete }: PropertyCardProps) 
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
         <div>
           <h2 className="truncate text-base font-bold text-slate-800 sm:text-lg">
-            {property.societyName}
+            {property.projectName}
           </h2>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
             <MapPin className="h-4 w-4 shrink-0" aria-hidden />
@@ -98,7 +98,7 @@ export default function PropertyCard({ property, onDelete }: PropertyCardProps) 
         <div className="grid grid-cols-2 gap-3">
           <Link
             href={getEditPropertyHref(property.id)}
-            aria-label={`Edit ${property.societyName}`}
+            aria-label={`Edit ${property.projectName}`}
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition hover:bg-sky-100 hover:border-sky-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
           >
             <Pencil className="h-4 w-4" aria-hidden />
@@ -107,7 +107,7 @@ export default function PropertyCard({ property, onDelete }: PropertyCardProps) 
           <button
             type="button"
             onClick={() => onDelete(property)}
-            aria-label={`Delete ${property.societyName}`}
+            aria-label={`Delete ${property.projectName}`}
             className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-600 transition hover:border-red-200 hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
           >
             <Trash2 className="h-4 w-4" aria-hidden />

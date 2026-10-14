@@ -56,7 +56,7 @@ function buildPropertyData(state: PostPropertyFormState) {
     address: {
       blockNo: toTextOrNull(addressLocation.blockNo),
       flatNumber: toTextOrNull(addressLocation.flatNumber),
-      societyName: addressLocation.societyName.trim(),
+      projectName: addressLocation.projectName.trim(),
       locality: addressLocation.locality.trim(),
       addressLine2: toTextOrNull(addressLocation.addressLine2),
       landmark: toTextOrNull(addressLocation.landmark),

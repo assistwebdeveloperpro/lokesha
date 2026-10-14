@@ -9,7 +9,7 @@ exports.up = async function up(knex) {
     table.string("property_sub_type", 50).nullable();
     table.string("block_no", 50).nullable();
     table.string("flat_number", 50).nullable();
-    table.string("society_name", 255).notNullable();
+    table.string("project_name", 255).notNullable();
     table.string("locality", 255).notNullable();
     table.string("address_line_2", 255).nullable();
     table.string("landmark", 255).nullable();

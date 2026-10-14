@@ -171,7 +171,7 @@ export default function ManagePropertiesContent() {
       </section>
 
       <DeletePropertyModal
-        propertyName={pendingDelete?.societyName ?? null}
+        propertyName={pendingDelete?.projectName ?? null}
         isDeleting={isDeleting}
         onCancel={() => setPendingDelete(null)}
         onConfirm={handleConfirmDelete}

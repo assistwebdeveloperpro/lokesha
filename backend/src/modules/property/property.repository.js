@@ -10,7 +10,7 @@ const SUMMARY_COLUMNS = [
   "p.listing_type",
   "p.property_type",
   "p.property_sub_type",
-  "p.society_name",
+  "p.project_name",
   "p.locality",
   "p.city",
   "p.state",
