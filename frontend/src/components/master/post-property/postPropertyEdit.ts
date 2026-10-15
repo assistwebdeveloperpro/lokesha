@@ -13,7 +13,7 @@ import {
 export type EditFormState = {
   listingType: ListingTypeId;
   propertyType: PropertyTypeId;
-  propertySubType: string;
+  propertySubType: string[];
   addressLocation: AddressLocationValues;
   propertyDetails: PropertyDetailsValues;
   amenities: AmenitiesValues;
@@ -38,7 +38,9 @@ export function mapPropertyToFormState(property: PropertyDetail): EditFormState 
   return {
     listingType: property.listingType as ListingTypeId,
     propertyType: property.propertyType as PropertyTypeId,
-    propertySubType: property.propertySubType ?? "",
+    propertySubType: property.propertySubType
+      ? property.propertySubType.split(",")
+      : [],
     addressLocation: {
       blockNo: toText(address.blockNo),
       flatNumber: toText(address.flatNumber),

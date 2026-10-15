@@ -14,6 +14,7 @@ const userProfileRoutes = require("./modules/user/dashboard/user-profile/user-pr
 const userPasswordRoutes = require("./modules/user/dashboard/user-password/user-password.routes");
 const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-messages/user-saved-messages.routes");
 const adminAuthRoutes = require("./modules/master/auth/admin-auth.routes");
+const adminPostPropertyRoutes = require("./modules/master/dashboard/post-property/admin-post-property.routes");
 
 const propertyRoutes = require("./modules/landing/property/property.routes");
 
@@ -40,6 +41,7 @@ app.use("/api/user/password", userPasswordRoutes);
 app.use("/api/user/saved-messages", userSavedMessagesRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
+app.use("/api/master/post-property", adminPostPropertyRoutes);
 
 app.use("/api/property",propertyRoutes);
 

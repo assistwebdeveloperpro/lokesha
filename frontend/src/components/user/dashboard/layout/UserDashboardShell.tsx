@@ -196,7 +196,7 @@ function UserDashboardShellInner({
     }
   }, [activeSectionHref]);
 
-  const currentSection = useMemo(() => getActiveNavLabel(pathname, role), [pathname, role]);
+  // const currentSection = useMemo(() => getActiveNavLabel(pathname, role), [pathname, role]);
 
   const toggleSection = (href: string) => {
     setExpandedSectionHref((current) => (current === href ? null : href));
@@ -399,9 +399,9 @@ function UserDashboardShellInner({
                   <Menu className="h-4 w-4" />
                 )}
               </SidebarTrigger>
-              <div>
+              {/* <div>
                 <p className="font-display text-md sm:text-xl font-bold ps-3 text-slate-900">{currentSection}</p>
-              </div>
+              </div> */}
             </div>
 
             <UserDashboardProfileMenu userName={userName} onSignOut={handleLogout} />

@@ -84,7 +84,8 @@ async function findByIdForUser(id, userId, trx) {
 async function findByIdVisibleTo(id, userId) {
   return db(`${PROPERTIES} as p`)
     .leftJoin("users as u", "u.id", "p.user_id")
-    .select("p.*", "u.name as owner_name")
+    .leftJoin("admins as a", "a.id", "p.admin_id")
+    .select("p.*", db.raw("COALESCE(u.name, a.name) as owner_name"))
     .where("p.id", id)
     .andWhere((builder) => {
       builder.where("p.status", "published");

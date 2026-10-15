@@ -2,6 +2,8 @@ import PostPropertyInput from "./PostPropertyInput";
 import ChipSelectField from "./ChipSelectField";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import TenantPreferenceField from "./TenantPreferenceField";
+import AvailableSizesField from "./AvailableSizesField";
+import type { ProjectDetailsValues } from "./postPropertyProjectDetails";
 import { POST_PROPERTY_CHECKBOX_ROW } from "./postPropertyForm.styles";
 import {
   AGE_OF_CONSTRUCTION_OPTIONS,
@@ -17,6 +19,7 @@ import {
   type ListingTypeId,
   type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
+  type PropertyTypeId,
 } from "./postPropertyForm.shared";
 
 const areaTypeDropdownOptions = [
@@ -35,17 +38,28 @@ const checkboxClassName =
 
 export default function PropertyDetailsField({
   listingType,
+  propertyType,
+  subType,
   values,
   onChange,
   errors = {},
+  projectDetails,
+  onProjectDetailsChange,
 }: {
   listingType: ListingTypeId;
+  propertyType: PropertyTypeId;
+  subType: string[];
   values: PropertyDetailsValues;
   onChange: <K extends keyof PropertyDetailsValues>(
     field: K,
     value: PropertyDetailsValues[K],
   ) => void;
   errors?: PropertyDetailsFieldErrors;
+  projectDetails: ProjectDetailsValues;
+  onProjectDetailsChange: <K extends keyof ProjectDetailsValues>(
+    field: K,
+    value: ProjectDetailsValues[K],
+  ) => void;
 }) {
   const { options: floorNumberOptions, moreOptions: floorNumberMoreOptions } =
     getFloorNumberOptionGroups(values.totalFloors);
@@ -55,20 +69,30 @@ export default function PropertyDetailsField({
     <div className="space-y-5 sm:space-y-6">
       <PostPropertyFieldSection
         title="Area Details"
-        description="Enter carpet area and super build-up measurements"
+        description="Enter carpet area and super built-up range"
       >
         <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <div className="grid gap-4 md:grid-cols-3 md:gap-6">
             <PostPropertyInput
               id="carpetAreaNumber"
-              label="Carpet Area Number*"
-              placeholder="Enter carpet area"
+              label="Carpet Area Min*"
+              placeholder="e.g. 800"
               variant="underline"
               type="number"
               staticLabel
               value={values.carpetAreaNumber}
               error={errors.carpetAreaNumber}
               onChange={(value) => onChange("carpetAreaNumber", value)}
+            />
+            <PostPropertyInput
+              id="carpetAreaMax"
+              label="Carpet Area Max"
+              placeholder="e.g. 1000"
+              variant="underline"
+              type="number"
+              staticLabel
+              value={projectDetails.carpetAreaMax}
+              onChange={(value) => onProjectDetailsChange("carpetAreaMax", value)}
             />
             <PostPropertyInput
               id="carpetAreaType"
@@ -85,11 +109,11 @@ export default function PropertyDetailsField({
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <div className="grid gap-4 md:grid-cols-3 md:gap-6">
             <PostPropertyInput
               id="superBuildUpNumber"
-              label="Super Build up Number"
-              placeholder="Enter super build up area"
+              label="Super Built-up Min"
+              placeholder="e.g. 1100"
               variant="underline"
               staticLabel
               value={values.superBuildUpNumber}
@@ -97,8 +121,20 @@ export default function PropertyDetailsField({
               onChange={(value) => onChange("superBuildUpNumber", value)}
             />
             <PostPropertyInput
+              id="superBuildUpMax"
+              label="Super Built-up Max"
+              placeholder="e.g. 1300"
+              variant="underline"
+              type="number"
+              staticLabel
+              value={projectDetails.superBuildUpMax}
+              onChange={(value) =>
+                onProjectDetailsChange("superBuildUpMax", value)
+              }
+            />
+            <PostPropertyInput
               id="superBuildUpType"
-              label="Super Build up Type*"
+              label="Super Built-up Type*"
               variant="underline"
               staticLabel
               options={areaTypeDropdownOptions}
@@ -112,6 +148,15 @@ export default function PropertyDetailsField({
           </div>
         </div>
       </PostPropertyFieldSection>
+
+      {isRent ? null : (
+        <AvailableSizesField
+          values={projectDetails}
+          onChange={onProjectDetailsChange}
+          propertyType={propertyType}
+          subType={subType}
+        />
+      )}
 
       {isRent ? null : (
       <PostPropertyFieldSection

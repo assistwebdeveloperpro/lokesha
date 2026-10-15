@@ -13,7 +13,7 @@ export type MasterDashboardNavItem = {
   children?: MasterDashboardNavChild[];
 };
 
-export const MASTER_DEFAULT_ROUTE = "/backend/properties/post-property";
+export const MASTER_DEFAULT_ROUTE = "/backend/dashboard";
 
 export const masterDashboardNavItems: MasterDashboardNavItem[] = [
   { label: "Dashboard", href: "/backend/dashboard", icon: LayoutDashboard },

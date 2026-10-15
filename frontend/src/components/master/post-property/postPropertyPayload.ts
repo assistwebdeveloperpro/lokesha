@@ -13,10 +13,15 @@ import {
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
 
+import {
+  getUnitTypeConfig,
+  type ProjectDetailsValues,
+} from "./postPropertyProjectDetails";
+
 export type PostPropertyFormState = {
   listingType: ListingTypeId;
   propertyType: PropertyTypeId;
-  propertySubType: string;
+  propertySubType: string[];
   addressLocation: AddressLocationValues;
   propertyDetails: PropertyDetailsValues;
   amenities: AmenitiesValues;
@@ -52,7 +57,7 @@ function buildPropertyData(state: PostPropertyFormState) {
   return {
     listingType: state.listingType,
     propertyType: state.propertyType,
-    propertySubType: state.propertySubType || null,
+    propertySubType: state.propertySubType.join(",") || null,
     address: {
       blockNo: toTextOrNull(addressLocation.blockNo),
       flatNumber: toTextOrNull(addressLocation.flatNumber),
@@ -140,6 +145,77 @@ export function buildPropertyFormData(state: PostPropertyFormState): FormData {
   const mediaCategories = appendMediaFiles(formData, state.photosVideos);
 
   formData.append("data", JSON.stringify({ ...buildPropertyData(state), mediaCategories }));
+  return formData;
+}
+
+const slugify = (value: string) => value.trim().toLowerCase().replace(/\s+/g, "-");
+
+function buildProjectData(
+  project: ProjectDetailsValues,
+  isRent: boolean,
+  showBhk: boolean,
+) {
+  const sale = (value: number | string | null) => (isRent ? null : value);
+
+  return {
+    developerName: toTextOrNull(project.developerName),
+    launchDate: toTextOrNull(project.launchDate),
+    totalUnits: toNumberOrNull(project.totalUnits),
+    totalBlocks: toNumberOrNull(project.totalBlocks),
+    projectArea: toNumberOrNull(project.projectArea),
+    openSpacePercent: toNumberOrNull(project.openSpacePercent),
+    carpetAreaMax: toNumberOrNull(project.carpetAreaMax),
+    superBuildUpMax: toNumberOrNull(project.superBuildUpMax),
+    priceMin: sale(toNumberOrNull(project.priceMin)),
+    priceMax: sale(toNumberOrNull(project.priceMax)),
+    pricePerSqft: sale(toNumberOrNull(project.pricePerSqft)),
+    paymentPlan: sale(project.paymentPlan ? slugify(project.paymentPlan) : null),
+    approvedBanks: sale(toTextOrNull(project.approvedBanks)),
+    videoLink: toTextOrNull(project.videoLink),
+    configurations: project.configurations.map(({ unitType, bhk }) => ({
+      unitType,
+      bhk: showBhk ? bhk : "",
+    })),
+    availableSizes: project.availableSizes.map((row) => ({
+      bhk: showBhk ? row.bhk : "",
+      unitType: row.unitType,
+      size: toNumberOrNull(row.size),
+      price: toNumberOrNull(row.price),
+    })),
+    primeLocationHighlights: project.primeLocationHighlights.map(({ place, distance }) => ({
+      place,
+      distance,
+    })),
+    projectHighlights: project.projectHighlights.map(({ text }) => ({ text })),
+    faqs: project.faqs.map(({ question, answer }) => ({ question, answer })),
+  };
+}
+
+// Admin create: standard payload plus project details and floor plan files
+export function buildAdminPropertyFormData(
+  state: PostPropertyFormState,
+  project: ProjectDetailsValues,
+): FormData {
+  const formData = new FormData();
+  const mediaCategories = appendMediaFiles(formData, state.photosVideos);
+
+  // Only rows with an image are sent; labels line up with files by index
+  const floorPlans = project.floorPlans.filter((row) => row.file);
+  floorPlans.forEach((row) => formData.append("floorPlans", row.file as File));
+
+  formData.append(
+    "data",
+    JSON.stringify({
+      ...buildPropertyData(state),
+      mediaCategories,
+      projectDetails: buildProjectData(
+        project,
+        isRentListing(state.listingType),
+        getUnitTypeConfig(state.propertyType, state.propertySubType).showBhk,
+      ),
+      floorPlanLabels: floorPlans.map((row) => row.label.trim()),
+    }),
+  );
   return formData;
 }
 

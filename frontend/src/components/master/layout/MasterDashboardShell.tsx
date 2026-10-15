@@ -154,7 +154,7 @@ function MasterDashboardShellInner({
   const router = useRouter();
   const { adminName, logout } = useAdminAuth();
   const { open, isDesktop, setOpen } = useSidebar();
-  const currentSection = getMasterActiveNavLabel(pathname);
+  // const currentSection = getMasterActiveNavLabel(pathname);
   const activeSectionHref = useMemo(
     () => getMasterActiveSectionHref(pathname),
     [pathname],
@@ -352,9 +352,9 @@ function MasterDashboardShellInner({
                   <Menu className="h-4 w-4" />
                 )}
               </SidebarTrigger>
-              <p className="font-display text-md sm:text-xl font-bold ps-3 text-slate-900">
+              {/* <p className="font-display text-md sm:text-xl font-bold ps-3 text-slate-900">
                 {currentSection}
-              </p>
+              </p> */}
             </div>
 
             <MasterProfileMenu adminName={adminName} onSignOut={handleLogout} />

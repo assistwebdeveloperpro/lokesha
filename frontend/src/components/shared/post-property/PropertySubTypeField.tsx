@@ -13,11 +13,11 @@ export default function PropertySubTypeField({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="mt-6 rounded-xl border border-sky-100 bg-sky-50/30 p-4 sm:p-5">
+    <div className="mt-6 rounded-xl border border-sky-100 bg-sky-50/30 px-1.5 py-4 sm:p-5">
       <h3 className="mb-4 text-base font-bold text-slate-800 sm:text-lg">
         {title} - Sub Type
       </h3>
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {options.map((option) => {
           const isSelected = value === option.id;
           const Icon = option.icon;

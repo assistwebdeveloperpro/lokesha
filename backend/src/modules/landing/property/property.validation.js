@@ -175,21 +175,22 @@ const pricingSchema = Joi.when("listingType", {
 // Sub type must belong to the property type; PG/Co-Living has none
 function validateSubType(value, helpers) {
   const allowed = c.SUB_TYPES_BY_PROPERTY_TYPE[value.propertyType];
-  const subType = value.propertySubType || "";
+  // Multiple sub types arrive comma-separated
+  const subTypes = [...new Set((value.propertySubType || "").split(",").filter(Boolean))];
 
-  if (allowed.length === 0 && subType) {
+  if (allowed.length === 0 && subTypes.length > 0) {
     return helpers.message("Property sub type is not allowed for this property type");
   }
-  if (allowed.length > 0 && !allowed.includes(subType)) {
+  if (subTypes.some((subType) => !allowed.includes(subType))) {
     return helpers.message("Property sub type is invalid for the selected property type");
   }
-  return { ...value, propertySubType: subType || null };
+  return { ...value, propertySubType: subTypes.join(",") || null };
 }
 
 const propertyBaseKeys = {
   listingType: Joi.string().valid(...c.LISTING_TYPES).required(),
   propertyType: Joi.string().valid(...c.PROPERTY_TYPES).required(),
-  propertySubType: Joi.string().allow("", null),
+  propertySubType: Joi.string().max(255).allow("", null),
   address: addressSchema,
   amenities: amenitiesSchema,
   pricing: pricingSchema.required(),

@@ -6,11 +6,14 @@ import { setPendingToast } from "@/components/shared/ui/pendingToast";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { DEFAULT_STATE } from "@/data/indianStatesCities";
 import { ApiError } from "@/services/apiClient";
-import { createProperty, type PropertyMedia } from "@/services/property.service";
+import { createAdminProperty } from "@/services/adminProperty.service";
+import { getAdminToken } from "@/services/adminSession";
+import type { PropertyMedia } from "@/services/property.service";
 import { getToken } from "@/services/session";
 import AddressLocationField from "./AddressLocationField";
 import AmenitiesField from "./AmenitiesField";
 import EditPropertyStatus from "./EditPropertyStatus";
+import FloorPlansField from "./FloorPlansField";
 import FormStepper from "./FormStepper";
 import PhotosVideosField from "./PhotosVideosField";
 import PricingOthersField from "./PricingOthersField";
@@ -18,6 +21,21 @@ import ListingTypeField from "./ListingTypeField";
 import ProgressBar from "./ProgressBar";
 import PropertyDetailsField from "./PropertyDetailsField";
 import PropertyTypeField from "./PropertyTypeField";
+import {
+  PrimeLocationHighlightsField,
+  ProjectHighlightsField,
+  ProjectOverviewField,
+} from "./ProjectDetailsField";
+import {
+  ProjectFaqField,
+  ProjectPricingField,
+  VideoWalkthroughField,
+} from "./ProjectPricingFaqField";
+import {
+  createInitialProjectDetails,
+  getUnitTypeConfig,
+  type ProjectDetailsValues,
+} from "./postPropertyProjectDetails";
 import {
   DEFAULT_RENT_AGE_OF_CONSTRUCTION,
   RESIDENTIAL_SUB_TYPES,
@@ -48,7 +66,7 @@ import {
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
 import { mapPropertyToFormState } from "./postPropertyEdit";
-import { buildPropertyFormData } from "./postPropertyPayload";
+import { buildAdminPropertyFormData } from "./postPropertyPayload";
 import { saveEditedProperty } from "./saveEditedProperty";
 import { useEditProperty } from "./useEditProperty";
 import {
@@ -125,9 +143,9 @@ export default function AdminPostPropertyContent() {
   const [listingType, setListingType] = useState<ListingTypeId>("sale");
   const [propertyType, setPropertyType] =
     useState<PropertyTypeId>("residential");
-  const [propertySubType, setPropertySubType] = useState(
+  const [propertySubType, setPropertySubType] = useState<string[]>([
     RESIDENTIAL_SUB_TYPES[0].id,
-  );
+  ]);
   const [addressLocationErrors, setAddressLocationErrors] =
     useState<AddressLocationFieldErrors>({});
   const [addressLocation, setAddressLocation] = useState<AddressLocationValues>({
@@ -146,6 +164,9 @@ export default function AdminPostPropertyContent() {
     useState<PropertyDetailsValues>(initialPropertyDetails);
   const [propertyDetailsErrors, setPropertyDetailsErrors] =
     useState<PropertyDetailsFieldErrors>({});
+  const [projectDetails, setProjectDetails] = useState<ProjectDetailsValues>(
+    createInitialProjectDetails,
+  );
   const [amenities, setAmenities] = useState<AmenitiesValues>(initialAmenities);
   const [photosVideos, setPhotosVideos] = useState<PhotosVideosValues>(
     createEmptyPhotosVideosValues(),
@@ -235,6 +256,13 @@ export default function AdminPostPropertyContent() {
         return next;
       });
     }
+  };
+
+  const handleProjectDetailsChange = <K extends keyof ProjectDetailsValues>(
+    field: K,
+    value: ProjectDetailsValues[K],
+  ) => {
+    setProjectDetails((current) => ({ ...current, [field]: value }));
   };
 
   const handleBasicDetailsNext = () => {
@@ -445,7 +473,7 @@ export default function AdminPostPropertyContent() {
       return;
     }
 
-    const token = getToken();
+    const token = editId ? getToken() : getAdminToken();
     if (!token) {
       router.push(loginPath);
       return;
@@ -474,7 +502,7 @@ export default function AdminPostPropertyContent() {
         });
         setPendingToast("Property updated successfully");
       } else {
-        await createProperty(buildPropertyFormData(formState), token);
+        await createAdminProperty(buildAdminPropertyFormData(formState, projectDetails), token);
         setPendingToast("Property listed successfully");
       }
       router.push(afterSubmitPath);
@@ -502,7 +530,35 @@ export default function AdminPostPropertyContent() {
     setPropertyType(nextPropertyType);
 
     const subTypeOptions = SUB_TYPES_BY_PROPERTY_TYPE[nextPropertyType];
-    setPropertySubType(subTypeOptions ? subTypeOptions[0].id : "");
+    const nextSubTypes = subTypeOptions ? [subTypeOptions[0].id] : [];
+    setPropertySubType(nextSubTypes);
+    clearStaleUnitTypes(nextPropertyType, nextSubTypes);
+  };
+
+  const handleSubTypeChange = (nextSubTypes: string[]) => {
+    setPropertySubType(nextSubTypes);
+    clearStaleUnitTypes(propertyType, nextSubTypes);
+  };
+
+  // Unit types no longer offered by the selected sub types are cleared
+  const clearStaleUnitTypes = (
+    nextPropertyType: PropertyTypeId,
+    nextSubTypes: string[],
+  ) => {
+    const { unitTypes } = getUnitTypeConfig(nextPropertyType, nextSubTypes);
+    const keep = (value: string) => (unitTypes.includes(value) ? value : "");
+
+    setProjectDetails((current) => ({
+      ...current,
+      configurations: current.configurations.map((row) => ({
+        ...row,
+        unitType: keep(row.unitType),
+      })),
+      availableSizes: current.availableSizes.map((row) => ({
+        ...row,
+        unitType: keep(row.unitType),
+      })),
+    }));
   };
 
   const goToStep = (step: number) => {
@@ -568,13 +624,31 @@ export default function AdminPostPropertyContent() {
               value={propertyType}
               onChange={handlePropertyTypeChange}
               subType={propertySubType}
-              onSubTypeChange={setPropertySubType}
+              onSubTypeChange={handleSubTypeChange}
             />
 
             <AddressLocationField
               values={addressLocation}
               onChange={handleAddressLocationChange}
               errors={addressLocationErrors}
+            />
+
+            <ProjectOverviewField
+              values={projectDetails}
+              onChange={handleProjectDetailsChange}
+              propertyType={propertyType}
+              subType={propertySubType}
+            />
+
+            <ProjectHighlightsField
+              values={projectDetails}
+              onChange={handleProjectDetailsChange}
+            />
+
+            <PrimeLocationHighlightsField
+              projectName={addressLocation.projectName}
+              values={projectDetails}
+              onChange={handleProjectDetailsChange}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
@@ -605,9 +679,13 @@ export default function AdminPostPropertyContent() {
           <div className="space-y-6">
             <PropertyDetailsField
               listingType={listingType}
+              propertyType={propertyType}
+              subType={propertySubType}
               values={propertyDetails}
               onChange={handlePropertyDetailsChange}
               errors={propertyDetailsErrors}
+              projectDetails={projectDetails}
+              onProjectDetailsChange={handleProjectDetailsChange}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
@@ -683,6 +761,17 @@ export default function AdminPostPropertyContent() {
               }
             />
 
+            <FloorPlansField
+              projectName={addressLocation.projectName}
+              values={projectDetails}
+              onChange={handleProjectDetailsChange}
+            />
+
+            <VideoWalkthroughField
+              values={projectDetails}
+              onChange={handleProjectDetailsChange}
+            />
+
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
                 type="button"
@@ -716,6 +805,18 @@ export default function AdminPostPropertyContent() {
               values={pricingOthers}
               onChange={handlePricingOthersChange}
               errors={pricingOthersErrors}
+            />
+
+            {isRent ? null : (
+              <ProjectPricingField
+                values={projectDetails}
+                onChange={handleProjectDetailsChange}
+              />
+            )}
+
+            <ProjectFaqField
+              values={projectDetails}
+              onChange={handleProjectDetailsChange}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">

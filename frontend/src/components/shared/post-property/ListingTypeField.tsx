@@ -17,7 +17,7 @@ export default function ListingTypeField({
       title="Listing Type"
       description="Choose whether you want to sell or rent your property"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {LISTING_TYPES.map((type) => {
           const isSelected = value === type.id;
           const subtitle =
@@ -29,7 +29,7 @@ export default function ListingTypeField({
               type="button"
               aria-pressed={isSelected}
               onClick={() => onChange(type.id)}
-              className={`flex min-h-[4.5rem] w-full flex-col items-center justify-center gap-1.5 rounded-xl border px-4 py-4 text-center transition-all lg:min-h-[5rem] ${postPropertyTileClass(isSelected)}`}
+              className={`flex min-h-18 w-full flex-col items-center justify-center gap-1.5 rounded-xl border px-4 py-4 text-center transition-all lg:min-h-20 ${postPropertyTileClass(isSelected)}`}
             >
               <span
                 className={`text-sm font-bold sm:text-base ${

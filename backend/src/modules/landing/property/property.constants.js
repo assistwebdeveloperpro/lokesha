@@ -105,12 +105,12 @@ const FACINGS = [
 const PRICE_INCLUSIONS = ["car-parking", "club-membership", "plc"];
 
 const MEDIA_CATEGORIES = [
+  "main-photo",
   "bedrooms",
   "bathrooms",
   "terrace",
   "kitchen",
   "exterior",
-  "main-photo",
   "living-room",
   "floor-plan",
   "master-plan",

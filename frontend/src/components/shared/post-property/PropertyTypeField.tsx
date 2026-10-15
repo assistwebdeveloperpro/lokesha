@@ -26,7 +26,7 @@ export default function PropertyTypeField({
       title="Property Type"
       description="Select the category that best describes your property"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {PROPERTY_TYPES.map((type) => {
           const isSelected = value === type.id;
           const imageSrc =
@@ -38,7 +38,7 @@ export default function PropertyTypeField({
               type="button"
               onClick={() => onChange(type.id)}
               aria-pressed={isSelected}
-              className={`flex min-h-[8rem] w-full flex-col items-center justify-center gap-2.5 rounded-xl border px-3 py-5 text-center sm:min-h-[8.5rem] sm:gap-3 sm:px-4 sm:py-6 ${postPropertyTileClass(isSelected)}`}
+              className={`flex min-h-32 w-full flex-col items-center justify-center gap-2.5 rounded-xl border px-3 py-5 text-center sm:min-h-34 sm:gap-3 sm:px-4 sm:py-6 ${postPropertyTileClass(isSelected)}`}
             >
               <span className="flex h-14 w-14 items-center justify-center overflow-hidden sm:h-16 sm:w-16">
                 <img
