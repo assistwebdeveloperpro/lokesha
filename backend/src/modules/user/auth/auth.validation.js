@@ -28,7 +28,12 @@ const signupSchema = Joi.object({
     "string.empty": "Please enter password.",
     "any.required": "Please enter password.",
   }),
-  mobile_number: mobileNumber,
+  mobile_number: Joi.string()
+    .pattern(/^[0-9]{10}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "mobile_number must be exactly 10 digits",
+    }),
 });
 
 const loginSchema = Joi.object({

@@ -76,6 +76,10 @@ import pgImage from "../../../../public/assets/images/property_type/pg.svg";
 import plotImage from "../../../../public/assets/images/property_type/plot.svg";
 import residentialImage from "../../../../public/assets/images/property_type/residential.svg";
 import { parseAmountNumber } from "./postPropertyAmount";
+import {
+  getSaleFormConfig,
+  type SaleDetailsConfig,
+} from "./postPropertySaleConfig";
 
 export const FORM_STEPS = [
   { id: 1, label: "Basic Details" },
@@ -164,6 +168,16 @@ export const AREA_TYPE_OPTIONS = [
   { value: "sq-yd", label: "sq yd" },
 ] as const;
 
+export const LAND_AREA_TYPE_OPTIONS = [
+  ...AREA_TYPE_OPTIONS,
+  { value: "acres", label: "Acres" },
+  { value: "guntha", label: "Guntha" },
+  { value: "bigha", label: "Bigha" },
+] as const;
+
+export const PENTHOUSE_TYPE_OPTIONS = ["Duplex", "Parallel"];
+export const TERRACE_ENTRY_OPTIONS = ["Drawing", "Kitchen", "Bedroom", "Passage"];
+
 export const PROPERTY_TRANSACTION_OPTIONS = [
   { id: "new", label: "New" },
   { id: "resale", label: "Resale" },
@@ -190,13 +204,100 @@ export const TENANT_PREFERENCE_OPTIONS = [
   { id: "professional", label: "Professional", icon: Briefcase },
 ] as const;
 
+export function numberOptions(start: number, end: number): string[] {
+  return Array.from({ length: end - start + 1 }, (_, index) =>
+    String(start + index),
+  );
+}
+
+export const MANAGED_BY_OPTIONS = ["Landlord", "Professional", "Care Taker"];
+export const ROAD_FACING_OPTIONS = ["Main Road", "Side Road", "No Road"];
+export const PG_PRESENT_IN_OPTIONS = ["Independent Building", "Society", "Flat"];
+export const OCCUPANCY_OPTIONS = ["Single", "Double", "Triple", "Triple+"];
+export const PG_GENDER_OPTIONS = ["Male", "Female", "Both"];
+
+export const PG_TENANT_PREFERENCE_OPTIONS: ImageTileOption[] = [
+  { id: "bachelor", label: "Bachelor", image: "/assets/images/tenant-preferences/bachelor.svg" },
+  { id: "student", label: "Student", image: "/assets/images/tenant-preferences/student.svg" },
+  { id: "professional", label: "Professional", image: "/assets/images/tenant-preferences/professional.svg" },
+];
+
+export const PG_RULE_OPTIONS: ImageTileOption[] = [
+  { id: "only-veg", label: "Only veg", image: "/assets/images/pg-rules/only_veg.svg" },
+  { id: "no-smoking", label: "No smoking", image: "/assets/images/pg-rules/no_smoking.svg" },
+  { id: "no-alcohol", label: "No alcohol", image: "/assets/images/pg-rules/no_alcohol.svg" },
+  {
+    id: "cross-gender-not-allowed",
+    label: "Cross gender not allowed",
+    image: "/assets/images/pg-rules/cross_gender_not_allowed.svg",
+  },
+];
+
+export const FOOD_OPTIONS: ImageTileOption[] = [
+  { id: "breakfast", label: "Breakfast", image: "/assets/images/foods/breakfast.svg" },
+  { id: "lunch", label: "Lunch", image: "/assets/images/foods/lunch.svg" },
+  { id: "dinner", label: "Dinner", image: "/assets/images/foods/dinner.svg" },
+  { id: "veg", label: "Veg", image: "/assets/images/foods/veg.svg" },
+  { id: "non-veg", label: "Non Veg", image: "/assets/images/foods/non_veg.svg" },
+  {
+    id: "not-available",
+    label: "Not Available",
+    image: "/assets/images/foods/not_available.svg",
+  },
+];
+
+export const BUSINESS_OPTIONS: ImageTileOption[] = [
+  { id: "bank", label: "Bank", image: "/assets/images/businesses/bank.svg" },
+  { id: "bank-atm", label: "Bank ATM", image: "/assets/images/businesses/bank_atm.svg" },
+  { id: "business-house", label: "Business house", image: "/assets/images/businesses/business_house.svg" },
+  { id: "business-mall", label: "Business mall", image: "/assets/images/businesses/business_mall.svg" },
+  { id: "call-center", label: "Call Center", image: "/assets/images/businesses/call_centre.svg" },
+  { id: "classes", label: "Classes", image: "/assets/images/businesses/classes.svg" },
+  { id: "clinic", label: "Clinic", image: "/assets/images/businesses/clinic.svg" },
+  { id: "factory", label: "Factory", image: "/assets/images/businesses/factory.svg" },
+  { id: "gym", label: "GYM", image: "/assets/images/businesses/gym.svg" },
+  { id: "hospital", label: "Hospital", image: "/assets/images/businesses/hospital.svg" },
+  { id: "hotel", label: "Hotel", image: "/assets/images/businesses/hotel.svg" },
+  { id: "medical-shop", label: "Medical Shop", image: "/assets/images/businesses/medical_shop.svg" },
+  { id: "multiplex", label: "Multiplex", image: "/assets/images/businesses/multiplex.svg" },
+  { id: "office", label: "Office", image: "/assets/images/businesses/office.svg" },
+  { id: "parlor", label: "Parlor", image: "/assets/images/businesses/parlor.svg" },
+  { id: "petrol-pump", label: "Petrol Pump", image: "/assets/images/businesses/petrol_pump.svg" },
+  { id: "resort", label: "Resort", image: "/assets/images/businesses/resort.svg" },
+  { id: "restaurant", label: "Restaurant", image: "/assets/images/businesses/restaurant.svg" },
+  { id: "school", label: "School", image: "/assets/images/businesses/school.svg" },
+  { id: "service-station", label: "Service station", image: "/assets/images/businesses/service_station.svg" },
+  { id: "shop", label: "Shop", image: "/assets/images/businesses/shop.svg" },
+  { id: "showroom", label: "Showroom", image: "/assets/images/businesses/showroom.svg" },
+  { id: "store", label: "Store", image: "/assets/images/businesses/store.svg" },
+];
+
+export const ENTRY_TILL_OPTIONS = [
+  { value: "", label: "Select time" },
+  ...Array.from({ length: 48 }, (_, index) => {
+    const hours24 = Math.floor(index / 2);
+    const minutes = index % 2 === 0 ? "00" : "30";
+    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    const label = `${String(hours12).padStart(2, "0")}:${minutes} ${hours24 < 12 ? "AM" : "PM"}`;
+    return { value: label, label };
+  }),
+];
+
+export const PG_OPERATION_YEAR_OPTIONS = [
+  { value: "", label: "Select year" },
+  ...Array.from({ length: 51 }, (_, index) => {
+    const year = String(new Date().getFullYear() - index);
+    return { value: year, label: year };
+  }),
+];
+
 export const DEFAULT_RENT_AGE_OF_CONSTRUCTION: AgeOfConstructionId = "lt-1";
 
 export function isRentListing(listingType: ListingTypeId): boolean {
   return listingType === "rent-lease";
 }
 
-export type AreaTypeId = (typeof AREA_TYPE_OPTIONS)[number]["value"];
+export type AreaTypeId = (typeof LAND_AREA_TYPE_OPTIONS)[number]["value"];
 export type PropertyTransactionId =
   (typeof PROPERTY_TRANSACTION_OPTIONS)[number]["id"];
 export type ConstructionStatusId =
@@ -409,12 +510,85 @@ export type PropertyDetailsValues = {
   availableFrom: string;
   interiorModificationAllowed: boolean;
   tenantPreferences: string[];
+  cabins: string;
+  entranceWidth: string;
+  currentlyLeasedOut: boolean;
+  leaseContractTill: string;
+  plotLengthNumber: string;
+  plotLengthType: AreaTypeId | "";
+  plotBreadthNumber: string;
+  plotBreadthType: AreaTypeId | "";
+  roadWidth: string;
+  anyConstruction: boolean;
+  boundaryWallMade: boolean;
+  cornerPlot: boolean;
+  floorsAllowed: string;
+  managedBy: string;
+  pgOperationSince: string;
+  pgPresentIn: string;
+  pgName: string;
+  occupancies: string[];
+  pgGender: string;
+  pgRules: string[];
+  entryTill: string;
+  foods: string[];
+  plotAreaNumber: string;
+  plotAreaType: AreaTypeId | "";
+  terraceAreaNumber: string;
+  terraceAreaType: AreaTypeId | "";
+  penthouseType: string;
+  terraceEntry: string[];
+  leasedOutAnswered: boolean;
 };
+
+export const EMPTY_PROPERTY_DETAILS_EXTRA = {
+  plotAreaNumber: "",
+  plotAreaType: "",
+  terraceAreaNumber: "",
+  terraceAreaType: "",
+  penthouseType: "",
+  terraceEntry: [],
+  leasedOutAnswered: false,
+  cabins: "",
+  entranceWidth: "",
+  currentlyLeasedOut: false,
+  leaseContractTill: "",
+  plotLengthNumber: "",
+  plotLengthType: "",
+  plotBreadthNumber: "",
+  plotBreadthType: "",
+  roadWidth: "",
+  anyConstruction: false,
+  boundaryWallMade: false,
+  cornerPlot: false,
+  floorsAllowed: "",
+  managedBy: "",
+  pgOperationSince: "",
+  pgPresentIn: "",
+  pgName: "",
+  occupancies: [],
+  pgGender: "",
+  pgRules: [],
+  entryTill: "",
+  foods: [],
+} satisfies Partial<PropertyDetailsValues>;
 
 export type PropertyDetailsFieldErrors = Partial<
   Record<
+    | "pgName"
+    | "occupancies"
+    | "pgGender"
+    | "leaseContractTill"
+    | "currentlyLeasedOut"
+    | "plotAreaNumber"
+    | "plotAreaType"
+    | "terraceAreaNumber"
+    | "terraceAreaType"
+    | "penthouseType"
+    | "floorsAllowed"
     | "carpetAreaNumber"
     | "carpetAreaType"
+    | "superBuildUpNumber"
     | "superBuildUpType"
     | "availableFrom"
     | "tenantPreferences"
@@ -431,13 +605,392 @@ export type PropertyDetailsFieldErrors = Partial<
   >
 >;
 
+type PropertyDetailsValidationOptions = {
+  listingType?: ListingTypeId;
+  propertyType?: PropertyTypeId;
+  subType?: string;
+  possessionDatePastAnchor?: string;
+  availableFromPastAnchor?: string;
+};
+
+function validateCarpetArea(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+) {
+  if (!values.carpetAreaNumber.trim()) {
+    errors.carpetAreaNumber = "Please enter carpet area";
+  } else {
+    const carpetArea = Number(values.carpetAreaNumber);
+    if (!Number.isFinite(carpetArea) || carpetArea <= 0) {
+      errors.carpetAreaNumber = "Please enter a valid carpet area";
+    }
+  }
+
+  if (!values.carpetAreaType) {
+    errors.carpetAreaType = "Please select carpet area type";
+  }
+}
+
+function validateSuperBuildUp(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+) {
+  if (!values.superBuildUpNumber.trim()) {
+    errors.superBuildUpNumber = "Please enter super built-up area";
+  } else {
+    const superBuildUp = Number(values.superBuildUpNumber);
+    if (!Number.isFinite(superBuildUp) || superBuildUp <= 0) {
+      errors.superBuildUpNumber = "Please enter a valid super built-up area";
+    }
+  }
+
+  if (!values.superBuildUpType) {
+    errors.superBuildUpType = "Please select super build up type";
+  }
+}
+
+function validateAvailableFrom(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+  required: boolean,
+  pastAnchor?: string,
+) {
+  if (!values.availableFrom.trim()) {
+    if (required) {
+      errors.availableFrom = "Please select available from date";
+    }
+  } else if (
+    !isAllowedPossessionDate(values.availableFrom, new Date(), pastAnchor)
+  ) {
+    errors.availableFrom = "Available from date cannot be in the past";
+  }
+}
+
+export function getCurrentMonthValue(referenceDate: Date = new Date()): string {
+  return getTodayIsoDate(referenceDate).slice(0, 7);
+}
+
+function validateLeaseContract(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+  required: boolean,
+) {
+  if (required && values.currentlyLeasedOut && !values.leaseContractTill) {
+    errors.leaseContractTill = "Please select lease contract till month and year";
+  }
+}
+
+function validateSaleLeaseContract(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+  cfg: SaleDetailsConfig,
+) {
+  if (cfg.leasedOut === "hidden") {
+    return;
+  }
+
+  if (cfg.leasedOut === "must-answer" && !values.leasedOutAnswered) {
+    errors.currentlyLeasedOut = "Please select if the property is currently leased out";
+  }
+
+  if (!values.currentlyLeasedOut) {
+    return;
+  }
+
+  if (!values.leaseContractTill) {
+    if (cfg.leaseContractRequired) {
+      errors.leaseContractTill = "Please select lease contract till month and year";
+    }
+  } else if (values.leaseContractTill < getCurrentMonthValue()) {
+    errors.leaseContractTill = "Lease contract date cannot be in the past";
+  }
+}
+
+function validateLevel(
+  level: SaleDetailsConfig["bedrooms"],
+  value: string,
+  errors: PropertyDetailsFieldErrors,
+  key: "bedrooms" | "balcony" | "bathrooms" | "floorsAllowed",
+  message: string,
+) {
+  if (level === "required" && !value) {
+    errors[key] = message;
+  }
+}
+
+function validateAreaPair(
+  numberValue: string,
+  typeValue: string,
+  errors: PropertyDetailsFieldErrors,
+  keys: { number: "carpetAreaNumber" | "plotAreaNumber" | "terraceAreaNumber"; type: "carpetAreaType" | "plotAreaType" | "terraceAreaType" },
+  label: string,
+) {
+  if (!numberValue.trim()) {
+    errors[keys.number] = `Please enter ${label}`;
+  } else if (!Number.isFinite(Number(numberValue)) || Number(numberValue) <= 0) {
+    errors[keys.number] = `Please enter a valid ${label}`;
+  }
+
+  if (!typeValue) {
+    errors[keys.type] = `Please select ${label} type`;
+  }
+}
+
+function validateSaleDetails(
+  values: PropertyDetailsValues,
+  cfg: SaleDetailsConfig,
+  options?: PropertyDetailsValidationOptions,
+): PropertyDetailsFieldErrors {
+  const errors: PropertyDetailsFieldErrors = {};
+
+  if (cfg.area === "standard") {
+    validateCarpetArea(values, errors);
+    validateSuperBuildUp(values, errors);
+    if (cfg.plotArea === "required") {
+      validateAreaPair(values.plotAreaNumber, values.plotAreaType, errors, { number: "plotAreaNumber", type: "plotAreaType" }, "plot area");
+    }
+    if (cfg.terraceArea) {
+      validateAreaPair(values.terraceAreaNumber, values.terraceAreaType, errors, { number: "terraceAreaNumber", type: "terraceAreaType" }, "terrace area");
+    }
+  } else if (cfg.plotArea === "required") {
+    validateAreaPair(values.carpetAreaNumber, values.carpetAreaType, errors, { number: "carpetAreaNumber", type: "carpetAreaType" }, "plot area");
+  }
+
+  if (cfg.transaction === "full") {
+    validateSaleTransaction(values, errors, options);
+  } else if (cfg.transaction === "chips" && cfg.transactionRequired && !values.propertyTransaction) {
+    errors.propertyTransaction = "Please select property transaction";
+  }
+
+  if (cfg.constructionAlways) {
+    if (!values.constructionStatus) {
+      errors.constructionStatus = "Please select construction status";
+    }
+    if (!values.possessionDate.trim()) {
+      errors.possessionDate = "Please select possession date";
+    } else if (
+      !isAllowedPossessionDate(
+        values.possessionDate,
+        new Date(),
+        options?.possessionDatePastAnchor,
+      )
+    ) {
+      errors.possessionDate = "Possession date cannot be in the past";
+    }
+    if (!values.ageOfConstruction) {
+      errors.ageOfConstruction = "Please select age of construction";
+    }
+  }
+
+  validateLevel(cfg.bedrooms, values.bedrooms, errors, "bedrooms", "Please select number of bedrooms");
+  validateLevel(cfg.balcony, values.balcony, errors, "balcony", "Please select number of balconies");
+  validateLevel(cfg.bathrooms, values.bathrooms, errors, "bathrooms", "Please select number of bathrooms");
+  validateLevel(cfg.floorsAllowed, values.floorsAllowed, errors, "floorsAllowed", "Please select floors allowed for construction");
+
+  if (cfg.totalFloors) {
+    if (!values.totalFloors) {
+      errors.totalFloors = "Please select total floors";
+    } else if (cfg.floorNumber && !values.floorNumber) {
+      errors.floorNumber = "Please select floor number";
+    }
+  }
+
+  if (cfg.penthouse && !values.penthouseType) {
+    errors.penthouseType = "Please select type of penthouse";
+  }
+
+  if (cfg.entrance || cfg.availableFrom !== "hidden") {
+    validateAvailableFrom(
+      values,
+      errors,
+      cfg.availableFrom === "required",
+      options?.availableFromPastAnchor,
+    );
+  }
+
+  validateSaleLeaseContract(values, errors, cfg);
+
+  return errors;
+}
+
+function validateTotalFloors(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+) {
+  if (!values.totalFloors) {
+    errors.totalFloors = "Please select total floors";
+  } else if (!values.floorNumber) {
+    errors.floorNumber = "Please select floor number";
+  }
+}
+
+function validateSaleTransaction(
+  values: PropertyDetailsValues,
+  errors: PropertyDetailsFieldErrors,
+  options?: PropertyDetailsValidationOptions,
+) {
+  if (!values.propertyTransaction) {
+    errors.propertyTransaction = "Please select property transaction";
+  }
+
+  if (values.propertyTransaction === "new") {
+    if (!values.constructionStatus) {
+      errors.constructionStatus = "Please select construction status";
+    }
+
+    if (!values.possessionDate.trim()) {
+      errors.possessionDate = "Please select possession date";
+    } else if (
+      !isAllowedPossessionDate(
+        values.possessionDate,
+        new Date(),
+        options?.possessionDatePastAnchor,
+      )
+    ) {
+      errors.possessionDate = "Possession date cannot be in the past";
+    }
+  }
+
+  if (values.propertyTransaction === "resale" && !values.ageOfConstruction) {
+    errors.ageOfConstruction = "Please select age of construction";
+  }
+}
+
+function validateCommercialDetails(
+  values: PropertyDetailsValues,
+  options?: PropertyDetailsValidationOptions,
+): PropertyDetailsFieldErrors {
+  const errors: PropertyDetailsFieldErrors = {};
+
+  validateCarpetArea(values, errors);
+  validateSuperBuildUp(values, errors);
+
+  if (options?.listingType === "rent-lease") {
+    if (!values.ageOfConstruction) {
+      errors.ageOfConstruction = "Please select age of construction";
+    }
+  } else {
+    validateSaleTransaction(values, errors, options);
+  }
+
+  validateTotalFloors(values, errors);
+  validateAvailableFrom(values, errors, false, options?.availableFromPastAnchor);
+  validateLeaseContract(values, errors, true);
+
+  return errors;
+}
+
+function validatePgDetails(
+  values: PropertyDetailsValues,
+  options?: PropertyDetailsValidationOptions,
+): PropertyDetailsFieldErrors {
+  const errors: PropertyDetailsFieldErrors = {};
+
+  if (!values.bedrooms) {
+    errors.bedrooms = "Please select number of bedrooms";
+  }
+
+  if (!values.balcony) {
+    errors.balcony = "Please select number of balconies";
+  }
+
+  validateTotalFloors(values, errors);
+
+  if (!values.bathrooms) {
+    errors.bathrooms = "Please select number of bathrooms";
+  }
+
+  if (!values.ageOfConstruction) {
+    errors.ageOfConstruction = "Please select age of construction";
+  }
+
+  validateAvailableFrom(values, errors, true, options?.availableFromPastAnchor);
+
+  if (values.tenantPreferences.length === 0) {
+    errors.tenantPreferences = "Please select at least one tenant preference";
+  }
+
+  if (!values.pgName.trim()) {
+    errors.pgName = "Please enter name of PG";
+  }
+
+  if (values.occupancies.length === 0) {
+    errors.occupancies = "Please select at least one occupancy";
+  }
+
+  if (!values.pgGender) {
+    errors.pgGender = "Please select gender";
+  }
+
+  return errors;
+}
+
+function validatePlotDetails(
+  values: PropertyDetailsValues,
+  options?: PropertyDetailsValidationOptions,
+): PropertyDetailsFieldErrors {
+  const errors: PropertyDetailsFieldErrors = {};
+
+  if (!values.carpetAreaNumber.trim()) {
+    errors.carpetAreaNumber = "Please enter plot area";
+  } else if (Number(values.carpetAreaNumber) <= 0) {
+    errors.carpetAreaNumber = "Please enter a valid plot area";
+  }
+
+  if (!values.carpetAreaType) {
+    errors.carpetAreaType = "Please select plot area type";
+  }
+
+  validateAvailableFrom(values, errors, true, options?.availableFromPastAnchor);
+
+  if (!values.propertyTransaction) {
+    errors.propertyTransaction = "Please select property transaction";
+  }
+
+  return errors;
+}
+
+function validateLandDetails(
+  values: PropertyDetailsValues,
+  options?: PropertyDetailsValidationOptions,
+): PropertyDetailsFieldErrors {
+  const errors: PropertyDetailsFieldErrors = {};
+
+  validateAvailableFrom(values, errors, false, options?.availableFromPastAnchor);
+
+  return errors;
+}
+
 export function validatePropertyDetails(
   values: PropertyDetailsValues,
-  options?: {
-    listingType?: ListingTypeId;
-    possessionDatePastAnchor?: string;
-    availableFromPastAnchor?: string;
-  },
+  options?: PropertyDetailsValidationOptions,
+): PropertyDetailsFieldErrors {
+  const saleConfig = getSaleFormConfig(
+    options?.listingType,
+    options?.propertyType,
+    options?.subType,
+  );
+  if (saleConfig) {
+    return validateSaleDetails(values, saleConfig.details, options);
+  }
+
+  switch (options?.propertyType) {
+    case "commercial":
+      return validateCommercialDetails(values, options);
+    case "pg-co-living":
+      return validatePgDetails(values, options);
+    case "plot":
+      return validatePlotDetails(values, options);
+    case "land":
+      return validateLandDetails(values, options);
+    default:
+      return validateResidentialDetails(values, options);
+  }
+}
+
+function validateResidentialDetails(
+  values: PropertyDetailsValues,
+  options?: PropertyDetailsValidationOptions,
 ): PropertyDetailsFieldErrors {
   const errors: PropertyDetailsFieldErrors = {};
   const isRent = options?.listingType === "rent-lease";
@@ -455,9 +1008,7 @@ export function validatePropertyDetails(
     errors.carpetAreaType = "Please select carpet area type";
   }
 
-  if (!values.superBuildUpType) {
-    errors.superBuildUpType = "Please select super build up type";
-  }
+  validateSuperBuildUp(values, errors);
 
   if (isRent) {
     if (!values.ageOfConstruction) {
@@ -603,6 +1154,110 @@ export const AMENITY_OPTIONS: ImageTileOption[] = [
   { id: "solar-roof", label: "Solar Roof", image: solarRoofImage },
 ];
 
+const COMMERCIAL_FURNISHING_EXTRA: ImageTileOption[] = [
+  { id: "work-station", label: "Work Station", image: "/assets/images/furnishing/work_station.svg" },
+  { id: "chairs", label: "Chairs", image: "/assets/images/furnishing/chairs.svg" },
+  { id: "tables", label: "Tables", image: "/assets/images/furnishing/tables.svg" },
+  { id: "reception-area", label: "Reception Area", image: "/assets/images/furnishing/reception_area.svg" },
+  { id: "conference-room", label: "Conference Room", image: "/assets/images/furnishing/conference_room.svg" },
+  { id: "waiting-area", label: "Waiting Area", image: "/assets/images/furnishing/waiting_area.svg" },
+  { id: "director-cabin", label: "Director Cabin", image: "/assets/images/furnishing/director_cabin.svg" },
+  { id: "cupboard", label: "Cupboard", image: "/assets/images/furnishing/cupboard.svg" },
+  { id: "partition", label: "Partition", image: "/assets/images/furnishing/partition.svg" },
+];
+
+const COMMERCIAL_FURNISHING_IDS = [
+  "tv",
+  "sofa",
+  "microwave",
+  "stove",
+  "gas-cylinder",
+  "fridge",
+  "water-purifier",
+  "gas-pipeline",
+  "ac",
+  "electric-fittings",
+  "fan",
+  "wifi",
+  "wardrobes",
+  "work-station",
+  "chairs",
+  "tables",
+  "reception-area",
+  "conference-room",
+  "waiting-area",
+  "director-cabin",
+  "cupboard",
+  "partition",
+];
+
+const GUEST_HOUSE_FURNISHING_IDS = [
+  "dining-table",
+  "tv",
+  "sofa",
+  "washing-machine",
+  "microwave",
+  "stove",
+  "gas-cylinder",
+  "fridge",
+  "water-purifier",
+  "gas-pipeline",
+  "ac",
+  "beds",
+  "geyser",
+  "electric-fittings",
+  "fan",
+  "wifi",
+  "wardrobes",
+  "work-station",
+  "chairs",
+  "tables",
+  "reception-area",
+  "conference-room",
+  "waiting-area",
+  "director-cabin",
+  "cupboard",
+  "partition",
+];
+
+function pickOptions(
+  pool: ImageTileOption[],
+  ids: string[],
+): ImageTileOption[] {
+  return ids
+    .map((id) => pool.find((option) => option.id === id))
+    .filter((option): option is ImageTileOption => Boolean(option));
+}
+
+export function getFurnishingOptions(
+  set: "residential" | "commercial" | "guest-house",
+): ImageTileOption[] {
+  if (set === "residential") {
+    return FURNISHING_OPTIONS;
+  }
+
+  const pool = [...FURNISHING_OPTIONS, ...COMMERCIAL_FURNISHING_EXTRA];
+  return pickOptions(
+    pool,
+    set === "commercial" ? COMMERCIAL_FURNISHING_IDS : GUEST_HOUSE_FURNISHING_IDS,
+  );
+}
+
+const EXTRA_AMENITY_OPTIONS: ImageTileOption[] = [
+  { id: "wifi", label: "Wifi", image: wifiImage },
+  { id: "house-keeping", label: "House Keeping", image: "/assets/images/amenities/house_keeping.svg" },
+  { id: "fire-safety", label: "Fire Safety", image: "/assets/images/amenities/fire_safety.svg" },
+  { id: "wheelchair-access", label: "WheelChair Access", image: "/assets/images/amenities/wheelchair_access.svg" },
+];
+
+export function getAmenityOptions(ids: string[] | null): ImageTileOption[] {
+  if (!ids) {
+    return AMENITY_OPTIONS;
+  }
+
+  return pickOptions([...AMENITY_OPTIONS, ...EXTRA_AMENITY_OPTIONS], ids);
+}
+
 export const FACING_OPTIONS = [
   "East",
   "North",
@@ -632,16 +1287,105 @@ export type AmenitiesValues = {
   clubMembership: boolean;
   reraNumber: string;
   openSides: string;
+  washrooms: string;
+  roadFacing: string;
+  businessTypes: string[];
+  pantry: boolean;
+  cafeteria: boolean;
+  cornerShop: boolean;
 };
 
+export const EMPTY_AMENITIES_EXTRA = {
+  washrooms: "",
+  roadFacing: "",
+  businessTypes: [],
+  pantry: false,
+  cafeteria: false,
+  cornerShop: false,
+} satisfies Partial<AmenitiesValues>;
+
 export type AmenitiesFieldErrors = Partial<
-  Record<"status" | "furnishing" | "amenities" | "carParking", string>
+  Record<
+    "status" | "furnishing" | "amenities" | "carParking" | "washrooms" | "facing",
+    string
+  >
 >;
 
 export function validateAmenities(
   values: AmenitiesValues,
+  propertyType?: PropertyTypeId,
+  context?: { listingType?: ListingTypeId; subType?: string },
 ): AmenitiesFieldErrors {
   const errors: AmenitiesFieldErrors = {};
+  const saleConfig = getSaleFormConfig(
+    context?.listingType,
+    propertyType,
+    context?.subType,
+  );
+
+  if (saleConfig) {
+    const cfg = saleConfig.amenities;
+
+    if (cfg.washrooms === "required" && !values.washrooms) {
+      errors.washrooms = "Please select number of washrooms";
+    }
+
+    if (cfg.status) {
+      if (!values.status) {
+        errors.status = "Please select furnishing status";
+      } else if (
+        showsFurnishingField(values.status) &&
+        values.furnishing.length === 0
+      ) {
+        errors.furnishing = "Please select at least one furnishing item";
+      }
+    }
+
+    if (cfg.amenities === "required" && values.amenities.length === 0) {
+      errors.amenities = "Please select at least one amenity";
+    }
+
+    if (cfg.facing === "required" && !values.facing) {
+      errors.facing = "Please select facing";
+    }
+
+    if (cfg.carParking && values.carParkingAvailable && !values.carParking) {
+      errors.carParking = "Please select number of car parkings";
+    }
+
+    return errors;
+  }
+
+  if (propertyType === "land") {
+    return errors;
+  }
+
+  if (propertyType === "plot") {
+    if (!values.facing) {
+      errors.facing = "Please select facing";
+    }
+    return errors;
+  }
+
+  if (propertyType === "pg-co-living") {
+    if (!values.status) {
+      errors.status = "Please select furnishing status";
+    } else if (
+      showsFurnishingField(values.status) &&
+      values.furnishing.length === 0
+    ) {
+      errors.furnishing = "Please select at least one furnishing item";
+    }
+
+    if (values.carParkingAvailable && !values.carParking) {
+      errors.carParking = "Please select number of car parkings";
+    }
+    return errors;
+  }
+
+  if (propertyType === "commercial" && !values.washrooms) {
+    errors.washrooms = "Please select number of washrooms";
+  }
 
   if (!values.status) {
     errors.status = "Please select furnishing status";
@@ -677,9 +1421,77 @@ export const PHOTO_CATEGORY_OPTIONS = [
   { id: "pooja-room", label: "Pooja Room" },
   { id: "others", label: "Others" },
   { id: "balcony", label: "Balcony" },
+  { id: "washroom", label: "Washroom" },
+  { id: "common-area", label: "Common Area" },
+  { id: "amenities", label: "Amenities" },
+  { id: "brochure-images", label: "Brochure Images" },
+  { id: "cluster-plan", label: "Cluster Plan" },
+  { id: "elevation", label: "Elevation" },
 ] as const;
 
 export type PhotoCategoryId = (typeof PHOTO_CATEGORY_OPTIONS)[number]["id"];
+
+const COMMERCIAL_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
+  "washroom",
+  "exterior",
+  "main-photo",
+  "floor-plan",
+  "master-plan",
+  "others",
+  "common-area",
+];
+
+const LIMITED_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
+  "exterior",
+  "master-plan",
+  "main-photo",
+  "others",
+];
+
+export function getPhotoCategories(
+  propertyType: PropertyTypeId,
+  context?: { listingType?: ListingTypeId; subType?: string },
+) {
+  const saleConfig = getSaleFormConfig(
+    context?.listingType,
+    propertyType,
+    context?.subType,
+  );
+  if (saleConfig?.photos.categoryIds) {
+    return saleConfig.photos.categoryIds.map(
+      (id) => PHOTO_CATEGORY_OPTIONS.find((category) => category.id === id)!,
+    );
+  }
+
+  const ids =
+    propertyType === "commercial"
+      ? COMMERCIAL_PHOTO_CATEGORY_IDS
+      : propertyType === "residential"
+        ? null
+        : LIMITED_PHOTO_CATEGORY_IDS;
+
+  return ids
+    ? ids.map(
+        (id) => PHOTO_CATEGORY_OPTIONS.find((category) => category.id === id)!,
+      )
+    : PHOTO_CATEGORY_OPTIONS;
+}
+
+export function arePhotosRequired(
+  propertyType: PropertyTypeId,
+  context?: { listingType?: ListingTypeId; subType?: string },
+): boolean {
+  const saleConfig = getSaleFormConfig(
+    context?.listingType,
+    propertyType,
+    context?.subType,
+  );
+  if (saleConfig) {
+    return saleConfig.photos.required;
+  }
+
+  return propertyType === "residential";
+}
 
 export const MAX_PROPERTY_MEDIA_COUNT = 50;
 export const MAX_PROPERTY_MEDIA_SIZE_BYTES = 50 * 1024 * 1024;
@@ -768,6 +1580,9 @@ export type PricingOthersValues = {
   monthlyRent: string;
   noticePeriod: string;
   depositAmount: string;
+  assuredReturn: string;
+  yearlyIncrement: string;
+  leaseAmount: string;
 };
 
 export type PricingOthersFieldErrors = Partial<
@@ -817,8 +1632,49 @@ function validateRentPricing(
 export function validatePricingOthers(
   values: PricingOthersValues,
   listingType?: ListingTypeId,
+  propertyType?: PropertyTypeId,
+  subType?: string,
 ): PricingOthersFieldErrors {
-  if (listingType === "rent-lease") {
+  const saleConfig = getSaleFormConfig(listingType, propertyType, subType);
+  if (saleConfig) {
+    const errors: PricingOthersFieldErrors = {};
+
+    if (!values.expectedPrice.trim()) {
+      errors.expectedPrice = "Please enter expected price";
+    } else if (parseAmountNumber(values.expectedPrice) < 0) {
+      errors.expectedPrice = "Please enter a valid expected price";
+    }
+
+    if (saleConfig.pricing.bookingAmount === "required") {
+      if (!values.bookingAmount.trim()) {
+        errors.bookingAmount = "Please enter booking amount";
+      } else if (parseAmountNumber(values.bookingAmount) < 0) {
+        errors.bookingAmount = "Please enter a valid booking amount";
+      }
+    }
+
+    return errors;
+  }
+
+  if (propertyType === "pg-co-living") {
+    return validateRentPricing(values);
+  }
+
+  if (propertyType === "plot") {
+    const errors: PricingOthersFieldErrors = {};
+
+    if (!values.monthlyRent.trim()) {
+      errors.monthlyRent = "Please enter monthly rent";
+    }
+
+    if (!values.depositAmount.trim()) {
+      errors.depositAmount = "Please enter deposit amount";
+    }
+
+    return errors;
+  }
+
+  if (listingType === "rent-lease" && propertyType !== "land") {
     return validateRentPricing(values);
   }
 

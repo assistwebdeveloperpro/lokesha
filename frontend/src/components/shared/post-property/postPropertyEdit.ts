@@ -1,6 +1,8 @@
 import { DEFAULT_STATE } from "@/data/indianStatesCities";
 import type { PropertyDetail } from "@/services/property.service";
 import {
+  EMPTY_AMENITIES_EXTRA,
+  EMPTY_PROPERTY_DETAILS_EXTRA,
   normalizePossessionDateForInput,
   type AddressLocationValues,
   type AmenitiesValues,
@@ -73,6 +75,7 @@ export function mapPropertyToFormState(property: PropertyDetail): EditFormState 
       availableFrom: normalizePossessionDateForInput(toText(details.availableFrom)),
       interiorModificationAllowed: details.interiorModificationAllowed,
       tenantPreferences: details.tenantPreferences,
+      ...EMPTY_PROPERTY_DETAILS_EXTRA,
     },
     amenities: {
       status: (amenities.furnishingStatus ?? "") as AmenitiesValues["status"],
@@ -84,6 +87,7 @@ export function mapPropertyToFormState(property: PropertyDetail): EditFormState 
       clubMembership: amenities.clubMembership,
       reraNumber: toText(amenities.reraNumber),
       openSides: toText(amenities.openSides),
+      ...EMPTY_AMENITIES_EXTRA,
     },
     pricingOthers: {
       expectedPrice: toText(pricing.expectedPrice),
@@ -96,6 +100,9 @@ export function mapPropertyToFormState(property: PropertyDetail): EditFormState 
       monthlyRent: toText(pricing.monthlyRent),
       noticePeriod: toText(pricing.noticePeriod),
       depositAmount: toText(pricing.depositAmount),
+      assuredReturn: "",
+      yearlyIncrement: "",
+      leaseAmount: "",
     },
   };
 }

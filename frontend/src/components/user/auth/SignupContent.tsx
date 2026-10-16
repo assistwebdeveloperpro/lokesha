@@ -72,9 +72,8 @@ export default function SignupContent() {
     const mobileDigits = mobile.replace(/\D/g, "");
     if (!mobile.trim()) {
       nextErrors.mobile = "Please enter mobile number.";
-    } else if (mobileDigits.length < 10) {
-      nextErrors.mobile =
-        "Mobile number should be of min. 10 digits. Please re-enter.";
+    } else if (mobileDigits.length !== 10) {
+      nextErrors.mobile = "Mobile number must be exactly 10 digits.";
     }
     if (!agreedToTerms) {
       nextErrors.terms = "Please accept the terms and conditions.";
@@ -250,7 +249,7 @@ export default function SignupContent() {
                       value={mobile}
                       invalid={Boolean(errors.mobile)}
                       onChange={(value) => {
-                        setMobile(value);
+                        setMobile(value.replace(/\D/g, "").slice(0, 10));
                         clearError("mobile");
                       }}
                     />

@@ -8,17 +8,20 @@ import { DEFAULT_STATE } from "@/data/indianStatesCities";
 import { ApiError } from "@/services/apiClient";
 import { createProperty, type PropertyMedia } from "@/services/property.service";
 import { getToken } from "@/services/session";
-import AddressLocationField from "./AddressLocationField";
-import AmenitiesField from "./AmenitiesField";
+import AddressLocationField from "./step-1-basic-information/AddressLocationField";
+import ListingTypeField from "./step-1-basic-information/ListingTypeField";
+import PropertyTypeField from "./step-1-basic-information/PropertyTypeField";
+import PropertyDetailsField from "./step-2-property-details/PropertyDetailsField";
+import AmenitiesField from "./step-3-amenities/AmenitiesField";
+import PhotosVideosField from "./step-4-media-upload/PhotosVideosField";
+import PricingOthersField from "./step-5-pricing-and-additional-details/PricingOthersField";
 import EditPropertyStatus from "./EditPropertyStatus";
 import FormStepper from "./FormStepper";
-import PhotosVideosField from "./PhotosVideosField";
-import PricingOthersField from "./PricingOthersField";
-import ListingTypeField from "./ListingTypeField";
 import ProgressBar from "./ProgressBar";
-import PropertyDetailsField from "./PropertyDetailsField";
-import PropertyTypeField from "./PropertyTypeField";
 import {
+  EMPTY_AMENITIES_EXTRA,
+  EMPTY_PROPERTY_DETAILS_EXTRA,
+  arePhotosRequired,
   DEFAULT_RENT_AGE_OF_CONSTRUCTION,
   RESIDENTIAL_SUB_TYPES,
   SUB_TYPES_BY_PROPERTY_TYPE,
@@ -52,12 +55,14 @@ import { buildPropertyFormData } from "./postPropertyPayload";
 import { saveEditedProperty } from "./saveEditedProperty";
 import { useEditProperty } from "./useEditProperty";
 import {
+  POST_PROPERTY_BACK_BTN,
   POST_PROPERTY_PRIMARY_BTN,
   POST_PROPERTY_STEP_ACCENT,
   POST_PROPERTY_STEP_DESC,
   POST_PROPERTY_STEP_HEADER,
   POST_PROPERTY_STEP_TITLE,
 } from "./postPropertyForm.styles";
+import { ArrowLeft } from "lucide-react";
 
 const initialPropertyDetails: PropertyDetailsValues = {
   carpetAreaNumber: "",
@@ -79,6 +84,7 @@ const initialPropertyDetails: PropertyDetailsValues = {
   availableFrom: "",
   interiorModificationAllowed: false,
   tenantPreferences: [],
+  ...EMPTY_PROPERTY_DETAILS_EXTRA,
 };
 
 const initialPricingOthers: PricingOthersValues = {
@@ -92,6 +98,9 @@ const initialPricingOthers: PricingOthersValues = {
   bookingAmount: "",
   maintenanceCharges: "",
   benefitsRemarks: "",
+  assuredReturn: "",
+  yearlyIncrement: "",
+  leaseAmount: "",
 };
 
 const initialAmenities: AmenitiesValues = {
@@ -104,6 +113,7 @@ const initialAmenities: AmenitiesValues = {
   clubMembership: false,
   reraNumber: "",
   openSides: "",
+  ...EMPTY_AMENITIES_EXTRA,
 };
 
 export default function PostPropertyContent() {
@@ -194,7 +204,7 @@ export default function PostPropertyContent() {
     setListingType(nextListingType);
     setPropertyDetails((current) => ({
       ...current,
-      propertyTransaction: "",
+      propertyTransaction: propertyType === "plot" ? "new" : "",
       constructionStatus: "",
       possessionDate: "",
       ageOfConstruction: isRentListing(nextListingType)
@@ -277,6 +287,14 @@ export default function PostPropertyContent() {
       if (
         field === "carpetAreaNumber" ||
         field === "carpetAreaType" ||
+        field === "superBuildUpNumber" ||
+        field === "superBuildUpType" ||
+        field === "availableFrom" ||
+        field === "leaseContractTill" ||
+        field === "tenantPreferences" ||
+        field === "pgName" ||
+        field === "occupancies" ||
+        field === "pgGender" ||
         field === "propertyTransaction" ||
         field === "constructionStatus" ||
         field === "ageOfConstruction" ||
@@ -285,7 +303,14 @@ export default function PostPropertyContent() {
         field === "balcony" ||
         field === "totalFloors" ||
         field === "floorNumber" ||
-        field === "bathrooms"
+        field === "bathrooms" ||
+        field === "plotAreaNumber" ||
+        field === "plotAreaType" ||
+        field === "terraceAreaNumber" ||
+        field === "terraceAreaType" ||
+        field === "penthouseType" ||
+        field === "floorsAllowed" ||
+        field === "currentlyLeasedOut"
       ) {
         fieldsToClear.add(field);
       }
@@ -316,6 +341,8 @@ export default function PostPropertyContent() {
   const handlePropertyDetailsNext = () => {
     const errors = validatePropertyDetails(propertyDetails, {
       listingType,
+      propertyType,
+      subType: propertySubType,
       possessionDatePastAnchor: possessionDatePastAnchor || undefined,
       availableFromPastAnchor: availableFromPastAnchor || undefined,
     });
@@ -351,7 +378,10 @@ export default function PostPropertyContent() {
   };
 
   const handleAmenitiesNext = () => {
-    const errors = validateAmenities(amenities);
+    const errors = validateAmenities(amenities, propertyType, {
+      listingType,
+      subType: propertySubType,
+    });
 
     if (hasAmenitiesErrors(errors)) {
       setAmenitiesErrors(errors);
@@ -380,7 +410,10 @@ export default function PostPropertyContent() {
   };
 
   const handlePhotosNext = () => {
-    if (getTotalMediaCount(photosVideos) + existingMedia.length === 0) {
+    if (
+      arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
+      getTotalMediaCount(photosVideos) + existingMedia.length === 0
+    ) {
       setPhotosError("Please add at least one photo");
       return;
     }
@@ -393,12 +426,23 @@ export default function PostPropertyContent() {
     const nextAddressErrors = validateAddressLocation(addressLocation);
     const nextPropertyDetailsErrors = validatePropertyDetails(propertyDetails, {
       listingType,
+      propertyType,
+      subType: propertySubType,
       possessionDatePastAnchor: possessionDatePastAnchor || undefined,
       availableFromPastAnchor: availableFromPastAnchor || undefined,
     });
-    const nextAmenitiesErrors = validateAmenities(amenities);
-    const nextPricingErrors = validatePricingOthers(pricingOthers, listingType);
+    const nextAmenitiesErrors = validateAmenities(amenities, propertyType, {
+      listingType,
+      subType: propertySubType,
+    });
+    const nextPricingErrors = validatePricingOthers(
+      pricingOthers,
+      listingType,
+      propertyType,
+      propertySubType,
+    );
     const nextPhotosError =
+      arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
       getTotalMediaCount(photosVideos) + existingMedia.length === 0
         ? "Please add at least one photo"
         : "";
@@ -499,10 +543,60 @@ export default function PostPropertyContent() {
   };
 
   const handlePropertyTypeChange = (nextPropertyType: PropertyTypeId) => {
+    if (nextPropertyType === propertyType) {
+      return;
+    }
+
     setPropertyType(nextPropertyType);
 
     const subTypeOptions = SUB_TYPES_BY_PROPERTY_TYPE[nextPropertyType];
     setPropertySubType(subTypeOptions ? subTypeOptions[0].id : "");
+
+    const nextListingType =
+      nextPropertyType === "pg-co-living" ? "rent-lease" : listingType;
+    setListingType(nextListingType);
+
+    // Plot defaults: new transaction, landlord managed
+    const isPlot = nextPropertyType === "plot";
+    setPropertyDetails({
+      ...initialPropertyDetails,
+      propertyTransaction: isPlot ? "new" : "",
+      managedBy: isPlot ? "Landlord" : "",
+      ageOfConstruction: isRentListing(nextListingType)
+        ? DEFAULT_RENT_AGE_OF_CONSTRUCTION
+        : "",
+    });
+    setAmenities(initialAmenities);
+    setPricingOthers(initialPricingOthers);
+    setPhotosVideos(createEmptyPhotosVideosValues());
+    setPropertyDetailsErrors({});
+    setAmenitiesErrors({});
+    setPricingOthersErrors({});
+    setPhotosError("");
+  };
+
+  const handleSubTypeChange = (nextSubType: string) => {
+    if (nextSubType === propertySubType) {
+      return;
+    }
+
+    setPropertySubType(nextSubType);
+
+    // Each sub type has its own fields, so start the later steps afresh
+    const isPlot = propertyType === "plot";
+    setPropertyDetails({
+      ...initialPropertyDetails,
+      propertyTransaction: isPlot ? "new" : "",
+      managedBy: isPlot ? "Landlord" : "",
+      ageOfConstruction: isRent ? DEFAULT_RENT_AGE_OF_CONSTRUCTION : "",
+    });
+    setAmenities(initialAmenities);
+    setPricingOthers(initialPricingOthers);
+    setPhotosVideos(createEmptyPhotosVideosValues());
+    setPropertyDetailsErrors({});
+    setAmenitiesErrors({});
+    setPricingOthersErrors({});
+    setPhotosError("");
   };
 
   const goToStep = (step: number) => {
@@ -515,6 +609,8 @@ export default function PostPropertyContent() {
       scroll: false,
     });
   };
+
+  const handleGoBack = () => goToStep(currentStep - 1);
 
   const isBasicDetailsStep = currentStep === 1;
   const isPropertyDetailsStep = currentStep === 2;
@@ -553,7 +649,7 @@ export default function PostPropertyContent() {
             <div>
               <h2 className={POST_PROPERTY_STEP_TITLE}>Add Basic Details</h2>
               <p className={POST_PROPERTY_STEP_DESC}>
-                Step 1 of 5 — Tell us about your listing
+                Step 1 of 5 - Tell us about your listing
               </p>
             </div>
           </div>
@@ -562,13 +658,16 @@ export default function PostPropertyContent() {
             <ListingTypeField
               value={listingType}
               onChange={handleListingTypeChange}
+              allowedIds={
+                propertyType === "pg-co-living" ? ["rent-lease"] : undefined
+              }
             />
 
             <PropertyTypeField
               value={propertyType}
               onChange={handlePropertyTypeChange}
               subType={propertySubType}
-              onSubTypeChange={setPropertySubType}
+              onSubTypeChange={handleSubTypeChange}
             />
 
             <AddressLocationField
@@ -591,13 +690,23 @@ export default function PostPropertyContent() {
       ) : null}
 
       {isPropertyDetailsStep ? (
-        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-8">
+        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-6">
+          <div className="mb-4 flex justify-start">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className={POST_PROPERTY_BACK_BTN}
+            >
+             <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
+            </button>
+          </div>
+
           <div className={POST_PROPERTY_STEP_HEADER}>
             <span className={POST_PROPERTY_STEP_ACCENT} aria-hidden />
             <div>
               <h2 className={POST_PROPERTY_STEP_TITLE}>Add Property Details</h2>
               <p className={POST_PROPERTY_STEP_DESC}>
-                Step 2 of 5 — Area, rooms, and floor information
+                Step 2 of 5 - Area, rooms, and floor information
               </p>
             </div>
           </div>
@@ -605,6 +714,8 @@ export default function PostPropertyContent() {
           <div className="space-y-6">
             <PropertyDetailsField
               listingType={listingType}
+              propertyType={propertyType}
+              subType={propertySubType}
               values={propertyDetails}
               onChange={handlePropertyDetailsChange}
               errors={propertyDetailsErrors}
@@ -624,13 +735,23 @@ export default function PostPropertyContent() {
       ) : null}
 
       {isAmenitiesStep ? (
-        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-8">
+        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-6">
+          <div className="mb-4 flex justify-start">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className={POST_PROPERTY_BACK_BTN}
+            >
+             <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
+            </button>
+          </div>
+
           <div className={POST_PROPERTY_STEP_HEADER}>
             <span className={POST_PROPERTY_STEP_ACCENT} aria-hidden />
             <div>
               <h2 className={POST_PROPERTY_STEP_TITLE}>Add Amenities</h2>
               <p className={POST_PROPERTY_STEP_DESC}>
-                Step 3 of 5 — Furnishing, amenities, and parking
+                Step 3 of 5 - Furnishing, amenities, and parking
               </p>
             </div>
           </div>
@@ -638,6 +759,8 @@ export default function PostPropertyContent() {
           <div className="space-y-6">
             <AmenitiesField
               isRent={isRent}
+              propertyType={propertyType}
+              subType={propertySubType}
               values={amenities}
               onChange={handleAmenitiesChange}
               errors={amenitiesErrors}
@@ -657,19 +780,33 @@ export default function PostPropertyContent() {
       ) : null}
 
       {isPhotosVideosStep ? (
-        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-8">
+        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-6">
+          <div className="mb-4 flex justify-start">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className={POST_PROPERTY_BACK_BTN}
+            >
+             <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
+            </button>
+          </div>
+
           <div className={POST_PROPERTY_STEP_HEADER}>
             <span className={POST_PROPERTY_STEP_ACCENT} aria-hidden />
             <div>
               <h2 className={POST_PROPERTY_STEP_TITLE}>Add Photos & Videos</h2>
               <p className={POST_PROPERTY_STEP_DESC}>
-                Step 4 of 5 — Upload photos to attract more buyers
+                Step 4 of 5 - Upload photos to attract more buyers
               </p>
             </div>
           </div>
 
           <div className="space-y-6">
             <PhotosVideosField
+              key={`${propertyType}-${propertySubType}`}
+              propertyType={propertyType}
+              listingType={listingType}
+              subType={propertySubType}
               values={photosVideos}
               onChange={(next) => {
                 setPhotosVideos(next);
@@ -697,7 +834,17 @@ export default function PostPropertyContent() {
       ) : null}
 
       {isPricingOthersStep ? (
-        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-8">
+        <section className="post-property-form-card mt-8 py-5 px-2 md:p-5 sm:mt-10 sm:p-6">
+          <div className="mb-4 flex justify-start">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className={POST_PROPERTY_BACK_BTN}
+            >
+             <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
+            </button>
+          </div>
+
           <div className={POST_PROPERTY_STEP_HEADER}>
             <span className={POST_PROPERTY_STEP_ACCENT} aria-hidden />
             <div>
@@ -705,7 +852,7 @@ export default function PostPropertyContent() {
                 Add Pricing & Other Details
               </h2>
               <p className={POST_PROPERTY_STEP_DESC}>
-                Step 5 of 5 — Set your price and finalize the listing
+                Step 5 of 5 - Set your price and finalize the listing
               </p>
             </div>
           </div>
@@ -713,6 +860,8 @@ export default function PostPropertyContent() {
           <div className="space-y-6">
             <PricingOthersField
               isRent={isRent}
+              propertyType={propertyType}
+              subType={propertySubType}
               values={pricingOthers}
               onChange={handlePricingOthersChange}
               errors={pricingOthersErrors}

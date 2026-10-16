@@ -45,6 +45,9 @@ export const POST_PROPERTY_CHECKBOX_ROW =
 export const POST_PROPERTY_PRIMARY_BTN =
   "bg-linear-to-r-navy-blue inline-flex min-w-52 cursor-pointer items-center justify-center rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:shadow-slate-900/30 active:scale-[0.99] sm:min-w-52";
 
+export const POST_PROPERTY_BACK_BTN = 
+  "inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-linear-to-r-navy-blue text-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 active:scale-[0.99]"
+
 export function postPropertyChipClass(isSelected: boolean) {
   return `inline-flex cursor-pointer items-center justify-center rounded-xl border font-semibold transition-all ${
     isSelected ? POST_PROPERTY_CHIP_SELECTED : POST_PROPERTY_CHIP_DEFAULT
