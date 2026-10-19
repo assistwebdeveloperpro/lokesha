@@ -123,6 +123,35 @@ export function createProperty(formData: FormData, token: string) {
   });
 }
 
+export type CatalogAmenity = {
+  amenityKey: string;
+  name: string;
+  imagePath: string;
+};
+
+export type CatalogAmenitiesResponse = {
+  amenities: CatalogAmenity[];
+  furnishing: CatalogAmenity[];
+};
+
+export function getCatalogAmenities(params: {
+  listingType: string;
+  propertyType: string;
+  propertySubType?: string;
+}) {
+  const query = new URLSearchParams({
+    listingType: params.listingType,
+    propertyType: params.propertyType,
+  });
+  if (params.propertySubType) {
+    query.set("propertySubType", params.propertySubType);
+  }
+
+  return apiFetch<CatalogAmenitiesResponse>(
+    `/property/amenities?${query.toString()}`,
+  );
+}
+
 export function getMyProperties(
   token: string,
   { page, limit }: { page: number; limit: number },

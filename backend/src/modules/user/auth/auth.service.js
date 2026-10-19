@@ -13,7 +13,7 @@ class AppError extends Error {
 const NOT_REGISTERED_MESSAGE =
   "This mobile number isn't registered with us yet. Please sign up first.";
 
-async function signup({ role, name, email, password, mobile_number }) {
+async function signup({ role, name, email, password, mobile_number, agreed_to_terms }) {
   const existingEmail = await repository.findUserByEmail(email);
   if (existingEmail) {
     throw new AppError("Email is already registered", 409);
@@ -32,6 +32,7 @@ async function signup({ role, name, email, password, mobile_number }) {
     email,
     passwordHash,
     mobile_number,
+    agreed_to_terms,
   });
 
   return user;

@@ -34,6 +34,10 @@ const signupSchema = Joi.object({
     .messages({
       "string.pattern.base": "mobile_number must be exactly 10 digits",
     }),
+  agreed_to_terms: Joi.boolean().valid(true).required().messages({
+    "any.only": "Please accept the terms and conditions.",
+    "any.required": "Please accept the terms and conditions.",
+  }),
 });
 
 const loginSchema = Joi.object({

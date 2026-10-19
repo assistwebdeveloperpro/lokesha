@@ -1,11 +1,13 @@
 const { db } = require("../../../../config/db");
 
 const USERS_TABLE = "users";
+const PREFERENCES_TABLE = "user_contact_preferences";
 const OFFICE_TABLE = "user_office_details";
 const BUSINESS_TABLE = "user_business_details";
 
 async function findProfileByUserId(userId) {
   return db(USERS_TABLE)
+    .leftJoin(PREFERENCES_TABLE, `${PREFERENCES_TABLE}.user_id`, `${USERS_TABLE}.id`)
     .leftJoin(OFFICE_TABLE, `${OFFICE_TABLE}.user_id`, `${USERS_TABLE}.id`)
     .leftJoin(BUSINESS_TABLE, `${BUSINESS_TABLE}.user_id`, `${USERS_TABLE}.id`)
     .where(`${USERS_TABLE}.id`, userId)
@@ -15,14 +17,18 @@ async function findProfileByUserId(userId) {
       `${USERS_TABLE}.name`,
       `${USERS_TABLE}.email`,
       `${USERS_TABLE}.mobile_number`,
-      `${USERS_TABLE}.mobile_country_code`,
-      `${USERS_TABLE}.alternate_email`,
-      `${USERS_TABLE}.receive_on_alternate_email`,
-      `${USERS_TABLE}.receive_sms_on_mobile`,
-      `${USERS_TABLE}.display_country_code`,
-      `${USERS_TABLE}.display_number`,
-      `${USERS_TABLE}.is_primary_mobile_virtual`,
-      `${USERS_TABLE}.hide_contact_details`,
+      db.raw(`COALESCE(${PREFERENCES_TABLE}.mobile_country_code, '+91') as mobile_country_code`),
+      `${PREFERENCES_TABLE}.alternate_email`,
+      db.raw(
+        `COALESCE(${PREFERENCES_TABLE}.receive_on_alternate_email, false) as receive_on_alternate_email`
+      ),
+      db.raw(`COALESCE(${PREFERENCES_TABLE}.receive_sms_on_mobile, true) as receive_sms_on_mobile`),
+      `${PREFERENCES_TABLE}.display_country_code`,
+      `${PREFERENCES_TABLE}.display_number`,
+      db.raw(
+        `COALESCE(${PREFERENCES_TABLE}.is_primary_mobile_virtual, false) as is_primary_mobile_virtual`
+      ),
+      db.raw(`COALESCE(${PREFERENCES_TABLE}.hide_contact_details, false) as hide_contact_details`),
       `${USERS_TABLE}.agreed_to_terms`,
       `${USERS_TABLE}.whatsapp_number`,
       `${USERS_TABLE}.created_at`,
@@ -42,12 +48,21 @@ async function findUserByMobileNumber(mobileNumber, excludeUserId) {
     .first();
 }
 
-async function updateLoginDetails(userId, data) {
-  const [user] = await db(USERS_TABLE)
-    .where({ id: userId })
-    .update({ ...data, updated_at: db.fn.now() })
-    .returning("*");
-  return user;
+async function updateLoginDetails(userId, userData, preferencesData) {
+  return db.transaction(async (trx) => {
+    const updatedCount = await trx(USERS_TABLE)
+      .where({ id: userId })
+      .update({ ...userData, updated_at: trx.fn.now() });
+
+    if (!updatedCount) return false;
+
+    await trx(PREFERENCES_TABLE)
+      .insert({ user_id: userId, ...preferencesData })
+      .onConflict("user_id")
+      .merge({ ...preferencesData, updated_at: trx.fn.now() });
+
+    return true;
+  });
 }
 
 async function updateWhatsappNumber(userId, whatsappNumber) {

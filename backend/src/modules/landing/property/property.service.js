@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { db } = require("../../../config/db");
 const repository = require("./property.repository");
-const { MAX_MEDIA_FILES } = require("./property.constants");
+const { MAX_MEDIA_FILES, LISTING_TYPES, PROPERTY_TYPES } = require("./property.constants");
 
 const BACKEND_ROOT = path.join(__dirname, "../../../..");
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -281,6 +281,20 @@ async function listPublished(query) {
   return { properties: rows.map(toSummaryDto), page: query.page, limit, total };
 }
 
+async function listCatalogAmenities({ listingType = "sale", propertyType, propertySubType }) {
+  if (!LISTING_TYPES.includes(listingType) || !PROPERTY_TYPES.includes(propertyType)) {
+    throw new AppError("Valid listingType and propertyType are required", 400);
+  }
+
+  const rows = await repository.findCatalogAmenities({ listingType, propertyType, propertySubType });
+  const toDto = (row) => ({ amenityKey: row.amenity_key, name: row.name, imagePath: row.image_path });
+
+  return {
+    amenities: rows.filter((row) => row.kind === "amenity").map(toDto),
+    furnishing: rows.filter((row) => row.kind === "furnishing").map(toDto),
+  };
+}
+
 async function listMine(userId, query) {
   const { limit, offset } = pagination(query);
   const { rows, total } = await repository.findAllByUser(userId, { status: query.status, limit, offset });
@@ -381,6 +395,7 @@ module.exports = {
   createProperty,
   listPublished,
   listMine,
+  listCatalogAmenities,
   getProperty,
   updateProperty,
   addMedia,

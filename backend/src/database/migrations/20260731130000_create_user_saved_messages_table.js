@@ -3,6 +3,7 @@ const CATEGORY_VALUES = ["property", "requirements", "agents", "builders"];
 
 /** @param {import('knex').Knex} knex */
 exports.up = async function up(knex) {
+  await knex.raw(`DROP TYPE IF EXISTS ${CATEGORY_ENUM_NAME}`);
   await knex.raw(
     `CREATE TYPE ${CATEGORY_ENUM_NAME} AS ENUM (${CATEGORY_VALUES.map((v) => `'${v}'`).join(", ")})`
   );

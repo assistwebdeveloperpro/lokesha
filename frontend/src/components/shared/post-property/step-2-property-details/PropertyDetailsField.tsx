@@ -26,7 +26,7 @@ import {
   PlotDetails,
   SaleDetails,
 } from "./PropertyDetailsVariants";
-import { getSaleFormConfig } from "../postPropertySaleConfig";
+import { getFormConfig } from "../postPropertySaleConfig";
 
 const areaTypeDropdownOptions = [
   { value: "", label: "Select unit" },
@@ -64,7 +64,7 @@ export default function PropertyDetailsField({
     getFloorNumberOptionGroups(values.totalFloors);
   const isRent = isRentListing(listingType);
   const part = { values, onChange, errors };
-  const saleConfig = getSaleFormConfig(listingType, propertyType, subType);
+  const saleConfig = getFormConfig(listingType, propertyType, subType);
 
   if (saleConfig) {
     return <SaleDetails {...part} cfg={saleConfig.details} />;

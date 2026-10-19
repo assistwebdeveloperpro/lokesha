@@ -23,9 +23,13 @@ async function updateLoginDetails(userId, payload) {
     throw new AppError("Mobile number is already in use", 409);
   }
 
-  const data = {
+  const userData = {
     name: payload.name,
     mobile_number: payload.mobile,
+    agreed_to_terms: payload.agreedToTerms,
+  };
+
+  const preferencesData = {
     mobile_country_code: payload.mobileCountryCode,
     alternate_email: payload.alternateEmail || null,
     receive_on_alternate_email: payload.receiveOnAlternateEmail,
@@ -34,15 +38,14 @@ async function updateLoginDetails(userId, payload) {
     display_number: payload.displayNumber || null,
     is_primary_mobile_virtual: payload.isPrimaryMobileVirtual,
     hide_contact_details: payload.hideContactDetails,
-    agreed_to_terms: payload.agreedToTerms,
   };
 
-  const profile = await repository.updateLoginDetails(userId, data);
-  if (!profile) {
+  const updated = await repository.updateLoginDetails(userId, userData, preferencesData);
+  if (!updated) {
     throw new AppError("User not found", 404);
   }
 
-  return profile;
+  return getProfile(userId);
 }
 
 async function updateWhatsappNumber(userId, payload) {

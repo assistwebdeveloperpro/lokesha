@@ -1,7 +1,7 @@
 import type { Role } from "./auth.service";
 
-const TOKEN_KEY = "lokesha_token";
-const ROLE_KEY = "lokesha_role";
+const TOKEN_KEY = "lokesha_user_token";
+const ROLE_KEY = "lokesha_user_role";
 
 export const SESSION_CHANGE_EVENT = "lokesha:session-change";
 

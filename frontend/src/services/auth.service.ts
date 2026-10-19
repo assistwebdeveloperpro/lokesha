@@ -13,6 +13,7 @@ export type SignupPayload = {
   email: string;
   password: string;
   mobile_number: string;
+  agreed_to_terms: boolean;
 };
 
 export type SignupResponse = {

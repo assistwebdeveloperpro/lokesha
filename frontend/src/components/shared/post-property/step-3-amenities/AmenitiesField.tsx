@@ -1,24 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { getCatalogAmenities } from "@/services/property.service";
 import PostPropertyInput from "../PostPropertyInput";
 import ChipSelectField from "../ChipSelectField";
 import ExpandableIconTileSelect from "../ExpandableIconTileSelect";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "../PostPropertyRequiredAsterisk";
-import { getSaleFormConfig } from "../postPropertySaleConfig";
+import { getFormConfig } from "../postPropertySaleConfig";
 import {
   BUSINESS_OPTIONS,
   FACING_OPTIONS,
   FURNISHING_STATUS_OPTIONS,
   ROAD_FACING_OPTIONS,
-  getAmenityOptions,
-  getFurnishingOptions,
   numberOptions,
   showsFurnishingField,
   type AmenitiesFieldErrors,
   type AmenitiesValues,
   type FacingOption,
   type FurnishingStatusId,
+  type ImageTileOption,
   type PropertyTypeId,
 } from "../postPropertyForm.shared";
 import { POST_PROPERTY_CHECKBOX_ROW } from "../postPropertyForm.styles";
@@ -67,7 +68,7 @@ export default function AmenitiesField({
   ) => void;
 }) {
   const showFurnishing = showsFurnishingField(values.status);
-  const saleConfig = getSaleFormConfig(
+  const saleConfig = getFormConfig(
     isRent ? "rent-lease" : "sale",
     propertyType,
     subType,
@@ -86,10 +87,40 @@ export default function AmenitiesField({
   const amenitiesRequired = saleConfig
     ? saleConfig.amenities === "required"
     : isResidentialLike;
-  const amenityOptions = getAmenityOptions(saleConfig?.amenityIds ?? null);
-  const furnishingOptions = getFurnishingOptions(
-    saleConfig?.furnishingSet ?? "residential",
+  const [amenityOptions, setAmenityOptions] = useState<ImageTileOption[]>([]);
+  const [furnishingOptions, setFurnishingOptions] = useState<ImageTileOption[]>(
+    [],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    const toOptions = (items: { amenityKey: string; name: string; imagePath: string }[]) =>
+      items.map((item) => ({
+        id: item.amenityKey,
+        label: item.name,
+        image: item.imagePath,
+      }));
+
+    getCatalogAmenities({
+      listingType: isRent ? "rent-lease" : "sale",
+      propertyType,
+      propertySubType: subType,
+    })
+      .then((catalog) => {
+        if (cancelled) return;
+        setAmenityOptions(toOptions(catalog.amenities));
+        setFurnishingOptions(toOptions(catalog.furnishing));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAmenityOptions([]);
+        setFurnishingOptions([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isRent, propertyType, subType]);
   const showParking = saleConfig ? saleConfig.carParking || saleConfig.clubMembership : !isPlot && !isLand;
   const showCarParking = saleConfig ? saleConfig.carParking : true;
   const showClubMembership = saleConfig

@@ -1,8 +1,10 @@
 "use client";
 
-import { ChevronLeft, Phone, RefreshCw } from "lucide-react";
+import { Phone, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import AuthFormBackLink from "@/components/shared/auth/AuthFormBackLink";
+import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import { verifyOtp } from "@/services/auth.service";
 import { getDefaultUserDashboardRoute } from "@/components/user/dashboard/layout/user-dashboard-nav";
 import { setSession } from "@/services/session";
@@ -126,23 +128,19 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-sky-700"
-      >
-        <ChevronLeft className="h-4 w-4" aria-hidden />
-        <h1 className="font-display text-2xl font-bold text-slate-800">Verify</h1>
-      </button>
-
-      <p className="text-sm leading-relaxed text-slate-600">
-        You will receive a 4-digit verification code on{" "}
-        <span className="font-bold text-slate-800">{mobile}</span>, if you are
-        registered with us
-      </p>
+      <AuthFormBackLink onClick={onBack} />
+      <AuthFormHeading
+        title="Verify OTP"
+        description={
+          <>
+            Enter the 4-digit code sent to{" "}
+            <span className="font-semibold text-slate-800">{mobile}</span>.
+          </>
+        }
+      />
 
       <form
-        className="mt-8 space-y-6"
+        className="mt-6 space-y-6 sm:mt-7"
         onSubmit={handleSubmit}
       >
         <div>

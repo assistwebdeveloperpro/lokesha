@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import FloatingInput from "@/components/shared/FloatingInput";
+import AuthFormBackLink from "@/components/shared/auth/AuthFormBackLink";
+import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import MathCaptcha, { type MathCaptchaHandle } from "@/components/shared/auth/MathCaptcha";
 import { ApiError } from "@/services/apiClient";
 import { signup } from "@/services/auth.service";
@@ -99,6 +100,7 @@ export default function SignupContent() {
         email: email.trim(),
         password,
         mobile_number: mobileDigits,
+        agreed_to_terms: agreedToTerms,
       });
       showToast("Registered successfully! Please login to continue.");
       router.push("/login");
@@ -144,15 +146,13 @@ export default function SignupContent() {
   return (
     <div className="relative mx-auto w-full max-w-md">
           <div className="w-full rounded-xl bg-white p-3.5 shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)] max-[380px]:p-3 sm:rounded-2xl sm:p-5 lg:p-6">
-            <Link
-              href="/login"
-              className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-sky-700 lg:mb-3"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden />
-              <h1 className="font-display text-2xl font-bold text-slate-800">Sign Up</h1>
-            </Link>
+            <AuthFormBackLink href="/login" />
+            <AuthFormHeading
+              title="Sign up"
+              description="Create your account in minutes and start listing or discovering properties."
+            />
 
-            <form className="space-y-4 sm:space-y-5" onSubmit={handleSignupSubmit}>
+            <form className="mt-5 space-y-4 sm:mt-6 sm:space-y-5" onSubmit={handleSignupSubmit}>
               <fieldset>
                 <legend className="mb-3 text-sm font-semibold text-slate-700">
                   I am

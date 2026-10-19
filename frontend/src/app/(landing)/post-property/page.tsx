@@ -5,9 +5,9 @@ import Header from "@/components/shared/layout/Header";
 import PostPropertyContent from "@/components/shared/post-property/PostPropertyContent";
 
 export const metadata: Metadata = {
-  title: "Post Property for Free | Lokesha",
+  title: "Post Property | Lokesha - Property Listings",
   description:
-    "List your residential or commercial property for free on Lokesha. Reach buyers and tenants across India.",
+    "Post your residential or commercial property on Lokesha and connect with potential buyers and tenants across India.",
 };
 
 export default function PostPropertyPage() {

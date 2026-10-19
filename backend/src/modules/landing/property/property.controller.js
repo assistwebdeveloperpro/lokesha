@@ -34,6 +34,14 @@ async function listMine(req, res) {
   }
 }
 
+async function listCatalogAmenities(req, res) {
+  try {
+    return res.status(200).json(await service.listCatalogAmenities(req.query));
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 async function getProperty(req, res) {
   try {
     const property = await service.getProperty(req.params.id, req.user?.id);
@@ -83,6 +91,7 @@ module.exports = {
   createProperty,
   listPublished,
   listMine,
+  listCatalogAmenities,
   getProperty,
   updateProperty,
   addMedia,

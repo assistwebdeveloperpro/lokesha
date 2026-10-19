@@ -23,50 +23,6 @@ import {
 } from "lucide-react";
 import type { StaticImageData } from "next/image";
 import type { IndianState } from "@/data/indianStatesCities";
-import acImage from "../../../../public/assets/images/furnishing/ac.svg";
-import bedsImage from "../../../../public/assets/images/furnishing/beds.svg";
-import diningTableImage from "../../../../public/assets/images/furnishing/dining_table.svg";
-import electricFittingsImage from "../../../../public/assets/images/furnishing/electric_fittings.svg";
-import fanImage from "../../../../public/assets/images/furnishing/fan.svg";
-import fridgeImage from "../../../../public/assets/images/furnishing/fridge.svg";
-import gasCylinderImage from "../../../../public/assets/images/furnishing/gas_cylinder.svg";
-import gasPipelineImage from "../../../../public/assets/images/furnishing/gas_pipeline.svg";
-import geyserImage from "../../../../public/assets/images/furnishing/gyser.svg";
-import microwaveImage from "../../../../public/assets/images/furnishing/microwave_oven.svg";
-import sofaImage from "../../../../public/assets/images/furnishing/sofa.svg";
-import stoveImage from "../../../../public/assets/images/furnishing/stove.svg";
-import tvImage from "../../../../public/assets/images/furnishing/tv.svg";
-import wardrobesImage from "../../../../public/assets/images/furnishing/wardrobes.svg";
-import washingMachineImage from "../../../../public/assets/images/furnishing/washing_machine.svg";
-import waterPurifierImage from "../../../../public/assets/images/furnishing/water_purifier.svg";
-import wifiImage from "../../../../public/assets/images/furnishing/wifi.svg";
-import basketBallCourtImage from "../../../../public/assets/images/amenities/basket_ball_court.svg";
-import cctvImage from "../../../../public/assets/images/amenities/cctv.svg";
-import clubHouseImage from "../../../../public/assets/images/amenities/club_house.svg";
-import communityHallImage from "../../../../public/assets/images/amenities/community_hall.svg";
-import cricketPitchImage from "../../../../public/assets/images/amenities/cricket_pitch.svg";
-import gardenParkImage from "../../../../public/assets/images/amenities/garden_park.svg";
-import gatedCommunityImage from "../../../../public/assets/images/amenities/gated_community.svg";
-import gazeboImage from "../../../../public/assets/images/amenities/gazebo.svg";
-import generatorImage from "../../../../public/assets/images/amenities/generator.svg";
-import gymImage from "../../../../public/assets/images/amenities/gym.svg";
-import indoorGamesImage from "../../../../public/assets/images/amenities/indoor_games.svg";
-import intercomImage from "../../../../public/assets/images/amenities/intercom.svg";
-import kidsPlayAreaImage from "../../../../public/assets/images/amenities/kids_play_area.svg";
-import liftImage from "../../../../public/assets/images/amenities/lift.svg";
-import miniTheatreImage from "../../../../public/assets/images/amenities/mini_theatre.svg";
-import noVehicleZoneImage from "../../../../public/assets/images/amenities/no_vehicle_zone.svg";
-import petAllowedImage from "../../../../public/assets/images/amenities/pet_allowed.svg";
-import pipedGasImage from "../../../../public/assets/images/amenities/piped_gas.svg";
-import powerBackupImage from "../../../../public/assets/images/amenities/power_backup.svg";
-import regularWaterSupplyImage from "../../../../public/assets/images/amenities/regular_water_supply.svg";
-import reservedParkingImage from "../../../../public/assets/images/amenities/reserved_parking.svg";
-import scattingImage from "../../../../public/assets/images/amenities/scatting.svg";
-import securityImage from "../../../../public/assets/images/amenities/security.svg";
-import solarRoofImage from "../../../../public/assets/images/amenities/solar_roof.svg";
-import sportsClubImage from "../../../../public/assets/images/amenities/sports_club.svg";
-import swimmingPoolImage from "../../../../public/assets/images/amenities/swimming_pool.svg";
-import vaastuCompliantImage from "../../../../public/assets/images/amenities/vaastu_compliant.svg";
 import carParkingInclusionImage from "../../../../public/assets/images/price_inclusion/car-parking.svg";
 import clubMembershipInclusionImage from "../../../../public/assets/images/price_inclusion/club_membership.svg";
 import plcInclusionImage from "../../../../public/assets/images/price_inclusion/plc.svg";
@@ -77,6 +33,7 @@ import plotImage from "../../../../public/assets/images/property_type/plot.svg";
 import residentialImage from "../../../../public/assets/images/property_type/residential.svg";
 import { parseAmountNumber } from "./postPropertyAmount";
 import {
+  getFormConfig,
   getSaleFormConfig,
   type SaleDetailsConfig,
 } from "./postPropertySaleConfig";
@@ -799,6 +756,14 @@ function validateSaleDetails(
     errors.penthouseType = "Please select type of penthouse";
   }
 
+  if (cfg.ageOfConstruction && !values.ageOfConstruction) {
+    errors.ageOfConstruction = "Please select age of construction";
+  }
+
+  if (cfg.rentalSection && values.tenantPreferences.length === 0) {
+    errors.tenantPreferences = "Please select at least one tenant preference";
+  }
+
   if (cfg.entrance || cfg.availableFrom !== "hidden") {
     validateAvailableFrom(
       values,
@@ -965,7 +930,7 @@ export function validatePropertyDetails(
   values: PropertyDetailsValues,
   options?: PropertyDetailsValidationOptions,
 ): PropertyDetailsFieldErrors {
-  const saleConfig = getSaleFormConfig(
+  const saleConfig = getFormConfig(
     options?.listingType,
     options?.propertyType,
     options?.subType,
@@ -1100,164 +1065,6 @@ export const FURNISHING_STATUS_OPTIONS = [
 export type FurnishingStatusId =
   (typeof FURNISHING_STATUS_OPTIONS)[number]["id"];
 
-export const FURNISHING_OPTIONS: ImageTileOption[] = [
-  { id: "dining-table", label: "Dining Table", image: diningTableImage },
-  { id: "tv", label: "TV", image: tvImage },
-  { id: "sofa", label: "SOFA", image: sofaImage },
-  { id: "washing-machine", label: "Washing Machine", image: washingMachineImage },
-  { id: "microwave", label: "Microwave/Oven", image: microwaveImage },
-  { id: "stove", label: "Stove", image: stoveImage },
-  { id: "gas-cylinder", label: "Gas Cylinder", image: gasCylinderImage },
-  { id: "fridge", label: "Fridge", image: fridgeImage },
-  { id: "water-purifier", label: "Water Purifier", image: waterPurifierImage },
-  { id: "gas-pipeline", label: "Gas Pipeline", image: gasPipelineImage },
-  { id: "ac", label: "AC", image: acImage },
-  { id: "beds", label: "Beds", image: bedsImage },
-  { id: "geyser", label: "Geyser", image: geyserImage },
-  { id: "electric-fittings", label: "Electric Fittings", image: electricFittingsImage },
-  { id: "fan", label: "Fan", image: fanImage },
-  { id: "wifi", label: "Wifi", image: wifiImage },
-  { id: "wardrobes", label: "Wardrobes", image: wardrobesImage },
-];
-
-export const AMENITY_OPTIONS: ImageTileOption[] = [
-  { id: "lift", label: "Lift", image: liftImage },
-  { id: "cctv", label: "CCTV", image: cctvImage },
-  { id: "gym", label: "GYM", image: gymImage },
-  { id: "garden-park", label: "Garden/Park", image: gardenParkImage },
-  { id: "kids-play-area", label: "Kids Play Area", image: kidsPlayAreaImage },
-  { id: "sports-club", label: "Sports Club", image: sportsClubImage },
-  { id: "cricket-pitch", label: "Cricket Pitch", image: cricketPitchImage },
-  { id: "basketball-court", label: "Basket Ball court", image: basketBallCourtImage },
-  { id: "skating", label: "Skating", image: scattingImage },
-  { id: "swimming-pool", label: "Swimming Pool", image: swimmingPoolImage },
-  { id: "intercom", label: "Intercom", image: intercomImage },
-  { id: "gated-community", label: "Gated Community", image: gatedCommunityImage },
-  { id: "security", label: "Security", image: securityImage },
-  { id: "club-house", label: "Club House", image: clubHouseImage },
-  { id: "community-hall", label: "Community Hall", image: communityHallImage },
-  {
-    id: "regular-water-supply",
-    label: "Regular Water Supply",
-    image: regularWaterSupplyImage,
-  },
-  { id: "generator", label: "Generator", image: generatorImage },
-  { id: "indoor-games", label: "Indoor Games", image: indoorGamesImage },
-  { id: "power-backup", label: "Power Backup", image: powerBackupImage },
-  { id: "pet-allowed", label: "Pet Allowed", image: petAllowedImage },
-  { id: "no-vehicle-zone", label: "No Vehicle Zone", image: noVehicleZoneImage },
-  { id: "gazebo", label: "Gazebo", image: gazeboImage },
-  { id: "reserved-parking", label: "Reserved Parking", image: reservedParkingImage },
-  { id: "piped-gas", label: "Piped Gas", image: pipedGasImage },
-  { id: "vaastu-compliant", label: "Vaastu Compliant", image: vaastuCompliantImage },
-  { id: "mini-theatre", label: "Mini Theatre", image: miniTheatreImage },
-  { id: "solar-roof", label: "Solar Roof", image: solarRoofImage },
-];
-
-const COMMERCIAL_FURNISHING_EXTRA: ImageTileOption[] = [
-  { id: "work-station", label: "Work Station", image: "/assets/images/furnishing/work_station.svg" },
-  { id: "chairs", label: "Chairs", image: "/assets/images/furnishing/chairs.svg" },
-  { id: "tables", label: "Tables", image: "/assets/images/furnishing/tables.svg" },
-  { id: "reception-area", label: "Reception Area", image: "/assets/images/furnishing/reception_area.svg" },
-  { id: "conference-room", label: "Conference Room", image: "/assets/images/furnishing/conference_room.svg" },
-  { id: "waiting-area", label: "Waiting Area", image: "/assets/images/furnishing/waiting_area.svg" },
-  { id: "director-cabin", label: "Director Cabin", image: "/assets/images/furnishing/director_cabin.svg" },
-  { id: "cupboard", label: "Cupboard", image: "/assets/images/furnishing/cupboard.svg" },
-  { id: "partition", label: "Partition", image: "/assets/images/furnishing/partition.svg" },
-];
-
-const COMMERCIAL_FURNISHING_IDS = [
-  "tv",
-  "sofa",
-  "microwave",
-  "stove",
-  "gas-cylinder",
-  "fridge",
-  "water-purifier",
-  "gas-pipeline",
-  "ac",
-  "electric-fittings",
-  "fan",
-  "wifi",
-  "wardrobes",
-  "work-station",
-  "chairs",
-  "tables",
-  "reception-area",
-  "conference-room",
-  "waiting-area",
-  "director-cabin",
-  "cupboard",
-  "partition",
-];
-
-const GUEST_HOUSE_FURNISHING_IDS = [
-  "dining-table",
-  "tv",
-  "sofa",
-  "washing-machine",
-  "microwave",
-  "stove",
-  "gas-cylinder",
-  "fridge",
-  "water-purifier",
-  "gas-pipeline",
-  "ac",
-  "beds",
-  "geyser",
-  "electric-fittings",
-  "fan",
-  "wifi",
-  "wardrobes",
-  "work-station",
-  "chairs",
-  "tables",
-  "reception-area",
-  "conference-room",
-  "waiting-area",
-  "director-cabin",
-  "cupboard",
-  "partition",
-];
-
-function pickOptions(
-  pool: ImageTileOption[],
-  ids: string[],
-): ImageTileOption[] {
-  return ids
-    .map((id) => pool.find((option) => option.id === id))
-    .filter((option): option is ImageTileOption => Boolean(option));
-}
-
-export function getFurnishingOptions(
-  set: "residential" | "commercial" | "guest-house",
-): ImageTileOption[] {
-  if (set === "residential") {
-    return FURNISHING_OPTIONS;
-  }
-
-  const pool = [...FURNISHING_OPTIONS, ...COMMERCIAL_FURNISHING_EXTRA];
-  return pickOptions(
-    pool,
-    set === "commercial" ? COMMERCIAL_FURNISHING_IDS : GUEST_HOUSE_FURNISHING_IDS,
-  );
-}
-
-const EXTRA_AMENITY_OPTIONS: ImageTileOption[] = [
-  { id: "wifi", label: "Wifi", image: wifiImage },
-  { id: "house-keeping", label: "House Keeping", image: "/assets/images/amenities/house_keeping.svg" },
-  { id: "fire-safety", label: "Fire Safety", image: "/assets/images/amenities/fire_safety.svg" },
-  { id: "wheelchair-access", label: "WheelChair Access", image: "/assets/images/amenities/wheelchair_access.svg" },
-];
-
-export function getAmenityOptions(ids: string[] | null): ImageTileOption[] {
-  if (!ids) {
-    return AMENITY_OPTIONS;
-  }
-
-  return pickOptions([...AMENITY_OPTIONS, ...EXTRA_AMENITY_OPTIONS], ids);
-}
-
 export const FACING_OPTIONS = [
   "East",
   "North",
@@ -1317,7 +1124,7 @@ export function validateAmenities(
   context?: { listingType?: ListingTypeId; subType?: string },
 ): AmenitiesFieldErrors {
   const errors: AmenitiesFieldErrors = {};
-  const saleConfig = getSaleFormConfig(
+  const saleConfig = getFormConfig(
     context?.listingType,
     propertyType,
     context?.subType,
@@ -1452,7 +1259,7 @@ export function getPhotoCategories(
   propertyType: PropertyTypeId,
   context?: { listingType?: ListingTypeId; subType?: string },
 ) {
-  const saleConfig = getSaleFormConfig(
+  const saleConfig = getFormConfig(
     context?.listingType,
     propertyType,
     context?.subType,
@@ -1481,7 +1288,7 @@ export function arePhotosRequired(
   propertyType: PropertyTypeId,
   context?: { listingType?: ListingTypeId; subType?: string },
 ): boolean {
-  const saleConfig = getSaleFormConfig(
+  const saleConfig = getFormConfig(
     context?.listingType,
     propertyType,
     context?.subType,

@@ -4,6 +4,7 @@ const ROLE_VALUES = ["buyer", "owner", "agent", "builder"];
 /** @param {import('knex').Knex} knex */
 exports.up = async function up(knex) {
   await knex.raw('CREATE EXTENSION IF NOT EXISTS "pgcrypto"');
+  await knex.raw(`DROP TYPE IF EXISTS ${ROLE_ENUM_NAME}`);
   await knex.raw(
     `CREATE TYPE ${ROLE_ENUM_NAME} AS ENUM (${ROLE_VALUES.map((v) => `'${v}'`).join(", ")})`
   );
@@ -15,6 +16,8 @@ exports.up = async function up(knex) {
     table.string("email", 255).notNullable().unique();
     table.string("password", 255).notNullable();
     table.string("mobile_number", 20).notNullable().unique();
+    table.boolean("agreed_to_terms").notNullable().defaultTo(false);
+    table.string("whatsapp_number", 20).nullable();
     table.string("otp_code", 4).nullable();
     table.timestamp("otp_expires_at").nullable();
     table.timestamp("created_at").notNullable().defaultTo(knex.fn.now());

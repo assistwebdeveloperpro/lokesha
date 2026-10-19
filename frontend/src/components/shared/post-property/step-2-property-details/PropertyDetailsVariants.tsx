@@ -474,6 +474,7 @@ export function SaleDetails({
         <TransactionChips {...part} required={cfg.transactionRequired} />
       ) : null}
       {cfg.constructionAlways ? <ConstructionAlwaysSections {...part} /> : null}
+      {cfg.ageOfConstruction ? <AgeOfConstructionChips {...part} /> : null}
 
       {levelChips(cfg.bedrooms, "Bedrooms", "bedrooms", numberOptions(1, 7), numberOptions(8, 10))}
       {levelChips(cfg.balcony, "Balcony", "balcony", numberOptions(0, 6), numberOptions(7, 10))}
@@ -554,7 +555,43 @@ export function SaleDetails({
 
       {cfg.plotChecks ? <PlotLandCheckboxes {...part} /> : null}
 
-      {cfg.entrance || cfg.availableFrom !== "hidden" ? (
+      {cfg.rentalSection ? (
+        <>
+          <PostPropertyFieldSection
+            title="Rental Details"
+            description="Add availability and rental preferences"
+          >
+            <div className="space-y-4">
+              <CheckboxRow
+                label="Full House"
+                checked={values.fullHouse}
+                onChange={(checked) => onChange("fullHouse", checked)}
+              />
+              <CheckboxRow
+                label="Sharing Basis"
+                checked={values.sharingBasis}
+                onChange={(checked) => onChange("sharingBasis", checked)}
+              />
+              <EntranceAvailableRow {...part} showEntrance={false} availableRequired />
+              <CheckboxRow
+                label="Interior Modification Allowed"
+                checked={values.interiorModificationAllowed}
+                onChange={(checked) =>
+                  onChange("interiorModificationAllowed", checked)
+                }
+              />
+            </div>
+          </PostPropertyFieldSection>
+
+          <TenantPreferenceField
+            value={values.tenantPreferences}
+            error={errors.tenantPreferences}
+            onChange={(next) => onChange("tenantPreferences", next)}
+          />
+        </>
+      ) : null}
+
+      {!cfg.rentalSection && (cfg.entrance || cfg.availableFrom !== "hidden") ? (
         <EntranceAvailableRow
           {...part}
           showEntrance={cfg.entrance}

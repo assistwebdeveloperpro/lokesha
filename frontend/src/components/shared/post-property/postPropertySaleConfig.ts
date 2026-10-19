@@ -27,13 +27,13 @@ export type SaleDetailsConfig = {
   plotChecks: boolean;
   penthouse: boolean;
   food: boolean;
+  ageOfConstruction: boolean;
+  rentalSection: boolean;
 };
 
 export type SaleAmenitiesConfig = {
   status: boolean;
-  furnishingSet: "residential" | "commercial" | "guest-house";
   amenities: Level;
-  amenityIds: string[] | null;
   facing: Level;
   washrooms: Level;
   roadFacing: boolean;
@@ -114,98 +114,6 @@ const HOTEL_PHOTO_IDS = [
 
 const PLOT_LAND_PHOTO_IDS = ["exterior", "master-plan", "main-photo", "others"];
 
-const SHOP_AMENITY_IDS = [
-  "lift",
-  "cctv",
-  "security",
-  "regular-water-supply",
-  "generator",
-  "power-backup",
-  "pet-allowed",
-  "no-vehicle-zone",
-  "reserved-parking",
-  "vaastu-compliant",
-  "wifi",
-  "house-keeping",
-  "fire-safety",
-  "wheelchair-access",
-];
-
-const COLD_STORAGE_AMENITY_IDS = [
-  "wifi",
-  "house-keeping",
-  "fire-safety",
-  "wheelchair-access",
-];
-
-const GUEST_HOUSE_AMENITY_IDS = [
-  "lift",
-  "cctv",
-  "intercom",
-  "security",
-  "regular-water-supply",
-  "generator",
-  "indoor-games",
-  "power-backup",
-  "pet-allowed",
-  "no-vehicle-zone",
-  "reserved-parking",
-  "piped-gas",
-  "vaastu-compliant",
-  "solar-roof",
-  "wifi",
-  "house-keeping",
-  "fire-safety",
-  "wheelchair-access",
-];
-
-const HOTEL_AMENITY_IDS = [
-  "lift",
-  "cctv",
-  "gym",
-  "garden-park",
-  "kids-play-area",
-  "sports-club",
-  "swimming-pool",
-  "intercom",
-  "security",
-  "club-house",
-  "community-hall",
-  "regular-water-supply",
-  "generator",
-  "indoor-games",
-  "power-backup",
-  "pet-allowed",
-  "no-vehicle-zone",
-  "reserved-parking",
-  "piped-gas",
-  "vaastu-compliant",
-  "mini-theatre",
-  "solar-roof",
-  "wifi",
-  "house-keeping",
-  "fire-safety",
-  "wheelchair-access",
-];
-
-const PLOT_AMENITY_IDS = [
-  "garden-park",
-  "kids-play-area",
-  "sports-club",
-  "cricket-pitch",
-  "basketball-court",
-  "skating",
-  "swimming-pool",
-  "gated-community",
-  "security",
-  "club-house",
-  "community-hall",
-  "generator",
-  "indoor-games",
-  "power-backup",
-  "vaastu-compliant",
-];
-
 const BASE_DETAILS: SaleDetailsConfig = {
   area: "standard",
   plotArea: "hidden",
@@ -231,13 +139,13 @@ const BASE_DETAILS: SaleDetailsConfig = {
   plotChecks: false,
   penthouse: false,
   food: false,
+  ageOfConstruction: false,
+  rentalSection: false,
 };
 
 const BASE_AMENITIES: SaleAmenitiesConfig = {
   status: true,
-  furnishingSet: "residential",
   amenities: "required",
-  amenityIds: null,
   facing: "optional",
   washrooms: "hidden",
   roadFacing: false,
@@ -318,8 +226,6 @@ const SHOP_DETAILS: Partial<SaleDetailsConfig> = {
 };
 
 const SHOP_AMENITIES: Partial<SaleAmenitiesConfig> = {
-  furnishingSet: "commercial",
-  amenityIds: SHOP_AMENITY_IDS,
   washrooms: "required",
   roadFacing: true,
   businessTypes: true,
@@ -345,7 +251,6 @@ const OFFICE = build(
   SHOP_DETAILS,
   {
     ...SHOP_AMENITIES,
-    amenityIds: [...SHOP_AMENITY_IDS, "indoor-games"],
     roadFacing: false,
     cornerShop: false,
     cafeteria: true,
@@ -390,8 +295,6 @@ const COLD_STORAGE_DETAILS: Partial<SaleDetailsConfig> = {
 };
 
 const COLD_STORAGE_AMENITIES: Partial<SaleAmenitiesConfig> = {
-  furnishingSet: "commercial",
-  amenityIds: COLD_STORAGE_AMENITY_IDS,
   washrooms: "required",
   clubMembership: false,
   pantry: true,
@@ -412,7 +315,6 @@ const WAREHOUSE = build(
   { ...COLD_STORAGE_DETAILS, cabin: true },
   {
     ...COLD_STORAGE_AMENITIES,
-    amenityIds: SHOP_AMENITY_IDS,
     washrooms: "optional",
   },
   { categoryIds: BASIC_COMMERCIAL_PHOTO_IDS, required: false },
@@ -426,7 +328,6 @@ const INDUSTRIAL_SHED = build(
     floorNumber: false,
   },
   {
-    furnishingSet: "commercial",
     amenities: "hidden",
     washrooms: "optional",
     roadFacing: true,
@@ -455,8 +356,6 @@ const GUEST_HOUSE_DETAILS: Partial<SaleDetailsConfig> = {
 const GUEST_HOUSE = build(
   GUEST_HOUSE_DETAILS,
   {
-    furnishingSet: "guest-house",
-    amenityIds: GUEST_HOUSE_AMENITY_IDS,
     roadFacing: true,
     pantry: true,
     cafeteria: true,
@@ -469,8 +368,6 @@ const GUEST_HOUSE = build(
 const HOTEL_RESORT = build(
   GUEST_HOUSE_DETAILS,
   {
-    furnishingSet: "guest-house",
-    amenityIds: HOTEL_AMENITY_IDS,
     roadFacing: true,
     cornerShop: true,
   },
@@ -500,7 +397,6 @@ const PLOT_DETAILS: Partial<SaleDetailsConfig> = {
 const PLOT_AMENITIES: Partial<SaleAmenitiesConfig> = {
   status: false,
   amenities: "optional",
-  amenityIds: PLOT_AMENITY_IDS,
   facing: "required",
   roadFacing: true,
   carParking: false,
@@ -595,6 +491,64 @@ const SALE_CONFIGS: Partial<
     "industrial-land": LAND,
   },
 };
+
+type RentKind = "residential" | "commercial" | "plot";
+
+const RENT_KINDS: RentKind[] = ["residential", "commercial", "plot"];
+
+// Rent mirrors the sale config of the same sub type minus the sale-only fields
+function toRentConfig(sale: SaleFormConfig, kind: RentKind): SaleFormConfig {
+  const isResidential = kind === "residential";
+
+  return {
+    details: {
+      ...sale.details,
+      transaction: "hidden",
+      transactionRequired: false,
+      constructionAlways: false,
+      leasedOut: "hidden",
+      leaseContractRequired: false,
+      entrance: isResidential ? false : sale.details.entrance,
+      availableFrom: isResidential ? "required" : sale.details.availableFrom,
+      ageOfConstruction: kind !== "plot",
+      rentalSection: isResidential,
+    },
+    amenities: { ...sale.amenities, clubMembership: false, rera: false },
+    photos: sale.photos,
+    pricing: sale.pricing,
+  };
+}
+
+const RENT_CONFIGS: Partial<
+  Record<PropertyTypeId, Record<string, SaleFormConfig>>
+> = Object.fromEntries(
+  RENT_KINDS.map((kind) => [
+    kind,
+    Object.fromEntries(
+      Object.entries(SALE_CONFIGS[kind] ?? {}).map(([subType, config]) => [
+        subType,
+        toRentConfig(config, kind),
+      ]),
+    ),
+  ]),
+);
+
+// Returns null for sub types that keep the default form
+export function getFormConfig(
+  listingType: ListingTypeId | undefined,
+  propertyType: PropertyTypeId | undefined,
+  subType: string | undefined,
+): SaleFormConfig | null {
+  if (!propertyType || !subType) {
+    return null;
+  }
+
+  if (listingType === "rent-lease") {
+    return RENT_CONFIGS[propertyType]?.[subType] ?? null;
+  }
+
+  return getSaleFormConfig(listingType, propertyType, subType);
+}
 
 // Returns null for rent listings and sub types that keep the default form
 export function getSaleFormConfig(

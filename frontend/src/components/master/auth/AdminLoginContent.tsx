@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import FloatingInput from "@/components/shared/FloatingInput";
+import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import MathCaptcha, { type MathCaptchaHandle } from "@/components/shared/auth/MathCaptcha";
 import AdminVerifyForm from "./AdminVerifyForm";
 import { adminLogin } from "@/services/adminAuth.service";
@@ -79,10 +80,12 @@ export default function AdminLoginContent() {
         <div className="p-3.5 max-[380px]:p-3 sm:p-5 lg:p-6">
           {step === "login" ? (
             <>
-              <h1 className="font-display text-2xl font-bold text-slate-800"> Login</h1>
-              <p className="pt-2 text-sm text-gray-500">Please fill your below information.</p>
+              <AuthFormHeading
+                title="login"
+                description="Enter your registered admin mobile number to continue securely."
+              />
 
-              <form className="mt-4 space-y-4 sm:mt-5 sm:space-y-5" onSubmit={handleLoginNext}>
+              <form className="mt-5 space-y-4 sm:mt-6 sm:space-y-5" onSubmit={handleLoginNext}>
                 <FloatingInput
                   id="admin-mobile"
                   label="Enter Mobile No."

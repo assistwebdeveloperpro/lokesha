@@ -102,6 +102,20 @@ async function findAmenitiesByPropertyId(propertyId, trx) {
     .orderBy("amenity_key", "asc");
 }
 
+async function findCatalogAmenities({ listingType, propertyType, propertySubType }) {
+  return db("amenities as a")
+    .distinct("a.kind", "a.amenity_key", "a.name", "a.image_path", "a.sort_order")
+    .join("amenity_property_types as m", "m.amenity_id", "a.id")
+    .where("a.is_active", true)
+    .andWhere("m.property_type", propertyType)
+    .andWhere("m.listing_type", listingType)
+    .modify((qb) => {
+      if (propertySubType) qb.andWhere("m.property_sub_type", propertySubType);
+    })
+    .orderBy("a.kind", "asc")
+    .orderBy("a.sort_order", "asc");
+}
+
 async function findMediaByPropertyId(propertyId, trx) {
   return conn(trx)(MEDIA)
     .where({ property_id: propertyId })
@@ -179,6 +193,7 @@ module.exports = {
   findByIdForUser,
   findByIdVisibleTo,
   findAmenitiesByPropertyId,
+  findCatalogAmenities,
   findMediaByPropertyId,
   findPublished,
   findAllByUser,

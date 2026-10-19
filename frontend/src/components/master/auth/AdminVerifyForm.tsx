@@ -1,8 +1,10 @@
 "use client";
 
-import { ChevronLeft, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import AuthFormBackLink from "@/components/shared/auth/AuthFormBackLink";
+import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import { adminVerifyOtp } from "@/services/adminAuth.service";
 import { setAdminSession } from "@/services/adminSession";
 import { MASTER_DEFAULT_ROUTE } from "@/components/master/layout/master-dashboard-nav";
@@ -129,22 +131,18 @@ export default function AdminVerifyForm({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-sky-700"
-      >
-        <ChevronLeft className="h-4 w-4" aria-hidden />
-        <h1 className="font-display text-2xl font-bold text-slate-800">Verify</h1>
-      </button>
+      <AuthFormBackLink onClick={onBack} />
+      <AuthFormHeading
+        title="Verify OTP"
+        description={
+          <>
+            Enter the 4-digit code sent to{" "}
+            <span className="font-semibold text-slate-800">{mobile}</span>.
+          </>
+        }
+      />
 
-      <p className="text-sm leading-relaxed text-slate-600">
-        You will receive a 4-digit verification code on{" "}
-        <span className="font-bold text-slate-800">{mobile}</span>, if you are
-        registered with us
-      </p>
-
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+      <form className="mt-6 space-y-6 sm:mt-7" onSubmit={handleSubmit}>
         <div className="flex justify-center gap-6 sm:gap-8" onPaste={handlePaste}>
           {otp.map((digit, index) => (
             <input

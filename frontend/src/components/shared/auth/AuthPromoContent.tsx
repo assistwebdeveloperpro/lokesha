@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import {
+  authPromoDescriptionClassName,
+  authPromoTitleClassName,
+} from "@/components/shared/auth/authTypography";
 import loginPromoImg from "../../../../public/assets/images/auth/login-img.jpg";
 
 const loginPromo = {
@@ -32,13 +36,11 @@ export default function AuthPromoContent() {
   const { title, description } = useAuthPromoCopy();
 
   return (
-    <div className="mx-auto w-full max-w-md lg:max-w-xl">
-      <h2 className="font-display text-[1.375rem] font-bold text-center leading-snug tracking-tight  sm:text-[1.625rem] xl:text-[1.895rem]">
-        {title}
-      </h2>
-      <p className="mt-2 px-0.5 text-sm leading-relaxed text-center text-slate-500 sm:mt-2.5 sm:px-3 md:mt-3 lg:px-5 xl:mt-4 xl:text-[0.9375rem]">
-        {description}
-      </p>
+    <div className="mx-auto w-full max-w-md text-center lg:max-w-xl lg:text-left">
+      <header className="px-0.5 sm:px-3 lg:px-0">
+        <h2 className={authPromoTitleClassName}>{title}</h2>
+        <p className={authPromoDescriptionClassName}>{description}</p>
+      </header>
 
       <div className="mt-8 hidden lg:block">
         <Image

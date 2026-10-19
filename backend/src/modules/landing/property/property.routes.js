@@ -20,6 +20,7 @@ router.post(
 );
 router.get("/", validatePropertyQuery, controller.listPublished);
 router.get("/me", authMiddleware, validatePropertyQuery, controller.listMine);
+router.get("/amenities", controller.listCatalogAmenities);
 router.get("/:id", optionalAuthMiddleware, controller.getProperty);
 router.put("/:id", authMiddleware, validate(updatePropertySchema), controller.updateProperty);
 router.post("/:id/media", authMiddleware, ...uploadChain, validate(addMediaSchema), controller.addMedia);
