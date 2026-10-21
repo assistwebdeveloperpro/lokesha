@@ -19,16 +19,22 @@ const userTypes = [
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const requiredLabel = (text: string) => (
+  <>
+    {text} <span className="text-red-500">*</span>
+  </>
+);
+
 export default function SignupContent() {
   const router = useRouter();
   const { showToast } = useToast();
   const mathCaptchaRef = useRef<MathCaptchaHandle>(null);
   const [userType, setUserType] =
     useState<(typeof userTypes)[number]["id"]>("buyer_owner_tenant");
-  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
+  const [agencyName, setAgencyName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [mobile, setMobile] = useState("");
   const [mathAnswer, setMathAnswer] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -36,8 +42,9 @@ export default function SignupContent() {
   const [formError, setFormError] = useState<string | undefined>();
   const [errors, setErrors] = useState<{
     name?: string;
+    agencyName?: string;
+    companyName?: string;
     email?: string;
-    password?: string;
     mobile?: string;
     terms?: string;
     mathAnswer?: string;
@@ -62,13 +69,16 @@ export default function SignupContent() {
     } else if (name.trim().length > 100) {
       nextErrors.name = "Name must be at most 100 characters long.";
     }
+    if (userType === "agent" && !agencyName.trim()) {
+      nextErrors.agencyName = "Please enter agency name.";
+    }
+    if (userType === "builder" && !companyName.trim()) {
+      nextErrors.companyName = "Please enter company name.";
+    }
     if (!email.trim()) {
       nextErrors.email = "Please enter your email id.";
     } else if (!EMAIL_PATTERN.test(email.trim())) {
       nextErrors.email = "Please enter a valid email id.";
-    }
-    if (!password.trim()) {
-      nextErrors.password = "Please enter password.";
     }
     const mobileDigits = mobile.replace(/\D/g, "");
     if (!mobile.trim()) {
@@ -97,8 +107,9 @@ export default function SignupContent() {
       await signup({
         role: userType,
         name: name.trim(),
+        ...(userType === "agent" && { agency_name: agencyName.trim() }),
+        ...(userType === "builder" && { company_name: companyName.trim() }),
         email: email.trim(),
-        password,
         mobile_number: mobileDigits,
         agreed_to_terms: agreedToTerms,
       });
@@ -116,8 +127,15 @@ export default function SignupContent() {
           setFormError(error.message);
         }
       } else if (error instanceof ApiError && error.status === 400 && error.fields) {
-        const { name, email, password, mobile_number, ...rest } = error.fields;
-        const fieldErrors = { name, email, password, mobile: mobile_number };
+        const { name, agency_name, company_name, email, mobile_number, ...rest } =
+          error.fields;
+        const fieldErrors = {
+          name,
+          agencyName: agency_name,
+          companyName: company_name,
+          email,
+          mobile: mobile_number,
+        };
         setErrors((prev) => ({ ...prev, ...fieldErrors }));
 
         // Anything not tied to a visible field stays as a general error
@@ -179,7 +197,7 @@ export default function SignupContent() {
 
               <FloatingInput
                 id="name"
-                label="Name"
+                label={requiredLabel("Name")}
                 variant="underline"
                 value={name}
                 onChange={(value) => {
@@ -189,9 +207,37 @@ export default function SignupContent() {
                 error={errors.name}
               />
 
+              {userType === "agent" && (
+                <FloatingInput
+                  id="agencyName"
+                  label={requiredLabel("Agency Name")}
+                  variant="underline"
+                  value={agencyName}
+                  onChange={(value) => {
+                    setAgencyName(value);
+                    clearError("agencyName");
+                  }}
+                  error={errors.agencyName}
+                />
+              )}
+
+              {userType === "builder" && (
+                <FloatingInput
+                  id="companyName"
+                  label={requiredLabel("Company Name")}
+                  variant="underline"
+                  value={companyName}
+                  onChange={(value) => {
+                    setCompanyName(value);
+                    clearError("companyName");
+                  }}
+                  error={errors.companyName}
+                />
+              )}
+
               <FloatingInput
                 id="email"
-                label="Email"
+                label={requiredLabel("Email")}
                 type="email"
                 variant="underline"
                 value={email}
@@ -200,28 +246,6 @@ export default function SignupContent() {
                   clearError("email");
                 }}
                 error={errors.email}
-              />
-
-              <FloatingInput
-                id="password"
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                variant="underline"
-                value={password}
-                onChange={(value) => {
-                  setPassword(value);
-                  clearError("password");
-                }}
-                error={errors.password}
-                rightSlot={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="text-xs font-bold uppercase tracking-wide text-sky-700 hover:text-sky-600"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                }
               />
 
               <div>
@@ -243,7 +267,7 @@ export default function SignupContent() {
                   <div className="min-w-0 flex-1">
                     <FloatingInput
                       id="mobile"
-                      label="Mobile Number"
+                      label={requiredLabel("Mobile Number")}
                       type="tel"
                       variant="underline"
                       value={mobile}

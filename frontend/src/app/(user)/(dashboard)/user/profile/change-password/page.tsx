@@ -3,12 +3,8 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/components/shared/ui/ToastProvider";
-import { ApiError } from "@/services/apiClient";
 import { getProfileDetails } from "@/services/userProfile.service";
-import { changePassword } from "@/services/userPassword.service";
 
 type FormErrors = {
   oldPassword?: string;
@@ -101,8 +97,6 @@ function PasswordInput({
 }
 
 export default function ChangePasswordPage() {
-  const router = useRouter();
-  const { showToast } = useToast();
   const { token, isLoggedIn } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -114,7 +108,6 @@ export default function ChangePasswordPage() {
   const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn || !token) {
@@ -151,7 +144,7 @@ export default function ChangePasswordPage() {
     });
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
     const nextErrors: FormErrors = {};
@@ -175,39 +168,7 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    if (!token) {
-      showToast("Please login to continue.", "error");
-      router.push("/login");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await changePassword({ oldPassword, newPassword, confirmPassword }, token);
-      showToast("Password changed successfully.");
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 400) {
-        if (/old password/i.test(error.message)) {
-          setErrors({ oldPassword: error.message });
-        } else if (/new password/i.test(error.message)) {
-          setErrors({ newPassword: error.message });
-        } else {
-          showToast(error.message, "error");
-        }
-        return;
-      }
-
-      showToast(
-        error instanceof ApiError ? error.message : "Something went wrong. Please try again.",
-        "error",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    // UI only, no backend
   };
 
   return (
@@ -302,10 +263,9 @@ export default function ChangePasswordPage() {
             </Link>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="bg-linear-to-r-navy-blue inline-flex cursor-pointer items-center justify-center rounded-xl px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md shadow-slate-900/15 transition hover:shadow-slate-900/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              className="bg-linear-to-r-navy-blue inline-flex cursor-pointer items-center justify-center rounded-xl px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-md shadow-slate-900/15 transition hover:shadow-slate-900/25 active:scale-[0.99]"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              Save
             </button>
           </div>
         </form>

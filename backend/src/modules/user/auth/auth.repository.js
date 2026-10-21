@@ -10,13 +10,22 @@ async function findUserByEmail(email) {
   return db(TABLE).where({ email }).first();
 }
 
-async function createUser({ role, name, email, passwordHash, mobile_number, agreed_to_terms }) {
+async function createUser({
+  role,
+  name,
+  agency_name,
+  company_name,
+  email,
+  mobile_number,
+  agreed_to_terms,
+}) {
   const [user] = await db(TABLE)
     .insert({
       role,
       name,
+      agency_name: agency_name ?? null,
+      company_name: company_name ?? null,
       email,
-      password: passwordHash,
       mobile_number,
       agreed_to_terms,
     })
@@ -24,6 +33,8 @@ async function createUser({ role, name, email, passwordHash, mobile_number, agre
       "id",
       "role",
       "name",
+      "agency_name",
+      "company_name",
       "email",
       "mobile_number",
       "created_at",

@@ -24,10 +24,32 @@ const signupSchema = Joi.object({
     "string.email": "Please enter a valid email id.",
     "any.required": "Please enter your email id.",
   }),
-  password: Joi.string().required().messages({
-    "string.empty": "Please enter password.",
-    "any.required": "Please enter password.",
-  }),
+  agency_name: Joi.string()
+    .trim()
+    .max(150)
+    .when("role", {
+      is: "agent",
+      then: Joi.required(),
+      otherwise: Joi.forbidden(),
+    })
+    .messages({
+      "string.empty": "Please enter agency name.",
+      "string.max": "Agency name must be at most 150 characters long.",
+      "any.required": "Please enter agency name.",
+    }),
+  company_name: Joi.string()
+    .trim()
+    .max(150)
+    .when("role", {
+      is: "builder",
+      then: Joi.required(),
+      otherwise: Joi.forbidden(),
+    })
+    .messages({
+      "string.empty": "Please enter company name.",
+      "string.max": "Company name must be at most 150 characters long.",
+      "any.required": "Please enter company name.",
+    }),
   mobile_number: Joi.string()
     .pattern(/^[0-9]{10}$/)
     .required()

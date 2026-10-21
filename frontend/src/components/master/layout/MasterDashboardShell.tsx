@@ -195,7 +195,9 @@ function MasterDashboardShellInner({
               open ? "pr-14 lg:pr-4" : "justify-center px-3",
             )}
           >
-            <div
+            <Link
+              href="/"
+              aria-label="Lokesha home"
               className={cn(
                 "flex items-center",
                 open
@@ -215,7 +217,7 @@ function MasterDashboardShellInner({
                   Lokesha
                 </span>
               )}
-            </div>
+            </Link>
             <button
               type="button"
               aria-label="Close sidebar"

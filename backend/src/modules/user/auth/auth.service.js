@@ -1,5 +1,4 @@
 const repository = require("./auth.repository");
-const { hashPassword } = require("../../../utils/bcrypt");
 const { generateOtp, getOtpExpiry, OTP_EXPIRY_SECONDS } = require("../../../utils/otp");
 const { signToken } = require("../../../utils/jwt");
 
@@ -13,7 +12,15 @@ class AppError extends Error {
 const NOT_REGISTERED_MESSAGE =
   "This mobile number isn't registered with us yet. Please sign up first.";
 
-async function signup({ role, name, email, password, mobile_number, agreed_to_terms }) {
+async function signup({
+  role,
+  name,
+  agency_name,
+  company_name,
+  email,
+  mobile_number,
+  agreed_to_terms,
+}) {
   const existingEmail = await repository.findUserByEmail(email);
   if (existingEmail) {
     throw new AppError("Email is already registered", 409);
@@ -24,13 +31,12 @@ async function signup({ role, name, email, password, mobile_number, agreed_to_te
     throw new AppError("Mobile number is already registered", 409);
   }
 
-  const passwordHash = await hashPassword(password);
-
   const user = await repository.createUser({
     role,
     name,
+    agency_name,
+    company_name,
     email,
-    passwordHash,
     mobile_number,
     agreed_to_terms,
   });

@@ -10,8 +10,9 @@ export type Role =
 export type SignupPayload = {
   role: Role;
   name: string;
+  agency_name?: string;
+  company_name?: string;
   email: string;
-  password: string;
   mobile_number: string;
   agreed_to_terms: boolean;
 };
