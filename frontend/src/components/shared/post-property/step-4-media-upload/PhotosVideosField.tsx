@@ -96,7 +96,9 @@ export default function PhotosVideosField({
   propertyType = "residential",
   listingType,
   subType,
+  excludedCategoryIds = [],
 }: {
+  excludedCategoryIds?: PhotoCategoryId[];
   propertyType?: PropertyTypeId;
   listingType?: ListingTypeId;
   subType?: string;
@@ -107,7 +109,10 @@ export default function PhotosVideosField({
   onRemoveExisting?: (mediaId: string) => void;
   existingBrochureName?: string | null;
 }) {
-  const categories = getPhotoCategories(propertyType, { listingType, subType });
+  const categories = getPhotoCategories(propertyType, {
+    listingType,
+    subType,
+  }).filter((category) => !excludedCategoryIds.includes(category.id));
   const [activeCategory, setActiveCategory] = useState<PhotoCategoryId>(
     categories[0].id,
   );

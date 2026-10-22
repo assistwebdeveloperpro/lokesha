@@ -42,6 +42,9 @@ export const POST_PROPERTY_TILE_DEFAULT =
 export const POST_PROPERTY_CHECKBOX_ROW =
   "flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/80 bg-gradient-to-r from-slate-50/60 to-white px-4 py-3.5 shadow-[0_2px_8px_rgba(15,23,42,0.06),0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-sky-200/80 hover:from-sky-50/50 hover:to-white hover:shadow-[0_4px_14px_rgba(14,165,233,0.1),0_2px_4px_rgba(15,23,42,0.05)]";
 
+export const POST_PROPERTY_TWO_COLUMN_GRID =
+  "grid w-full gap-4 md:grid-cols-2 md:gap-6";
+
 export const POST_PROPERTY_PRIMARY_BTN =
   "bg-linear-to-r-navy-blue inline-flex min-w-52 cursor-pointer items-center justify-center rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:shadow-slate-900/30 active:scale-[0.99] sm:min-w-52";
 

@@ -22,7 +22,11 @@ import {
   type ImageTileOption,
   type PropertyTypeId,
 } from "../postPropertyForm.shared";
-import { POST_PROPERTY_CHECKBOX_ROW } from "../postPropertyForm.styles";
+import {
+  POST_PROPERTY_CHECKBOX_ROW,
+  POST_PROPERTY_INNER_PANEL,
+  POST_PROPERTY_SUBSECTION_LABEL,
+} from "../postPropertyForm.styles";
 
 const checkboxClassName =
   "h-4.5 w-4.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500";
@@ -56,7 +60,9 @@ export default function AmenitiesField({
   values,
   onChange,
   errors = {},
+  hideCarParking = false,
 }: {
+  hideCarParking?: boolean;
   isRent?: boolean;
   propertyType?: PropertyTypeId;
   subType?: string;
@@ -121,11 +127,13 @@ export default function AmenitiesField({
       cancelled = true;
     };
   }, [isRent, propertyType, subType]);
-  const showParking = saleConfig ? saleConfig.carParking || saleConfig.clubMembership : !isPlot && !isLand;
-  const showCarParking = saleConfig ? saleConfig.carParking : true;
-  const showClubMembership = saleConfig
-    ? saleConfig.clubMembership
-    : !isRent && !isCommercial && !isPg;
+  const showClubMembership =
+    !hideCarParking &&
+    (saleConfig ? saleConfig.clubMembership : !isRent && !isCommercial && !isPg);
+  const showCarParking = !hideCarParking && (saleConfig ? saleConfig.carParking : true);
+  const showParking = saleConfig
+    ? showCarParking || showClubMembership
+    : !isPlot && !isLand && (showCarParking || showClubMembership);
   const showRera = saleConfig
     ? saleConfig.rera
     : !isPlot && !isPg && (isLand || !isRent);
@@ -279,48 +287,61 @@ export default function AmenitiesField({
       {showParking ? (
         <PostPropertyFieldSection
           title={showClubMembership ? "Parking & Membership" : "Parking"}
+          description={
+            showClubMembership
+              ? "Tell buyers about parking slots and club membership"
+              : "Tell buyers about available parking"
+          }
         >
           <div className="space-y-4">
             {showCarParking ? (
-            <label className={POST_PROPERTY_CHECKBOX_ROW}>
-              <input
-                type="checkbox"
-                checked={values.carParkingAvailable}
-                onChange={(event) => {
-                  const isChecked = event.target.checked;
-                  onChange("carParkingAvailable", isChecked);
-                  if (!isChecked) {
-                    onChange("carParking", "");
-                  }
-                }}
-                className={checkboxClassName}
-              />
-              <span className="text-sm font-semibold text-slate-800">
-                Car Parking Available
-                <PostPropertyRequiredAsterisk />
-              </span>
-            </label>
-            ) : null}
+              <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
+                <p className={POST_PROPERTY_SUBSECTION_LABEL}>Car parking</p>
+                <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                  <input
+                    type="checkbox"
+                    checked={values.carParkingAvailable}
+                    onChange={(event) => {
+                      const isChecked = event.target.checked;
+                      onChange("carParkingAvailable", isChecked);
+                      if (!isChecked) {
+                        onChange("carParking", "");
+                      }
+                    }}
+                    className={checkboxClassName}
+                  />
+                  <span className="text-sm font-semibold text-slate-800">
+                    Car Parking Available
+                    <PostPropertyRequiredAsterisk />
+                  </span>
+                </label>
 
-            {showCarParking && values.carParkingAvailable ? (
-              <ChipSelectField
-                legend="Car Parking"
-                required
-                bare
-                options={["1", "2", "3", "4", "5", "6", "7"]}
-                value={values.carParking}
-                onChange={(nextValue) => onChange("carParking", nextValue)}
-                moreOptions={["8", "9", "10"]}
-                error={errors.carParking}
-              />
+                {values.carParkingAvailable ? (
+                  <ChipSelectField
+                    legend="Number of slots"
+                    required
+                    bare
+                    options={["1", "2", "3", "4", "5", "6", "7"]}
+                    value={values.carParking}
+                    onChange={(nextValue) => onChange("carParking", nextValue)}
+                    moreOptions={["8", "9", "10"]}
+                    error={errors.carParking}
+                  />
+                ) : null}
+              </div>
             ) : null}
 
             {showClubMembership ? (
-              <CheckboxRow
-                label="Club Membership"
-                checked={values.clubMembership}
-                onChange={(checked) => onChange("clubMembership", checked)}
-              />
+              <div className={POST_PROPERTY_INNER_PANEL}>
+                <p className={`${POST_PROPERTY_SUBSECTION_LABEL} mb-3`}>
+                  Club membership
+                </p>
+                <CheckboxRow
+                  label="Club Membership included"
+                  checked={values.clubMembership}
+                  onChange={(checked) => onChange("clubMembership", checked)}
+                />
+              </div>
             ) : null}
           </div>
         </PostPropertyFieldSection>

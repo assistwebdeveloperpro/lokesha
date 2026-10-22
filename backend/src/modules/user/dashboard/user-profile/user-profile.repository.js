@@ -34,7 +34,9 @@ async function findProfileByUserId(userId) {
       `${USERS_TABLE}.created_at`,
       `${USERS_TABLE}.updated_at`,
       `${OFFICE_TABLE}.city`,
-      `${OFFICE_TABLE}.agency_company_name as company_name`,
+      db.raw(
+        `COALESCE(NULLIF(TRIM(${OFFICE_TABLE}.agency_company_name), ''), NULLIF(TRIM(${USERS_TABLE}.company_name), ''), NULLIF(TRIM(${USERS_TABLE}.agency_name), '')) as company_name`
+      ),
       `${OFFICE_TABLE}.contact_person_photo`,
       `${BUSINESS_TABLE}.company_logo`
     )

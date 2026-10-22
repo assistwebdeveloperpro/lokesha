@@ -8,6 +8,30 @@ import { DEFAULT_STATE } from "@/data/indianStatesCities";
 import { ApiError } from "@/services/apiClient";
 import { createProperty, type PropertyMedia } from "@/services/property.service";
 import { getToken } from "@/services/session";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  PrimeLocationHighlightsField,
+  ProjectHighlightsField,
+  ProjectOverviewField,
+} from "@/components/master/post-property/step-1-basic-information/ProjectDetailsField";
+import BuilderPropertyDetailsField from "@/components/master/post-property/step-2-property-details/PropertyDetailsField";
+import FloorPlansField from "@/components/master/post-property/step-4-media-upload/FloorPlansField";
+import {
+  ProjectFaqField,
+  VideoWalkthroughField,
+} from "@/components/master/post-property/step-5-pricing-and-additional-details/ProjectPricingFaqField";
+import {
+  createInitialProjectDetails,
+  getFloorPlanTitles,
+  type ProjectDetailsValues,
+} from "@/components/master/post-property/postPropertyProjectDetails";
+import BhkCarParkingField from "./builder/BhkCarParkingField";
+import BhkChargesField from "./builder/BhkChargesField";
+import BrochureImagesField from "./builder/BrochureImagesField";
+import {
+  ProjectExtraDetailsField,
+  ProjectSpecificationsField,
+} from "./builder/BuilderProjectFields";
 import AddressLocationField from "./step-1-basic-information/AddressLocationField";
 import ListingTypeField from "./step-1-basic-information/ListingTypeField";
 import PropertyTypeField from "./step-1-basic-information/PropertyTypeField";
@@ -174,6 +198,42 @@ export default function PostPropertyContent() {
     useState("");
   const [availableFromPastAnchor, setAvailableFromPastAnchor] = useState("");
   const isRent = isRentListing(listingType);
+  const { role, isAuthReady } = useAuth();
+  const [projectDetails, setProjectDetails] = useState<ProjectDetailsValues>(
+    createInitialProjectDetails,
+  );
+  const showBuilderFields = isAuthReady && role === "builder";
+
+  // Builder form hides these fields, so their errors must not block the steps
+  const withoutHiddenDetailsErrors = (errors: PropertyDetailsFieldErrors) => {
+    if (!showBuilderFields) {
+      return errors;
+    }
+    const {
+      bedrooms: _bedrooms,
+      balcony: _balcony,
+      floorNumber: _floorNumber,
+      bathrooms: _bathrooms,
+      ...rest
+    } = errors;
+    return rest;
+  };
+
+  const withoutHiddenPricingErrors = (errors: PricingOthersFieldErrors) => {
+    if (!showBuilderFields) {
+      return errors;
+    }
+    const { expectedPrice: _expectedPrice, bookingAmount: _bookingAmount, ...rest } =
+      errors;
+    return rest;
+  };
+
+  const handleProjectDetailsChange = <K extends keyof ProjectDetailsValues>(
+    field: K,
+    value: ProjectDetailsValues[K],
+  ) => {
+    setProjectDetails((current) => ({ ...current, [field]: value }));
+  };
 
   // Prefill every step once the property being edited has loaded
   useEffect(() => {
@@ -339,13 +399,15 @@ export default function PostPropertyContent() {
   };
 
   const handlePropertyDetailsNext = () => {
-    const errors = validatePropertyDetails(propertyDetails, {
-      listingType,
-      propertyType,
-      subType: propertySubType,
-      possessionDatePastAnchor: possessionDatePastAnchor || undefined,
-      availableFromPastAnchor: availableFromPastAnchor || undefined,
-    });
+    const errors = withoutHiddenDetailsErrors(
+      validatePropertyDetails(propertyDetails, {
+        listingType,
+        propertyType,
+        subType: propertySubType,
+        possessionDatePastAnchor: possessionDatePastAnchor || undefined,
+        availableFromPastAnchor: availableFromPastAnchor || undefined,
+      }),
+    );
 
     if (hasPropertyDetailsErrors(errors)) {
       setPropertyDetailsErrors(errors);
@@ -424,22 +486,26 @@ export default function PostPropertyContent() {
 
   const applyFullFormValidation = (): number | null => {
     const nextAddressErrors = validateAddressLocation(addressLocation);
-    const nextPropertyDetailsErrors = validatePropertyDetails(propertyDetails, {
-      listingType,
-      propertyType,
-      subType: propertySubType,
-      possessionDatePastAnchor: possessionDatePastAnchor || undefined,
-      availableFromPastAnchor: availableFromPastAnchor || undefined,
-    });
+    const nextPropertyDetailsErrors = withoutHiddenDetailsErrors(
+      validatePropertyDetails(propertyDetails, {
+        listingType,
+        propertyType,
+        subType: propertySubType,
+        possessionDatePastAnchor: possessionDatePastAnchor || undefined,
+        availableFromPastAnchor: availableFromPastAnchor || undefined,
+      }),
+    );
     const nextAmenitiesErrors = validateAmenities(amenities, propertyType, {
       listingType,
       subType: propertySubType,
     });
-    const nextPricingErrors = validatePricingOthers(
-      pricingOthers,
-      listingType,
-      propertyType,
-      propertySubType,
+    const nextPricingErrors = withoutHiddenPricingErrors(
+      validatePricingOthers(
+        pricingOthers,
+        listingType,
+        propertyType,
+        propertySubType,
+      ),
     );
     const nextPhotosError =
       arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
@@ -674,6 +740,7 @@ export default function PostPropertyContent() {
               values={addressLocation}
               onChange={handleAddressLocationChange}
               errors={addressLocationErrors}
+              hideUnitFields={showBuilderFields}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
@@ -712,14 +779,48 @@ export default function PostPropertyContent() {
           </div>
 
           <div className="space-y-6">
-            <PropertyDetailsField
-              listingType={listingType}
-              propertyType={propertyType}
-              subType={propertySubType}
-              values={propertyDetails}
-              onChange={handlePropertyDetailsChange}
-              errors={propertyDetailsErrors}
-            />
+            {showBuilderFields ? (
+              <BuilderPropertyDetailsField
+                listingType={listingType}
+                propertyType={propertyType}
+                subType={[propertySubType]}
+                values={propertyDetails}
+                onChange={handlePropertyDetailsChange}
+                errors={propertyDetailsErrors}
+                projectDetails={projectDetails}
+                onProjectDetailsChange={handleProjectDetailsChange}
+                builderLayout
+              />
+            ) : (
+              <PropertyDetailsField
+                listingType={listingType}
+                propertyType={propertyType}
+                subType={propertySubType}
+                values={propertyDetails}
+                onChange={handlePropertyDetailsChange}
+                errors={propertyDetailsErrors}
+              />
+            )}
+
+            {showBuilderFields ? (
+              <>
+                <ProjectOverviewField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                  propertyType={propertyType}
+                  subType={[propertySubType]}
+                  hideConfiguration
+                />
+                <ProjectExtraDetailsField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+                <ProjectSpecificationsField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+              </>
+            ) : null}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
@@ -764,7 +865,29 @@ export default function PostPropertyContent() {
               values={amenities}
               onChange={handleAmenitiesChange}
               errors={amenitiesErrors}
+              hideCarParking={showBuilderFields}
             />
+
+            {showBuilderFields ? (
+              <>
+                <BhkCarParkingField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                  amenities={amenities}
+                  onAmenitiesChange={handleAmenitiesChange}
+                  error={amenitiesErrors.carParking}
+                />
+                <ProjectHighlightsField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+                <PrimeLocationHighlightsField
+                  projectName={addressLocation.projectName}
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+              </>
+            ) : null}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
@@ -807,6 +930,11 @@ export default function PostPropertyContent() {
               propertyType={propertyType}
               listingType={listingType}
               subType={propertySubType}
+              excludedCategoryIds={
+                showBuilderFields
+                  ? ["brochure-images", "cluster-plan", "elevation"]
+                  : undefined
+              }
               values={photosVideos}
               onChange={(next) => {
                 setPhotosVideos(next);
@@ -819,6 +947,29 @@ export default function PostPropertyContent() {
                 editProperty?.brochurePath?.split("/").pop() ?? null
               }
             />
+
+            {showBuilderFields ? (
+              <>
+                <BrochureImagesField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+                <FloorPlansField
+                  projectName={addressLocation.projectName}
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                  autoTitles={
+                    getFloorPlanTitles(projectDetails).length > 0
+                      ? getFloorPlanTitles(projectDetails)
+                      : undefined
+                  }
+                />
+                <VideoWalkthroughField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+              </>
+            ) : null}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
@@ -865,7 +1016,23 @@ export default function PostPropertyContent() {
               values={pricingOthers}
               onChange={handlePricingOthersChange}
               errors={pricingOthersErrors}
+              builderLayout={showBuilderFields}
             />
+
+            {showBuilderFields ? (
+              <>
+                <BhkChargesField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                  pricingOthers={pricingOthers}
+                  onPricingOthersChange={handlePricingOthersChange}
+                />
+                <ProjectFaqField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                />
+              </>
+            ) : null}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button

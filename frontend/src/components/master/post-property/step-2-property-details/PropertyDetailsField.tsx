@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import PostPropertyInput from "../PostPropertyInput";
 import ChipSelectField from "../ChipSelectField";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
@@ -16,7 +17,10 @@ import {
   getSaleFormConfig,
   resolveSubType,
 } from "@/components/shared/post-property/postPropertySaleConfig";
-import { POST_PROPERTY_CHECKBOX_ROW } from "../postPropertyForm.styles";
+import {
+  POST_PROPERTY_CHECKBOX_ROW,
+  POST_PROPERTY_TWO_COLUMN_GRID,
+} from "../postPropertyForm.styles";
 import {
   AGE_OF_CONSTRUCTION_OPTIONS,
   AREA_TYPE_OPTIONS,
@@ -57,7 +61,9 @@ export default function PropertyDetailsField({
   errors = {},
   projectDetails,
   onProjectDetailsChange,
+  builderLayout = false,
 }: {
+  builderLayout?: boolean;
   listingType: ListingTypeId;
   propertyType: PropertyTypeId;
   subType: string[];
@@ -82,22 +88,46 @@ export default function PropertyDetailsField({
     propertyType,
     resolveSubType(subType),
   );
+  const availableSizes =
+    builderLayout || !isRent ? (
+      <AvailableSizesField
+        values={projectDetails}
+        onChange={onProjectDetailsChange}
+        propertyType={propertyType}
+        subType={subType}
+      />
+    ) : null;
+  const withBuilderSizes = (node: ReactNode) =>
+    builderLayout && availableSizes ? (
+      <div className="space-y-5 sm:space-y-6">
+        {node}
+        {availableSizes}
+      </div>
+    ) : (
+      node
+    );
 
   if (saleConfig && propertyType !== "residential") {
-    return <SaleDetails {...part} cfg={saleConfig.details} />;
+    return (
+      <SaleDetails
+        {...part}
+        cfg={saleConfig.details}
+        afterAreaSlot={builderLayout ? availableSizes : undefined}
+      />
+    );
   }
 
   if (propertyType === "commercial") {
-    return <CommercialDetails {...part} isRent={isRent} />;
+    return withBuilderSizes(<CommercialDetails {...part} isRent={isRent} />);
   }
   if (propertyType === "pg-co-living") {
-    return <PgDetails {...part} />;
+    return withBuilderSizes(<PgDetails {...part} />);
   }
   if (propertyType === "plot") {
-    return <PlotDetails {...part} />;
+    return withBuilderSizes(<PlotDetails {...part} />);
   }
   if (propertyType === "land") {
-    return <LandDetails {...part} />;
+    return withBuilderSizes(<LandDetails {...part} />);
   }
 
   const areaSection = (
@@ -189,15 +219,6 @@ export default function PropertyDetailsField({
       </PostPropertyFieldSection>
   );
 
-  const availableSizes = isRent ? null : (
-    <AvailableSizesField
-      values={projectDetails}
-      onChange={onProjectDetailsChange}
-      propertyType={propertyType}
-      subType={subType}
-    />
-  );
-
   if (saleConfig) {
     return (
       <SaleDetails
@@ -240,7 +261,7 @@ export default function PropertyDetailsField({
         />
 
         {values.propertyTransaction === "new" ? (
-          <div className="mt-5">
+          <div className="mt-5 space-y-5">
             <ChipSelectField
               legend="Construction Status"
               required
@@ -262,6 +283,20 @@ export default function PropertyDetailsField({
                 );
               }}
             />
+            <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+              <PostPropertyInput
+                id="possessionDate"
+                label="Possession Date*"
+                placeholder="Possession Date"
+                variant="underline"
+                type="date"
+                staticLabel
+                min={getPossessionDateInputMin(values.possessionDate)}
+                value={values.possessionDate}
+                error={errors.possessionDate}
+                onChange={(value) => onChange("possessionDate", value)}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -293,44 +328,29 @@ export default function PropertyDetailsField({
       </PostPropertyFieldSection>
       )}
 
-      {!isRent && values.propertyTransaction === "new" ? (
-        <PostPropertyFieldSection title="Possession Date" required>
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-            <PostPropertyInput
-              id="possessionDate"
-              label="Possession Date*"
-              placeholder="Possession Date"
-              variant="underline"
-              type="date"
-              staticLabel
-              min={getPossessionDateInputMin(values.possessionDate)}
-              value={values.possessionDate}
-              error={errors.possessionDate}
-              onChange={(value) => onChange("possessionDate", value)}
-            />
-          </div>
-        </PostPropertyFieldSection>
-      ) : null}
+      {builderLayout ? null : (
+        <>
+          <ChipSelectField
+            legend="Bedrooms"
+            required
+            options={["1", "2", "3", "4", "5", "6", "7"]}
+            value={values.bedrooms}
+            error={errors.bedrooms}
+            onChange={(value) => onChange("bedrooms", value)}
+            moreOptions={["8", "9", "10"]}
+          />
 
-      <ChipSelectField
-        legend="Bedrooms"
-        required
-        options={["1", "2", "3", "4", "5", "6", "7"]}
-        value={values.bedrooms}
-        error={errors.bedrooms}
-        onChange={(value) => onChange("bedrooms", value)}
-        moreOptions={["8", "9", "10"]}
-      />
-
-      <ChipSelectField
-        legend="Balcony"
-        required
-        options={["0", "1", "2", "3", "4", "5", "6"]}
-        value={values.balcony}
-        error={errors.balcony}
-        onChange={(value) => onChange("balcony", value)}
-        moreOptions={["7", "8", "9", "10"]}
-      />
+          <ChipSelectField
+            legend="Balcony"
+            required
+            options={["0", "1", "2", "3", "4", "5", "6"]}
+            value={values.balcony}
+            error={errors.balcony}
+            onChange={(value) => onChange("balcony", value)}
+            moreOptions={["7", "8", "9", "10"]}
+          />
+        </>
+      )}
 
       <ChipSelectField
         legend="Total Floors"
@@ -436,7 +456,7 @@ export default function PropertyDetailsField({
         ]}
       />
 
-      {floorNumberOptions.length > 0 ? (
+      {!builderLayout && floorNumberOptions.length > 0 ? (
         <ChipSelectField
           legend="Floor number"
           required
@@ -448,14 +468,16 @@ export default function PropertyDetailsField({
         />
       ) : null}
 
-      <ChipSelectField
-        legend="Bathrooms"
-        required
-        options={["1", "2", "3", "4", "5", "6", "7"]}
-        value={values.bathrooms}
-        error={errors.bathrooms}
-        onChange={(value) => onChange("bathrooms", value)}
-      />
+      {builderLayout ? null : (
+        <ChipSelectField
+          legend="Bathrooms"
+          required
+          options={["1", "2", "3", "4", "5", "6", "7"]}
+          value={values.bathrooms}
+          error={errors.bathrooms}
+          onChange={(value) => onChange("bathrooms", value)}
+        />
+      )}
 
       {isRent ? (
         <>
@@ -511,19 +533,21 @@ export default function PropertyDetailsField({
                 </span>
               </label>
 
-              <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-                <PostPropertyInput
-                  id="availableFrom"
-                  label="Available From*"
-                  placeholder="Available From"
-                  variant="underline"
-                  type="date"
-                  staticLabel
-                  min={getPossessionDateInputMin(values.availableFrom)}
-                  value={values.availableFrom}
-                  error={errors.availableFrom}
-                  onChange={(value) => onChange("availableFrom", value)}
-                />
+              <div className={POST_PROPERTY_TWO_COLUMN_GRID}>
+                <div className="min-w-0">
+                  <PostPropertyInput
+                    id="availableFrom"
+                    label="Available From*"
+                    placeholder="Available From"
+                    variant="underline"
+                    type="date"
+                    staticLabel
+                    min={getPossessionDateInputMin(values.availableFrom)}
+                    value={values.availableFrom}
+                    error={errors.availableFrom}
+                    onChange={(value) => onChange("availableFrom", value)}
+                  />
+                </div>
               </div>
 
               <label className={POST_PROPERTY_CHECKBOX_ROW}>
@@ -550,13 +574,15 @@ export default function PropertyDetailsField({
         </>
       ) : null}
 
-      <ChipSelectField
-        legend="Lift"
-        options={["0", "1", "2", "3", "4", "5", "6"]}
-        value={values.lift}
-        onChange={(value) => onChange("lift", value)}
-        moreOptions={["7", "8", "9", "10"]}
-      />
+      {builderLayout ? null : (
+        <ChipSelectField
+          legend="Lift"
+          options={["0", "1", "2", "3", "4", "5", "6"]}
+          value={values.lift}
+          onChange={(value) => onChange("lift", value)}
+          moreOptions={["7", "8", "9", "10"]}
+        />
+      )}
     </div>
   );
 }

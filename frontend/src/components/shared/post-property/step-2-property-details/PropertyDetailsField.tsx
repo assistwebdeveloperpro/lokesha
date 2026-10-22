@@ -2,7 +2,10 @@ import PostPropertyInput from "../PostPropertyInput";
 import ChipSelectField from "../ChipSelectField";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
 import TenantPreferenceField from "./TenantPreferenceField";
-import { POST_PROPERTY_CHECKBOX_ROW } from "../postPropertyForm.styles";
+import {
+  POST_PROPERTY_CHECKBOX_ROW,
+  POST_PROPERTY_TWO_COLUMN_GRID,
+} from "../postPropertyForm.styles";
 import {
   AGE_OF_CONSTRUCTION_OPTIONS,
   AREA_TYPE_OPTIONS,
@@ -171,7 +174,7 @@ export default function PropertyDetailsField({
         />
 
         {values.propertyTransaction === "new" ? (
-          <div className="mt-5">
+          <div className="mt-5 space-y-5">
             <ChipSelectField
               legend="Construction Status"
               required
@@ -193,6 +196,20 @@ export default function PropertyDetailsField({
                 );
               }}
             />
+            <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+              <PostPropertyInput
+                id="possessionDate"
+                label="Possession Date*"
+                placeholder="Possession Date"
+                variant="underline"
+                type="date"
+                staticLabel
+                min={getPossessionDateInputMin(values.possessionDate)}
+                value={values.possessionDate}
+                error={errors.possessionDate}
+                onChange={(value) => onChange("possessionDate", value)}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -223,25 +240,6 @@ export default function PropertyDetailsField({
         ) : null}
       </PostPropertyFieldSection>
       )}
-
-      {!isRent && values.propertyTransaction === "new" ? (
-        <PostPropertyFieldSection title="Possession Date" required>
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-            <PostPropertyInput
-              id="possessionDate"
-              label="Possession Date*"
-              placeholder="Possession Date"
-              variant="underline"
-              type="date"
-              staticLabel
-              min={getPossessionDateInputMin(values.possessionDate)}
-              value={values.possessionDate}
-              error={errors.possessionDate}
-              onChange={(value) => onChange("possessionDate", value)}
-            />
-          </div>
-        </PostPropertyFieldSection>
-      ) : null}
 
       <ChipSelectField
         legend="Bedrooms"
@@ -442,19 +440,21 @@ export default function PropertyDetailsField({
                 </span>
               </label>
 
-              <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-                <PostPropertyInput
-                  id="availableFrom"
-                  label="Available From*"
-                  placeholder="Available From"
-                  variant="underline"
-                  type="date"
-                  staticLabel
-                  min={getPossessionDateInputMin(values.availableFrom)}
-                  value={values.availableFrom}
-                  error={errors.availableFrom}
-                  onChange={(value) => onChange("availableFrom", value)}
-                />
+              <div className={POST_PROPERTY_TWO_COLUMN_GRID}>
+                <div className="min-w-0">
+                  <PostPropertyInput
+                    id="availableFrom"
+                    label="Available From*"
+                    placeholder="Available From"
+                    variant="underline"
+                    type="date"
+                    staticLabel
+                    min={getPossessionDateInputMin(values.availableFrom)}
+                    value={values.availableFrom}
+                    error={errors.availableFrom}
+                    onChange={(value) => onChange("availableFrom", value)}
+                  />
+                </div>
               </div>
 
               <label className={POST_PROPERTY_CHECKBOX_ROW}>

@@ -15,7 +15,9 @@ export default function AddressLocationField({
   values,
   onChange,
   errors = {},
+  hideUnitFields = false,
 }: {
+  hideUnitFields?: boolean;
   values: AddressLocationValues;
   onChange: <K extends keyof AddressLocationValues>(
     field: K,
@@ -34,26 +36,28 @@ export default function AddressLocationField({
       description="Provide the complete address so buyers can find your property easily"
     >
       <div className="space-y-5 md:space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-          <PostPropertyInput
-            id="blockNo"
-            label="Block No."
-            variant="underline"
-            prominentLabel
-            compactProminentLabel
-            value={values.blockNo}
-            onChange={(value) => onChange("blockNo", value)}
-          />
-          <PostPropertyInput
-            id="flatNumber"
-            label="Flat / House / Shop number"
-            variant="underline"
-            prominentLabel
-            compactProminentLabel
-            value={values.flatNumber}
-            onChange={(value) => onChange("flatNumber", value)}
-          />
-        </div>
+        {hideUnitFields ? null : (
+          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+            <PostPropertyInput
+              id="blockNo"
+              label="Block No."
+              variant="underline"
+              prominentLabel
+              compactProminentLabel
+              value={values.blockNo}
+              onChange={(value) => onChange("blockNo", value)}
+            />
+            <PostPropertyInput
+              id="flatNumber"
+              label="Flat / House / Shop number"
+              variant="underline"
+              prominentLabel
+              compactProminentLabel
+              value={values.flatNumber}
+              onChange={(value) => onChange("flatNumber", value)}
+            />
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           <PostPropertyInput

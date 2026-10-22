@@ -21,6 +21,7 @@ import {
 } from "../postPropertyForm.shared";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
+  POST_PROPERTY_TWO_COLUMN_GRID,
   postPropertyChipClass,
 } from "../postPropertyForm.styles";
 
@@ -372,10 +373,7 @@ export function ConstructionAlwaysSections({
             bare
           />
         </div>
-      </PostPropertyFieldSection>
-
-      <PostPropertyFieldSection title="Possession Date" required>
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+        <div className="mt-5 grid gap-4 md:grid-cols-2 md:gap-6">
           <PostPropertyInput
             id="possessionDate"
             label="Possession Date*"
@@ -425,7 +423,7 @@ export function TransactionConstructionSections({
         />
 
         {values.propertyTransaction === "new" ? (
-          <div className="mt-5">
+          <div className="mt-5 space-y-5">
             <ChipSelectField
               legend="Construction Status"
               required
@@ -447,6 +445,20 @@ export function TransactionConstructionSections({
                 );
               }}
             />
+            <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+              <PostPropertyInput
+                id="possessionDate"
+                label="Possession Date*"
+                placeholder="Possession Date"
+                variant="underline"
+                type="date"
+                staticLabel
+                min={getPossessionDateInputMin(values.possessionDate)}
+                value={values.possessionDate}
+                error={errors.possessionDate}
+                onChange={(value) => onChange("possessionDate", value)}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -461,25 +473,6 @@ export function TransactionConstructionSections({
           </div>
         ) : null}
       </PostPropertyFieldSection>
-
-      {values.propertyTransaction === "new" ? (
-        <PostPropertyFieldSection title="Possession Date" required>
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-            <PostPropertyInput
-              id="possessionDate"
-              label="Possession Date*"
-              placeholder="Possession Date"
-              variant="underline"
-              type="date"
-              staticLabel
-              min={getPossessionDateInputMin(values.possessionDate)}
-              value={values.possessionDate}
-              error={errors.possessionDate}
-              onChange={(value) => onChange("possessionDate", value)}
-            />
-          </div>
-        </PostPropertyFieldSection>
-      ) : null}
     </>
   );
 }
@@ -557,37 +550,63 @@ export function EntranceAvailableRow({
   errors,
   availableRequired = false,
   showEntrance = true,
+  bare = false,
 }: PropertyDetailsPartProps & {
   availableRequired?: boolean;
   showEntrance?: boolean;
+  bare?: boolean;
 }) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+  const sectionTitle = showEntrance ? "Entrance & Availability" : "Availability";
+
+  const fields = (
+    <div className={POST_PROPERTY_TWO_COLUMN_GRID}>
       {showEntrance ? (
-        <PostPropertyInput
-          id="entranceWidth"
-          label="Entrance in Meter"
-          placeholder="Entrance in Meter"
-          variant="underline"
-          type="number"
-          staticLabel
-          value={values.entranceWidth}
-          onChange={(value) => onChange("entranceWidth", value)}
-        />
+        <div className="min-w-0">
+          <PostPropertyInput
+            id="entranceWidth"
+            label="Entrance in Meter"
+            placeholder="Entrance in Meter"
+            variant="underline"
+            type="number"
+            staticLabel
+            value={values.entranceWidth}
+            onChange={(value) => onChange("entranceWidth", value)}
+          />
+        </div>
       ) : null}
-      <PostPropertyInput
-        id="availableFrom"
-        label={`Available From${availableRequired ? "*" : ""}`}
-        placeholder="Available From"
-        variant="underline"
-        type="date"
-        staticLabel
-        min={getPossessionDateInputMin(values.availableFrom)}
-        value={values.availableFrom}
-        error={errors.availableFrom}
-        onChange={(value) => onChange("availableFrom", value)}
-      />
+      <div className="min-w-0">
+        <PostPropertyInput
+          id="availableFrom"
+          label={`Available From${availableRequired ? "*" : ""}`}
+          placeholder="Available From"
+          variant="underline"
+          type="date"
+          staticLabel
+          min={getPossessionDateInputMin(values.availableFrom)}
+          value={values.availableFrom}
+          error={errors.availableFrom}
+          onChange={(value) => onChange("availableFrom", value)}
+        />
+      </div>
     </div>
+  );
+
+  if (bare) {
+    return fields;
+  }
+
+  return (
+    <PostPropertyFieldSection
+      title={sectionTitle}
+      required={availableRequired}
+      description={
+        showEntrance
+          ? "Add entrance width and availability date"
+          : "When the property is available from"
+      }
+    >
+      {fields}
+    </PostPropertyFieldSection>
   );
 }
 

@@ -465,7 +465,7 @@ export function SaleDetails({
         ))
       )}
 
-      {cfg.area === "standard" ? afterAreaSlot : null}
+      {afterAreaSlot}
 
       {cfg.transaction === "full" ? (
         <TransactionConstructionSections {...part} />
@@ -572,7 +572,12 @@ export function SaleDetails({
                 checked={values.sharingBasis}
                 onChange={(checked) => onChange("sharingBasis", checked)}
               />
-              <EntranceAvailableRow {...part} showEntrance={false} availableRequired />
+              <EntranceAvailableRow
+                {...part}
+                bare
+                showEntrance={false}
+                availableRequired
+              />
               <CheckboxRow
                 label="Interior Modification Allowed"
                 checked={values.interiorModificationAllowed}

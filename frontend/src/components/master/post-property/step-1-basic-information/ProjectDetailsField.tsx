@@ -56,7 +56,9 @@ export function ProjectOverviewField({
   onChange,
   propertyType,
   subType,
+  hideConfiguration = false,
 }: {
+  hideConfiguration?: boolean;
   values: ProjectDetailsValues;
   onChange: OnChange;
   propertyType: PropertyTypeId;
@@ -153,6 +155,7 @@ export function ProjectOverviewField({
         </div>
       </PostPropertyFieldSection>
 
+      {hideConfiguration ? null : (
       <PostPropertyFieldSection
         title="Configuration"
         description={
@@ -218,6 +221,7 @@ export function ProjectOverviewField({
           </button>
         </div>
       </PostPropertyFieldSection>
+      )}
     </>
   );
 }

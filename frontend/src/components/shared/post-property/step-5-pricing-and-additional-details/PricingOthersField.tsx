@@ -11,7 +11,10 @@ import {
   type PricingOthersValues,
   type PropertyTypeId,
 } from "../postPropertyForm.shared";
-import { POST_PROPERTY_CHECKBOX_ROW } from "../postPropertyForm.styles";
+import {
+  POST_PROPERTY_CHECKBOX_ROW,
+  POST_PROPERTY_INNER_PANEL,
+} from "../postPropertyForm.styles";
 
 const checkboxClassName =
   "h-4.5 w-4.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500";
@@ -23,7 +26,9 @@ export default function PricingOthersField({
   values,
   onChange,
   errors = {},
+  builderLayout = false,
 }: {
+  builderLayout?: boolean;
   isRent?: boolean;
   propertyType?: PropertyTypeId;
   subType?: string;
@@ -92,6 +97,7 @@ export default function PricingOthersField({
           title="Other Charges & Remarks"
           description="Add transfer fee, booking amount, and other details"
         >
+          <div className={POST_PROPERTY_INNER_PANEL}>
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             {saleConfig.assuredReturn ? (
               <PostPropertyInput
@@ -170,6 +176,7 @@ export default function PricingOthersField({
               onChange={(nextValue) => onChange("benefitsRemarks", nextValue)}
             />
           </div>
+          </div>
         </PostPropertyFieldSection>
       </div>
     );
@@ -182,6 +189,7 @@ export default function PricingOthersField({
           title="Other Charges & Remarks"
           description="Add deposit, rent, and other details"
         >
+          <div className={POST_PROPERTY_INNER_PANEL}>
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             <PostPropertyAmountInput
               id="depositAmount"
@@ -221,6 +229,7 @@ export default function PricingOthersField({
               value={values.benefitsRemarks}
               onChange={(nextValue) => onChange("benefitsRemarks", nextValue)}
             />
+          </div>
           </div>
         </PostPropertyFieldSection>
       </div>
@@ -320,6 +329,21 @@ export default function PricingOthersField({
     );
   }
 
+  // Builder: price comes from Available Sizes, charges are added per BHK
+  if (builderLayout) {
+    return (
+      <div className="space-y-5 sm:space-y-6">
+        <ExpandableIconTileSelect
+          legend="Price Inclusion"
+          options={PRICE_INCLUSION_OPTIONS}
+          value={values.priceInclusion}
+          onChange={(nextValue) => onChange("priceInclusion", nextValue)}
+          visibleCount={PRICE_INCLUSION_OPTIONS.length}
+        />
+      </div>
+    );
+  }
+
   const assuredReturnField = (
     <PostPropertyInput
       id="assuredReturn"
@@ -380,6 +404,7 @@ export default function PricingOthersField({
         title="Other Charges & Remarks"
         description="Add transfer fee, booking amount, and other details"
       >
+        <div className={POST_PROPERTY_INNER_PANEL}>
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           {isLand ? null : (
             <PostPropertyAmountInput
@@ -449,6 +474,7 @@ export default function PricingOthersField({
             value={values.benefitsRemarks}
             onChange={(nextValue) => onChange("benefitsRemarks", nextValue)}
           />
+        </div>
         </div>
       </PostPropertyFieldSection>
     </div>

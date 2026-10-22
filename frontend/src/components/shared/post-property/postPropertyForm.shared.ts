@@ -1255,7 +1255,20 @@ const LIMITED_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
   "others",
 ];
 
+// Main photo is always the first category
 export function getPhotoCategories(
+  propertyType: PropertyTypeId,
+  context?: { listingType?: ListingTypeId; subType?: string },
+) {
+  const categories = getBasePhotoCategories(propertyType, context);
+  const main = categories.filter((category) => category.id === "main-photo");
+  return [
+    ...main,
+    ...categories.filter((category) => category.id !== "main-photo"),
+  ];
+}
+
+function getBasePhotoCategories(
   propertyType: PropertyTypeId,
   context?: { listingType?: ListingTypeId; subType?: string },
 ) {

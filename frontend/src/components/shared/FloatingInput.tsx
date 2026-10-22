@@ -127,7 +127,7 @@ export default function FloatingInput({
 
   if (staticLabel && isUnderline) {
     return (
-      <div>
+      <div className="w-full min-w-0">
         {label && (
           <label htmlFor={id} className={staticLabelClasses}>
             {label}

@@ -5,7 +5,8 @@ import PostPropertyInput from "../PostPropertyInput";
 import type { PropertyTypeId } from "../postPropertyForm.shared";
 import {
   BHK_OPTIONS,
-  createRowId,
+  SIZE_UNIT_OPTIONS,
+  createAvailableSizeRow,
   getUnitTypeConfig,
   type AvailableSizeRow,
   type ProjectDetailsValues,
@@ -18,6 +19,11 @@ const bhkOptions = [
   { value: "", label: "Select BHK" },
   ...BHK_OPTIONS.map((value) => ({ value, label: value })),
 ];
+
+const sizeUnitOptions = SIZE_UNIT_OPTIONS.map((value) => ({
+  value,
+  label: value,
+}));
 
 export default function AvailableSizesField({
   values,
@@ -48,13 +54,13 @@ export default function AvailableSizesField({
   return (
     <PostPropertyFieldSection
       title="Available Sizes"
-      description="Add each available configuration with its size in sq ft"
+      description="Add each available configuration with its size and unit"
     >
       <div className="space-y-4">
         {rows.map((row, index) => (
           <div key={row.id} className="flex items-start gap-3">
             <div
-              className={`grid flex-1 gap-4 md:gap-6 ${showBhk ? "md:grid-cols-4" : "md:grid-cols-3"}`}
+              className={`grid flex-1 gap-4 md:gap-6 ${showBhk ? "md:grid-cols-5" : "md:grid-cols-4"}`}
             >
               {showBhk ? (
                 <PostPropertyInput
@@ -81,8 +87,19 @@ export default function AvailableSizesField({
                 dropdownMenuClassName={dropdownMenuClassName}
               />
               <PostPropertyInput
+                id={`sizeUnit-${row.id}`}
+                ariaLabel="Size Unit"
+                label="Unit"
+                variant="underline"
+                staticLabel
+                options={sizeUnitOptions}
+                value={row.sizeUnit}
+                onChange={(value) => update(row.id, { sizeUnit: value })}
+                dropdownMenuClassName={dropdownMenuClassName}
+              />
+              <PostPropertyInput
                 id={`sizeValue-${row.id}`}
-                label="Size (sq ft)"
+                label={`Size (${row.sizeUnit || "sq ft"})`}
                 placeholder="e.g. 1377"
                 type="number"
                 variant="underline"
@@ -121,7 +138,7 @@ export default function AvailableSizesField({
           onClick={() =>
             onChange("availableSizes", [
               ...rows,
-              { id: createRowId(), bhk: "", unitType: "", size: "", price: "" },
+              { ...createAvailableSizeRow(), sizeUnit: rows.at(-1)?.sizeUnit || SIZE_UNIT_OPTIONS[0] },
             ])
           }
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-sky-300 bg-sky-50/30 px-4 py-2.5 text-sm font-semibold text-sky-700 transition hover:border-sky-500 hover:bg-sky-50/60"
