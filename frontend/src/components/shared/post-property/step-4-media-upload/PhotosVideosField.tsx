@@ -97,8 +97,10 @@ export default function PhotosVideosField({
   listingType,
   subType,
   excludedCategoryIds = [],
+  extraCategoryIds = [],
 }: {
   excludedCategoryIds?: PhotoCategoryId[];
+  extraCategoryIds?: PhotoCategoryId[];
   propertyType?: PropertyTypeId;
   listingType?: ListingTypeId;
   subType?: string;
@@ -112,7 +114,13 @@ export default function PhotosVideosField({
   const categories = getPhotoCategories(propertyType, {
     listingType,
     subType,
-  }).filter((category) => !excludedCategoryIds.includes(category.id));
+  })
+    .filter((category) => !excludedCategoryIds.includes(category.id))
+    .concat(
+      PHOTO_CATEGORY_OPTIONS.filter((category) =>
+        extraCategoryIds.includes(category.id),
+      ),
+    );
   const [activeCategory, setActiveCategory] = useState<PhotoCategoryId>(
     categories[0].id,
   );

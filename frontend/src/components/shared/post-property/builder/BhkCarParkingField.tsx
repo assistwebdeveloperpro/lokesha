@@ -33,7 +33,11 @@ export default function BhkCarParkingField({
   amenities,
   onAmenitiesChange,
   error,
+  singleBlock = false,
+  hideClubMembership = false,
 }: {
+  singleBlock?: boolean;
+  hideClubMembership?: boolean;
   values: ProjectDetailsValues;
   onChange: <K extends keyof ProjectDetailsValues>(
     field: K,
@@ -47,7 +51,7 @@ export default function BhkCarParkingField({
   error?: string;
 }) {
   const fromSizes = getSelectedBhks(values);
-  const bhks = getChargeBhks(values);
+  const bhks = singleBlock ? [] : getChargeBhks(values);
 
   // BHKs from step 2 stay selected; the rest can be toggled here
   const toggleBhk = (bhk: string) => {
@@ -70,10 +74,15 @@ export default function BhkCarParkingField({
 
   return (
     <PostPropertyFieldSection
-      title="Parking & Membership"
-      description="Select a BHK to set its car parking and club membership separately"
+      title={hideClubMembership ? "Parking" : "Parking & Membership"}
+      description={
+        singleBlock
+          ? "Tell buyers about the car parking in this project"
+          : "Select a BHK to set its car parking and club membership separately"
+      }
     >
       <div className="space-y-6">
+        {singleBlock ? null : (
         <div className={POST_PROPERTY_INNER_PANEL}>
           <p className={POST_PROPERTY_SUBSECTION_LABEL}>Select BHK</p>
           <p className="mb-3 text-sm text-slate-500">
@@ -98,10 +107,13 @@ export default function BhkCarParkingField({
             })}
           </div>
         </div>
+        )}
 
         {bhks.length === 0 ? (
           <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
-            <p className={POST_PROPERTY_SUBSECTION_LABEL}>Project-wide defaults</p>
+            {singleBlock ? null : (
+              <p className={POST_PROPERTY_SUBSECTION_LABEL}>Project-wide defaults</p>
+            )}
             <label className={POST_PROPERTY_CHECKBOX_ROW}>
               <input
                 type="checkbox"
@@ -131,19 +143,21 @@ export default function BhkCarParkingField({
                 error={error}
               />
             ) : null}
-            <label className={POST_PROPERTY_CHECKBOX_ROW}>
-              <input
-                type="checkbox"
-                checked={amenities.clubMembership}
-                onChange={(event) =>
-                  onAmenitiesChange("clubMembership", event.target.checked)
-                }
-                className={checkboxClassName}
-              />
-              <span className="text-sm font-semibold text-slate-800">
-                Club Membership
-              </span>
-            </label>
+            {hideClubMembership ? null : (
+              <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                <input
+                  type="checkbox"
+                  checked={amenities.clubMembership}
+                  onChange={(event) =>
+                    onAmenitiesChange("clubMembership", event.target.checked)
+                  }
+                  className={checkboxClassName}
+                />
+                <span className="text-sm font-semibold text-slate-800">
+                  Club Membership
+                </span>
+              </label>
+            )}
           </div>
         ) : (
           bhks.map((bhk) => {

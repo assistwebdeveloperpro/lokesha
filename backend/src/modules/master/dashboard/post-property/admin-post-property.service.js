@@ -96,7 +96,7 @@ function toMediaRows(files, categories) {
   });
 }
 
-function toFloorPlanRows(files, labels) {
+function toFloorPlanRows(files, labels, planTypes) {
   return files.map((file, index) => {
     const isHeic = path.extname(file.originalname).toLowerCase() === ".heic";
     const mimeType = file.mimetype && file.mimetype !== "application/octet-stream"
@@ -105,6 +105,7 @@ function toFloorPlanRows(files, labels) {
 
     return {
       label: labels[index] || null,
+      plan_type: planTypes[index] === "3d" ? "3d" : "2d",
       file_path: `/uploads/property-floor-plans/${file.filename}`,
       original_name: file.originalname.slice(0, 255),
       mime_type: mimeType,
@@ -128,7 +129,6 @@ function toProjectColumns(project) {
     price_max: project.priceMax ?? null,
     price_per_sqft: project.pricePerSqft ?? null,
     payment_plan: project.paymentPlan || null,
-    approved_banks: project.approvedBanks || null,
     video_link: project.videoLink || null,
     configurations: JSON.stringify(project.configurations),
     available_sizes: JSON.stringify(project.availableSizes),
@@ -156,7 +156,6 @@ function toProjectDto(row) {
     priceMax: toNumber(row.price_max),
     pricePerSqft: toNumber(row.price_per_sqft),
     paymentPlan: row.payment_plan,
-    approvedBanks: row.approved_banks,
     videoLink: row.video_link,
     configurations: row.configurations,
     availableSizes: row.available_sizes,
@@ -190,6 +189,7 @@ function toResponseDto(property, mediaRows, projectRow, floorPlanRows) {
     floorPlans: floorPlanRows.map((plan) => ({
       id: plan.id,
       label: plan.label,
+      planType: plan.plan_type,
       filePath: plan.file_path,
       sortOrder: plan.sort_order,
     })),
@@ -207,6 +207,9 @@ async function createProperty(adminId, body, files) {
   }
   if (body.floorPlanLabels.length !== floorPlanFiles.length) {
     throw new AppError("Each floor plan needs a label", 400);
+  }
+  if (body.floorPlanPlanTypes.length !== floorPlanFiles.length) {
+    throw new AppError("Each floor plan needs a plan type", 400);
   }
 
   const mediaRows = toMediaRows(mediaFiles, body.mediaCategories);
@@ -232,7 +235,11 @@ async function createProperty(adminId, body, files) {
     );
     const savedPlans = await repository.insertFloorPlans(
       property.id,
-      toFloorPlanRows(floorPlanFiles, body.floorPlanLabels),
+      toFloorPlanRows(
+        floorPlanFiles,
+        body.floorPlanLabels,
+        body.floorPlanPlanTypes,
+      ),
       trx
     );
     return toResponseDto(property, savedMedia, projectRow, savedPlans);

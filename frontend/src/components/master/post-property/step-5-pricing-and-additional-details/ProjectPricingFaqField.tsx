@@ -6,6 +6,7 @@ import PostPropertyInput from "../PostPropertyInput";
 import {
   PAYMENT_PLAN_OPTIONS,
   createRowId,
+  getAvailableSizesPriceRange,
   type ProjectDetailsValues,
 } from "../postPropertyProjectDetails";
 
@@ -17,14 +18,20 @@ type OnChange = <K extends keyof ProjectDetailsValues>(
 export function ProjectPricingField({
   values,
   onChange,
+  priceRangeReadOnly = false,
 }: {
   values: ProjectDetailsValues;
   onChange: OnChange;
+  priceRangeReadOnly?: boolean;
 }) {
+  const range = priceRangeReadOnly
+    ? getAvailableSizesPriceRange(values)
+    : { min: values.priceMin, max: values.priceMax };
+
   return (
     <PostPropertyFieldSection
       title="Project Price & Payment"
-      description="Add project price range, payment plan and bank approvals"
+      description="Add project price range and payment plan"
     >
       <div className="space-y-5 md:space-y-6">
         <div className="grid gap-4 md:grid-cols-3 md:gap-6">
@@ -34,7 +41,8 @@ export function ProjectPricingField({
             placeholder="Price Range Min"
             variant="underline"
             staticLabel
-            value={values.priceMin}
+            readOnly={priceRangeReadOnly}
+            value={range.min}
             onChange={(value) => onChange("priceMin", value)}
           />
           <PostPropertyAmountInput
@@ -43,7 +51,8 @@ export function ProjectPricingField({
             placeholder="Price Range Max"
             variant="underline"
             staticLabel
-            value={values.priceMax}
+            readOnly={priceRangeReadOnly}
+            value={range.max}
             onChange={(value) => onChange("priceMax", value)}
           />
           <PostPropertyAmountInput
@@ -63,16 +72,6 @@ export function ProjectPricingField({
           options={PAYMENT_PLAN_OPTIONS}
           value={values.paymentPlan}
           onChange={(value) => onChange("paymentPlan", value)}
-        />
-
-        <PostPropertyInput
-          id="approvedBanks"
-          label="Approved Banks"
-          placeholder="e.g. SBI, HDFC, ICICI"
-          variant="underline"
-          staticLabel
-          value={values.approvedBanks}
-          onChange={(value) => onChange("approvedBanks", value)}
         />
       </div>
     </PostPropertyFieldSection>
@@ -99,6 +98,32 @@ export function VideoWalkthroughField({
         staticLabel
         value={values.videoLink}
         onChange={(value) => onChange("videoLink", value)}
+      />
+    </PostPropertyFieldSection>
+  );
+}
+
+export function VirtualTourField({
+  values,
+  onChange,
+}: {
+  values: ProjectDetailsValues;
+  onChange: OnChange;
+}) {
+  return (
+    <PostPropertyFieldSection
+      title="Virtual Tour Link"
+      description="Paste a 360° or virtual tour link of the project"
+    >
+      <PostPropertyInput
+        id="virtualTourLink"
+        label="Virtual Tour Link"
+        placeholder="https://"
+        type="url"
+        variant="underline"
+        staticLabel
+        value={values.virtualTourLink}
+        onChange={(value) => onChange("virtualTourLink", value)}
       />
     </PostPropertyFieldSection>
   );

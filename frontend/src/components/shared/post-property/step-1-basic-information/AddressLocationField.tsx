@@ -16,8 +16,10 @@ export default function AddressLocationField({
   onChange,
   errors = {},
   hideUnitFields = false,
+  projectNameRequired = true,
 }: {
   hideUnitFields?: boolean;
+  projectNameRequired?: boolean;
   values: AddressLocationValues;
   onChange: <K extends keyof AddressLocationValues>(
     field: K,
@@ -62,7 +64,7 @@ export default function AddressLocationField({
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           <PostPropertyInput
             id="projectName"
-            label="Name of Society / Building / Project Name*"
+            label={`Name of Society / Building / Project Name${projectNameRequired ? "*" : ""}`}
             variant="underline"
             prominentLabel
             compactProminentLabel

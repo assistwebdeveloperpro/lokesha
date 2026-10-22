@@ -1,9 +1,11 @@
 import { Plus, X } from "lucide-react";
+import ChipSelectField from "../ChipSelectField";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
 import PostPropertyInput from "../PostPropertyInput";
 import type { PropertyTypeId } from "../postPropertyForm.shared";
 import {
   BHK_OPTIONS,
+  PROJECT_TYPE_OPTIONS,
   createRowId,
   getUnitTypeConfig,
   type ConfigurationRow,
@@ -57,8 +59,16 @@ export function ProjectOverviewField({
   propertyType,
   subType,
   hideConfiguration = false,
+  showProjectType = false,
+  projectTypeError,
+  totalUnitsLabel = "Total Units",
+  hideTotalBlocks = false,
 }: {
   hideConfiguration?: boolean;
+  showProjectType?: boolean;
+  projectTypeError?: string;
+  totalUnitsLabel?: string;
+  hideTotalBlocks?: boolean;
   values: ProjectDetailsValues;
   onChange: OnChange;
   propertyType: PropertyTypeId;
@@ -110,7 +120,7 @@ export function ProjectOverviewField({
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             <PostPropertyInput
               id="totalUnits"
-              label="Total Units"
+              label={totalUnitsLabel}
               type="number"
               variant="underline"
               prominentLabel
@@ -118,16 +128,18 @@ export function ProjectOverviewField({
               value={values.totalUnits}
               onChange={(value) => onChange("totalUnits", value)}
             />
-            <PostPropertyInput
-              id="totalBlocks"
-              label="Total Blocks / Towers"
-              type="number"
-              variant="underline"
-              prominentLabel
-              compactProminentLabel
-              value={values.totalBlocks}
-              onChange={(value) => onChange("totalBlocks", value)}
-            />
+            {hideTotalBlocks ? null : (
+              <PostPropertyInput
+                id="totalBlocks"
+                label="Total Blocks / Towers"
+                type="number"
+                variant="underline"
+                prominentLabel
+                compactProminentLabel
+                value={values.totalBlocks}
+                onChange={(value) => onChange("totalBlocks", value)}
+              />
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
@@ -152,6 +164,18 @@ export function ProjectOverviewField({
               onChange={(value) => onChange("openSpacePercent", value)}
             />
           </div>
+
+          {showProjectType ? (
+            <ChipSelectField
+              legend="Project Type"
+              required
+              bare
+              options={PROJECT_TYPE_OPTIONS}
+              value={values.projectType}
+              error={projectTypeError}
+              onChange={(value) => onChange("projectType", value)}
+            />
+          ) : null}
         </div>
       </PostPropertyFieldSection>
 

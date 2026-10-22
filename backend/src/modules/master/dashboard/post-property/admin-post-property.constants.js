@@ -19,7 +19,7 @@ const MAX_FLOOR_PLAN_SIZE_BYTES = 10 * 1024 * 1024;
 const FLOOR_PLAN_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/heic"];
 const FLOOR_PLAN_EXTENSIONS = [".jpg", ".jpeg", ".png", ".heic"];
 
-const SALE_ONLY_PROJECT_FIELDS = ["priceMin", "priceMax", "pricePerSqft", "paymentPlan", "approvedBanks"];
+const SALE_ONLY_PROJECT_FIELDS = ["priceMin", "priceMax", "pricePerSqft", "paymentPlan"];
 
 module.exports = {
   PAYMENT_PLANS,

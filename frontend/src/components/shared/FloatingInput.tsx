@@ -25,6 +25,7 @@ type FloatingInputProps = {
   autoComplete?: string;
   min?: string;
   max?: string;
+  readOnly?: boolean;
 };
 
 const staticLabelClasses = "mb-2.5 block text-sm font-semibold text-slate-700";
@@ -54,6 +55,7 @@ export default function FloatingInput({
   autoComplete,
   min,
   max,
+  readOnly = false,
 }: FloatingInputProps) {
   const focusBorder =
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
@@ -93,7 +95,7 @@ export default function FloatingInput({
     hasError
       ? "border-red-500 focus:border-red-500"
       : `border-slate-300 ${focusBorder}`
-  }`;
+  } ${readOnly ? "cursor-default text-slate-500" : ""}`;
 
   if (isSelect) {
     return (
@@ -144,6 +146,7 @@ export default function FloatingInput({
             autoComplete={autoComplete}
             min={min}
             max={max}
+            readOnly={readOnly || (value !== undefined && !onChange)}
             onChange={onChange ? (e) => onChange(e.target.value) : undefined}
             className={`${underlineFieldClasses} ${hideNumberSpinnerClasses} placeholder:text-slate-400`}
           />
@@ -173,6 +176,7 @@ export default function FloatingInput({
           autoComplete={autoComplete}
           min={min}
           max={max}
+          readOnly={readOnly || (value !== undefined && !onChange)}
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className={
             isUnderline

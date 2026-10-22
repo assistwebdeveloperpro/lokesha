@@ -170,7 +170,6 @@ function buildProjectData(
     priceMax: sale(toNumberOrNull(project.priceMax)),
     pricePerSqft: sale(toNumberOrNull(project.pricePerSqft)),
     paymentPlan: sale(project.paymentPlan ? slugify(project.paymentPlan) : null),
-    approvedBanks: sale(toTextOrNull(project.approvedBanks)),
     videoLink: toTextOrNull(project.videoLink),
     configurations: project.configurations.map(({ unitType, bhk }) => ({
       unitType,
@@ -214,6 +213,7 @@ export function buildAdminPropertyFormData(
         getUnitTypeConfig(state.propertyType, state.propertySubType).showBhk,
       ),
       floorPlanLabels: floorPlans.map((row) => row.label.trim()),
+      floorPlanPlanTypes: floorPlans.map((row) => row.planType),
     }),
   );
   return formData;

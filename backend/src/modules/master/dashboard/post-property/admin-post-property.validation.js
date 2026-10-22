@@ -53,7 +53,6 @@ const projectDetailsSchema = Joi.object({
   priceMax: optionalAmount,
   pricePerSqft: optionalAmount,
   paymentPlan: Joi.string().valid(...c.PAYMENT_PLANS).allow(null),
-  approvedBanks: optionalText(500),
   videoLink: Joi.string().trim().uri({ scheme: ["http", "https"] }).max(500).allow("", null),
   configurations: list(configurationSchema),
   availableSizes: list(availableSizeSchema),
@@ -93,6 +92,10 @@ const adminCreatePropertySchema = createPropertySchema
       .items(Joi.string().trim().max(100).allow(""))
       .max(c.MAX_FLOOR_PLANS)
       .default([]),
+    floorPlanPlanTypes: Joi.array()
+      .items(Joi.string().valid("2d", "3d"))
+      .max(c.MAX_FLOOR_PLANS)
+      .default([]),
   })
   .custom(validateProjectRules);
 
@@ -101,7 +104,7 @@ const isBlank = (value) => value === undefined || value === null || String(value
 const SCALAR_KEYS = [
   "developerName", "launchDate", "totalUnits", "totalBlocks", "projectArea", "openSpacePercent",
   "carpetAreaMax", "superBuildUpMax", "priceMin", "priceMax", "pricePerSqft", "paymentPlan",
-  "approvedBanks", "videoLink",
+  "videoLink",
 ];
 const LIST_KEYS = [
   "configurations", "availableSizes", "primeLocationHighlights", "projectHighlights", "faqs",

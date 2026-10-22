@@ -339,10 +339,11 @@ export type AddressLocationFieldErrors = Partial<
 
 export function validateAddressLocation(
   values: AddressLocationValues,
+  options?: { projectNameOptional?: boolean },
 ): AddressLocationFieldErrors {
   const errors: AddressLocationFieldErrors = {};
 
-  if (!values.projectName.trim()) {
+  if (!options?.projectNameOptional && !values.projectName.trim()) {
     errors.projectName =
       "Please enter the name of society, building, or project name";
   }
@@ -568,6 +569,7 @@ type PropertyDetailsValidationOptions = {
   subType?: string;
   possessionDatePastAnchor?: string;
   availableFromPastAnchor?: string;
+  builder?: boolean;
 };
 
 function validateCarpetArea(
@@ -934,6 +936,7 @@ export function validatePropertyDetails(
     options?.listingType,
     options?.propertyType,
     options?.subType,
+    options?.builder,
   );
   if (saleConfig) {
     return validateSaleDetails(values, saleConfig.details, options);
@@ -1121,13 +1124,14 @@ export type AmenitiesFieldErrors = Partial<
 export function validateAmenities(
   values: AmenitiesValues,
   propertyType?: PropertyTypeId,
-  context?: { listingType?: ListingTypeId; subType?: string },
+  context?: { listingType?: ListingTypeId; subType?: string; builder?: boolean },
 ): AmenitiesFieldErrors {
   const errors: AmenitiesFieldErrors = {};
   const saleConfig = getFormConfig(
     context?.listingType,
     propertyType,
     context?.subType,
+    context?.builder,
   );
 
   if (saleConfig) {
@@ -1234,7 +1238,13 @@ export const PHOTO_CATEGORY_OPTIONS = [
   { id: "brochure-images", label: "Brochure Images" },
   { id: "cluster-plan", label: "Cluster Plan" },
   { id: "elevation", label: "Elevation" },
+  { id: "construction-progress", label: "Construction Progress" },
 ] as const;
+
+// Shown only on the builder form, never in the default category list
+export const BUILDER_ONLY_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
+  "construction-progress",
+];
 
 export type PhotoCategoryId = (typeof PHOTO_CATEGORY_OPTIONS)[number]["id"];
 
@@ -1294,7 +1304,9 @@ function getBasePhotoCategories(
     ? ids.map(
         (id) => PHOTO_CATEGORY_OPTIONS.find((category) => category.id === id)!,
       )
-    : PHOTO_CATEGORY_OPTIONS;
+    : PHOTO_CATEGORY_OPTIONS.filter(
+        (category) => !BUILDER_ONLY_PHOTO_CATEGORY_IDS.includes(category.id),
+      );
 }
 
 export function arePhotosRequired(

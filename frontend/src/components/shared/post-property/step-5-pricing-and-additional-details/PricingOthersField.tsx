@@ -4,7 +4,7 @@ import PostPropertyAmountInput from "./PostPropertyAmountInput";
 import PostPropertyInput from "../PostPropertyInput";
 import ExpandableIconTileSelect from "../ExpandableIconTileSelect";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import { getSaleFormConfig } from "../postPropertySaleConfig";
+import { getFormConfig, getSaleFormConfig } from "../postPropertySaleConfig";
 import {
   PRICE_INCLUSION_OPTIONS,
   type PricingOthersFieldErrors,
@@ -48,6 +48,24 @@ export default function PricingOthersField({
     propertyType,
     subType,
   )?.pricing;
+
+  // Builder: price comes from Available Sizes, charges are added separately
+  if (builderLayout) {
+    const builderPricing = getFormConfig("sale", propertyType, subType, true)?.pricing;
+    const showPriceInclusion = builderPricing ? builderPricing.priceInclusion : true;
+
+    return showPriceInclusion ? (
+      <div className="space-y-5 sm:space-y-6">
+        <ExpandableIconTileSelect
+          legend="Price Inclusion"
+          options={PRICE_INCLUSION_OPTIONS}
+          value={values.priceInclusion}
+          onChange={(nextValue) => onChange("priceInclusion", nextValue)}
+          visibleCount={PRICE_INCLUSION_OPTIONS.length}
+        />
+      </div>
+    ) : null;
+  }
 
   if (saleConfig) {
     return (
@@ -325,21 +343,6 @@ export default function PricingOthersField({
             />
           </div>
         </PostPropertyFieldSection>
-      </div>
-    );
-  }
-
-  // Builder: price comes from Available Sizes, charges are added per BHK
-  if (builderLayout) {
-    return (
-      <div className="space-y-5 sm:space-y-6">
-        <ExpandableIconTileSelect
-          legend="Price Inclusion"
-          options={PRICE_INCLUSION_OPTIONS}
-          value={values.priceInclusion}
-          onChange={(nextValue) => onChange("priceInclusion", nextValue)}
-          visibleCount={PRICE_INCLUSION_OPTIONS.length}
-        />
       </div>
     );
   }

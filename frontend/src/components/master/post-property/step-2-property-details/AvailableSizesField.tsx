@@ -20,17 +20,18 @@ const bhkOptions = [
   ...BHK_OPTIONS.map((value) => ({ value, label: value })),
 ];
 
-const sizeUnitOptions = SIZE_UNIT_OPTIONS.map((value) => ({
-  value,
-  label: value,
-}));
-
 export default function AvailableSizesField({
   values,
   onChange,
   propertyType,
   subType,
+  hideBhk = false,
+  sizeUnits = SIZE_UNIT_OPTIONS,
+  showUnitsAvailable = false,
 }: {
+  hideBhk?: boolean;
+  sizeUnits?: string[];
+  showUnitsAvailable?: boolean;
   values: ProjectDetailsValues;
   propertyType: PropertyTypeId;
   subType: string[];
@@ -39,7 +40,17 @@ export default function AvailableSizesField({
     value: ProjectDetailsValues[K],
   ) => void;
 }) {
-  const { unitTypes, showBhk } = getUnitTypeConfig(propertyType, subType);
+  const config = getUnitTypeConfig(propertyType, subType);
+  const { unitTypes } = config;
+  const showBhk = config.showBhk && !hideBhk;
+  const sizeUnitOptions = sizeUnits.map((value) => ({ value, label: value }));
+  const columnCount = 4 + (showBhk ? 1 : 0) + (showUnitsAvailable ? 1 : 0);
+  const gridClassName =
+    columnCount === 6
+      ? "md:grid-cols-6"
+      : columnCount === 5
+        ? "md:grid-cols-5"
+        : "md:grid-cols-4";
   const unitTypeOptions = [
     { value: "", label: "Select type" },
     ...unitTypes.map((value) => ({ value, label: value })),
@@ -60,7 +71,7 @@ export default function AvailableSizesField({
         {rows.map((row, index) => (
           <div key={row.id} className="flex items-start gap-3">
             <div
-              className={`grid flex-1 gap-4 md:gap-6 ${showBhk ? "md:grid-cols-5" : "md:grid-cols-4"}`}
+              className={`grid flex-1 gap-4 md:gap-6 ${gridClassName}`}
             >
               {showBhk ? (
                 <PostPropertyInput
@@ -116,6 +127,18 @@ export default function AvailableSizesField({
                 value={row.price}
                 onChange={(value) => update(row.id, { price: value })}
               />
+              {showUnitsAvailable ? (
+                <PostPropertyInput
+                  id={`sizeUnitsAvailable-${row.id}`}
+                  label="Units Available"
+                  placeholder="e.g. 20"
+                  type="number"
+                  variant="underline"
+                  staticLabel
+                  value={row.unitsAvailable}
+                  onChange={(value) => update(row.id, { unitsAvailable: value })}
+                />
+              ) : null}
             </div>
             <button
               type="button"
@@ -138,7 +161,15 @@ export default function AvailableSizesField({
           onClick={() =>
             onChange("availableSizes", [
               ...rows,
-              { ...createAvailableSizeRow(), sizeUnit: rows.at(-1)?.sizeUnit || SIZE_UNIT_OPTIONS[0] },
+              {
+                ...createAvailableSizeRow(
+                  showBhk
+                    ? ""
+                    : rows.at(-1)?.unitType ||
+                        (unitTypes.length === 1 ? unitTypes[0] : ""),
+                ),
+                sizeUnit: rows.at(-1)?.sizeUnit || sizeUnits[0],
+              },
             ])
           }
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-sky-300 bg-sky-50/30 px-4 py-2.5 text-sm font-semibold text-sky-700 transition hover:border-sky-500 hover:bg-sky-50/60"

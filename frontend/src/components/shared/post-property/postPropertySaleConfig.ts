@@ -25,6 +25,8 @@ export type SaleDetailsConfig = {
   leaseContractRequired: boolean;
   managedBy: boolean;
   plotChecks: boolean;
+  anyConstruction: boolean;
+  availableFromLabel?: string;
   penthouse: boolean;
   food: boolean;
   ageOfConstruction: boolean;
@@ -137,6 +139,7 @@ const BASE_DETAILS: SaleDetailsConfig = {
   leaseContractRequired: true,
   managedBy: false,
   plotChecks: false,
+  anyConstruction: true,
   penthouse: false,
   food: false,
   ageOfConstruction: false,
@@ -533,14 +536,123 @@ const RENT_CONFIGS: Partial<
   ]),
 );
 
-// Returns null for sub types that keep the default form
-export function getFormConfig(
-  listingType: ListingTypeId | undefined,
+type BuilderOverride = {
+  details?: Partial<SaleDetailsConfig>;
+  amenities?: Partial<SaleAmenitiesConfig>;
+  pricing?: Partial<SalePricingConfig>;
+};
+
+// Builder residential units take BHK from Available Sizes, not from the form
+const BUILDER_RESIDENTIAL: BuilderOverride = {
+  details: {
+    bedrooms: "hidden",
+    balcony: "hidden",
+    bathrooms: "hidden",
+    lift: false,
+    floorNumber: false,
+  },
+};
+
+const BUILDER_COMMERCIAL: BuilderOverride = {
+  details: { floorNumber: false, leasedOut: "hidden", leaseContractRequired: false },
+  pricing: { leaseAmount: false, yearlyIncrement: false },
+};
+
+const BUILDER_PLOT: BuilderOverride = {
+  details: {
+    transaction: "hidden",
+    transactionRequired: false,
+    floorsAllowed: "optional",
+    availableFrom: "optional",
+    availableFromLabel: "Possession / Handover Date",
+    leasedOut: "hidden",
+    managedBy: false,
+    anyConstruction: false,
+  },
+  amenities: { facing: "optional", openSides: false, clubMembership: false },
+};
+
+const BUILDER_LAND: BuilderOverride = {
+  details: {
+    transaction: "hidden",
+    transactionRequired: false,
+    floorsAllowed: "hidden",
+    leasedOut: "hidden",
+    managedBy: false,
+    anyConstruction: false,
+  },
+  amenities: { openSides: false },
+};
+
+const BUILDER_OVERRIDES: Partial<Record<PropertyTypeId, BuilderOverride>> = {
+  residential: BUILDER_RESIDENTIAL,
+  commercial: BUILDER_COMMERCIAL,
+  plot: BUILDER_PLOT,
+  land: BUILDER_LAND,
+};
+
+// Industrial sheds have no stacked floors, so Total Floors stays off from step 2
+const BUILDER_SUBTYPE_OVERRIDES: Partial<
+  Record<PropertyTypeId, Record<string, BuilderOverride>>
+> = {
+  commercial: {
+    "industrial-shed": { details: { totalFloors: false } },
+  },
+};
+
+const builderConfigCache = new Map<string, SaleFormConfig | null>();
+
+// Sale config adjusted for a logged in builder; null keeps the default form
+export function getBuilderSaleFormConfig(
   propertyType: PropertyTypeId | undefined,
   subType: string | undefined,
 ): SaleFormConfig | null {
   if (!propertyType || !subType) {
     return null;
+  }
+
+  const cacheKey = `${propertyType}:${subType}`;
+  if (builderConfigCache.has(cacheKey)) {
+    return builderConfigCache.get(cacheKey) ?? null;
+  }
+
+  const base = SALE_CONFIGS[propertyType]?.[subType];
+  const override = BUILDER_OVERRIDES[propertyType];
+  const subtypeOverride = BUILDER_SUBTYPE_OVERRIDES[propertyType]?.[subType];
+  let config: SaleFormConfig | null = null;
+
+  if (base && override) {
+    config = {
+      details: { ...base.details, ...override.details, ...subtypeOverride?.details },
+      amenities: {
+        ...base.amenities,
+        washrooms:
+          base.amenities.washrooms === "hidden" ? "hidden" : "optional",
+        ...override.amenities,
+        ...subtypeOverride?.amenities,
+      },
+      photos: base.photos,
+      pricing: { ...base.pricing, ...override.pricing, ...subtypeOverride?.pricing },
+    };
+  }
+
+  builderConfigCache.set(cacheKey, config);
+  return config;
+}
+
+// Returns null for sub types that keep the default form
+export function getFormConfig(
+  listingType: ListingTypeId | undefined,
+  propertyType: PropertyTypeId | undefined,
+  subType: string | undefined,
+  builder = false,
+): SaleFormConfig | null {
+  if (!propertyType || !subType) {
+    return null;
+  }
+
+  if (builder && listingType === "sale") {
+    return getBuilderSaleFormConfig(propertyType, subType);
   }
 
   if (listingType === "rent-lease") {

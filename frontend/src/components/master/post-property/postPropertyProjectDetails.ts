@@ -41,7 +41,44 @@ export const PAYMENT_PLAN_OPTIONS = [
 
 export const SIZE_UNIT_OPTIONS = ["sq ft", "sq yd", "sq m", "sq km"];
 
+export const LAND_SIZE_UNIT_OPTIONS = [...SIZE_UNIT_OPTIONS, "Acres", "Guntha", "Bigha"];
+
 export const PROJECT_AREA_UNIT_OPTIONS = ["sq yd", "sq ft"];
+
+export const PROJECT_TYPE_OPTIONS = [
+  "New Launch",
+  "Under Construction",
+  "Ready to Move",
+  "Completed",
+];
+
+export const STAR_CATEGORY_OPTIONS = [
+  "1 Star",
+  "2 Star",
+  "3 Star",
+  "4 Star",
+  "5 Star",
+  "Unrated",
+];
+
+export const CONVERSION_STATUS_OPTIONS = ["Converted", "Not Converted", "In Process"];
+
+export const INFRASTRUCTURE_OPTIONS = [
+  "Internal Roads",
+  "Drainage",
+  "Water Supply",
+  "Electricity",
+  "Street Lights",
+  "Sewage",
+  "Park / Green Space",
+];
+
+export const IRRIGATION_OPTIONS = ["Borewell", "Canal", "Well", "River", "None"];
+
+// Construction Progress photos apply only to these project types
+export function showsConstructionProgress(projectType: string): boolean {
+  return projectType === "New Launch" || projectType === "Under Construction";
+}
 
 export type AvailableSizeRow = {
   id: string;
@@ -50,6 +87,7 @@ export type AvailableSizeRow = {
   sizeUnit: string;
   size: string;
   price: string;
+  unitsAvailable: string;
 };
 
 export type SpecificationItem = {
@@ -73,12 +111,25 @@ export type FaqRow = { id: string; question: string; answer: string };
 
 export type HighlightRow = { id: string; place: string; distance: string };
 
+export type FloorPlanPlanType = "2d" | "3d";
+
 export type FloorPlanRow = {
   id: string;
   label: string;
+  planType: FloorPlanPlanType;
   file: File | null;
   previewUrl: string;
 };
+
+export function findFloorPlanRow(
+  floorPlans: FloorPlanRow[],
+  label: string,
+  planType: FloorPlanPlanType,
+): FloorPlanRow | undefined {
+  return floorPlans.find(
+    (item) => item.label === label && item.planType === planType,
+  );
+}
 
 export type BhkCarParking = {
   available: boolean;
@@ -109,6 +160,22 @@ export const EMPTY_BHK_CAR_PARKING: BhkCarParking = {
 export type ProjectDetailsValues = {
   carpetAreaMax: string;
   superBuildUpMax: string;
+  plotAreaMax: string;
+  terraceAreaMax: string;
+  projectType: string;
+  approvedBy: string;
+  reraLink: string;
+  virtualTourLink: string;
+  distanceFromCity: string;
+  storageCapacity: string;
+  powerLoad: string;
+  loadingBays: string;
+  clearHeight: string;
+  starCategory: string;
+  infrastructure: string[];
+  naConversionDone: boolean;
+  conversionStatus: string;
+  irrigationSources: string[];
   developerName: string;
   launchDate: string;
   totalUnits: string;
@@ -132,7 +199,6 @@ export type ProjectDetailsValues = {
   priceMax: string;
   pricePerSqft: string;
   paymentPlan: string;
-  approvedBanks: string;
   videoLink: string;
   faqs: FaqRow[];
 };
@@ -141,15 +207,32 @@ export function createRowId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-export function createAvailableSizeRow(): AvailableSizeRow {
+export function createAvailableSizeRow(unitType = ""): AvailableSizeRow {
   return {
     id: createRowId(),
     bhk: "",
-    unitType: "",
+    unitType,
     sizeUnit: SIZE_UNIT_OPTIONS[0],
     size: "",
     price: "",
+    unitsAvailable: "",
   };
+}
+
+// Lowest and highest price typed in Available Sizes (raw numbers as strings)
+export function getAvailableSizesPriceRange(values: ProjectDetailsValues): {
+  min: string;
+  max: string;
+} {
+  const prices = values.availableSizes
+    .map((row) => Number(row.price))
+    .filter((price) => Number.isFinite(price) && price > 0);
+
+  if (prices.length === 0) {
+    return { min: "", max: "" };
+  }
+
+  return { min: String(Math.min(...prices)), max: String(Math.max(...prices)) };
 }
 
 // Unique BHKs picked in Available Sizes, in the order they were added
@@ -200,10 +283,28 @@ export function createInitialSpecifications(): SpecificationGroup[] {
   }));
 }
 
-export function createInitialProjectDetails(): ProjectDetailsValues {
+export function createInitialProjectDetails(
+  defaultUnitType = "",
+): ProjectDetailsValues {
   return {
     carpetAreaMax: "",
     superBuildUpMax: "",
+    plotAreaMax: "",
+    terraceAreaMax: "",
+    projectType: "",
+    approvedBy: "",
+    reraLink: "",
+    virtualTourLink: "",
+    distanceFromCity: "",
+    storageCapacity: "",
+    powerLoad: "",
+    loadingBays: "",
+    clearHeight: "",
+    starCategory: "",
+    infrastructure: [],
+    naConversionDone: false,
+    conversionStatus: "",
+    irrigationSources: [],
     developerName: "",
     launchDate: "",
     totalUnits: "",
@@ -216,18 +317,19 @@ export function createInitialProjectDetails(): ProjectDetailsValues {
     specifications: createInitialSpecifications(),
     brochureImages: [],
     configurations: [{ id: createRowId(), unitType: "", bhk: "" }],
-    availableSizes: [createAvailableSizeRow()],
+    availableSizes: [createAvailableSizeRow(defaultUnitType)],
     bhkCarParking: {},
     bhkCharges: {},
     chargeBhks: [],
     primeLocationHighlights: [{ id: createRowId(), place: "", distance: "" }],
-    floorPlans: [{ id: createRowId(), label: "", file: null, previewUrl: "" }],
+    floorPlans: [
+      { id: createRowId(), label: "", planType: "2d", file: null, previewUrl: "" },
+    ],
     projectHighlights: [{ id: createRowId(), text: "" }],
     priceMin: "",
     priceMax: "",
     pricePerSqft: "",
     paymentPlan: "",
-    approvedBanks: "",
     videoLink: "",
     faqs: [{ id: createRowId(), question: "", answer: "" }],
   };

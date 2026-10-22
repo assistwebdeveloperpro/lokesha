@@ -157,20 +157,43 @@ export const landAreaTypeDropdownOptions = [
   })),
 ];
 
+export type AreaMaxField = { value: string; onChange: (value: string) => void };
+
+// Optional builder "Max" inputs shown next to the plot / terrace area number
+export type AreaMaxFields = { plot?: AreaMaxField; terrace?: AreaMaxField };
+
+function AreaMaxInput({ id, label, field }: { id: string; label: string; field: AreaMaxField }) {
+  return (
+    <PostPropertyInput
+      id={id}
+      label={label}
+      placeholder="e.g. 1000"
+      variant="underline"
+      type="number"
+      staticLabel
+      value={field.value}
+      onChange={field.onChange}
+    />
+  );
+}
+
 // Plot area / length / breadth and terrace area rows shown inside Area Details
 export function AreaExtraFields({
   values,
   onChange,
   errors,
   cfg,
-}: PropertyDetailsPartProps & { cfg: SaleDetailsConfig }) {
+  maxFields,
+}: PropertyDetailsPartProps & { cfg: SaleDetailsConfig; maxFields?: AreaMaxFields }) {
   const plotStar = cfg.plotArea === "required" ? "*" : "";
 
   return (
     <>
       {cfg.plotArea !== "hidden" ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <div
+            className={`grid gap-4 md:gap-6 ${maxFields?.plot ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+          >
             <PostPropertyInput
               id="plotAreaNumber"
               label={`Plot Area Number${plotStar}`}
@@ -182,6 +205,9 @@ export function AreaExtraFields({
               error={errors.plotAreaNumber}
               onChange={(value) => onChange("plotAreaNumber", value)}
             />
+            {maxFields?.plot ? (
+              <AreaMaxInput id="plotAreaMax" label="Plot Area Max" field={maxFields.plot} />
+            ) : null}
             <AreaTypeSelect
               id="plotAreaType"
               label={`Plot Area Type${plotStar}`}
@@ -230,7 +256,9 @@ export function AreaExtraFields({
       ) : null}
 
       {cfg.terraceArea ? (
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+        <div
+          className={`grid gap-4 md:gap-6 ${maxFields?.terrace ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+        >
           <PostPropertyInput
             id="terraceAreaNumber"
             label="Terrace Area*"
@@ -242,6 +270,9 @@ export function AreaExtraFields({
             error={errors.terraceAreaNumber}
             onChange={(value) => onChange("terraceAreaNumber", value)}
           />
+          {maxFields?.terrace ? (
+            <AreaMaxInput id="terraceAreaMax" label="Terrace Area Max" field={maxFields.terrace} />
+          ) : null}
           <AreaTypeSelect
             id="terraceAreaType"
             label="Terrace Area Type*"
@@ -549,9 +580,11 @@ export function EntranceAvailableRow({
   onChange,
   errors,
   availableRequired = false,
+  availableLabel = "Available From",
   showEntrance = true,
   bare = false,
 }: PropertyDetailsPartProps & {
+  availableLabel?: string;
   availableRequired?: boolean;
   showEntrance?: boolean;
   bare?: boolean;
@@ -577,8 +610,8 @@ export function EntranceAvailableRow({
       <div className="min-w-0">
         <PostPropertyInput
           id="availableFrom"
-          label={`Available From${availableRequired ? "*" : ""}`}
-          placeholder="Available From"
+          label={`${availableLabel}${availableRequired ? "*" : ""}`}
+          placeholder={availableLabel}
           variant="underline"
           type="date"
           staticLabel

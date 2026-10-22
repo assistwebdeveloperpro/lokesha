@@ -900,6 +900,8 @@ export default function AdminPostPropertyContent() {
 
             <FloorPlansField
               projectName={addressLocation.projectName}
+              propertyType={propertyType}
+              subType={propertySubType}
               values={projectDetails}
               onChange={handleProjectDetailsChange}
             />

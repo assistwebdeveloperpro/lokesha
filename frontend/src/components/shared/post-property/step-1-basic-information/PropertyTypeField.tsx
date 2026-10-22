@@ -12,7 +12,9 @@ export default function PropertyTypeField({
   onChange,
   subType,
   onSubTypeChange,
+  hiddenIds = [],
 }: {
+  hiddenIds?: PropertyTypeId[];
   value: PropertyTypeId;
   onChange: (value: PropertyTypeId) => void;
   subType: string;
@@ -27,7 +29,7 @@ export default function PropertyTypeField({
       description="Select the category that best describes your property"
     >
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {PROPERTY_TYPES.map((type) => {
+        {PROPERTY_TYPES.filter((type) => !hiddenIds.includes(type.id)).map((type) => {
           const isSelected = value === type.id;
           const imageSrc =
             typeof type.image === "string" ? type.image : type.image.src;

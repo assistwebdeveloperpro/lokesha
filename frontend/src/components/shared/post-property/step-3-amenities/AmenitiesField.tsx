@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { getCatalogAmenities } from "@/services/property.service";
 import PostPropertyInput from "../PostPropertyInput";
 import ChipSelectField from "../ChipSelectField";
@@ -61,8 +61,12 @@ export default function AmenitiesField({
   onChange,
   errors = {},
   hideCarParking = false,
+  builder = false,
+  builderExtras,
 }: {
   hideCarParking?: boolean;
+  builder?: boolean;
+  builderExtras?: ReactNode;
   isRent?: boolean;
   propertyType?: PropertyTypeId;
   subType?: string;
@@ -78,6 +82,7 @@ export default function AmenitiesField({
     isRent ? "rent-lease" : "sale",
     propertyType,
     subType,
+    builder,
   )?.amenities;
   const isCommercial = propertyType === "commercial";
   const isPg = propertyType === "pg-co-living";
@@ -254,7 +259,7 @@ export default function AmenitiesField({
         />
       ) : null}
 
-      {showRera || showOpenSides ? (
+      {showRera || showOpenSides || builderExtras ? (
         <PostPropertyFieldSection title="Additional Details">
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             {showRera ? (
@@ -268,6 +273,7 @@ export default function AmenitiesField({
                 onChange={(nextValue) => onChange("reraNumber", nextValue)}
               />
             ) : null}
+            {builderExtras}
             {showOpenSides ? (
               <PostPropertyInput
                 id="openSides"

@@ -17,6 +17,8 @@ import {
   ManagedByField,
   MultiChipSelectField,
   TotalFloorsFields,
+  type AreaMaxField,
+  type AreaMaxFields,
   TransactionConstructionSections,
   areaTypeDropdownOptions,
   dropdownMenuClassName,
@@ -230,10 +232,12 @@ function PlotLandAreaSection({
   required,
   landUnits = false,
   showRoadWidth = required,
+  plotAreaMax,
 }: PropertyDetailsPartProps & {
   required: boolean;
   landUnits?: boolean;
   showRoadWidth?: boolean;
+  plotAreaMax?: AreaMaxField;
 }) {
   const star = required ? "*" : "";
   const unitField = (
@@ -263,19 +267,49 @@ function PlotLandAreaSection({
       title="Area Details"
       description="Enter plot area and dimensions"
     >
+      {plotAreaMax ? (
+        <div className="mb-4 grid gap-4 md:mb-6 md:grid-cols-3 md:gap-6">
+          <PostPropertyInput
+            id="carpetAreaNumber"
+            label={`Plot Area Number${star}`}
+            placeholder="Plot Area Number"
+            variant="underline"
+            type="number"
+            staticLabel
+            value={values.carpetAreaNumber}
+            error={errors.carpetAreaNumber}
+            onChange={(value) => onChange("carpetAreaNumber", value)}
+          />
+          <PostPropertyInput
+            id="plotAreaMax"
+            label="Plot Area Max"
+            placeholder="Plot Area Max"
+            variant="underline"
+            type="number"
+            staticLabel
+            value={plotAreaMax.value}
+            onChange={plotAreaMax.onChange}
+          />
+          {unitField("carpetAreaType", "Plot Area Type", required)}
+        </div>
+      ) : null}
       <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-        <PostPropertyInput
-          id="carpetAreaNumber"
-          label={`Plot Area Number${star}`}
-          placeholder="Plot Area Number"
-          variant="underline"
-          type="number"
-          staticLabel
-          value={values.carpetAreaNumber}
-          error={errors.carpetAreaNumber}
-          onChange={(value) => onChange("carpetAreaNumber", value)}
-        />
-        {unitField("carpetAreaType", "Plot Area Type", required)}
+        {plotAreaMax ? null : (
+          <>
+            <PostPropertyInput
+              id="carpetAreaNumber"
+              label={`Plot Area Number${star}`}
+              placeholder="Plot Area Number"
+              variant="underline"
+              type="number"
+              staticLabel
+              value={values.carpetAreaNumber}
+              error={errors.carpetAreaNumber}
+              onChange={(value) => onChange("carpetAreaNumber", value)}
+            />
+            {unitField("carpetAreaType", "Plot Area Type", required)}
+          </>
+        )}
         <PostPropertyInput
           id="plotLengthNumber"
           label="Plot Length Number"
@@ -315,14 +349,20 @@ function PlotLandAreaSection({
   );
 }
 
-function PlotLandCheckboxes({ values, onChange }: PropertyDetailsPartProps) {
+function PlotLandCheckboxes({
+  values,
+  onChange,
+  showAnyConstruction = true,
+}: PropertyDetailsPartProps & { showAnyConstruction?: boolean }) {
   return (
     <div className="space-y-4">
-      <CheckboxRow
-        label="Any Construction"
-        checked={values.anyConstruction}
-        onChange={(checked) => onChange("anyConstruction", checked)}
-      />
+      {showAnyConstruction ? (
+        <CheckboxRow
+          label="Any Construction"
+          checked={values.anyConstruction}
+          onChange={(checked) => onChange("anyConstruction", checked)}
+        />
+      ) : null}
       <CheckboxRow
         label="Boundary Wall Made"
         checked={values.boundaryWallMade}
@@ -421,11 +461,13 @@ export function SaleDetails({
   cfg,
   areaSlot,
   afterAreaSlot,
+  maxFields,
   ...part
 }: PropertyDetailsPartProps & {
   cfg: SaleDetailsConfig;
   areaSlot?: ReactNode;
   afterAreaSlot?: ReactNode;
+  maxFields?: AreaMaxFields;
 }) {
   const { values, onChange, errors } = part;
 
@@ -456,11 +498,12 @@ export function SaleDetails({
           required={cfg.plotArea === "required"}
           landUnits={cfg.landUnits}
           showRoadWidth={cfg.roadWidth === "area"}
+          plotAreaMax={maxFields?.plot}
         />
       ) : (
         (areaSlot ?? (
           <AreaDetailsSection {...part}>
-            <AreaExtraFields {...part} cfg={cfg} />
+            <AreaExtraFields {...part} cfg={cfg} maxFields={maxFields} />
           </AreaDetailsSection>
         ))
       )}
@@ -553,7 +596,9 @@ export function SaleDetails({
         </>
       ) : null}
 
-      {cfg.plotChecks ? <PlotLandCheckboxes {...part} /> : null}
+      {cfg.plotChecks ? (
+        <PlotLandCheckboxes {...part} showAnyConstruction={cfg.anyConstruction} />
+      ) : null}
 
       {cfg.rentalSection ? (
         <>
@@ -600,6 +645,7 @@ export function SaleDetails({
         <EntranceAvailableRow
           {...part}
           showEntrance={cfg.entrance}
+          availableLabel={cfg.availableFromLabel}
           availableRequired={cfg.availableFrom === "required"}
         />
       ) : null}

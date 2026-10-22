@@ -18,16 +18,28 @@ import BuilderPropertyDetailsField from "@/components/master/post-property/step-
 import FloorPlansField from "@/components/master/post-property/step-4-media-upload/FloorPlansField";
 import {
   ProjectFaqField,
+  ProjectPricingField,
   VideoWalkthroughField,
+  VirtualTourField,
 } from "@/components/master/post-property/step-5-pricing-and-additional-details/ProjectPricingFaqField";
 import {
   createInitialProjectDetails,
+  getAvailableSizesPriceRange,
   getFloorPlanTitles,
+  showsConstructionProgress,
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
 import BhkCarParkingField from "./builder/BhkCarParkingField";
 import BhkChargesField from "./builder/BhkChargesField";
 import BrochureImagesField from "./builder/BrochureImagesField";
+import BuilderExtraDetailsField from "./builder/BuilderExtraDetailsField";
+import { getBuilderConfig } from "./builder/builderConfig";
+import {
+  validateBuilderPricing,
+  validateBuilderProjectType,
+  type BuilderFieldErrors,
+} from "./builder/builderValidation";
+import PostPropertyInput from "./PostPropertyInput";
 import {
   ProjectExtraDetailsField,
   ProjectSpecificationsField,
@@ -203,6 +215,11 @@ export default function PostPropertyContent() {
     createInitialProjectDetails,
   );
   const showBuilderFields = isAuthReady && role === "builder";
+  const builderConfig = getBuilderConfig(propertyType, propertySubType);
+  const [builderErrors, setBuilderErrors] = useState<BuilderFieldErrors>({});
+  const addressValidationOptions = {
+    projectNameOptional: showBuilderFields && !builderConfig.projectNameRequired,
+  };
 
   // Builder form hides these fields, so their errors must not block the steps
   const withoutHiddenDetailsErrors = (errors: PropertyDetailsFieldErrors) => {
@@ -232,7 +249,48 @@ export default function PostPropertyContent() {
     field: K,
     value: ProjectDetailsValues[K],
   ) => {
-    setProjectDetails((current) => ({ ...current, [field]: value }));
+    setProjectDetails((current) => {
+      const next = { ...current, [field]: value };
+
+      if (field === "availableSizes") {
+        const range = getAvailableSizesPriceRange(next);
+        next.priceMin = range.min;
+        next.priceMax = range.max;
+      }
+
+      return next;
+    });
+
+    if (field === "projectType") {
+      setBuilderErrors((current) => ({ ...current, projectType: undefined }));
+
+      // Construction Progress photos only exist for these project types
+      if (!showsConstructionProgress(String(value))) {
+        setPhotosVideos((current) => {
+          const media = current.mediaByCategory["construction-progress"];
+          if (media.length === 0) {
+            return current;
+          }
+          media.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+          return {
+            ...current,
+            mediaByCategory: {
+              ...current.mediaByCategory,
+              "construction-progress": [],
+            },
+          };
+        });
+      }
+    }
+  };
+
+  const resetProjectDetails = (nextPropertyType: PropertyTypeId, nextSubType: string) => {
+    setProjectDetails(
+      createInitialProjectDetails(
+        getBuilderConfig(nextPropertyType, nextSubType).defaultUnitType,
+      ),
+    );
+    setBuilderErrors({});
   };
 
   // Prefill every step once the property being edited has loaded
@@ -308,7 +366,7 @@ export default function PostPropertyContent() {
   };
 
   const handleBasicDetailsNext = () => {
-    const errors = validateAddressLocation(addressLocation);
+    const errors = validateAddressLocation(addressLocation, addressValidationOptions);
 
     if (hasAddressLocationErrors(errors)) {
       setAddressLocationErrors(errors);
@@ -406,11 +464,16 @@ export default function PostPropertyContent() {
         subType: propertySubType,
         possessionDatePastAnchor: possessionDatePastAnchor || undefined,
         availableFromPastAnchor: availableFromPastAnchor || undefined,
+        builder: showBuilderFields,
       }),
     );
+    const projectErrors = showBuilderFields
+      ? validateBuilderProjectType(projectDetails, builderConfig)
+      : {};
 
-    if (hasPropertyDetailsErrors(errors)) {
+    if (hasPropertyDetailsErrors(errors) || projectErrors.projectType) {
       setPropertyDetailsErrors(errors);
+      setBuilderErrors((current) => ({ ...current, ...projectErrors }));
       return;
     }
 
@@ -443,6 +506,7 @@ export default function PostPropertyContent() {
     const errors = validateAmenities(amenities, propertyType, {
       listingType,
       subType: propertySubType,
+      builder: showBuilderFields,
     });
 
     if (hasAmenitiesErrors(errors)) {
@@ -459,6 +523,10 @@ export default function PostPropertyContent() {
     value: PricingOthersValues[K],
   ) => {
     setPricingOthers((current) => ({ ...current, [field]: value }));
+
+    if (field === "assuredReturn") {
+      setBuilderErrors((current) => ({ ...current, assuredReturn: undefined }));
+    }
 
     setPricingOthersErrors((current) => {
       if (!(field in current)) {
@@ -485,7 +553,10 @@ export default function PostPropertyContent() {
   };
 
   const applyFullFormValidation = (): number | null => {
-    const nextAddressErrors = validateAddressLocation(addressLocation);
+    const nextAddressErrors = validateAddressLocation(
+      addressLocation,
+      addressValidationOptions,
+    );
     const nextPropertyDetailsErrors = withoutHiddenDetailsErrors(
       validatePropertyDetails(propertyDetails, {
         listingType,
@@ -493,11 +564,19 @@ export default function PostPropertyContent() {
         subType: propertySubType,
         possessionDatePastAnchor: possessionDatePastAnchor || undefined,
         availableFromPastAnchor: availableFromPastAnchor || undefined,
+        builder: showBuilderFields,
       }),
     );
+    const nextBuilderErrors: BuilderFieldErrors = showBuilderFields
+      ? {
+          ...validateBuilderProjectType(projectDetails, builderConfig),
+          ...validateBuilderPricing(pricingOthers, builderConfig),
+        }
+      : {};
     const nextAmenitiesErrors = validateAmenities(amenities, propertyType, {
       listingType,
       subType: propertySubType,
+      builder: showBuilderFields,
     });
     const nextPricingErrors = withoutHiddenPricingErrors(
       validatePricingOthers(
@@ -518,11 +597,15 @@ export default function PostPropertyContent() {
     setAmenitiesErrors(nextAmenitiesErrors);
     setPricingOthersErrors(nextPricingErrors);
     setPhotosError(nextPhotosError);
+    setBuilderErrors(nextBuilderErrors);
 
     if (hasAddressLocationErrors(nextAddressErrors)) {
       return 1;
     }
-    if (hasPropertyDetailsErrors(nextPropertyDetailsErrors)) {
+    if (
+      hasPropertyDetailsErrors(nextPropertyDetailsErrors) ||
+      nextBuilderErrors.projectType
+    ) {
       return 2;
     }
     if (hasAmenitiesErrors(nextAmenitiesErrors)) {
@@ -531,7 +614,7 @@ export default function PostPropertyContent() {
     if (nextPhotosError) {
       return 4;
     }
-    if (hasPricingOthersErrors(nextPricingErrors)) {
+    if (hasPricingOthersErrors(nextPricingErrors) || nextBuilderErrors.assuredReturn) {
       return 5;
     }
 
@@ -616,7 +699,9 @@ export default function PostPropertyContent() {
     setPropertyType(nextPropertyType);
 
     const subTypeOptions = SUB_TYPES_BY_PROPERTY_TYPE[nextPropertyType];
-    setPropertySubType(subTypeOptions ? subTypeOptions[0].id : "");
+    const nextSubType = subTypeOptions ? subTypeOptions[0].id : "";
+    setPropertySubType(nextSubType);
+    resetProjectDetails(nextPropertyType, nextSubType);
 
     const nextListingType =
       nextPropertyType === "pg-co-living" ? "rent-lease" : listingType;
@@ -647,6 +732,7 @@ export default function PostPropertyContent() {
     }
 
     setPropertySubType(nextSubType);
+    resetProjectDetails(propertyType, nextSubType);
 
     // Each sub type has its own fields, so start the later steps afresh
     const isPlot = propertyType === "plot";
@@ -725,7 +811,11 @@ export default function PostPropertyContent() {
               value={listingType}
               onChange={handleListingTypeChange}
               allowedIds={
-                propertyType === "pg-co-living" ? ["rent-lease"] : undefined
+                showBuilderFields
+                  ? ["sale"]
+                  : propertyType === "pg-co-living"
+                    ? ["rent-lease"]
+                    : undefined
               }
             />
 
@@ -734,13 +824,15 @@ export default function PostPropertyContent() {
               onChange={handlePropertyTypeChange}
               subType={propertySubType}
               onSubTypeChange={handleSubTypeChange}
+              hiddenIds={showBuilderFields ? ["pg-co-living"] : undefined}
             />
 
             <AddressLocationField
               values={addressLocation}
               onChange={handleAddressLocationChange}
               errors={addressLocationErrors}
-              hideUnitFields={showBuilderFields}
+              hideUnitFields={showBuilderFields && builderConfig.hideUnitFields}
+              projectNameRequired={!addressValidationOptions.projectNameOptional}
             />
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
@@ -810,15 +902,26 @@ export default function PostPropertyContent() {
                   propertyType={propertyType}
                   subType={[propertySubType]}
                   hideConfiguration
+                  showProjectType={builderConfig.showProjectType}
+                  projectTypeError={builderErrors.projectType}
+                  totalUnitsLabel={builderConfig.totalUnitsLabel}
+                  hideTotalBlocks={builderConfig.hideTotalBlocks}
+                />
+                <BuilderExtraDetailsField
+                  extras={builderConfig.extras}
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
                 />
                 <ProjectExtraDetailsField
                   values={projectDetails}
                   onChange={handleProjectDetailsChange}
                 />
-                <ProjectSpecificationsField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
-                />
+                {builderConfig.showSpecifications ? (
+                  <ProjectSpecificationsField
+                    values={projectDetails}
+                    onChange={handleProjectDetailsChange}
+                  />
+                ) : null}
               </>
             ) : null}
 
@@ -866,17 +969,51 @@ export default function PostPropertyContent() {
               onChange={handleAmenitiesChange}
               errors={amenitiesErrors}
               hideCarParking={showBuilderFields}
+              builder={showBuilderFields}
+              builderExtras={
+                showBuilderFields ? (
+                  <>
+                    <PostPropertyInput
+                      id="approvedBy"
+                      label="Approved By"
+                      placeholder="e.g. DTCP, development authority"
+                      variant="underline"
+                      staticLabel
+                      value={projectDetails.approvedBy}
+                      onChange={(value) =>
+                        handleProjectDetailsChange("approvedBy", value)
+                      }
+                    />
+                    <PostPropertyInput
+                      id="reraLink"
+                      label="RERA Website / Link"
+                      placeholder="https://"
+                      type="url"
+                      variant="underline"
+                      staticLabel
+                      value={projectDetails.reraLink}
+                      onChange={(value) =>
+                        handleProjectDetailsChange("reraLink", value)
+                      }
+                    />
+                  </>
+                ) : undefined
+              }
             />
 
             {showBuilderFields ? (
               <>
-                <BhkCarParkingField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
-                  amenities={amenities}
-                  onAmenitiesChange={handleAmenitiesChange}
-                  error={amenitiesErrors.carParking}
-                />
+                {builderConfig.carParking === "none" ? null : (
+                  <BhkCarParkingField
+                    values={projectDetails}
+                    onChange={handleProjectDetailsChange}
+                    amenities={amenities}
+                    onAmenitiesChange={handleAmenitiesChange}
+                    error={amenitiesErrors.carParking}
+                    singleBlock={builderConfig.carParking === "single"}
+                    hideClubMembership={builderConfig.hideClubMembership}
+                  />
+                )}
                 <ProjectHighlightsField
                   values={projectDetails}
                   onChange={handleProjectDetailsChange}
@@ -935,6 +1072,13 @@ export default function PostPropertyContent() {
                   ? ["brochure-images", "cluster-plan", "elevation"]
                   : undefined
               }
+              extraCategoryIds={
+                showBuilderFields &&
+                builderConfig.showConstructionProgress &&
+                showsConstructionProgress(projectDetails.projectType)
+                  ? ["construction-progress"]
+                  : undefined
+              }
               values={photosVideos}
               onChange={(next) => {
                 setPhotosVideos(next);
@@ -954,17 +1098,25 @@ export default function PostPropertyContent() {
                   values={projectDetails}
                   onChange={handleProjectDetailsChange}
                 />
-                <FloorPlansField
-                  projectName={addressLocation.projectName}
+                {builderConfig.showFloorPlans ? (
+                  <FloorPlansField
+                    projectName={addressLocation.projectName}
+                    propertyType={propertyType}
+                    subType={propertySubType}
+                    values={projectDetails}
+                    onChange={handleProjectDetailsChange}
+                    autoTitles={
+                      getFloorPlanTitles(projectDetails).length > 0
+                        ? getFloorPlanTitles(projectDetails)
+                        : undefined
+                    }
+                  />
+                ) : null}
+                <VideoWalkthroughField
                   values={projectDetails}
                   onChange={handleProjectDetailsChange}
-                  autoTitles={
-                    getFloorPlanTitles(projectDetails).length > 0
-                      ? getFloorPlanTitles(projectDetails)
-                      : undefined
-                  }
                 />
-                <VideoWalkthroughField
+                <VirtualTourField
                   values={projectDetails}
                   onChange={handleProjectDetailsChange}
                 />
@@ -1026,6 +1178,14 @@ export default function PostPropertyContent() {
                   onChange={handleProjectDetailsChange}
                   pricingOthers={pricingOthers}
                   onPricingOthersChange={handlePricingOthersChange}
+                  singleBlock={!builderConfig.chargesByBhk}
+                  showAssuredReturn={builderConfig.showAssuredReturn}
+                  assuredReturnError={builderErrors.assuredReturn}
+                />
+                <ProjectPricingField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                  priceRangeReadOnly
                 />
                 <ProjectFaqField
                   values={projectDetails}

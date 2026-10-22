@@ -12,11 +12,16 @@ import {
   PlotDetails,
   SaleDetails,
 } from "@/components/shared/post-property/step-2-property-details/PropertyDetailsVariants";
-import { AreaExtraFields } from "@/components/shared/post-property/step-2-property-details/PropertyDetailsParts";
 import {
+  AreaExtraFields,
+  type AreaMaxFields,
+} from "@/components/shared/post-property/step-2-property-details/PropertyDetailsParts";
+import {
+  getBuilderSaleFormConfig,
   getSaleFormConfig,
   resolveSubType,
 } from "@/components/shared/post-property/postPropertySaleConfig";
+import { getBuilderConfig } from "@/components/shared/post-property/builder/builderConfig";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_TWO_COLUMN_GRID,
@@ -83,11 +88,30 @@ export default function PropertyDetailsField({
     getFloorNumberOptionGroups(values.totalFloors);
   const isRent = isRentListing(listingType);
   const part = { values, onChange, errors };
-  const saleConfig = getSaleFormConfig(
-    listingType,
-    propertyType,
-    resolveSubType(subType),
-  );
+  const resolvedSubType = resolveSubType(subType);
+  const saleConfig = builderLayout
+    ? getBuilderSaleFormConfig(propertyType, resolvedSubType)
+    : getSaleFormConfig(listingType, propertyType, resolvedSubType);
+  const builderConfig =
+    builderLayout && resolvedSubType
+      ? getBuilderConfig(propertyType, resolvedSubType)
+      : null;
+  const maxFields: AreaMaxFields | undefined = builderConfig
+    ? {
+        plot: builderConfig.plotAreaMax
+          ? {
+              value: projectDetails.plotAreaMax,
+              onChange: (value) => onProjectDetailsChange("plotAreaMax", value),
+            }
+          : undefined,
+        terrace: builderConfig.terraceAreaMax
+          ? {
+              value: projectDetails.terraceAreaMax,
+              onChange: (value) => onProjectDetailsChange("terraceAreaMax", value),
+            }
+          : undefined,
+      }
+    : undefined;
   const availableSizes =
     builderLayout || !isRent ? (
       <AvailableSizesField
@@ -95,6 +119,9 @@ export default function PropertyDetailsField({
         onChange={onProjectDetailsChange}
         propertyType={propertyType}
         subType={subType}
+        hideBhk={builderConfig ? !builderConfig.showBhk : false}
+        sizeUnits={builderConfig?.sizeUnits}
+        showUnitsAvailable={builderLayout}
       />
     ) : null;
   const withBuilderSizes = (node: ReactNode) =>
@@ -107,27 +134,23 @@ export default function PropertyDetailsField({
       node
     );
 
-  if (saleConfig && propertyType !== "residential") {
-    return (
-      <SaleDetails
-        {...part}
-        cfg={saleConfig.details}
-        afterAreaSlot={builderLayout ? availableSizes : undefined}
-      />
-    );
+  if (saleConfig && propertyType !== "residential" && !builderLayout) {
+    return <SaleDetails {...part} cfg={saleConfig.details} />;
   }
 
-  if (propertyType === "commercial") {
-    return withBuilderSizes(<CommercialDetails {...part} isRent={isRent} />);
-  }
-  if (propertyType === "pg-co-living") {
-    return withBuilderSizes(<PgDetails {...part} />);
-  }
-  if (propertyType === "plot") {
-    return withBuilderSizes(<PlotDetails {...part} />);
-  }
-  if (propertyType === "land") {
-    return withBuilderSizes(<LandDetails {...part} />);
+  if (!saleConfig) {
+    if (propertyType === "commercial") {
+      return withBuilderSizes(<CommercialDetails {...part} isRent={isRent} />);
+    }
+    if (propertyType === "pg-co-living") {
+      return withBuilderSizes(<PgDetails {...part} />);
+    }
+    if (propertyType === "plot") {
+      return withBuilderSizes(<PlotDetails {...part} />);
+    }
+    if (propertyType === "land") {
+      return withBuilderSizes(<LandDetails {...part} />);
+    }
   }
 
   const areaSection = (
@@ -213,7 +236,11 @@ export default function PropertyDetailsField({
           </div>
 
           {saleConfig ? (
-            <AreaExtraFields {...part} cfg={saleConfig.details} />
+            <AreaExtraFields
+              {...part}
+              cfg={saleConfig.details}
+              maxFields={maxFields}
+            />
           ) : null}
         </div>
       </PostPropertyFieldSection>
@@ -226,6 +253,7 @@ export default function PropertyDetailsField({
         cfg={saleConfig.details}
         areaSlot={areaSection}
         afterAreaSlot={availableSizes}
+        maxFields={maxFields}
       />
     );
   }

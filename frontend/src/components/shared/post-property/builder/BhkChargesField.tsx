@@ -74,7 +74,13 @@ export default function BhkChargesField({
   onChange,
   pricingOthers,
   onPricingOthersChange,
+  singleBlock = false,
+  showAssuredReturn = false,
+  assuredReturnError,
 }: {
+  singleBlock?: boolean;
+  showAssuredReturn?: boolean;
+  assuredReturnError?: string;
   values: ProjectDetailsValues;
   onChange: <K extends keyof ProjectDetailsValues>(
     field: K,
@@ -87,7 +93,7 @@ export default function BhkChargesField({
   ) => void;
 }) {
   const fromSizes = getSelectedBhks(values);
-  const bhks = getChargeBhks(values);
+  const bhks = singleBlock ? [] : getChargeBhks(values);
 
   // BHKs from step 2 stay selected; the rest can be toggled here
   const toggleBhk = (bhk: string) => {
@@ -114,6 +120,7 @@ export default function BhkChargesField({
       description="Add transfer fee, booking amount, and other details"
     >
       <div className="space-y-6">
+        {singleBlock ? null : (
         <div className={POST_PROPERTY_INNER_PANEL}>
           <p className={POST_PROPERTY_SUBSECTION_LABEL}>Select BHK</p>
           <p className="mb-3 text-sm text-slate-500">
@@ -138,12 +145,32 @@ export default function BhkChargesField({
             })}
           </div>
         </div>
+        )}
 
         {bhks.length === 0 ? (
-          <div className={POST_PROPERTY_INNER_PANEL}>
-            <p className={`${POST_PROPERTY_SUBSECTION_LABEL} mb-4`}>
-              Project-wide charges
-            </p>
+          <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
+            {singleBlock ? null : (
+              <p className={`${POST_PROPERTY_SUBSECTION_LABEL} mb-4`}>
+                Project-wide charges
+              </p>
+            )}
+            {showAssuredReturn ? (
+              <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+                <PostPropertyInput
+                  id="assuredReturn"
+                  label="Assured Return in Percentage"
+                  placeholder="Assured Return in Percentage"
+                  variant="underline"
+                  type="number"
+                  min="0"
+                  max="100"
+                  staticLabel
+                  value={pricingOthers.assuredReturn}
+                  error={assuredReturnError}
+                  onChange={(value) => onPricingOthersChange("assuredReturn", value)}
+                />
+              </div>
+            ) : null}
           <ChargeFields
             idSuffix=""
             values={{
