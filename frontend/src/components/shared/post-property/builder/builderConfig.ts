@@ -179,6 +179,49 @@ export function getBuilderConfig(
   return config;
 }
 
+const CAR_PARKING_RANK: BuilderConfig["carParking"][] = ["none", "single", "bhk"];
+
+// Project wide config when several sub types are selected: a block is shown if any sub type shows it
+export function getMergedBuilderConfig(
+  propertyType: PropertyTypeId,
+  subTypes: string[],
+): BuilderConfig {
+  const configs = subTypes.map((subType) => getBuilderConfig(propertyType, subType));
+  if (configs.length <= 1) {
+    return configs[0] ?? getBuilderConfig(propertyType, "");
+  }
+
+  const any = (pick: (config: BuilderConfig) => boolean) => configs.some(pick);
+  const labels = new Set(configs.map((config) => config.totalUnitsLabel));
+
+  return {
+    hideUnitFields: configs.every((config) => config.hideUnitFields),
+    projectNameRequired: any((config) => config.projectNameRequired),
+    showProjectType: any((config) => config.showProjectType),
+    totalUnitsLabel: labels.size === 1 ? configs[0].totalUnitsLabel : "Total Units",
+    hideTotalBlocks: configs.every((config) => config.hideTotalBlocks),
+    showBhk: any((config) => config.showBhk),
+    sizeUnits: [...new Set(configs.flatMap((config) => config.sizeUnits))],
+    defaultUnitType: "",
+    showSpecifications: any((config) => config.showSpecifications),
+    carParking: configs.reduce<BuilderConfig["carParking"]>(
+      (best, config) =>
+        CAR_PARKING_RANK.indexOf(config.carParking) > CAR_PARKING_RANK.indexOf(best)
+          ? config.carParking
+          : best,
+      "none",
+    ),
+    hideClubMembership: configs.every((config) => config.hideClubMembership),
+    showFloorPlans: any((config) => config.showFloorPlans),
+    showConstructionProgress: any((config) => config.showConstructionProgress),
+    chargesByBhk: any((config) => config.chargesByBhk),
+    showAssuredReturn: any((config) => config.showAssuredReturn),
+    plotAreaMax: any((config) => config.plotAreaMax),
+    terraceAreaMax: any((config) => config.terraceAreaMax),
+    extras: [...new Set(configs.flatMap((config) => config.extras))],
+  };
+}
+
 // Sample floor plan title for the selected property type and sub type
 export function getFloorPlanTitleExample(
   propertyType: PropertyTypeId,

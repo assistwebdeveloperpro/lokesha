@@ -20,6 +20,7 @@ import {
   getBuilderSaleFormConfig,
   getSaleFormConfig,
   resolveSubType,
+  type CommonDetailSections,
 } from "@/components/shared/post-property/postPropertySaleConfig";
 import { getBuilderConfig } from "@/components/shared/post-property/builder/builderConfig";
 import {
@@ -67,8 +68,12 @@ export default function PropertyDetailsField({
   projectDetails,
   onProjectDetailsChange,
   builderLayout = false,
+  hideAvailableSizes = false,
+  hideCommon,
 }: {
   builderLayout?: boolean;
+  hideAvailableSizes?: boolean;
+  hideCommon?: Partial<CommonDetailSections>;
   listingType: ListingTypeId;
   propertyType: PropertyTypeId;
   subType: string[];
@@ -113,7 +118,7 @@ export default function PropertyDetailsField({
       }
     : undefined;
   const availableSizes =
-    builderLayout || !isRent ? (
+    !hideAvailableSizes && (builderLayout || !isRent) ? (
       <AvailableSizesField
         values={projectDetails}
         onChange={onProjectDetailsChange}
@@ -254,6 +259,7 @@ export default function PropertyDetailsField({
         areaSlot={areaSection}
         afterAreaSlot={availableSizes}
         maxFields={maxFields}
+        hide={hideCommon}
       />
     );
   }
@@ -264,7 +270,7 @@ export default function PropertyDetailsField({
 
       {availableSizes}
 
-      {isRent ? null : (
+      {isRent || hideCommon?.transaction ? null : (
       <PostPropertyFieldSection
         title="Property Transaction & Construction Status"
         description="Select transaction type and related construction details"
@@ -380,6 +386,7 @@ export default function PropertyDetailsField({
         </>
       )}
 
+      {hideCommon?.floors ? null : (
       <ChipSelectField
         legend="Total Floors"
         required
@@ -483,6 +490,7 @@ export default function PropertyDetailsField({
           "100"
         ]}
       />
+      )}
 
       {!builderLayout && floorNumberOptions.length > 0 ? (
         <ChipSelectField

@@ -7,7 +7,7 @@ import ChipSelectField from "../ChipSelectField";
 import ExpandableIconTileSelect from "../ExpandableIconTileSelect";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "../PostPropertyRequiredAsterisk";
-import { getFormConfig } from "../postPropertySaleConfig";
+import { getFormConfig, type AmenitySection } from "../postPropertySaleConfig";
 import {
   BUSINESS_OPTIONS,
   FACING_OPTIONS,
@@ -63,7 +63,13 @@ export default function AmenitiesField({
   hideCarParking = false,
   builder = false,
   builderExtras,
+  sections,
+  catalogSubTypes,
 }: {
+  // Renders only (or all but) the given sections, used to ask shared sections once above the tabs
+  sections?: { only?: AmenitySection[]; except?: AmenitySection[] };
+  // Catalog options come from the union of these sub types
+  catalogSubTypes?: string[];
   hideCarParking?: boolean;
   builder?: boolean;
   builderExtras?: ReactNode;
@@ -91,13 +97,19 @@ export default function AmenitiesField({
   const isResidentialType = propertyType === "residential";
   const isResidentialLike = !isPlot && !isLand;
 
-  const showStatus = saleConfig ? saleConfig.status : !isPlot && !isLand;
-  const showAmenities = saleConfig
-    ? saleConfig.amenities !== "hidden"
-    : !isPg && !isLand;
+  const inScope = (section: AmenitySection) =>
+    (!sections?.only || sections.only.includes(section)) &&
+    !sections?.except?.includes(section);
+
+  const showStatus =
+    inScope("status") && (saleConfig ? saleConfig.status : !isPlot && !isLand);
+  const showAmenities =
+    inScope("amenities") &&
+    (saleConfig ? saleConfig.amenities !== "hidden" : !isPg && !isLand);
   const amenitiesRequired = saleConfig
     ? saleConfig.amenities === "required"
     : isResidentialLike;
+  const catalogKey = catalogSubTypes?.join(",") ?? "";
   const [amenityOptions, setAmenityOptions] = useState<ImageTileOption[]>([]);
   const [furnishingOptions, setFurnishingOptions] = useState<ImageTileOption[]>(
     [],
@@ -112,15 +124,23 @@ export default function AmenitiesField({
         image: item.imagePath,
       }));
 
-    getCatalogAmenities({
-      listingType: isRent ? "rent-lease" : "sale",
-      propertyType,
-      propertySubType: subType,
-    })
-      .then((catalog) => {
+    const subTypeIds = catalogKey ? catalogKey.split(",") : [subType];
+    Promise.all(
+      subTypeIds.map((propertySubType) =>
+        getCatalogAmenities({
+          listingType: isRent ? "rent-lease" : "sale",
+          propertyType,
+          propertySubType,
+        }),
+      ),
+    )
+      .then((catalogs) => {
         if (cancelled) return;
-        setAmenityOptions(toOptions(catalog.amenities));
-        setFurnishingOptions(toOptions(catalog.furnishing));
+        const unique = <T extends { amenityKey: string }>(items: T[]) => [
+          ...new Map(items.map((item) => [item.amenityKey, item])).values(),
+        ];
+        setAmenityOptions(toOptions(unique(catalogs.flatMap((catalog) => catalog.amenities))));
+        setFurnishingOptions(toOptions(unique(catalogs.flatMap((catalog) => catalog.furnishing))));
       })
       .catch(() => {
         if (cancelled) return;
@@ -131,7 +151,7 @@ export default function AmenitiesField({
     return () => {
       cancelled = true;
     };
-  }, [isRent, propertyType, subType]);
+  }, [isRent, propertyType, subType, catalogKey]);
   const showClubMembership =
     !hideCarParking &&
     (saleConfig ? saleConfig.clubMembership : !isRent && !isCommercial && !isPg);
@@ -139,19 +159,28 @@ export default function AmenitiesField({
   const showParking = saleConfig
     ? showCarParking || showClubMembership
     : !isPlot && !isLand && (showCarParking || showClubMembership);
-  const showRera = saleConfig
-    ? saleConfig.rera
-    : !isPlot && !isPg && (isLand || !isRent);
-  const showOpenSides = saleConfig ? saleConfig.openSides : !isCommercial;
-  const showFacing = saleConfig ? saleConfig.facing !== "hidden" : true;
+  const showRera =
+    inScope("additional") &&
+    (saleConfig ? saleConfig.rera : !isPlot && !isPg && (isLand || !isRent));
+  const showOpenSides =
+    inScope("additional") && (saleConfig ? saleConfig.openSides : !isCommercial);
+  const showFacing =
+    inScope("facing") && (saleConfig ? saleConfig.facing !== "hidden" : true);
   const facingRequired = saleConfig ? saleConfig.facing === "required" : isPlot;
-  const showWashrooms = saleConfig ? saleConfig.washrooms !== "hidden" : isCommercial;
+  const showWashrooms =
+    inScope("washrooms") &&
+    (saleConfig ? saleConfig.washrooms !== "hidden" : isCommercial);
   const washroomsRequired = saleConfig ? saleConfig.washrooms === "required" : true;
-  const showRoadFacing = saleConfig ? saleConfig.roadFacing : !isResidentialType;
-  const showBusinessTypes = saleConfig ? saleConfig.businessTypes : isCommercial;
-  const showPantry = saleConfig ? saleConfig.pantry : isCommercial || isPg;
-  const showCafeteria = saleConfig ? saleConfig.cafeteria : isPg && !isCommercial;
-  const showCornerShop = saleConfig ? saleConfig.cornerShop : isCommercial;
+  const showRoadFacing =
+    inScope("roadFacing") && (saleConfig ? saleConfig.roadFacing : !isResidentialType);
+  const showBusinessTypes =
+    inScope("businessTypes") && (saleConfig ? saleConfig.businessTypes : isCommercial);
+  const showPantry =
+    inScope("pantry") && (saleConfig ? saleConfig.pantry : isCommercial || isPg);
+  const showCafeteria =
+    inScope("cafeteria") && (saleConfig ? saleConfig.cafeteria : isPg && !isCommercial);
+  const showCornerShop =
+    inScope("cornerShop") && (saleConfig ? saleConfig.cornerShop : isCommercial);
 
   const handleStatusChange = (label: string) => {
     const match = FURNISHING_STATUS_OPTIONS.find(
@@ -259,7 +288,7 @@ export default function AmenitiesField({
         />
       ) : null}
 
-      {showRera || showOpenSides || builderExtras ? (
+      {showRera || showOpenSides || (inScope("additional") && builderExtras) ? (
         <PostPropertyFieldSection title="Additional Details">
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             {showRera ? (
@@ -273,7 +302,7 @@ export default function AmenitiesField({
                 onChange={(nextValue) => onChange("reraNumber", nextValue)}
               />
             ) : null}
-            {builderExtras}
+            {inScope("additional") ? builderExtras : null}
             {showOpenSides ? (
               <PostPropertyInput
                 id="openSides"

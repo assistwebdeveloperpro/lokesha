@@ -4,7 +4,7 @@ import PostPropertyFieldSection from "../PostPropertyFieldSection";
 import PostPropertyInput from "../PostPropertyInput";
 import TenantPreferenceField from "./TenantPreferenceField";
 import type { ReactNode } from "react";
-import type { SaleDetailsConfig } from "../postPropertySaleConfig";
+import type { CommonDetailSections, SaleDetailsConfig } from "../postPropertySaleConfig";
 import {
   AgeOfConstructionChips,
   AreaDetailsSection,
@@ -457,17 +457,49 @@ export function LandDetails(part: PropertyDetailsPartProps) {
 }
 
 // Sale form driven by the per sub type config (see postPropertySaleConfig)
+// Transaction and floor sections that are asked once above the tabs when sub types share them
+export function SaleCommonSections({
+  cfg,
+  sections,
+  ...part
+}: PropertyDetailsPartProps & {
+  cfg: SaleDetailsConfig;
+  sections: Partial<CommonDetailSections>;
+}) {
+  return (
+    <>
+      {sections.transaction ? (
+        <>
+          {cfg.transaction === "full" ? (
+            <TransactionConstructionSections {...part} />
+          ) : null}
+          {cfg.transaction === "chips" ? (
+            <TransactionChips {...part} required={cfg.transactionRequired} />
+          ) : null}
+          {cfg.constructionAlways ? <ConstructionAlwaysSections {...part} /> : null}
+          {cfg.ageOfConstruction ? <AgeOfConstructionChips {...part} /> : null}
+        </>
+      ) : null}
+      {sections.floors && cfg.totalFloors ? (
+        <TotalFloorsFields {...part} showFloorNumber={cfg.floorNumber} />
+      ) : null}
+    </>
+  );
+}
+
 export function SaleDetails({
   cfg,
   areaSlot,
   afterAreaSlot,
   maxFields,
+  hide = {},
   ...part
 }: PropertyDetailsPartProps & {
   cfg: SaleDetailsConfig;
   areaSlot?: ReactNode;
   afterAreaSlot?: ReactNode;
   maxFields?: AreaMaxFields;
+  hide?: Partial<CommonDetailSections>;
 }) {
   const { values, onChange, errors } = part;
 
@@ -510,19 +542,23 @@ export function SaleDetails({
 
       {afterAreaSlot}
 
-      {cfg.transaction === "full" ? (
-        <TransactionConstructionSections {...part} />
-      ) : null}
-      {cfg.transaction === "chips" ? (
-        <TransactionChips {...part} required={cfg.transactionRequired} />
-      ) : null}
-      {cfg.constructionAlways ? <ConstructionAlwaysSections {...part} /> : null}
-      {cfg.ageOfConstruction ? <AgeOfConstructionChips {...part} /> : null}
+      {hide.transaction ? null : (
+        <>
+          {cfg.transaction === "full" ? (
+            <TransactionConstructionSections {...part} />
+          ) : null}
+          {cfg.transaction === "chips" ? (
+            <TransactionChips {...part} required={cfg.transactionRequired} />
+          ) : null}
+          {cfg.constructionAlways ? <ConstructionAlwaysSections {...part} /> : null}
+          {cfg.ageOfConstruction ? <AgeOfConstructionChips {...part} /> : null}
+        </>
+      )}
 
       {levelChips(cfg.bedrooms, "Bedrooms", "bedrooms", numberOptions(1, 7), numberOptions(8, 10))}
       {levelChips(cfg.balcony, "Balcony", "balcony", numberOptions(0, 6), numberOptions(7, 10))}
 
-      {cfg.totalFloors ? (
+      {cfg.totalFloors && !hide.floors ? (
         <TotalFloorsFields {...part} showFloorNumber={cfg.floorNumber} />
       ) : null}
 

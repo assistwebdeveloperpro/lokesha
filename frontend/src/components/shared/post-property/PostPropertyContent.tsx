@@ -26,14 +26,16 @@ import {
   createInitialProjectDetails,
   getAvailableSizesPriceRange,
   getFloorPlanTitles,
+  getUnitTypeConfig,
   showsConstructionProgress,
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
+import AvailableSizesField from "@/components/master/post-property/step-2-property-details/AvailableSizesField";
 import BhkCarParkingField from "./builder/BhkCarParkingField";
 import BhkChargesField from "./builder/BhkChargesField";
 import BrochureImagesField from "./builder/BrochureImagesField";
 import BuilderExtraDetailsField from "./builder/BuilderExtraDetailsField";
-import { getBuilderConfig } from "./builder/builderConfig";
+import { getBuilderConfig, getMergedBuilderConfig } from "./builder/builderConfig";
 import {
   validateBuilderPricing,
   validateBuilderProjectType,
@@ -48,6 +50,7 @@ import AddressLocationField from "./step-1-basic-information/AddressLocationFiel
 import ListingTypeField from "./step-1-basic-information/ListingTypeField";
 import PropertyTypeField from "./step-1-basic-information/PropertyTypeField";
 import PropertyDetailsField from "./step-2-property-details/PropertyDetailsField";
+import SubTypeDetailsTabs from "./step-2-property-details/SubTypeDetailsTabs";
 import AmenitiesField from "./step-3-amenities/AmenitiesField";
 import PhotosVideosField from "./step-4-media-upload/PhotosVideosField";
 import PricingOthersField from "./step-5-pricing-and-additional-details/PricingOthersField";
@@ -63,6 +66,7 @@ import {
   SUB_TYPES_BY_PROPERTY_TYPE,
   isRentListing,
   createEmptyPhotosVideosValues,
+  getPhotoCategories,
   getProgressForStep,
   getStepFromSearchParam,
   getTotalMediaCount,
@@ -87,9 +91,21 @@ import {
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
 import { mapPropertyToFormState } from "./postPropertyEdit";
+import {
+  AMENITY_SECTION_FIELDS,
+  COMMON_SECTION_FIELDS,
+  getBuilderAmenitiesConfig,
+  getBuilderDetailsConfig,
+  getCommonAmenitySections,
+  getCommonDetailSections,
+  getFormConfig,
+  type CommonDetailSections,
+} from "./postPropertySaleConfig";
+import { SaleCommonSections } from "./step-2-property-details/PropertyDetailsVariants";
 import { buildPropertyFormData } from "./postPropertyPayload";
 import { saveEditedProperty } from "./saveEditedProperty";
 import { useEditProperty } from "./useEditProperty";
+import { useSubTypeForms } from "./useSubTypeForms";
 import {
   POST_PROPERTY_BACK_BTN,
   POST_PROPERTY_PRIMARY_BTN,
@@ -171,9 +187,11 @@ export default function PostPropertyContent() {
   const [listingType, setListingType] = useState<ListingTypeId>("sale");
   const [propertyType, setPropertyType] =
     useState<PropertyTypeId>("residential");
-  const [propertySubType, setPropertySubType] = useState(
+  // Only a builder can select several; propertySubType is the first one
+  const [propertySubTypes, setPropertySubTypes] = useState([
     RESIDENTIAL_SUB_TYPES[0].id,
-  );
+  ]);
+  const propertySubType = propertySubTypes[0] ?? "";
   const [addressLocationErrors, setAddressLocationErrors] =
     useState<AddressLocationFieldErrors>({});
   const [addressLocation, setAddressLocation] = useState<AddressLocationValues>({
@@ -215,7 +233,7 @@ export default function PostPropertyContent() {
     createInitialProjectDetails,
   );
   const showBuilderFields = isAuthReady && role === "builder";
-  const builderConfig = getBuilderConfig(propertyType, propertySubType);
+  const builderConfig = getMergedBuilderConfig(propertyType, propertySubTypes);
   const [builderErrors, setBuilderErrors] = useState<BuilderFieldErrors>({});
   const addressValidationOptions = {
     projectNameOptional: showBuilderFields && !builderConfig.projectNameRequired,
@@ -245,6 +263,83 @@ export default function PostPropertyContent() {
     return rest;
   };
 
+  // Sections every selected sub type shows the same way are asked once above the tabs
+  const detailConfigs = propertySubTypes.map((id) =>
+    getBuilderDetailsConfig(propertyType, id),
+  );
+  const commonSections: CommonDetailSections =
+    showBuilderFields && propertySubTypes.length > 1
+      ? getCommonDetailSections(detailConfigs)
+      : { transaction: false, floors: false };
+  const commonDetailsCfg = detailConfigs[0];
+  const commonDetailsFields = [
+    ...(commonSections.transaction ? COMMON_SECTION_FIELDS.transaction : []),
+    ...(commonSections.floors ? COMMON_SECTION_FIELDS.floors : []),
+  ];
+
+  const isBuilderMulti = showBuilderFields && propertySubTypes.length > 1;
+  const amenitySections = isBuilderMulti
+    ? getCommonAmenitySections(
+        propertySubTypes.map((id) => getBuilderAmenitiesConfig(propertyType, id)),
+      )
+    : { common: [], perSubType: [] };
+  const commonAmenitiesFields = amenitySections.common.flatMap(
+    (section) => AMENITY_SECTION_FIELDS[section],
+  ) as Array<keyof AmenitiesValues>;
+  // Same photo categories for every sub type means one shared photo set
+  const sharedPhotos =
+    isBuilderMulti &&
+    new Set(
+      propertySubTypes.map((id) =>
+        getPhotoCategories(propertyType, { listingType, subType: id })
+          .map((category) => category.id)
+          .join(","),
+      ),
+    ).size === 1;
+  const priceInclusionFlags = propertySubTypes.map(
+    (id) => getFormConfig("sale", propertyType, id, true)?.pricing.priceInclusion ?? true,
+  );
+  const sharedPricing = priceInclusionFlags.every((flag) => flag === priceInclusionFlags[0]);
+
+  const subForms = useSubTypeForms({
+    commonDetailsFields,
+    commonAmenitiesFields,
+    sharedPhotos,
+    propertyType,
+    listingType,
+    isRent,
+    subTypes: propertySubTypes,
+    builder: showBuilderFields,
+    initials: {
+      details: initialPropertyDetails,
+      amenities: initialAmenities,
+      pricing: initialPricingOthers,
+    },
+    single: {
+      details: propertyDetails,
+      amenities,
+      pricing: pricingOthers,
+      photos: photosVideos,
+    },
+    setSingle: {
+      details: setPropertyDetails,
+      amenities: setAmenities,
+      pricing: setPricingOthers,
+      photos: setPhotosVideos,
+      project: setProjectDetails,
+    },
+    project: projectDetails,
+    anchors: {
+      possession: possessionDatePastAnchor,
+      availableFrom: availableFromPastAnchor,
+    },
+    existingMediaCount: existingMedia.length,
+    filterDetailsErrors: withoutHiddenDetailsErrors,
+    filterPricingErrors: withoutHiddenPricingErrors,
+  });
+  const isMultiSubType = subForms.isMulti;
+  const activeTabId = subForms.activeTabId;
+
   const handleProjectDetailsChange = <K extends keyof ProjectDetailsValues>(
     field: K,
     value: ProjectDetailsValues[K],
@@ -266,7 +361,7 @@ export default function PostPropertyContent() {
 
       // Construction Progress photos only exist for these project types
       if (!showsConstructionProgress(String(value))) {
-        setPhotosVideos((current) => {
+        const clearConstructionProgress = (current: PhotosVideosValues) => {
           const media = current.mediaByCategory["construction-progress"];
           if (media.length === 0) {
             return current;
@@ -279,7 +374,9 @@ export default function PostPropertyContent() {
               "construction-progress": [],
             },
           };
-        });
+        };
+        setPhotosVideos(clearConstructionProgress);
+        subForms.mapPhotos(clearConstructionProgress);
       }
     }
   };
@@ -303,7 +400,7 @@ export default function PostPropertyContent() {
     /* eslint-disable react-hooks/set-state-in-effect */
     setListingType(state.listingType);
     setPropertyType(state.propertyType);
-    setPropertySubType(state.propertySubType);
+    setPropertySubTypes([state.propertySubType]);
     setAddressLocation(state.addressLocation);
     setPropertyDetails(state.propertyDetails);
     setPossessionDatePastAnchor(state.propertyDetails.possessionDate);
@@ -457,6 +554,19 @@ export default function PostPropertyContent() {
   };
 
   const handlePropertyDetailsNext = () => {
+    if (isMultiSubType) {
+      const hasTabErrors = subForms.validateStep("details");
+      const tabProjectErrors = validateBuilderProjectType(projectDetails, builderConfig);
+
+      if (hasTabErrors || tabProjectErrors.projectType) {
+        setBuilderErrors((current) => ({ ...current, ...tabProjectErrors }));
+        return;
+      }
+
+      goToStep(3);
+      return;
+    }
+
     const errors = withoutHiddenDetailsErrors(
       validatePropertyDetails(propertyDetails, {
         listingType,
@@ -503,6 +613,15 @@ export default function PostPropertyContent() {
   };
 
   const handleAmenitiesNext = () => {
+    if (isMultiSubType) {
+      if (subForms.validateStep("amenities")) {
+        return;
+      }
+
+      goToStep(4);
+      return;
+    }
+
     const errors = validateAmenities(amenities, propertyType, {
       listingType,
       subType: propertySubType,
@@ -540,6 +659,15 @@ export default function PostPropertyContent() {
   };
 
   const handlePhotosNext = () => {
+    if (isMultiSubType) {
+      if (subForms.validateStep("photos")) {
+        return;
+      }
+
+      goToStep(5);
+      return;
+    }
+
     if (
       arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
       getTotalMediaCount(photosVideos) + existingMedia.length === 0
@@ -557,40 +685,60 @@ export default function PostPropertyContent() {
       addressLocation,
       addressValidationOptions,
     );
-    const nextPropertyDetailsErrors = withoutHiddenDetailsErrors(
-      validatePropertyDetails(propertyDetails, {
-        listingType,
-        propertyType,
-        subType: propertySubType,
-        possessionDatePastAnchor: possessionDatePastAnchor || undefined,
-        availableFromPastAnchor: availableFromPastAnchor || undefined,
-        builder: showBuilderFields,
-      }),
-    );
+    const nextPropertyDetailsErrors = isMultiSubType
+      ? {}
+      : withoutHiddenDetailsErrors(
+          validatePropertyDetails(propertyDetails, {
+            listingType,
+            propertyType,
+            subType: propertySubType,
+            possessionDatePastAnchor: possessionDatePastAnchor || undefined,
+            availableFromPastAnchor: availableFromPastAnchor || undefined,
+            builder: showBuilderFields,
+          }),
+        );
     const nextBuilderErrors: BuilderFieldErrors = showBuilderFields
       ? {
           ...validateBuilderProjectType(projectDetails, builderConfig),
-          ...validateBuilderPricing(pricingOthers, builderConfig),
+          ...validateBuilderPricing(
+            isMultiSubType ? subForms.getPricing(subForms.firstTabId) : pricingOthers,
+            builderConfig,
+          ),
         }
       : {};
-    const nextAmenitiesErrors = validateAmenities(amenities, propertyType, {
-      listingType,
-      subType: propertySubType,
-      builder: showBuilderFields,
-    });
-    const nextPricingErrors = withoutHiddenPricingErrors(
-      validatePricingOthers(
-        pricingOthers,
-        listingType,
-        propertyType,
-        propertySubType,
-      ),
-    );
+    const nextAmenitiesErrors = isMultiSubType
+      ? {}
+      : validateAmenities(amenities, propertyType, {
+          listingType,
+          subType: propertySubType,
+          builder: showBuilderFields,
+        });
+    const nextPricingErrors = isMultiSubType
+      ? {}
+      : withoutHiddenPricingErrors(
+          validatePricingOthers(
+            pricingOthers,
+            listingType,
+            propertyType,
+            propertySubType,
+          ),
+        );
     const nextPhotosError =
+      !isMultiSubType &&
       arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
       getTotalMediaCount(photosVideos) + existingMedia.length === 0
         ? "Please add at least one photo"
         : "";
+
+    // Later steps run first so the tab of the earliest failing step stays open
+    const tabStepErrors = isMultiSubType
+      ? {
+          pricing: subForms.validateStep("pricing"),
+          photos: subForms.validateStep("photos"),
+          amenities: subForms.validateStep("amenities"),
+          details: subForms.validateStep("details"),
+        }
+      : null;
 
     setAddressLocationErrors(nextAddressErrors);
     setPropertyDetailsErrors(nextPropertyDetailsErrors);
@@ -604,17 +752,22 @@ export default function PostPropertyContent() {
     }
     if (
       hasPropertyDetailsErrors(nextPropertyDetailsErrors) ||
+      tabStepErrors?.details ||
       nextBuilderErrors.projectType
     ) {
       return 2;
     }
-    if (hasAmenitiesErrors(nextAmenitiesErrors)) {
+    if (hasAmenitiesErrors(nextAmenitiesErrors) || tabStepErrors?.amenities) {
       return 3;
     }
-    if (nextPhotosError) {
+    if (nextPhotosError || tabStepErrors?.photos) {
       return 4;
     }
-    if (hasPricingOthersErrors(nextPricingErrors) || nextBuilderErrors.assuredReturn) {
+    if (
+      hasPricingOthersErrors(nextPricingErrors) ||
+      tabStepErrors?.pricing ||
+      nextBuilderErrors.assuredReturn
+    ) {
       return 5;
     }
 
@@ -646,15 +799,17 @@ export default function PostPropertyContent() {
 
     setIsSubmitting(true);
 
+    // Several sub types still send one set of values until the backend takes a list
+    const tabValues = isMultiSubType ? subForms.getSubmitValues() : null;
     const formState = {
       listingType,
       propertyType,
       propertySubType,
       addressLocation,
-      propertyDetails,
-      amenities,
-      photosVideos,
-      pricingOthers,
+      propertyDetails: tabValues?.details ?? propertyDetails,
+      amenities: tabValues?.amenities ?? amenities,
+      photosVideos: tabValues?.photos ?? photosVideos,
+      pricingOthers: tabValues?.pricing ?? pricingOthers,
     };
 
     try {
@@ -700,8 +855,9 @@ export default function PostPropertyContent() {
 
     const subTypeOptions = SUB_TYPES_BY_PROPERTY_TYPE[nextPropertyType];
     const nextSubType = subTypeOptions ? subTypeOptions[0].id : "";
-    setPropertySubType(nextSubType);
+    setPropertySubTypes([nextSubType]);
     resetProjectDetails(nextPropertyType, nextSubType);
+    subForms.reset();
 
     const nextListingType =
       nextPropertyType === "pg-co-living" ? "rent-lease" : listingType;
@@ -731,8 +887,9 @@ export default function PostPropertyContent() {
       return;
     }
 
-    setPropertySubType(nextSubType);
+    setPropertySubTypes([nextSubType]);
     resetProjectDetails(propertyType, nextSubType);
+    subForms.reset();
 
     // Each sub type has its own fields, so start the later steps afresh
     const isPlot = propertyType === "plot";
@@ -749,6 +906,39 @@ export default function PostPropertyContent() {
     setAmenitiesErrors({});
     setPricingOthersErrors({});
     setPhotosError("");
+  };
+
+  // Builder selects many sub types; each keeps its own details, amenities, photos and pricing
+  const handleSubTypesChange = (nextSubTypes: string[]) => {
+    const keepsSingle = propertySubTypes.length === 1 && nextSubTypes.length === 1;
+
+    if (keepsSingle) {
+      handleSubTypeChange(nextSubTypes[0]);
+      return;
+    }
+
+    subForms.changeSelection(nextSubTypes);
+    setPropertySubTypes(nextSubTypes);
+    setBuilderErrors({});
+    setPropertyDetailsErrors({});
+    setAmenitiesErrors({});
+    setPricingOthersErrors({});
+    setPhotosError("");
+
+    // Unit types of sub types that are no longer selected are cleared
+    const { unitTypes } = getUnitTypeConfig(propertyType, nextSubTypes);
+    const keepUnitType = (value: string) => (unitTypes.includes(value) ? value : "");
+    setProjectDetails((current) => ({
+      ...current,
+      configurations: current.configurations.map((row) => ({
+        ...row,
+        unitType: keepUnitType(row.unitType),
+      })),
+      availableSizes: current.availableSizes.map((row) => ({
+        ...row,
+        unitType: keepUnitType(row.unitType),
+      })),
+    }));
   };
 
   const goToStep = (step: number) => {
@@ -769,6 +959,103 @@ export default function PostPropertyContent() {
   const isAmenitiesStep = currentStep === 3;
   const isPhotosVideosStep = currentStep === 4;
   const isPricingOthersStep = currentStep === 5;
+
+  // Price Inclusion is the only per sub type block of the builder pricing step
+  const pricingTabs = subForms.tabs.filter(
+    (tab) => getFormConfig("sale", propertyType, tab.id, true)?.pricing.priceInclusion ?? true,
+  );
+  const activePricingTabId = pricingTabs.some((tab) => tab.id === activeTabId)
+    ? activeTabId
+    : (pricingTabs[0]?.id ?? "");
+
+  // Charges and assured return are project wide, so every tab gets the same value
+  const handleAllPricingChange = <K extends keyof PricingOthersValues>(
+    field: K,
+    value: PricingOthersValues[K],
+  ) => {
+    if (field === "assuredReturn") {
+      setBuilderErrors((current) => ({ ...current, assuredReturn: undefined }));
+    }
+    subForms.changePricingAll(field, value);
+  };
+
+  // Brochure images, floor plans and walkthroughs are project wide, so they never sit in a tab
+  const builderMediaBlocks = showBuilderFields ? (
+    <>
+      <BrochureImagesField values={projectDetails} onChange={handleProjectDetailsChange} />
+      {builderConfig.showFloorPlans ? (
+        <FloorPlansField
+          projectName={addressLocation.projectName}
+          propertyType={propertyType}
+          subType={propertySubTypes}
+          values={projectDetails}
+          onChange={handleProjectDetailsChange}
+          autoTitles={
+            getFloorPlanTitles(projectDetails).length > 0
+              ? getFloorPlanTitles(projectDetails)
+              : undefined
+          }
+        />
+      ) : null}
+      <VideoWalkthroughField values={projectDetails} onChange={handleProjectDetailsChange} />
+      <VirtualTourField values={projectDetails} onChange={handleProjectDetailsChange} />
+    </>
+  ) : null;
+
+  const builderProjectBlocks = showBuilderFields ? (
+    <>
+      <ProjectOverviewField
+        values={projectDetails}
+        onChange={handleProjectDetailsChange}
+        propertyType={propertyType}
+        subType={propertySubTypes}
+        hideConfiguration
+        showProjectType={builderConfig.showProjectType}
+        projectTypeError={builderErrors.projectType}
+        totalUnitsLabel={builderConfig.totalUnitsLabel}
+        hideTotalBlocks={builderConfig.hideTotalBlocks}
+      />
+      <BuilderExtraDetailsField
+        extras={builderConfig.extras}
+        values={projectDetails}
+        onChange={handleProjectDetailsChange}
+      />
+      <ProjectExtraDetailsField
+        values={projectDetails}
+        onChange={handleProjectDetailsChange}
+      />
+      {builderConfig.showSpecifications ? (
+        <ProjectSpecificationsField
+          values={projectDetails}
+          onChange={handleProjectDetailsChange}
+        />
+      ) : null}
+    </>
+  ) : null;
+
+  const builderAmenityExtras = showBuilderFields ? (
+    <>
+      <PostPropertyInput
+        id="approvedBy"
+        label="Approved By"
+        placeholder="e.g. DTCP, development authority"
+        variant="underline"
+        staticLabel
+        value={projectDetails.approvedBy}
+        onChange={(value) => handleProjectDetailsChange("approvedBy", value)}
+      />
+      <PostPropertyInput
+        id="reraLink"
+        label="RERA Website / Link"
+        placeholder="https://"
+        type="url"
+        variant="underline"
+        staticLabel
+        value={projectDetails.reraLink}
+        onChange={(value) => handleProjectDetailsChange("reraLink", value)}
+      />
+    </>
+  ) : undefined;
 
   if (isEditMode && (isLoadingEdit || editError || !editProperty)) {
     return <EditPropertyStatus error={editError} />;
@@ -824,6 +1111,8 @@ export default function PostPropertyContent() {
               onChange={handlePropertyTypeChange}
               subType={propertySubType}
               onSubTypeChange={handleSubTypeChange}
+              subTypes={showBuilderFields ? propertySubTypes : undefined}
+              onSubTypesChange={showBuilderFields ? handleSubTypesChange : undefined}
               hiddenIds={showBuilderFields ? ["pg-co-living"] : undefined}
             />
 
@@ -871,7 +1160,59 @@ export default function PostPropertyContent() {
           </div>
 
           <div className="space-y-6">
-            {showBuilderFields ? (
+            {showBuilderFields && isMultiSubType ? (
+              <>
+                {builderProjectBlocks}
+                <AvailableSizesField
+                  values={projectDetails}
+                  onChange={handleProjectDetailsChange}
+                  propertyType={propertyType}
+                  subType={propertySubTypes}
+                  hideBhk={!builderConfig.showBhk}
+                  sizeUnits={builderConfig.sizeUnits}
+                  showUnitsAvailable
+                />
+                {commonDetailsCfg ? (
+                  <SaleCommonSections
+                    cfg={commonDetailsCfg}
+                    sections={commonSections}
+                    values={subForms.getDetails(subForms.firstTabId)}
+                    onChange={subForms.changeDetailsAll}
+                    errors={subForms.getCommonDetailsErrors()}
+                  />
+                ) : null}
+                <SubTypeDetailsTabs
+                  tabs={subForms.tabs}
+                  activeId={activeTabId}
+                  onActiveChange={subForms.setActiveId}
+                  errorIds={subForms.errorIds.details}
+                >
+                  <BuilderPropertyDetailsField
+                    key={activeTabId}
+                    listingType={listingType}
+                    propertyType={propertyType}
+                    subType={[activeTabId]}
+                    values={subForms.getDetails(activeTabId)}
+                    onChange={(field, value) =>
+                      subForms.changeDetails(activeTabId, field, value)
+                    }
+                    errors={subForms.detailsErrors[activeTabId] ?? {}}
+                    projectDetails={subForms.getProject(activeTabId)}
+                    onProjectDetailsChange={(field, value) =>
+                      subForms.changeProject(
+                        activeTabId,
+                        field,
+                        value,
+                        handleProjectDetailsChange,
+                      )
+                    }
+                    builderLayout
+                    hideAvailableSizes
+                    hideCommon={commonSections}
+                  />
+                </SubTypeDetailsTabs>
+              </>
+            ) : showBuilderFields ? (
               <BuilderPropertyDetailsField
                 listingType={listingType}
                 propertyType={propertyType}
@@ -894,36 +1235,7 @@ export default function PostPropertyContent() {
               />
             )}
 
-            {showBuilderFields ? (
-              <>
-                <ProjectOverviewField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
-                  propertyType={propertyType}
-                  subType={[propertySubType]}
-                  hideConfiguration
-                  showProjectType={builderConfig.showProjectType}
-                  projectTypeError={builderErrors.projectType}
-                  totalUnitsLabel={builderConfig.totalUnitsLabel}
-                  hideTotalBlocks={builderConfig.hideTotalBlocks}
-                />
-                <BuilderExtraDetailsField
-                  extras={builderConfig.extras}
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
-                />
-                <ProjectExtraDetailsField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
-                />
-                {builderConfig.showSpecifications ? (
-                  <ProjectSpecificationsField
-                    values={projectDetails}
-                    onChange={handleProjectDetailsChange}
-                  />
-                ) : null}
-              </>
-            ) : null}
+            {isMultiSubType ? null : builderProjectBlocks}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
@@ -961,45 +1273,62 @@ export default function PostPropertyContent() {
           </div>
 
           <div className="space-y-6">
-            <AmenitiesField
-              isRent={isRent}
-              propertyType={propertyType}
-              subType={propertySubType}
-              values={amenities}
-              onChange={handleAmenitiesChange}
-              errors={amenitiesErrors}
-              hideCarParking={showBuilderFields}
-              builder={showBuilderFields}
-              builderExtras={
-                showBuilderFields ? (
-                  <>
-                    <PostPropertyInput
-                      id="approvedBy"
-                      label="Approved By"
-                      placeholder="e.g. DTCP, development authority"
-                      variant="underline"
-                      staticLabel
-                      value={projectDetails.approvedBy}
-                      onChange={(value) =>
-                        handleProjectDetailsChange("approvedBy", value)
+            {showBuilderFields && isMultiSubType ? (
+              <>
+                {amenitySections.common.length > 0 ? (
+                  <AmenitiesField
+                    key="common-amenities"
+                    isRent={isRent}
+                    propertyType={propertyType}
+                    subType={subForms.firstTabId}
+                    catalogSubTypes={propertySubTypes}
+                    values={subForms.getAmenities(subForms.firstTabId)}
+                    onChange={subForms.changeAmenitiesAll}
+                    errors={subForms.getCommonAmenitiesErrors()}
+                    hideCarParking
+                    builder
+                    builderExtras={builderAmenityExtras}
+                    sections={{ only: amenitySections.common }}
+                  />
+                ) : null}
+                {amenitySections.perSubType.length > 0 ? (
+                  <SubTypeDetailsTabs
+                    tabs={subForms.tabs}
+                    activeId={activeTabId}
+                    onActiveChange={subForms.setActiveId}
+                    errorIds={subForms.errorIds.amenities}
+                  >
+                    <AmenitiesField
+                      key={activeTabId}
+                      isRent={isRent}
+                      propertyType={propertyType}
+                      subType={activeTabId}
+                      values={subForms.getAmenities(activeTabId)}
+                      onChange={(field, value) =>
+                        subForms.changeAmenities(activeTabId, field, value)
                       }
+                      errors={subForms.amenitiesErrors[activeTabId] ?? {}}
+                      hideCarParking
+                      builder
+                      builderExtras={builderAmenityExtras}
+                      sections={{ only: amenitySections.perSubType }}
                     />
-                    <PostPropertyInput
-                      id="reraLink"
-                      label="RERA Website / Link"
-                      placeholder="https://"
-                      type="url"
-                      variant="underline"
-                      staticLabel
-                      value={projectDetails.reraLink}
-                      onChange={(value) =>
-                        handleProjectDetailsChange("reraLink", value)
-                      }
-                    />
-                  </>
-                ) : undefined
-              }
-            />
+                  </SubTypeDetailsTabs>
+                ) : null}
+              </>
+            ) : (
+              <AmenitiesField
+                isRent={isRent}
+                propertyType={propertyType}
+                subType={propertySubType}
+                values={amenities}
+                onChange={handleAmenitiesChange}
+                errors={amenitiesErrors}
+                hideCarParking={showBuilderFields}
+                builder={showBuilderFields}
+                builderExtras={builderAmenityExtras}
+              />
+            )}
 
             {showBuilderFields ? (
               <>
@@ -1007,9 +1336,21 @@ export default function PostPropertyContent() {
                   <BhkCarParkingField
                     values={projectDetails}
                     onChange={handleProjectDetailsChange}
-                    amenities={amenities}
-                    onAmenitiesChange={handleAmenitiesChange}
-                    error={amenitiesErrors.carParking}
+                    amenities={
+                      isMultiSubType
+                        ? subForms.getAmenities(subForms.firstTabId)
+                        : amenities
+                    }
+                    onAmenitiesChange={
+                      isMultiSubType
+                        ? subForms.changeAmenitiesAll
+                        : handleAmenitiesChange
+                    }
+                    error={
+                      isMultiSubType
+                        ? subForms.amenitiesErrors[subForms.firstTabId]?.carParking
+                        : amenitiesErrors.carParking
+                    }
                     singleBlock={builderConfig.carParking === "single"}
                     hideClubMembership={builderConfig.hideClubMembership}
                   />
@@ -1062,66 +1403,105 @@ export default function PostPropertyContent() {
           </div>
 
           <div className="space-y-6">
-            <PhotosVideosField
-              key={`${propertyType}-${propertySubType}`}
-              propertyType={propertyType}
-              listingType={listingType}
-              subType={propertySubType}
-              excludedCategoryIds={
-                showBuilderFields
-                  ? ["brochure-images", "cluster-plan", "elevation"]
-                  : undefined
-              }
-              extraCategoryIds={
-                showBuilderFields &&
-                builderConfig.showConstructionProgress &&
-                showsConstructionProgress(projectDetails.projectType)
-                  ? ["construction-progress"]
-                  : undefined
-              }
-              values={photosVideos}
-              onChange={(next) => {
-                setPhotosVideos(next);
-                setPhotosError("");
-              }}
-              error={photosError}
-              existingMedia={existingMedia}
-              onRemoveExisting={handleRemoveExistingMedia}
-              existingBrochureName={
-                editProperty?.brochurePath?.split("/").pop() ?? null
-              }
-            />
-
-            {showBuilderFields ? (
+            {showBuilderFields && isMultiSubType && sharedPhotos ? (
+              <PhotosVideosField
+                key={`${propertyType}-shared`}
+                propertyType={propertyType}
+                listingType={listingType}
+                subType={subForms.firstTabId}
+                excludedCategoryIds={["brochure-images", "cluster-plan", "elevation"]}
+                extraCategoryIds={
+                  builderConfig.showConstructionProgress &&
+                  showsConstructionProgress(projectDetails.projectType)
+                    ? ["construction-progress"]
+                    : undefined
+                }
+                values={subForms.getPhotos(subForms.firstTabId)}
+                onChange={(next) => subForms.changePhotos(subForms.firstTabId, next)}
+                error={subForms.photosErrors[subForms.firstTabId]}
+                existingMedia={existingMedia}
+                onRemoveExisting={handleRemoveExistingMedia}
+                existingBrochureName={
+                  editProperty?.brochurePath?.split("/").pop() ?? null
+                }
+              />
+            ) : showBuilderFields && isMultiSubType ? (
               <>
-                <BrochureImagesField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
+                <PhotosVideosField
+                  key={`${propertyType}-brochure`}
+                  parts="brochure"
+                  propertyType={propertyType}
+                  listingType={listingType}
+                  subType={subForms.firstTabId}
+                  values={subForms.getPhotos(subForms.firstTabId)}
+                  onChange={(next) => subForms.changePhotos(subForms.firstTabId, next)}
+                  existingBrochureName={
+                    editProperty?.brochurePath?.split("/").pop() ?? null
+                  }
                 />
-                {builderConfig.showFloorPlans ? (
-                  <FloorPlansField
-                    projectName={addressLocation.projectName}
-                    propertyType={propertyType}
-                    subType={propertySubType}
-                    values={projectDetails}
-                    onChange={handleProjectDetailsChange}
-                    autoTitles={
-                      getFloorPlanTitles(projectDetails).length > 0
-                        ? getFloorPlanTitles(projectDetails)
-                        : undefined
-                    }
-                  />
-                ) : null}
-                <VideoWalkthroughField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
+                {builderMediaBlocks}
+              <SubTypeDetailsTabs
+                tabs={subForms.tabs}
+                activeId={activeTabId}
+                onActiveChange={subForms.setActiveId}
+                errorIds={subForms.errorIds.photos}
+              >
+                <PhotosVideosField
+                  key={`${propertyType}-${activeTabId}`}
+                  parts="photos"
+                  propertyType={propertyType}
+                  listingType={listingType}
+                  subType={activeTabId}
+                  excludedCategoryIds={["brochure-images", "cluster-plan", "elevation"]}
+                  extraCategoryIds={
+                    builderConfig.showConstructionProgress &&
+                    showsConstructionProgress(projectDetails.projectType)
+                      ? ["construction-progress"]
+                      : undefined
+                  }
+                  values={subForms.getPhotos(activeTabId)}
+                  onChange={(next) => subForms.changePhotos(activeTabId, next)}
+                  error={subForms.photosErrors[activeTabId]}
+                  existingMedia={
+                    activeTabId === subForms.firstTabId ? existingMedia : []
+                  }
+                  onRemoveExisting={handleRemoveExistingMedia}
                 />
-                <VirtualTourField
-                  values={projectDetails}
-                  onChange={handleProjectDetailsChange}
-                />
+              </SubTypeDetailsTabs>
               </>
-            ) : null}
+            ) : (
+              <PhotosVideosField
+                key={`${propertyType}-${propertySubType}`}
+                propertyType={propertyType}
+                listingType={listingType}
+                subType={propertySubType}
+                excludedCategoryIds={
+                  showBuilderFields
+                    ? ["brochure-images", "cluster-plan", "elevation"]
+                    : undefined
+                }
+                extraCategoryIds={
+                  showBuilderFields &&
+                  builderConfig.showConstructionProgress &&
+                  showsConstructionProgress(projectDetails.projectType)
+                    ? ["construction-progress"]
+                    : undefined
+                }
+                values={photosVideos}
+                onChange={(next) => {
+                  setPhotosVideos(next);
+                  setPhotosError("");
+                }}
+                error={photosError}
+                existingMedia={existingMedia}
+                onRemoveExisting={handleRemoveExistingMedia}
+                existingBrochureName={
+                  editProperty?.brochurePath?.split("/").pop() ?? null
+                }
+              />
+            )}
+
+            {isMultiSubType && !sharedPhotos ? null : builderMediaBlocks}
 
             <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
               <button
@@ -1161,23 +1541,66 @@ export default function PostPropertyContent() {
           </div>
 
           <div className="space-y-6">
-            <PricingOthersField
-              isRent={isRent}
-              propertyType={propertyType}
-              subType={propertySubType}
-              values={pricingOthers}
-              onChange={handlePricingOthersChange}
-              errors={pricingOthersErrors}
-              builderLayout={showBuilderFields}
-            />
+            {showBuilderFields && isMultiSubType && sharedPricing ? (
+              priceInclusionFlags[0] ? (
+                <PricingOthersField
+                  key="shared-pricing"
+                  isRent={isRent}
+                  propertyType={propertyType}
+                  subType={subForms.firstTabId}
+                  values={subForms.getPricing(subForms.firstTabId)}
+                  onChange={subForms.changePricingAll}
+                  errors={subForms.pricingErrors[subForms.firstTabId] ?? {}}
+                  builderLayout
+                />
+              ) : null
+            ) : showBuilderFields && isMultiSubType ? (
+              pricingTabs.length > 0 ? (
+                <SubTypeDetailsTabs
+                  tabs={pricingTabs}
+                  activeId={activePricingTabId}
+                  onActiveChange={subForms.setActiveId}
+                  errorIds={subForms.errorIds.pricing}
+                >
+                  <PricingOthersField
+                    key={activePricingTabId}
+                    isRent={isRent}
+                    propertyType={propertyType}
+                    subType={activePricingTabId}
+                    values={subForms.getPricing(activePricingTabId)}
+                    onChange={(field, value) =>
+                      subForms.changePricing(activePricingTabId, field, value)
+                    }
+                    errors={subForms.pricingErrors[activePricingTabId] ?? {}}
+                    builderLayout
+                  />
+                </SubTypeDetailsTabs>
+              ) : null
+            ) : (
+              <PricingOthersField
+                isRent={isRent}
+                propertyType={propertyType}
+                subType={propertySubType}
+                values={pricingOthers}
+                onChange={handlePricingOthersChange}
+                errors={pricingOthersErrors}
+                builderLayout={showBuilderFields}
+              />
+            )}
 
             {showBuilderFields ? (
               <>
                 <BhkChargesField
                   values={projectDetails}
                   onChange={handleProjectDetailsChange}
-                  pricingOthers={pricingOthers}
-                  onPricingOthersChange={handlePricingOthersChange}
+                  pricingOthers={
+                    isMultiSubType
+                      ? subForms.getPricing(subForms.firstTabId)
+                      : pricingOthers
+                  }
+                  onPricingOthersChange={
+                    isMultiSubType ? handleAllPricingChange : handlePricingOthersChange
+                  }
                   singleBlock={!builderConfig.chargesByBhk}
                   showAssuredReturn={builderConfig.showAssuredReturn}
                   assuredReturnError={builderErrors.assuredReturn}

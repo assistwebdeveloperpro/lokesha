@@ -13,12 +13,16 @@ export default function PropertyTypeField({
   subType,
   onSubTypeChange,
   hiddenIds = [],
+  subTypes,
+  onSubTypesChange,
 }: {
   hiddenIds?: PropertyTypeId[];
   value: PropertyTypeId;
   onChange: (value: PropertyTypeId) => void;
   subType: string;
   onSubTypeChange: (value: string) => void;
+  subTypes?: string[];
+  onSubTypesChange?: (values: string[]) => void;
 }) {
   const subTypeOptions = SUB_TYPES_BY_PROPERTY_TYPE[value];
   const selectedPropertyType = PROPERTY_TYPES.find((type) => type.id === value);
@@ -70,6 +74,8 @@ export default function PropertyTypeField({
           options={subTypeOptions}
           value={subType}
           onChange={onSubTypeChange}
+          values={subTypes}
+          onChangeMany={onSubTypesChange}
         />
       ) : null}
     </PostPropertyFieldSection>

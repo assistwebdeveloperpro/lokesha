@@ -45,12 +45,7 @@ export default function AvailableSizesField({
   const showBhk = config.showBhk && !hideBhk;
   const sizeUnitOptions = sizeUnits.map((value) => ({ value, label: value }));
   const columnCount = 4 + (showBhk ? 1 : 0) + (showUnitsAvailable ? 1 : 0);
-  const gridClassName =
-    columnCount === 6
-      ? "md:grid-cols-6"
-      : columnCount === 5
-        ? "md:grid-cols-5"
-        : "md:grid-cols-4";
+  const fieldTrack = `repeat(${columnCount}, 11.5rem)`;
   const unitTypeOptions = [
     { value: "", label: "Select type" },
     ...unitTypes.map((value) => ({ value, label: value })),
@@ -70,9 +65,11 @@ export default function AvailableSizesField({
       <div className="space-y-4">
         {rows.map((row, index) => (
           <div key={row.id} className="flex items-start gap-3">
-            <div
-              className={`grid flex-1 gap-4 md:gap-6 ${gridClassName}`}
-            >
+            <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div
+                className="grid w-max gap-6"
+                style={{ gridTemplateColumns: fieldTrack }}
+              >
               {showBhk ? (
                 <PostPropertyInput
                   id={`sizeBhk-${row.id}`}
@@ -139,6 +136,7 @@ export default function AvailableSizesField({
                   onChange={(value) => update(row.id, { unitsAvailable: value })}
                 />
               ) : null}
+              </div>
             </div>
             <button
               type="button"

@@ -1,7 +1,8 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 
 export type DropdownOption = {
   value: string;
@@ -63,7 +64,10 @@ export default function CustomDropdown({
     defaultValue ?? options[0]?.value ?? "",
   );
   const [isOpen, setIsOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<CSSProperties | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
   const selectedValue = isControlled ? value : internalValue;
   const selectedOption =
@@ -89,14 +93,55 @@ export default function CustomDropdown({
     setIsOpen(false);
   };
 
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    const updateMenuPosition = () => {
+      const button = buttonRef.current;
+      if (!button) return;
+      const rect = button.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUpward = spaceBelow < 200 && rect.top > spaceBelow;
+      const nextStyle: CSSProperties = {
+        position: "fixed",
+        top: openUpward ? undefined : rect.bottom + 4,
+        bottom: openUpward ? window.innerHeight - rect.top + 4 : undefined,
+        left: rect.left,
+        width: rect.width,
+        minWidth: rect.width,
+        marginTop: 0,
+        zIndex: 80,
+      };
+      setMenuStyle((current) =>
+        current &&
+        current.top === nextStyle.top &&
+        current.bottom === nextStyle.bottom &&
+        current.left === nextStyle.left &&
+        current.width === nextStyle.width
+          ? current
+          : nextStyle,
+      );
+    };
+
+    updateMenuPosition();
+    window.addEventListener("scroll", updateMenuPosition, true);
+    window.addEventListener("resize", updateMenuPosition);
+    return () => {
+      window.removeEventListener("scroll", updateMenuPosition, true);
+      window.removeEventListener("resize", updateMenuPosition);
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
       if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        containerRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
       ) {
-        setIsOpen(false);
+        return;
       }
+      setIsOpen(false);
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -136,6 +181,7 @@ export default function CustomDropdown({
         ref={containerRef}
       >
         <button
+          ref={buttonRef}
           id={id}
           type="button"
           aria-label={accessibleLabel}
@@ -162,40 +208,45 @@ export default function CustomDropdown({
           </label>
         )}
 
-      {isOpen && (
-        <ul
-          role="listbox"
-          aria-label={accessibleLabel}
-          className={
-            menuClassName ??
-            "absolute left-0 z-50 mt-1 max-h-48 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
-          }
-        >
-          {options.map((option) => {
-            const isSelected = option.value === selectedValue;
-            return (
-              <li key={option.value} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => handleSelect(option.value)}
-                  className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
-                    isSelected
-                      ? `bg-sky-100 font-medium ${fieldTextColor}`
-                      : `${fieldTextColor} hover:bg-slate-50`
-                  }`}
-                >
-                  <span>{option.label}</span>
-                  {isSelected && (
-                    <Check className="h-4 w-4 shrink-0 text-sky-600" aria-hidden />
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {isOpen && menuStyle
+        ? createPortal(
+            <ul
+              ref={menuRef}
+              role="listbox"
+              aria-label={accessibleLabel}
+              style={menuStyle}
+              className={
+                menuClassName ??
+                "z-50 max-h-48 overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
+              }
+            >
+              {options.map((option) => {
+                const isSelected = option.value === selectedValue;
+                return (
+                  <li key={option.value} role="presentation">
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => handleSelect(option.value)}
+                      className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                        isSelected
+                          ? `bg-sky-100 font-medium ${fieldTextColor}`
+                          : `${fieldTextColor} hover:bg-slate-50`
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {isSelected && (
+                        <Check className="h-4 w-4 shrink-0 text-sky-600" aria-hidden />
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>,
+            document.body,
+          )
+        : null}
       </div>
     </div>
   );

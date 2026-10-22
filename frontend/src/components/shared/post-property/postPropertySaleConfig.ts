@@ -640,6 +640,102 @@ export function getBuilderSaleFormConfig(
   return config;
 }
 
+export type AmenitySection =
+  | "status"
+  | "amenities"
+  | "facing"
+  | "washrooms"
+  | "roadFacing"
+  | "businessTypes"
+  | "additional"
+  | "pantry"
+  | "cornerShop"
+  | "cafeteria";
+
+export const AMENITY_SECTION_FIELDS: Record<AmenitySection, string[]> = {
+  status: ["status", "furnishing"],
+  amenities: ["amenities"],
+  facing: ["facing"],
+  washrooms: ["washrooms"],
+  roadFacing: ["roadFacing"],
+  businessTypes: ["businessTypes"],
+  additional: ["reraNumber", "openSides"],
+  pantry: ["pantry"],
+  cornerShop: ["cornerShop"],
+  cafeteria: ["cafeteria"],
+};
+
+const AMENITY_SECTION_KEYS: Record<AmenitySection, Array<keyof SaleAmenitiesConfig>> = {
+  status: ["status"],
+  amenities: ["amenities"],
+  facing: ["facing"],
+  washrooms: ["washrooms"],
+  roadFacing: ["roadFacing"],
+  businessTypes: ["businessTypes"],
+  additional: ["rera", "openSides"],
+  pantry: ["pantry"],
+  cornerShop: ["cornerShop"],
+  cafeteria: ["cafeteria"],
+};
+
+const AMENITY_SECTIONS = Object.keys(AMENITY_SECTION_KEYS) as AmenitySection[];
+
+// Builder amenities config; flat/apartment and duplex use the default residential form
+export function getBuilderAmenitiesConfig(
+  propertyType: PropertyTypeId,
+  subType: string,
+): SaleAmenitiesConfig | undefined {
+  const config = getBuilderSaleFormConfig(propertyType, subType)?.amenities;
+  if (config || propertyType !== "residential") {
+    return config;
+  }
+
+  return BASE_AMENITIES;
+}
+
+const isSectionShown = (cfg: SaleAmenitiesConfig, section: AmenitySection) =>
+  AMENITY_SECTION_KEYS[section].some((key) => {
+    const value = cfg[key];
+    return typeof value === "boolean" ? value : value !== "hidden";
+  });
+
+// Amenity sections that every selected sub type shows the same way, and those still left for the tabs
+export function getCommonAmenitySections(
+  configs: Array<SaleAmenitiesConfig | undefined>,
+): { common: AmenitySection[]; perSubType: AmenitySection[] } {
+  const defined = configs.filter((cfg): cfg is SaleAmenitiesConfig => Boolean(cfg));
+  const allKnown = defined.length === configs.length && defined.length > 0;
+
+  const common = allKnown
+    ? AMENITY_SECTIONS.filter((section) =>
+        defined.every(
+          (cfg) =>
+            JSON.stringify(AMENITY_SECTION_KEYS[section].map((key) => cfg[key])) ===
+            JSON.stringify(AMENITY_SECTION_KEYS[section].map((key) => defined[0][key])),
+        ),
+      )
+    : [];
+  const perSubType = AMENITY_SECTIONS.filter(
+    (section) =>
+      !common.includes(section) && defined.some((cfg) => isSectionShown(cfg, section)),
+  );
+
+  return { common, perSubType };
+}
+
+// Builder details config; flat/apartment and duplex use the default residential form
+export function getBuilderDetailsConfig(
+  propertyType: PropertyTypeId,
+  subType: string,
+): SaleDetailsConfig | undefined {
+  const config = getBuilderSaleFormConfig(propertyType, subType)?.details;
+  if (config || propertyType !== "residential") {
+    return config;
+  }
+
+  return { ...BASE_DETAILS, ...BUILDER_RESIDENTIAL.details };
+}
+
 // Returns null for sub types that keep the default form
 export function getFormConfig(
   listingType: ListingTypeId | undefined,
@@ -673,6 +769,38 @@ export function getSaleFormConfig(
   }
 
   return SALE_CONFIGS[propertyType]?.[subType] ?? null;
+}
+
+export type CommonDetailSections = { transaction: boolean; floors: boolean };
+
+export const COMMON_SECTION_FIELDS = {
+  transaction: [
+    "propertyTransaction",
+    "constructionStatus",
+    "possessionDate",
+    "ageOfConstruction",
+  ],
+  floors: ["totalFloors", "floorNumber"],
+} as const;
+
+// Sections that every selected sub type shows the same way are asked once, above the tabs
+export function getCommonDetailSections(
+  configs: Array<SaleDetailsConfig | undefined>,
+): CommonDetailSections {
+  const defined = configs.filter((cfg): cfg is SaleDetailsConfig => Boolean(cfg));
+  const isSame = (pick: (cfg: SaleDetailsConfig) => unknown[]) =>
+    defined.length === configs.length &&
+    defined.every((cfg) => JSON.stringify(pick(cfg)) === JSON.stringify(pick(defined[0])));
+
+  return {
+    transaction: isSame((cfg) => [
+      cfg.transaction,
+      cfg.transactionRequired,
+      cfg.constructionAlways,
+      cfg.ageOfConstruction,
+    ]),
+    floors: isSame((cfg) => [cfg.totalFloors, cfg.floorNumber]),
+  };
 }
 
 // Admin panel can select many sub types; the config applies to a single one

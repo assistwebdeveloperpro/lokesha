@@ -98,7 +98,10 @@ export default function PhotosVideosField({
   subType,
   excludedCategoryIds = [],
   extraCategoryIds = [],
+  parts = "all",
 }: {
+  // "photos" or "brochure" renders only that half, so the brochure can sit above sub type tabs
+  parts?: "all" | "photos" | "brochure";
   excludedCategoryIds?: PhotoCategoryId[];
   extraCategoryIds?: PhotoCategoryId[];
   propertyType?: PropertyTypeId;
@@ -299,6 +302,7 @@ export default function PhotosVideosField({
 
   return (
     <div className="space-y-5 sm:space-y-6">
+      {parts === "brochure" ? null : (
       <PostPropertyFieldSection
         title="Upload Photos & Videos by Category"
         required={arePhotosRequired(propertyType, { listingType, subType })}
@@ -398,6 +402,7 @@ export default function PhotosVideosField({
           ) : null}
         </div>
       </PostPropertyFieldSection>
+      )}
 
       <input
         ref={mediaInputRef}
@@ -413,6 +418,7 @@ export default function PhotosVideosField({
         }}
       />
 
+      {parts === "photos" ? null : (
       <PostPropertyFieldSection
         title="Upload Brochure"
         description="Upload brochure max size of 100 mb in pdf format"
@@ -456,6 +462,7 @@ export default function PhotosVideosField({
           </p>
         ) : null}
       </PostPropertyFieldSection>
+      )}
 
       <input
         ref={brochureInputRef}
