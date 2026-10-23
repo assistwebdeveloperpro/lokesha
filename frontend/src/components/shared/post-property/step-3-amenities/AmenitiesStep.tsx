@@ -56,6 +56,8 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
             activeId={activeTabId}
             onActiveChange={subForms.setActiveId}
             errorIds={subForms.errorIds.amenities}
+            title="Amenities for each sub type"
+            description="Open each tab and choose the amenities for that sub type."
           >
             <AmenitiesField
               key={activeTabId}

@@ -45,6 +45,8 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
           activeId={activePricingTabId}
           onActiveChange={subForms.setActiveId}
           errorIds={subForms.errorIds.pricing}
+          title="Pricing for each sub type"
+          description="Open each tab and set the price for that sub type."
         >
           <PricingOthersField
             key={activePricingTabId}

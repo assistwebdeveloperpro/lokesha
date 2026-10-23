@@ -39,6 +39,8 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
             activeId={activeTabId}
             onActiveChange={subForms.setActiveId}
             errorIds={subForms.errorIds.details}
+            title="Subtype Details"
+            description="You’ve selected multiple subtypes. Switch between the tabs below to enter the details for each subtype separately."
           >
             <BuilderPropertyDetailsField
               key={activeTabId}

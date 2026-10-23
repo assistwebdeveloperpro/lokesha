@@ -65,6 +65,8 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
             activeId={activeTabId}
             onActiveChange={subForms.setActiveId}
             errorIds={subForms.errorIds.photos}
+            title="Photos for each sub type"
+            description="Open each tab and upload photos for that sub type."
           >
             <PhotosVideosField
               key={`${propertyType}-${activeTabId}`}
