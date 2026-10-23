@@ -94,6 +94,7 @@ const initialPropertyDetails: PropertyDetailsValues = {
   ageOfConstruction: "",
   bedrooms: "",
   balcony: "",
+  basementFloors: "None",
   totalFloors: "",
   floorNumber: "",
   bathrooms: "",
@@ -176,7 +177,7 @@ export default function AdminPostPropertyContent() {
   const [propertyDetailsErrors, setPropertyDetailsErrors] =
     useState<PropertyDetailsFieldErrors>({});
   const [projectDetails, setProjectDetails] = useState<ProjectDetailsValues>(
-    createInitialProjectDetails,
+    () => createInitialProjectDetails(RESIDENTIAL_SUB_TYPES[0].label),
   );
   const [amenities, setAmenities] = useState<AmenitiesValues>(initialAmenities);
   const [photosVideos, setPhotosVideos] = useState<PhotosVideosValues>(
@@ -642,7 +643,8 @@ export default function AdminPostPropertyContent() {
     nextSubTypes: string[],
   ) => {
     const { unitTypes } = getUnitTypeConfig(nextPropertyType, nextSubTypes);
-    const keep = (value: string) => (unitTypes.includes(value) ? value : "");
+    const keep = (value: string) =>
+      unitTypes.includes(value) ? value : unitTypes.length === 1 ? unitTypes[0] : "";
 
     setProjectDetails((current) => ({
       ...current,

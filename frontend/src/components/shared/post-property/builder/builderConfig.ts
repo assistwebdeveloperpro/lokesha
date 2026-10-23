@@ -126,7 +126,6 @@ const BUILDER_CONFIGS: Partial<
       carParking: "single",
       hideClubMembership: true,
       chargesByBhk: false,
-      defaultUnitType: "Studio",
     },
     penthouse: { totalUnitsLabel: "Total Penthouses", terraceAreaMax: true },
   },
@@ -168,8 +167,7 @@ export function getBuilderConfig(
 ): BuilderConfig {
   const config = { ...DEFAULT_CONFIG, ...BUILDER_CONFIGS[propertyType]?.[subType] };
 
-  // Non residential rows are named after the selected sub type
-  if (propertyType !== "residential" && !config.defaultUnitType) {
+  if (!config.defaultUnitType) {
     config.defaultUnitType =
       SUB_TYPES_BY_PROPERTY_TYPE[propertyType]?.find(
         (option) => option.id === subType,

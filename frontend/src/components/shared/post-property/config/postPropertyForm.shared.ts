@@ -296,6 +296,25 @@ export function getStepperLineProgress(step: number): number {
 
 export const VISIBLE_FLOOR_NUMBER_COUNT = 7;
 
+export const BASEMENT_FLOOR_OPTIONS = ["None", "1B", "2B", "3B"] as const;
+
+export function formatFloorConfiguration(
+  basementFloors: string,
+  floorsAboveGround: string,
+): string {
+  if (!floorsAboveGround) {
+    return "";
+  }
+
+  const parts: string[] = [];
+  if (basementFloors && basementFloors !== "None") {
+    parts.push(basementFloors);
+  }
+  parts.push("G");
+  parts.push(floorsAboveGround);
+  return parts.join(" + ");
+}
+
 export function getFloorNumberOptions(totalFloors: string): string[] {
   const total = Number(totalFloors);
   if (!Number.isInteger(total) || total < 1) {
@@ -450,6 +469,7 @@ export type PropertyDetailsValues = {
   ageOfConstruction: AgeOfConstructionId | "";
   bedrooms: string;
   balcony: string;
+  basementFloors: string;
   totalFloors: string;
   floorNumber: string;
   bathrooms: string;

@@ -28,7 +28,7 @@ type CustomDropdownProps = {
   accentColor?: "sky" | "teal";
 };
 
-const staticLabelClasses = "mb-1.5 block text-xs font-medium text-slate-700";
+const staticLabelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
 
 export default function CustomDropdown({
   id,

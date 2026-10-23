@@ -10,6 +10,8 @@ import {
   LAND_AREA_TYPE_OPTIONS,
   getCurrentMonthValue,
   PROPERTY_TRANSACTION_OPTIONS,
+  BASEMENT_FLOOR_OPTIONS,
+  formatFloorConfiguration,
   getFloorNumberOptionGroups,
   getPossessionDateInputMin,
   numberOptions,
@@ -539,6 +541,12 @@ export function AgeOfConstructionChips({
   );
 }
 
+const totalFloorsSubsectionTitleClassName =
+  "mb-3 text-sm font-bold text-slate-900";
+
+const totalFloorsChipClassName = (isSelected: boolean) =>
+  `${postPropertyChipClass(isSelected)} min-w-[2.75rem] px-3.5 py-2.5 text-sm sm:min-w-[3rem] sm:px-4`;
+
 export function TotalFloorsFields({
   values,
   onChange,
@@ -547,18 +555,71 @@ export function TotalFloorsFields({
 }: PropertyDetailsPartProps & { showFloorNumber?: boolean }) {
   const { options: floorNumberOptions, moreOptions: floorNumberMoreOptions } =
     getFloorNumberOptionGroups(values.totalFloors);
+  const basement = values.basementFloors || "None";
+  const exampleConfiguration = formatFloorConfiguration(
+    basement,
+    values.totalFloors,
+  );
 
   return (
     <>
-      <ChipSelectField
-        legend="Total Floors"
-        required
-        options={numberOptions(1, 7)}
-        value={values.totalFloors}
-        error={errors.totalFloors}
-        onChange={(value) => onChange("totalFloors", value)}
-        moreOptions={numberOptions(8, 100)}
-      />
+      <PostPropertyFieldSection title="Total Floors" required>
+        <div className="divide-y divide-slate-200">
+          <div className="pb-4">
+            <p className={totalFloorsSubsectionTitleClassName}>Basement</p>
+            <div className="flex flex-wrap gap-2.5">
+              {BASEMENT_FLOOR_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={basement === option}
+                  onClick={() => onChange("basementFloors", option)}
+                  className={totalFloorsChipClassName(basement === option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="py-4">
+            <p className={totalFloorsSubsectionTitleClassName}>Ground Floor</p>
+            <button
+              type="button"
+              aria-pressed
+              disabled
+              className={`${totalFloorsChipClassName(true)} cursor-default`}
+            >
+              G
+            </button>
+          </div>
+
+          <div className="py-4">
+            <ChipSelectField
+              bare
+              legend="Floors Above Ground"
+              legendClassName={totalFloorsSubsectionTitleClassName}
+              required
+              options={numberOptions(1, 7)}
+              value={values.totalFloors}
+              error={errors.totalFloors}
+              onChange={(value) => onChange("totalFloors", value)}
+              moreOptions={numberOptions(8, 100)}
+            />
+          </div>
+
+          {exampleConfiguration ? (
+            <div className="pt-4">
+              <p className="text-xs font-medium text-slate-500">
+                Example configuration
+              </p>
+              <p className="mt-1 font-display text-sm font-bold text-sky-600">
+                {exampleConfiguration}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      </PostPropertyFieldSection>
 
       {showFloorNumber && floorNumberOptions.length > 0 ? (
         <ChipSelectField

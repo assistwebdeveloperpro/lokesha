@@ -36,13 +36,13 @@ export default function AuthPromoContent() {
   const { title, description } = useAuthPromoCopy();
 
   return (
-    <div className="mx-auto w-full max-w-md text-center lg:max-w-xl lg:text-left">
-      <header className="px-0.5 sm:px-3 lg:px-0">
+    <div className="mx-auto w-full max-w-xl text-left">
+      <header>
         <h2 className={authPromoTitleClassName}>{title}</h2>
         <p className={authPromoDescriptionClassName}>{description}</p>
       </header>
 
-      <div className="mt-8 hidden lg:block">
+      <div className="mt-8">
         <Image
           src={loginPromoImg}
           alt="Happy buyers and property listings"

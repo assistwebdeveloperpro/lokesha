@@ -3,28 +3,16 @@ import {
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
 
-export const UNIT_TYPE_OPTIONS = [
-  "Flat/Apartment",
-  "Duplex",
-  "Villa",
-  "Penthouse",
-  "Studio",
-  "Builder Floor",
-  "Independent House",
-];
-
-// Residential uses unit types with BHK; others use the selected sub types
+// Unit type choices are the sub types picked in step 1. Residential still collects BHK.
 export function getUnitTypeConfig(propertyType: PropertyTypeId, subTypes: string[]) {
   const options = SUB_TYPES_BY_PROPERTY_TYPE[propertyType] ?? [];
-  if (propertyType === "residential" || options.length === 0) {
-    return { unitTypes: UNIT_TYPE_OPTIONS, showBhk: true };
-  }
+  const selected = new Set(subTypes);
 
   return {
     unitTypes: options
-      .filter((option) => subTypes.includes(option.id))
+      .filter((option) => selected.has(option.id))
       .map((option) => option.label),
-    showBhk: false,
+    showBhk: propertyType === "residential" || options.length === 0,
   };
 }
 
@@ -254,33 +242,46 @@ export function getFloorPlanTitles(values: ProjectDetailsValues): string[] {
   return [...new Set(titles)];
 }
 
-const SPECIFICATION_PRESETS = [
-  {
-    title: "Floor & Counter",
-    labels: [
-      "Living/Dining",
-      "Master Bedroom",
-      "Other Bedroom",
-      "Kitchen",
-      "Toilets",
-      "Balcony",
-    ],
-  },
-  { title: "Fitting", labels: ["Kitchen"] },
-  { title: "Wall & Ceiling", labels: ["Interior", "Exterior"] },
+export const SPECIFICATION_FIELD_LABELS = [
+  "Electrification",
+  "Doors and Windows",
+  "Flooring",
+  "Colour",
+  "Structure",
+  "Interior & Exterior Plaster",
+  "Plumbing",
+  "Water Supply",
+  "Parking",
+  "Security System",
+  "Foyer Area",
+  "Kitchen",
+  "Wall Finish",
+  "Toilets",
+  "Fire and Safety",
+  "Bedrooms",
+  "Balcony",
+  "Elevators",
+  "Terrace",
+  "Water Proofing",
+  "Wash Area",
+  "Bathrooms",
+  "Internet Telephone Point",
+  "Air Conditioner",
 ];
 
 export function createInitialSpecifications(): SpecificationGroup[] {
-  return SPECIFICATION_PRESETS.map((group) => ({
-    id: createRowId(),
-    title: group.title,
-    items: group.labels.map((label) => ({
+  return [
+    {
       id: createRowId(),
-      label,
-      value: "",
-      custom: false,
-    })),
-  }));
+      title: "",
+      items: SPECIFICATION_FIELD_LABELS.map((label) => ({
+        id: createRowId(),
+        label,
+        value: "",
+        custom: false,
+      })),
+    },
+  ];
 }
 
 export function createInitialProjectDetails(

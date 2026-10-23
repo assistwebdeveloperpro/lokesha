@@ -32,6 +32,7 @@ export const INITIAL_PROPERTY_DETAILS: PropertyDetailsValues = {
   ageOfConstruction: "",
   bedrooms: "",
   balcony: "",
+  basementFloors: "None",
   totalFloors: "",
   floorNumber: "",
   bathrooms: "",

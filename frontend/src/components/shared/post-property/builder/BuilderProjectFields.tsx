@@ -1,26 +1,18 @@
 "use client";
 
-import { ChevronDown, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import { useId, useState } from "react";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyInput from "../components/PostPropertyInput";
 import {
-  POST_PROPERTY_EXPANDABLE_GROUP,
-  POST_PROPERTY_EXPANDABLE_GROUP_TITLE,
-  POST_PROPERTY_EXPANDABLE_TRIGGER,
-  POST_PROPERTY_INNER_PANEL,
-  POST_PROPERTY_SECTION,
-  POST_PROPERTY_SECTION_ACCENT,
-  POST_PROPERTY_SECTION_DESC,
-  POST_PROPERTY_SECTION_HEADER,
-  POST_PROPERTY_SECTION_TITLE,
-} from "../config/postPropertyForm.styles";
-import {
   PROJECT_AREA_UNIT_OPTIONS,
   createRowId,
   type ProjectDetailsValues,
-  type SpecificationGroup,
+  type SpecificationItem,
 } from "@/components/master/post-property/postPropertyProjectDetails";
+
+const SPECIFICATION_VISIBLE_ROWS = 3;
+const specificationListMaxHeight = `calc(${SPECIFICATION_VISIBLE_ROWS} * 4rem + ${SPECIFICATION_VISIBLE_ROWS - 1} * 1.25rem + ${SPECIFICATION_VISIBLE_ROWS}px)`;
 
 type OnChange = <K extends keyof ProjectDetailsValues>(
   field: K,
@@ -115,7 +107,7 @@ function AddOptionRow({
           <PostPropertyInput
             id={inputId}
             label="New field name"
-            placeholder="e.g. Doors"
+            placeholder="e.g. Solar panels"
             variant="underline"
             staticLabel
             value={label}
@@ -150,147 +142,97 @@ export function ProjectSpecificationsField({
   values: ProjectDetailsValues;
   onChange: OnChange;
 }) {
-  const groups = values.specifications;
-  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const items = values.specifications.flatMap((group) => group.items);
+  const groupId = values.specifications[0]?.id ?? "specifications";
+  const [showAll, setShowAll] = useState(false);
 
-  const toggleGroup = (groupId: string) =>
-    setExpandedIds((current) =>
-      current.includes(groupId)
-        ? current.filter((id) => id !== groupId)
-        : [...current, groupId],
-    );
-
-  const updateGroup = (
-    groupId: string,
-    update: (group: SpecificationGroup) => SpecificationGroup,
-  ) =>
-    onChange(
-      "specifications",
-      groups.map((group) => (group.id === groupId ? update(group) : group)),
-    );
+  const replaceItems = (nextItems: SpecificationItem[]) =>
+    onChange("specifications", [{ id: groupId, title: "", items: nextItems }]);
 
   return (
-    <section className={POST_PROPERTY_SECTION}>
-      <div className={POST_PROPERTY_SECTION_HEADER}>
-        <span className={POST_PROPERTY_SECTION_ACCENT} aria-hidden />
-        <div className="min-w-0 flex-1">
-          <h3 className={POST_PROPERTY_SECTION_TITLE}>Specifications</h3>
-          <p className={POST_PROPERTY_SECTION_DESC}>
-            Fill only the values you need. Add your own options if something is
-            missing
-          </p>
-        </div>
-      </div>
-      <div className="space-y-3">
-        {groups.map((group) => {
-          const isOpen = expandedIds.includes(group.id);
-          const filledCount = group.items.filter((item) => item.value.trim()).length;
-
-          return (
-          <div key={group.id} className={POST_PROPERTY_EXPANDABLE_GROUP}>
-            <button
-              type="button"
-              onClick={() => toggleGroup(group.id)}
-              aria-expanded={isOpen}
-              aria-controls={`spec-group-${group.id}`}
-              className={POST_PROPERTY_EXPANDABLE_TRIGGER}
-            >
+    <PostPropertyFieldSection
+      title="Specifications"
+      description="Add finishes, fittings and services for this project"
+    >
+      <div
+        className={showAll ? undefined : "overflow-hidden"}
+        style={showAll ? undefined : { maxHeight: specificationListMaxHeight }}
+      >
+        <div className="grid gap-x-6 gap-y-5 md:grid-cols-2">
+          {items.map((item) => (
+            <div key={item.id} className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <h4 className={POST_PROPERTY_EXPANDABLE_GROUP_TITLE}>
-                  {group.title}
-                </h4>
-                {!isOpen && filledCount > 0 ? (
-                  <p className="mt-0.5 text-xs font-medium text-sky-600">
-                    {filledCount} field{filledCount === 1 ? "" : "s"} filled
-                  </p>
-                ) : null}
-              </div>
-              <ChevronDown
-                className={`h-5 w-5 shrink-0 text-sky-600 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                aria-hidden
-              />
-            </button>
-            <div
-              id={`spec-group-${group.id}`}
-              hidden={!isOpen}
-              className="border-t border-slate-100 px-4 pb-4 pt-3 sm:px-5 sm:pb-5"
-            >
-            <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
-            <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
-              {group.items.map((item) => (
-                <div key={item.id} className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <PostPropertyInput
-                      id={`spec-${item.id}`}
-                      label={item.label}
-                      variant="underline"
-                      staticLabel
-                      value={item.value}
-                      onChange={(value) =>
-                        updateGroup(group.id, (current) => ({
-                          ...current,
-                          items: current.items.map((row) =>
-                            row.id === item.id ? { ...row, value } : row,
-                          ),
-                        }))
-                      }
-                    />
-                  </div>
-                  {item.custom ? (
-                    <button
-                      type="button"
-                      aria-label={`Remove ${item.label}`}
-                      onClick={() =>
-                        updateGroup(group.id, (current) => ({
-                          ...current,
-                          items: current.items.filter(
-                            (row) => row.id !== item.id,
-                          ),
-                        }))
-                      }
-                      className="mt-1 inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600"
-                    >
-                      <X className="h-4 w-4" aria-hidden />
-                    </button>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 border-t border-sky-100 pt-5">
-              <div className="rounded-2xl border-2 border-dashed border-sky-300 bg-sky-50/80 px-4 py-5 sm:px-5">
-                <div className="mb-4 flex items-start gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-600/30">
-                    <Plus className="h-4 w-4" aria-hidden />
-                  </span>
-                  <div className="min-w-0 pt-0.5">
-                    <p className="font-display text-sm font-semibold text-slate-800 sm:text-base">
-                      Add custom option
-                    </p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
-                      Missing a field? Type a name and add a new field here.
-                    </p>
-                  </div>
-                </div>
-                <AddOptionRow
-                  existingLabels={group.items.map((item) => item.label)}
-                  onAdd={(label) =>
-                    updateGroup(group.id, (current) => ({
-                      ...current,
-                      items: [
-                        ...current.items,
-                        { id: createRowId(), label, value: "", custom: true },
-                      ],
-                    }))
+                <PostPropertyInput
+                  id={`spec-${item.id}`}
+                  label={item.label}
+                  variant="underline"
+                  staticLabel
+                  value={item.value}
+                  onChange={(value) =>
+                    replaceItems(
+                      items.map((row) =>
+                        row.id === item.id ? { ...row, value } : row,
+                      ),
+                    )
                   }
                 />
               </div>
+              {item.custom ? (
+                <button
+                  type="button"
+                  aria-label={`Remove ${item.label}`}
+                  onClick={() =>
+                    replaceItems(items.filter((row) => row.id !== item.id))
+                  }
+                  className="mt-1 inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              ) : null}
             </div>
-            </div>
-            </div>
-          </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
-    </section>
+      {showAll ? (
+        <div className="mt-6 border-t border-sky-100 pt-5">
+          <div className="rounded-2xl border-2 border-dashed border-sky-300 bg-sky-50/80 px-4 py-5 sm:px-5">
+            <div className="mb-4 flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-600/30">
+                <Plus className="h-4 w-4" aria-hidden />
+              </span>
+              <div className="min-w-0 pt-0.5">
+                <p className="font-display text-sm font-semibold text-slate-800 sm:text-base">
+                  Add custom option
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
+                  Missing a field? Type a name and add a new field here.
+                </p>
+              </div>
+            </div>
+            <AddOptionRow
+              existingLabels={items.map((item) => item.label)}
+              onAdd={(label) =>
+                replaceItems([
+                  ...items,
+                  { id: createRowId(), label, value: "", custom: true },
+                ])
+              }
+            />
+          </div>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setShowAll((open) => !open)}
+        className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-800"
+      >
+        {showAll ? (
+          <ChevronUp className="h-4 w-4 text-sky-600" aria-hidden />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-sky-600" aria-hidden />
+        )}
+        {showAll ? "Show less" : "Show more"}
+      </button>
+    </PostPropertyFieldSection>
   );
 }

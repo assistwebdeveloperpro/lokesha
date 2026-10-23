@@ -66,6 +66,7 @@ export function mapPropertyToFormState(property: PropertyDetail): EditFormState 
       ageOfConstruction: (details.ageOfConstruction ?? "") as PropertyDetailsValues["ageOfConstruction"],
       bedrooms: toText(details.bedrooms),
       balcony: toText(details.balconies),
+      basementFloors: "None",
       totalFloors: toText(details.totalFloors),
       floorNumber: toFloorLabel(details.floorNumber),
       bathrooms: toText(details.bathrooms),

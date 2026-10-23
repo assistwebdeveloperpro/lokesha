@@ -148,7 +148,9 @@ export function createInitialDraft(): PostPropertyDraft {
     photosError: "",
     pricingOthers: INITIAL_PRICING_OTHERS,
     pricingOthersErrors: {},
-    projectDetails: createInitialProjectDetails(),
+    projectDetails: createInitialProjectDetails(
+      getBuilderConfig("residential", RESIDENTIAL_SUB_TYPES[0].id).defaultUnitType,
+    ),
     builderErrors: {},
     existingMedia: [],
     removedMediaIds: [],
@@ -307,7 +309,8 @@ export function postPropertyReducer(
     case "subTypesChanged": {
       // Unit types of sub types that are no longer selected are cleared
       const { unitTypes } = getUnitTypeConfig(state.propertyType, action.subTypes);
-      const keepUnitType = (value: string) => (unitTypes.includes(value) ? value : "");
+      const keepUnitType = (value: string) =>
+        unitTypes.includes(value) ? value : unitTypes.length === 1 ? unitTypes[0] : "";
 
       return {
         ...state,

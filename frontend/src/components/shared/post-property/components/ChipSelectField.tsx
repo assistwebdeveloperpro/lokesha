@@ -14,6 +14,7 @@ type ChipSelectFieldProps = {
   onChange: (value: string) => void;
   moreOptions?: string[];
   bare?: boolean;
+  legendClassName?: string;
   error?: string;
 };
 
@@ -25,6 +26,7 @@ export default function ChipSelectField({
   onChange,
   moreOptions,
   bare = false,
+  legendClassName,
   error,
 }: ChipSelectFieldProps) {
   const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);
@@ -88,7 +90,12 @@ export default function ChipSelectField({
   if (bare) {
     return (
       <div>
-        <p className="mb-3 text-sm font-semibold text-slate-700">
+        <p
+          className={
+            legendClassName ??
+            "mb-3 text-sm font-semibold text-slate-700"
+          }
+        >
           {legend}
           {required ? <PostPropertyRequiredAsterisk /> : null}
         </p>

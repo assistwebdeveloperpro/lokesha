@@ -156,20 +156,22 @@ export default function AvailableSizesField({
         ))}
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            const previousUnitType = rows.at(-1)?.unitType ?? "";
+            const nextUnitType = unitTypes.includes(previousUnitType)
+              ? previousUnitType
+              : unitTypes.length === 1
+                ? unitTypes[0]
+                : "";
+
             onChange("availableSizes", [
               ...rows,
               {
-                ...createAvailableSizeRow(
-                  showBhk
-                    ? ""
-                    : rows.at(-1)?.unitType ||
-                        (unitTypes.length === 1 ? unitTypes[0] : ""),
-                ),
+                ...createAvailableSizeRow(nextUnitType),
                 sizeUnit: rows.at(-1)?.sizeUnit || sizeUnits[0],
               },
-            ])
-          }
+            ]);
+          }}
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-sky-300 bg-sky-50/30 px-4 py-2.5 text-sm font-semibold text-sky-700 transition hover:border-sky-500 hover:bg-sky-50/60"
         >
           <Plus className="h-4 w-4" aria-hidden /> Add Size
