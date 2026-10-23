@@ -6,6 +6,7 @@ import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyInput from "../components/PostPropertyInput";
 import {
   POST_PROPERTY_EXPANDABLE_GROUP,
+  POST_PROPERTY_EXPANDABLE_GROUP_TITLE,
   POST_PROPERTY_EXPANDABLE_TRIGGER,
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SECTION,
@@ -195,7 +196,7 @@ export function ProjectSpecificationsField({
               className={POST_PROPERTY_EXPANDABLE_TRIGGER}
             >
               <div className="min-w-0 flex-1">
-                <h4 className="font-display text-sm font-semibold text-slate-800 sm:text-base">
+                <h4 className={POST_PROPERTY_EXPANDABLE_GROUP_TITLE}>
                   {group.title}
                 </h4>
                 {!isOpen && filledCount > 0 ? (
@@ -223,8 +224,7 @@ export function ProjectSpecificationsField({
                       id={`spec-${item.id}`}
                       label={item.label}
                       variant="underline"
-                      prominentLabel
-                      compactProminentLabel
+                      staticLabel
                       value={item.value}
                       onChange={(value) =>
                         updateGroup(group.id, (current) => ({

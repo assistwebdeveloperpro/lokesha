@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import {
   showsConstructionProgress,
   type ProjectDetailsValues,
@@ -57,6 +57,7 @@ import {
 import { getSubTypeLayout } from "../utils/postPropertyLayout";
 import { buildPropertyFormData } from "../utils/postPropertyPayload";
 import { getFormConfig } from "../config/postPropertySaleConfig";
+import type { PostingAsId } from "../config/postingAs";
 import { resolveFirstInvalidStep } from "../validation/postPropertyStepValidation";
 import {
   getSubmitErrorMessage,
@@ -86,6 +87,7 @@ export function usePostPropertyForm() {
   } = useEditProperty(editId);
 
   const [draft, dispatch] = useReducer(postPropertyReducer, undefined, createInitialDraft);
+  const [postingAs, setPostingAs] = useState<PostingAsId | "">("");
   const {
     listingType,
     propertyType,
@@ -101,7 +103,9 @@ export function usePostPropertyForm() {
 
   const propertySubType = propertySubTypes[0] ?? "";
   const isRent = isRentListing(listingType);
-  const showBuilderFields = isAuthReady && role === "builder";
+  const isStaff = isAuthReady && role === "lokesha_staff";
+  const showBuilderFields =
+    isAuthReady && (role === "builder" || (isStaff && postingAs === "builder"));
   const builderConfig = getMergedBuilderConfig(propertyType, propertySubTypes);
   const addressValidationOptions = {
     projectNameOptional: showBuilderFields && !builderConfig.projectNameRequired,
@@ -232,6 +236,16 @@ export function usePostPropertyForm() {
     if (field === "projectType" && !showsConstructionProgress(String(value))) {
       clearConstructionProgressPhotos();
     }
+  };
+
+  // Only the builder form differs, so the other two keep what was already filled
+  const handlePostingAsChange = (next: PostingAsId) => {
+    if ((next === "builder") !== (postingAs === "builder")) {
+      subForms.reset();
+      dispatch({ type: "draftReset" });
+      goToStep(1);
+    }
+    setPostingAs(next);
   };
 
   const handleListingTypeChange = (next: ListingTypeId) =>
@@ -494,6 +508,11 @@ export function usePostPropertyForm() {
       error: editError,
     },
     draft,
+    staff: {
+      isStaff,
+      postingAs,
+      changePostingAs: handlePostingAsChange,
+    },
     derived: {
       propertySubType,
       isRent,

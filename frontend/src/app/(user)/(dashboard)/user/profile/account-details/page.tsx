@@ -15,8 +15,6 @@ const actionLinkClass =
   "inline-flex w-full items-center justify-center rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 transition hover:border-sky-300 hover:bg-sky-100 sm:w-auto sm:justify-start sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:font-semibold sm:text-sky-700 sm:underline sm:decoration-sky-700/30 sm:underline-offset-2 sm:hover:bg-transparent sm:hover:text-sky-600 sm:hover:decoration-sky-600";
 
 const ROLE_LABELS: Record<string, string> = {
-  buyer: "Buyer",
-  owner: "Owner",
   buyer_owner_tenant: "Buyer/Owner/Tenant",
   agent: "Agent",
   builder: "Builder",

@@ -115,7 +115,8 @@ export type PostPropertyAction =
   | { type: "existingMediaRemoved"; mediaId: string }
   | { type: "errorsReplaced"; errors: Partial<DraftErrors> }
   | { type: "builderErrorsMerged"; errors: BuilderFieldErrors }
-  | { type: "submittingChanged"; isSubmitting: boolean };
+  | { type: "submittingChanged"; isSubmitting: boolean }
+  | { type: "draftReset" };
 
 const ADDRESS_FIELDS_WITH_ERRORS = new Set<keyof AddressLocationValues>([
   "projectName",
@@ -423,6 +424,9 @@ export function postPropertyReducer(
 
     case "submittingChanged":
       return { ...state, isSubmitting: action.isSubmitting };
+
+    case "draftReset":
+      return createInitialDraft();
 
     default:
       return state;

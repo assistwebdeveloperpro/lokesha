@@ -54,6 +54,9 @@ export const POST_PROPERTY_EXPANDABLE_GROUP =
 export const POST_PROPERTY_EXPANDABLE_TRIGGER =
   "flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3.5 text-left transition hover:bg-sky-50/40";
 
+export const POST_PROPERTY_EXPANDABLE_GROUP_TITLE =
+  "text-sm font-bold text-slate-600";
+
 export const POST_PROPERTY_SUBSECTION_LABEL =
   "mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-500";
 

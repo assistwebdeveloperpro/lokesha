@@ -28,7 +28,7 @@ type CustomDropdownProps = {
   accentColor?: "sky" | "teal";
 };
 
-const staticLabelClasses = "mb-2.5 block text-sm font-semibold text-slate-700";
+const staticLabelClasses = "mb-1.5 block text-xs font-medium text-slate-700";
 
 export default function CustomDropdown({
   id,
@@ -57,8 +57,8 @@ export default function CustomDropdown({
         : "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-black"
       : compactProminentLabel
         ? "pointer-events-none absolute left-0 top-0.5 origin-left text-sm font-semibold text-slate-800"
-        : "pointer-events-none absolute left-0 top-0.5 origin-left text-base font-semibold text-slate-800"
-    : "pointer-events-none absolute left-0 top-1 origin-left scale-[0.85] text-sm text-slate-500";
+        : "pointer-events-none absolute left-0 top-0.5 origin-left text-sm font-semibold text-slate-800"
+    : "pointer-events-none absolute left-0 top-1 origin-left scale-[0.85] text-sm font-medium text-slate-600";
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(
     defaultValue ?? options[0]?.value ?? "",

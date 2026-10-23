@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import FloatingInput from "@/components/shared/FloatingInput";
 import AuthFormBackLink from "@/components/shared/auth/AuthFormBackLink";
+import {
+  authFormBodyClassName,
+  authFormCardClassName,
+  authFormFieldsClassName,
+  authFormInlineLinkClassName,
+  authFormSubmitClassName,
+} from "@/components/shared/auth/authForm.styles";
 import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import MathCaptcha, { type MathCaptchaHandle } from "@/components/shared/auth/MathCaptcha";
 import { validateWithSchema } from "@/lib/validation/joi";
@@ -161,24 +168,25 @@ export default function SignupContent() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-md">
-          <div className="w-full rounded-xl bg-white p-3.5 shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)] max-[380px]:p-3 sm:rounded-2xl sm:p-5 lg:p-6">
+    <div className="relative mx-auto w-full max-w-lg">
+          <div className={authFormCardClassName}>
+            <div className={authFormBodyClassName}>
             <AuthFormBackLink href="/login" />
             <AuthFormHeading
               title="Sign up"
               description="Create your account in minutes and start listing or discovering properties."
             />
 
-            <form className="mt-5 space-y-4 sm:mt-6 sm:space-y-5" onSubmit={handleSignupSubmit}>
+            <form className={authFormFieldsClassName} onSubmit={handleSignupSubmit}>
               <fieldset>
-                <legend className="mb-3 text-sm font-semibold text-slate-700">
+                <legend className="mb-2.5 text-sm font-semibold text-slate-800">
                   I am
                 </legend>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 max-[400px]:grid-cols-1 sm:flex sm:flex-row sm:flex-wrap sm:gap-4">
+                <div className="flex flex-col gap-2.5 max-[400px]:gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5 sm:gap-y-2">
                   {userTypes.map((type) => (
                     <label
                       key={type.id}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-600"
+                      className="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700"
                     >
                       <input
                         type="radio"
@@ -186,7 +194,7 @@ export default function SignupContent() {
                         value={type.id}
                         checked={userType === type.id}
                         onChange={() => setUserType(type.id)}
-                        className="h-4 w-4 border-slate-300 text-sky-600 focus:ring-sky-500"
+                        className="h-4 w-4 shrink-0 border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-500/30"
                       />
                       {type.label}
                     </label>
@@ -248,36 +256,18 @@ export default function SignupContent() {
               />
 
               <div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-4">
-                  <div className="w-full shrink-0 sm:w-32">
-                    <FloatingInput
-                      id="countryCode"
-                      ariaLabel="Country code"
-                      variant="underline"
-                      defaultValue="+91"
-                      invalid={Boolean(errors.mobile)}
-                      options={[
-                        { value: "+91", label: "IND +91" },
-                        { value: "+1", label: "USA +1" },
-                        { value: "+44", label: "UK +44" },
-                      ]}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <FloatingInput
-                      id="mobile"
-                      label={requiredLabel("Mobile Number")}
-                      type="tel"
-                      variant="underline"
-                      value={mobile}
-                      invalid={Boolean(errors.mobile)}
-                      onChange={(value) => {
-                        setMobile(value.replace(/\D/g, "").slice(0, 10));
-                        clearError("mobile");
-                      }}
-                    />
-                  </div>
-                </div>
+                <FloatingInput
+                  id="mobile"
+                  label={requiredLabel("Mobile Number")}
+                  type="tel"
+                  variant="underline"
+                  value={mobile}
+                  invalid={Boolean(errors.mobile)}
+                  onChange={(value) => {
+                    setMobile(value.replace(/\D/g, "").slice(0, 10));
+                    clearError("mobile");
+                  }}
+                />
                 {errors.mobile && (
                   <p className="mt-1 text-sm text-red-500" role="alert">
                     {errors.mobile}
@@ -336,21 +326,19 @@ export default function SignupContent() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-navy-blue w-full cursor-pointer rounded-xl py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-slate-900/25 transition hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                className={authFormSubmitClassName}
               >
                 {isSubmitting ? "Signing Up..." : "Sign Up"}
               </button>
             </form>
 
-            <p className="mt-4 text-center text-sm text-slate-600 lg:mt-3">
+            <p className="mt-5 border-t border-slate-100 pt-4 text-center text-sm leading-relaxed text-slate-600">
               Already registered?{" "}
-              <Link
-                href="/login"
-                className="font-semibold text-sky-700 transition-colors hover:text-sky-600"
-              >
+              <Link href="/login" className={authFormInlineLinkClassName}>
                 Login Now
               </Link>
             </p>
+            </div>
           </div>
     </div>
   );

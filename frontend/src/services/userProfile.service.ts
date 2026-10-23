@@ -7,11 +7,9 @@ export type ProfileDetails = {
   name: string;
   email: string;
   mobile_number: string;
-  mobile_country_code: string;
   alternate_email: string | null;
   receive_on_alternate_email: boolean;
   receive_sms_on_mobile: boolean;
-  display_country_code: string | null;
   display_number: string | null;
   is_primary_mobile_virtual: boolean;
   hide_contact_details: boolean;
@@ -40,10 +38,8 @@ export type UpdateLoginDetailsPayload = {
   name: string;
   alternateEmail?: string;
   receiveOnAlternateEmail: boolean;
-  mobileCountryCode: string;
   mobile: string;
   receiveSmsOnMobile: boolean;
-  displayCountryCode?: string;
   displayNumber?: string;
   isPrimaryMobileVirtual: boolean;
   hideContactDetails: boolean;

@@ -17,13 +17,11 @@ async function findProfileByUserId(userId) {
       `${USERS_TABLE}.name`,
       `${USERS_TABLE}.email`,
       `${USERS_TABLE}.mobile_number`,
-      db.raw(`COALESCE(${PREFERENCES_TABLE}.mobile_country_code, '+91') as mobile_country_code`),
       `${PREFERENCES_TABLE}.alternate_email`,
       db.raw(
         `COALESCE(${PREFERENCES_TABLE}.receive_on_alternate_email, false) as receive_on_alternate_email`
       ),
       db.raw(`COALESCE(${PREFERENCES_TABLE}.receive_sms_on_mobile, true) as receive_sms_on_mobile`),
-      `${PREFERENCES_TABLE}.display_country_code`,
       `${PREFERENCES_TABLE}.display_number`,
       db.raw(
         `COALESCE(${PREFERENCES_TABLE}.is_primary_mobile_virtual, false) as is_primary_mobile_virtual`

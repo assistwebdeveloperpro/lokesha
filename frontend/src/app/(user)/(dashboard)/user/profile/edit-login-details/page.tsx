@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/shared/ui/ToastProvider";
@@ -10,24 +10,13 @@ import { ApiError } from "@/services/apiClient";
 import { getProfileDetails, updateLoginDetails } from "@/services/userProfile.service";
 
 const USER_TYPE_LABELS: Record<string, string> = {
-  buyer: "Buyer",
-  owner: "Owner",
   buyer_owner_tenant: "Buyer/Owner/Tenant",
   agent: "Broker / Agent",
   builder: "Builder",
 };
 
-const COUNTRY_CODE_OPTIONS = [
-  { value: "+91", label: "IND +91" },
-  { value: "+1", label: "USA +1" },
-  { value: "+44", label: "UK +44" },
-];
-
 const inputClassName =
   "w-full rounded-xl border bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 placeholder:font-normal border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20";
-
-const selectClassName =
-  "rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20";
 
 type FormErrors = {
   name?: string;
@@ -97,117 +86,15 @@ function YesNoRadioGroup({
   );
 }
 
-function CountryCodeDropdown({
-  id,
-  value,
-  onChange,
-  options,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const selectedOption = options.find((option) => option.value === value) ?? options[0];
-
-  useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  return (
-    <div ref={containerRef} className="relative w-full shrink-0 sm:w-36">
-      <button
-        id={id}
-        type="button"
-        aria-label="Country code"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((open) => !open)}
-        className={`${selectClassName} flex w-full cursor-pointer items-center justify-between gap-2`}
-      >
-        <span>{selectedOption.label}</span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          aria-hidden
-        />
-      </button>
-
-      {isOpen ? (
-        <ul
-          role="listbox"
-          aria-label="Country code"
-          className="absolute left-0 z-30 mt-1 max-h-48 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
-        >
-          {options.map((option) => {
-            const isSelected = option.value === value;
-
-            return (
-              <li key={option.value} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
-                    isSelected
-                      ? "bg-sky-50 font-medium text-slate-800"
-                      : "text-slate-800 hover:bg-slate-50"
-                  }`}
-                >
-                  <span>{option.label}</span>
-                  {isSelected ? (
-                    <Check className="h-4 w-4 shrink-0 text-sky-600" aria-hidden />
-                  ) : null}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-    </div>
-  );
-}
-
 function PhoneField({
-  countryCodeId,
   phoneId,
-  countryCode,
   phone,
-  onCountryCodeChange,
   onPhoneChange,
   verified,
   error,
 }: {
-  countryCodeId: string;
   phoneId: string;
-  countryCode: string;
   phone: string;
-  onCountryCodeChange: (value: string) => void;
   onPhoneChange: (value: string) => void;
   verified?: boolean;
   error?: string;
@@ -216,13 +103,7 @@ function PhoneField({
 
   return (
     <div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-        <CountryCodeDropdown
-          id={countryCodeId}
-          value={countryCode}
-          onChange={onCountryCodeChange}
-          options={COUNTRY_CODE_OPTIONS}
-        />
+      <div className="flex items-start">
         <div className="min-w-0 flex-1">
           <input
             id={phoneId}
@@ -262,11 +143,9 @@ export default function EditLoginDetailsPage() {
   const [name, setName] = useState("");
   const [alternateEmail, setAlternateEmail] = useState("");
   const [receiveOnAlternateEmail, setReceiveOnAlternateEmail] = useState(false);
-  const [mobileCountryCode, setMobileCountryCode] = useState("+91");
   const [mobile, setMobile] = useState("");
   const [isMobileVerified] = useState(true);
   const [receiveSmsOnMobile, setReceiveSmsOnMobile] = useState(true);
-  const [displayCountryCode, setDisplayCountryCode] = useState("+91");
   const [displayNumber, setDisplayNumber] = useState("");
   const [isPrimaryMobileVirtual, setIsPrimaryMobileVirtual] = useState<"yes" | "no">("no");
   const [hideContactDetails, setHideContactDetails] = useState<"yes" | "no">("no");
@@ -292,10 +171,8 @@ export default function EditLoginDetailsPage() {
         setName(profile.name ?? "");
         setAlternateEmail(profile.alternate_email ?? "");
         setReceiveOnAlternateEmail(profile.receive_on_alternate_email ?? false);
-        setMobileCountryCode(profile.mobile_country_code ?? "+91");
         setMobile(profile.mobile_number ?? "");
         setReceiveSmsOnMobile(profile.receive_sms_on_mobile ?? true);
-        setDisplayCountryCode(profile.display_country_code ?? "+91");
         setDisplayNumber(profile.display_number ?? "");
         setIsPrimaryMobileVirtual(profile.is_primary_mobile_virtual ? "yes" : "no");
         setHideContactDetails(profile.hide_contact_details ? "yes" : "no");
@@ -368,10 +245,8 @@ export default function EditLoginDetailsPage() {
           name: name.trim(),
           alternateEmail: alternateEmail.trim(),
           receiveOnAlternateEmail,
-          mobileCountryCode,
           mobile: mobile.trim(),
           receiveSmsOnMobile,
-          displayCountryCode,
           displayNumber: displayNumber.trim(),
           isPrimaryMobileVirtual: isPrimaryMobileVirtual === "yes",
           hideContactDetails: hideContactDetails === "yes",
@@ -505,11 +380,8 @@ export default function EditLoginDetailsPage() {
           <FormRow label="Mobile" required>
             <div className="space-y-3">
               <PhoneField
-                countryCodeId="mobile-country-code"
                 phoneId="mobile"
-                countryCode={mobileCountryCode}
                 phone={mobile}
-                onCountryCodeChange={setMobileCountryCode}
                 onPhoneChange={(value) => {
                   setMobile(value);
                   clearError("mobile");
@@ -531,14 +403,7 @@ export default function EditLoginDetailsPage() {
           </FormRow>
 
           <FormRow label="Display Number">
-            <PhoneField
-              countryCodeId="display-country-code"
-              phoneId="display-number"
-              countryCode={displayCountryCode}
-              phone={displayNumber}
-              onCountryCodeChange={setDisplayCountryCode}
-              onPhoneChange={setDisplayNumber}
-            />
+            <PhoneField phoneId="display-number" phone={displayNumber} onPhoneChange={setDisplayNumber} />
           </FormRow>
 
           <FormRow label="Primary Mobile number is Virtual">

@@ -28,7 +28,7 @@ type FloatingInputProps = {
   readOnly?: boolean;
 };
 
-const staticLabelClasses = "mb-2.5 block text-sm font-semibold text-slate-700";
+const staticLabelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
 
 export default function FloatingInput({
   id,
@@ -73,9 +73,9 @@ export default function FloatingInput({
         ? "pointer-events-none absolute left-0 top-5 origin-left text-sm font-medium text-black transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0.5 peer-focus:text-black peer-not-placeholder-shown:top-0.5 peer-not-placeholder-shown:text-sm peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:text-black"
         : "pointer-events-none absolute left-0 top-5 origin-left text-base font-medium text-black transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-focus:top-0.5 peer-focus:text-black peer-not-placeholder-shown:top-0.5 peer-not-placeholder-shown:text-base peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:text-black"
       : compactProminentLabel
-        ? "pointer-events-none absolute left-0 top-5 origin-left text-sm font-medium text-slate-600 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0.5 peer-focus:text-slate-800 peer-not-placeholder-shown:top-0.5 peer-not-placeholder-shown:text-sm peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:text-slate-800"
-        : "pointer-events-none absolute left-0 top-5 origin-left text-base font-medium text-slate-600 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-focus:top-0.5 peer-focus:text-slate-800 peer-not-placeholder-shown:top-0.5 peer-not-placeholder-shown:text-base peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:text-slate-800"
-    : "pointer-events-none absolute left-0 top-5 origin-left text-sm text-slate-400 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-1 peer-focus:scale-[0.85] peer-focus:text-slate-500 peer-not-placeholder-shown:top-1 peer-not-placeholder-shown:scale-[0.85] peer-not-placeholder-shown:text-slate-500";
+        ? "pointer-events-none absolute left-0 top-5 origin-left text-sm font-medium text-slate-700 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0.5 peer-focus:text-slate-900 peer-not-placeholder-shown:top-0.5 peer-not-placeholder-shown:text-sm peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:text-slate-900"
+        : "pointer-events-none absolute left-0 top-5 origin-left text-base font-medium text-slate-700 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-focus:top-0.5 peer-focus:text-slate-900 peer-not-placeholder-shown:top-0.5 peer-not-placeholder-shown:text-base peer-not-placeholder-shown:font-semibold peer-not-placeholder-shown:text-slate-900"
+    : "pointer-events-none absolute left-0 top-5 origin-left text-sm font-medium text-slate-500 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-1 peer-focus:scale-[0.85] peer-focus:text-slate-700 peer-not-placeholder-shown:top-1 peer-not-placeholder-shown:scale-[0.85] peer-not-placeholder-shown:font-medium peer-not-placeholder-shown:text-slate-700";
   const isUnderline = variant === "underline";
   const isSelect = Boolean(options?.length);
   const hasError = Boolean(error) || invalid;
@@ -193,7 +193,7 @@ export default function FloatingInput({
           className={
             isUnderline
               ? prominentUnderlineLabelClasses
-              : `pointer-events-none absolute left-4 top-3.5 origin-left text-sm text-slate-400 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:scale-[0.85] peer-not-placeholder-shown:top-1.5 peer-not-placeholder-shown:scale-[0.85] ${focusLabel}`
+              : `pointer-events-none absolute left-4 top-3.5 origin-left text-sm font-medium text-slate-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:scale-[0.85] peer-not-placeholder-shown:top-1.5 peer-not-placeholder-shown:scale-[0.85] peer-not-placeholder-shown:font-medium peer-not-placeholder-shown:text-slate-700 ${focusLabel}`
           }
         >
           {label}

@@ -88,9 +88,7 @@ const BUYER_OWNER_PROFILE_HREFS = new Set([
 const BUYER_OWNER_RESTRICTED_ROUTE_PREFIXES: string[] = [];
 
 function isBuyerOwner(role: Role | null): boolean {
-  return (
-    role === "buyer" || role === "owner" || role === "buyer_owner_tenant"
-  );
+  return role === "buyer_owner_tenant";
 }
 
 function hasFullProfileAccess(role: Role | null): boolean {

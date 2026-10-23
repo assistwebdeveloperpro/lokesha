@@ -4,6 +4,11 @@ import { Phone, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AuthFormBackLink from "@/components/shared/auth/AuthFormBackLink";
+import {
+  authFormFieldsClassName,
+  authFormSubmitClassName,
+  authOtpDigitClassName,
+} from "@/components/shared/auth/authForm.styles";
 import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import { verifyOtp } from "@/services/auth.service";
 import { getDefaultUserDashboardRoute } from "@/components/user/dashboard/layout/user-dashboard-nav";
@@ -139,13 +144,10 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
         }
       />
 
-      <form
-        className="mt-6 space-y-6 sm:mt-7"
-        onSubmit={handleSubmit}
-      >
+      <form className={authFormFieldsClassName} onSubmit={handleSubmit}>
         <div>
           <div
-            className="flex justify-center gap-6 sm:gap-8"
+            className="flex justify-center gap-2.5 sm:gap-3"
             onPaste={handlePaste}
           >
             {otp.map((digit, index) => (
@@ -162,37 +164,38 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
                 aria-invalid={Boolean(otpError)}
                 onChange={(e) => updateDigit(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className={`h-10 w-10 border-0 border-b-2 bg-transparent text-center text-lg font-semibold text-slate-800 outline-none transition-colors ${
-                  otpError
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-slate-300 focus:border-sky-600"
-                }`}
+                className={authOtpDigitClassName(otpError)}
               />
             ))}
           </div>
+          {otpError && (
+            <p className="mt-2 text-center text-sm text-red-500 sm:text-left" role="alert">
+              Invalid or incomplete code. Please try again.
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full cursor-pointer rounded-xl bg-linear-to-r-navy-blue py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition hover:bg-[#c62828] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+          className={authFormSubmitClassName}
         >
           {isSubmitting ? "Verifying..." : "Continue"}
         </button>
 
-        <p className="text-center text-sm text-slate-600">
+        <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-center text-sm leading-relaxed text-slate-600">
           {canResend ? (
-            "You can now resend the verification code"
+            "You can resend the verification code now."
           ) : (
             <>
-              Resend OTP in{" "}
-              <span className="font-semibold text-[#d32f2f]">{formatTimer(timer)}</span>
+              Resend code in{" "}
+              <span className="font-semibold tabular-nums text-sky-800">{formatTimer(timer)}</span>
             </>
           )}
         </p>
 
-        <div className="border-t border-slate-100 pt-5 text-center">
-          <p className="text-sm text-slate-500">Did not get Verification Code?</p>
+        <div className="border-t border-slate-100 pt-4 text-center">
+          <p className="text-sm text-slate-600">Did not receive the code?</p>
           <div className="mt-3 flex items-center justify-center gap-4">
             <button
               type="button"

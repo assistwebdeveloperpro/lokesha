@@ -30,11 +30,9 @@ async function updateLoginDetails(userId, payload) {
   };
 
   const preferencesData = {
-    mobile_country_code: payload.mobileCountryCode,
     alternate_email: payload.alternateEmail || null,
     receive_on_alternate_email: payload.receiveOnAlternateEmail,
     receive_sms_on_mobile: payload.receiveSmsOnMobile,
-    display_country_code: payload.displayCountryCode || null,
     display_number: payload.displayNumber || null,
     is_primary_mobile_virtual: payload.isPrimaryMobileVirtual,
     hide_contact_details: payload.hideContactDetails,

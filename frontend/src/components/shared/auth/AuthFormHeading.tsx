@@ -17,7 +17,12 @@ export default function AuthFormHeading({
   className,
 }: AuthFormHeadingProps) {
   return (
-    <header className={cn("mb-0.5", className)}>
+    <header
+      className={cn(
+        "border-b border-slate-100 pb-4 sm:pb-[1.125rem]",
+        className,
+      )}
+    >
       <h1 className={authFormTitleClassName}>{title}</h1>
       {description ? (
         <p className={authFormDescriptionClassName}>{description}</p>

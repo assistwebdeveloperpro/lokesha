@@ -1,11 +1,10 @@
 import { apiFetch } from "./apiClient";
 
 export type Role =
-  | "buyer"
-  | "owner"
   | "buyer_owner_tenant"
   | "agent"
-  | "builder";
+  | "builder"
+  | "lokesha_staff";
 
 export type SignupPayload = {
   role: Role;

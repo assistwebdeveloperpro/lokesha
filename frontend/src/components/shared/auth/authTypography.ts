@@ -1,8 +1,8 @@
 export const authFormTitleClassName =
-  "font-display text-[1.625rem] font-bold leading-[1.15] tracking-tight text-slate-900 sm:text-[1.75rem]";
+  "font-display text-lg font-bold leading-snug tracking-tight text-slate-900 sm:text-xl";
 
 export const authFormDescriptionClassName =
-  "mt-2 text-[0.9375rem] leading-relaxed text-slate-500 sm:mt-2.5";
+  "mt-1.5 max-w-md text-sm leading-relaxed text-slate-600 sm:mt-2";
 
 export const authPromoTitleClassName =
   "font-display text-[1.5rem] font-bold leading-[1.2] tracking-tight text-slate-900 sm:text-[1.75rem] lg:text-left lg:text-[1.875rem] xl:text-[2rem]";

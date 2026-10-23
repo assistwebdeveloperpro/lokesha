@@ -3,6 +3,14 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import FloatingInput from "@/components/shared/FloatingInput";
+import {
+  authFormBodyClassName,
+  authFormCardClassName,
+  authFormFieldsClassName,
+  authFormFooterClassName,
+  authFormInlineLinkClassName,
+  authFormSubmitClassName,
+} from "@/components/shared/auth/authForm.styles";
 import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import MathCaptcha, { type MathCaptchaHandle } from "@/components/shared/auth/MathCaptcha";
 import VerifyForm from "./VerifyForm";
@@ -70,9 +78,9 @@ export default function LoginContent() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-md">
-      <div className="w-full overflow-hidden rounded-xl bg-white shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)] sm:rounded-2xl">
-        <div className="p-3.5 max-[380px]:p-3 sm:p-5 lg:p-6">
+    <div className="relative mx-auto w-full max-w-lg">
+      <div className={authFormCardClassName}>
+        <div className={authFormBodyClassName}>
               {step === "login" ? (
                 <>
                   <AuthFormHeading
@@ -80,7 +88,7 @@ export default function LoginContent() {
                     description="Enter your registered mobile number to receive a one-time password."
                   />
 
-                  <form className="mt-5 space-y-4 sm:mt-6 sm:space-y-5" onSubmit={handleLoginNext}>
+                  <form className={authFormFieldsClassName} onSubmit={handleLoginNext}>
                     <FloatingInput
                       id="mobile"
                       label="Enter Mobile No."
@@ -112,7 +120,7 @@ export default function LoginContent() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-navy-blue w-full cursor-pointer rounded-xl py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-slate-900/25 transition hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                      className={authFormSubmitClassName}
                     >
                       {isSubmitting ? "Please wait..." : "Next"}
                     </button>
@@ -138,13 +146,10 @@ export default function LoginContent() {
             </div>
 
         {step === "login" && (
-          <div className="border-t border-slate-100 bg-slate-50 px-3.5 py-3 text-center max-[380px]:px-3 sm:px-5 lg:px-6">
-            <p className="text-sm text-slate-600">
+          <div className={authFormFooterClassName}>
+            <p className="text-sm leading-relaxed text-slate-600">
               New to Lokesha?{" "}
-              <Link
-                href="/signup"
-                className="font-semibold text-sky-700 transition-colors hover:text-sky-600"
-              >
+              <Link href="/signup" className={authFormInlineLinkClassName}>
                 Sign Up
               </Link>
             </p>

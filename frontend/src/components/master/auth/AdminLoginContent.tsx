@@ -75,7 +75,7 @@ export default function AdminLoginContent() {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-md">
+    <div className="relative mx-auto w-full max-w-lg">
       <div className="w-full overflow-hidden rounded-xl bg-white shadow-[0_4px_14px_rgba(15,23,42,0.06),0_18px_44px_rgba(15,23,42,0.14)] sm:rounded-2xl">
         <div className="p-3.5 max-[380px]:p-3 sm:p-5 lg:p-6">
           {step === "login" ? (

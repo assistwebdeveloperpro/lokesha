@@ -1,5 +1,5 @@
 const ROLE_ENUM_NAME = "user_role";
-const ROLE_VALUES = ["buyer", "owner", "agent", "builder"];
+const ROLE_VALUES = ["agent", "builder"];
 
 /** @param {import('knex').Knex} knex */
 exports.up = async function up(knex) {

@@ -5,6 +5,7 @@ import FormStepper from "./components/FormStepper";
 import { getProgressForStep } from "./config/postPropertyForm.shared";
 import ProgressBar from "./components/ProgressBar";
 import BasicDetailsStep from "./step-1-basic-information/BasicDetailsStep";
+import PostingAsSection from "./components/PostingAsSection";
 import PropertyDetailsStep from "./step-2-property-details/PropertyDetailsStep";
 import AmenitiesStep from "./step-3-amenities/AmenitiesStep";
 import PhotosVideosStep from "./step-4-media-upload/PhotosVideosStep";
@@ -13,7 +14,9 @@ import { usePostPropertyForm } from "./hooks/usePostPropertyForm";
 
 export default function PostPropertyContent() {
   const form = usePostPropertyForm();
-  const { currentStep, isEditMode, editStatus } = form;
+  const { currentStep, isEditMode, editStatus, staff } = form;
+  const showPostingAs = staff.isStaff && !isEditMode;
+  const isFormVisible = !showPostingAs || staff.postingAs !== "";
 
   if (editStatus.isBlocking) {
     return <EditPropertyStatus error={editStatus.error} />;
@@ -39,11 +42,15 @@ export default function PostPropertyContent() {
         <FormStepper currentStep={currentStep} />
       </section>
 
-      {currentStep === 1 ? <BasicDetailsStep form={form} /> : null}
-      {currentStep === 2 ? <PropertyDetailsStep form={form} /> : null}
-      {currentStep === 3 ? <AmenitiesStep form={form} /> : null}
-      {currentStep === 4 ? <PhotosVideosStep form={form} /> : null}
-      {currentStep === 5 ? <PricingOthersStep form={form} /> : null}
+      {showPostingAs ? (
+        <PostingAsSection value={staff.postingAs} onChange={staff.changePostingAs} />
+      ) : null}
+
+      {isFormVisible && currentStep === 1 ? <BasicDetailsStep form={form} /> : null}
+      {isFormVisible && currentStep === 2 ? <PropertyDetailsStep form={form} /> : null}
+      {isFormVisible && currentStep === 3 ? <AmenitiesStep form={form} /> : null}
+      {isFormVisible && currentStep === 4 ? <PhotosVideosStep form={form} /> : null}
+      {isFormVisible && currentStep === 5 ? <PricingOthersStep form={form} /> : null}
     </div>
   );
 }
