@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none">
+  <g stroke="#333333" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Lift header and frame -->
+    <path d="M15 8V4.5h10V8"/>
+    <path d="M7 36V10.5h26V36M11 36V14h18v22"/>
+    <!-- Lift doors -->
+    <path d="M11 14h18M20 14v22"/>
+    <!-- Goods boxes on a pallet -->
+    <path d="M13 24h6v6h-6zM21 24h6v6h-6zM17 18h6v6h-6z"/>
+    <path d="M15 24v1.5h2V24M23 24v1.5h2V24M19 18v1.5h2V18"/>
+    <path d="M12.5 32h15M14 32v2M26 32v2"/>
+    <!-- Lift control panel and arrows -->
+    <rect x="30" y="16" width="4" height="10" rx="0.8"/>
+    <path d="m31.2 19 0.8-1 0.8 1M32 18v2M31.2 23l0.8 1 0.8-1M32 22v2"/>
+    <!-- Base -->
+    <path d="M5 36h30"/>
+  </g>
+</svg>
