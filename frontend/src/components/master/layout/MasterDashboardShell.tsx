@@ -14,6 +14,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { cn } from "@/lib/utils";
 import {
   getMasterActiveNavLabel,
@@ -182,6 +183,7 @@ function MasterDashboardShellInner({
   const handleLogout = () => {
     closeSidebarOnMobile();
     logout();
+    setRedirectToast("Signed out successfully.");
     router.replace("/backend/login");
   };
 

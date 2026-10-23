@@ -1,4 +1,4 @@
-import { FORM_STEPS, getStepperLineProgress } from "./postPropertyForm.shared";
+import { FORM_STEPS, getStepperLineProgress } from "../config/postPropertyForm.shared";
 
 const STEP_COUNT = FORM_STEPS.length;
 const CIRCLE_RADIUS = "1.25rem";

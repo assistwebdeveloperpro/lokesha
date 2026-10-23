@@ -1,9 +1,9 @@
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import {
   LISTING_TYPES,
   type ListingTypeId,
-} from "../postPropertyForm.shared";
-import { postPropertyTileClass } from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.shared";
+import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 
 export default function ListingTypeField({
   value,

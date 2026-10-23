@@ -22,11 +22,11 @@ export default function SubTypeDetailsTabs({
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <div
         role="tablist"
         aria-label="Sub type details"
-        className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-px"
+        className="flex min-w-0 gap-2 overflow-x-auto overscroll-x-contain border-b border-slate-200 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((tab, index) => {
           const isActive = tab.id === activeId;

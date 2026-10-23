@@ -5,8 +5,8 @@ import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
-import { VISIBLE_ICON_TILE_COUNT } from "./postPropertyForm.shared";
-import { postPropertyTileClass } from "./postPropertyForm.styles";
+import { VISIBLE_ICON_TILE_COUNT } from "../config/postPropertyForm.shared";
+import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 
 type ExpandableImageTileOption = {
   id: string;

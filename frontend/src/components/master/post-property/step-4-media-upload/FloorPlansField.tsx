@@ -3,7 +3,7 @@
 import { ImagePlus, Plus, X } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { getFloorPlanTitleExample } from "@/components/shared/post-property/builder/builderConfig";
-import type { PropertyTypeId } from "@/components/shared/post-property/postPropertyForm.shared";
+import type { PropertyTypeId } from "@/components/shared/post-property/config/postPropertyForm.shared";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
 import PostPropertyInput from "../PostPropertyInput";
 import {

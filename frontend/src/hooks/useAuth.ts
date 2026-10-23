@@ -42,8 +42,6 @@ function readSessionState(): SessionState {
 }
 
 export function useAuth() {
-  // Start with a stable guest state so SSR and the first client render match.
-  // Session is read from localStorage only after mount; name always comes from API.
   const [session, setSession] = useState<SessionState>(INITIAL_SESSION);
   const [userName, setUserName] = useState("User");
   const [isAuthReady, setIsAuthReady] = useState(false);

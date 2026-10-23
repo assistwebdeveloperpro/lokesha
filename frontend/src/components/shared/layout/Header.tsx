@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import {
   GUEST_ACTIVITY_LINKS,
   GUEST_SECONDARY_LINKS,
@@ -343,6 +344,7 @@ function DesktopUserMenu({
 
 export default function Header() {
   const { isLoggedIn, userName, displayInitial, logout } = useAuth();
+  const { showToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -358,6 +360,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
+    showToast("Signed out successfully.");
     setSidebarOpen(false);
   };
 

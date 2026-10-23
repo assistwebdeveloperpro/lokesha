@@ -1,6 +1,5 @@
 "use client";
 
-import { CheckCircle2, X, XCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   createContext,
@@ -10,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { consumePendingToast } from "./pendingToast";
+import { consumeRedirectToast } from "./redirectToast";
 
 type ToastType = "success" | "error";
 
@@ -32,6 +31,33 @@ type ToastTimer = {
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 const TOAST_DURATION_MS = 3000;
+
+function SuccessIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden>
+      <path d="M12 0a12 12 0 1012 12A12.013 12.013 0 0012 0zm6.927 8.2l-6.845 9.289a1.011 1.011 0 01-1.43.188l-4.888-3.908a1 1 0 111.25-1.562l4.076 3.261 6.227-8.451a1 1 0 111.61 1.183z" />
+    </svg>
+  );
+}
+
+function ErrorIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden>
+      <path d="M11.983 0a12.206 12.206 0 00-8.51 3.653A11.8 11.8 0 000 12.207 11.779 11.779 0 0011.8 24h.214A12.111 12.111 0 0024 11.791 11.766 11.766 0 0011.983 0zM10.5 16.542a1.476 1.476 0 011.449-1.53h.027a1.527 1.527 0 011.523 1.47 1.475 1.475 0 01-1.449 1.53h-.027a1.529 1.529 0 01-1.523-1.47zM11 12.5v-6a1 1 0 012 0v6a1 1 0 11-2 0z" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 14 16" width="14" height="16" aria-hidden>
+      <path
+        fillRule="evenodd"
+        d="M7.71 8.23l3.75 3.75-1.48 1.48-3.75-3.75-3.75 3.75L1 11.98l3.75-3.75L1 4.48 2.48 3l3.75 3.75L9.98 3l1.48 1.48-3.75 3.75z"
+      />
+    </svg>
+  );
+}
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -79,53 +105,47 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback(
     (message: string, type: ToastType = "success") => {
       const id = nextId.current++;
-      setToasts((prev) => [...prev, { id, message, type }]);
+      setToasts((prev) => [{ id, message, type }, ...prev]);
       startTimer(id, TOAST_DURATION_MS);
     },
     [startTimer],
   );
 
   useEffect(() => {
-    const pending = consumePendingToast();
-    if (pending) {
-      showToast(pending.message, pending.type);
+    const redirectToast = consumeRedirectToast();
+    if (redirectToast) {
+      showToast(redirectToast.message, redirectToast.type);
     }
   }, [pathname, showToast]);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="lokesha-toast-container">
+      <div className="app-toast-container">
         {toasts.map((toast) => (
           <div
             key={toast.id}
             role="status"
-            className={`lokesha-toast lokesha-toast--${toast.type}`}
+            className={`app-toast app-toast--${toast.type}`}
+            onClick={() => dismissToast(toast.id)}
             onMouseEnter={() => pauseTimer(toast.id)}
             onMouseLeave={() => resumeTimer(toast.id)}
           >
-            <span className="lokesha-toast__icon">
-              {toast.type === "success" ? (
-                <CheckCircle2 className="h-5 w-5" aria-hidden />
-              ) : (
-                <XCircle className="h-5 w-5" aria-hidden />
-              )}
+            <span className="app-toast__icon">
+              {toast.type === "success" ? <SuccessIcon /> : <ErrorIcon />}
             </span>
-            <span className="lokesha-toast__message">{toast.message}</span>
+            <span className="app-toast__message">{toast.message}</span>
             <button
               type="button"
-              aria-label="Dismiss notification"
-              className="lokesha-toast__close"
-              onClick={() => dismissToast(toast.id)}
+              aria-label="close"
+              className="app-toast__close"
+              onClick={(event) => {
+                event.stopPropagation();
+                dismissToast(toast.id);
+              }}
             >
-              <X className="h-4 w-4" aria-hidden />
+              <CloseIcon />
             </button>
-            {toast.type === "success" ? (
-              <span
-                className="lokesha-toast__progress"
-                style={{ animationDuration: `${TOAST_DURATION_MS}ms` }}
-              />
-            ) : null}
           </div>
         ))}
       </div>

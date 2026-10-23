@@ -2,8 +2,8 @@
 
 import { ChevronDown, Plus, X } from "lucide-react";
 import { useId, useState } from "react";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyInput from "../PostPropertyInput";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyInput from "../components/PostPropertyInput";
 import {
   POST_PROPERTY_EXPANDABLE_GROUP,
   POST_PROPERTY_EXPANDABLE_TRIGGER,
@@ -13,7 +13,7 @@ import {
   POST_PROPERTY_SECTION_DESC,
   POST_PROPERTY_SECTION_HEADER,
   POST_PROPERTY_SECTION_TITLE,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 import {
   PROJECT_AREA_UNIT_OPTIONS,
   createRowId,

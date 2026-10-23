@@ -1,7 +1,7 @@
 import {
   SUB_TYPES_BY_PROPERTY_TYPE,
   type PropertyTypeId,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 import {
   LAND_SIZE_UNIT_OPTIONS,
   SIZE_UNIT_OPTIONS,

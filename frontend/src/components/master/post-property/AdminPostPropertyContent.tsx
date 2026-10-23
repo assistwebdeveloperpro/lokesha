@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { setPendingToast } from "@/components/shared/ui/pendingToast";
+import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { DEFAULT_STATE } from "@/data/indianStatesCities";
 import { ApiError } from "@/services/apiClient";
@@ -68,7 +68,7 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "./postPropertyForm.shared";
-import { resolveSubType } from "@/components/shared/post-property/postPropertySaleConfig";
+import { resolveSubType } from "@/components/shared/post-property/config/postPropertySaleConfig";
 import { mapPropertyToFormState } from "./postPropertyEdit";
 import { buildAdminPropertyFormData } from "./postPropertyPayload";
 import { saveEditedProperty } from "./saveEditedProperty";
@@ -547,10 +547,10 @@ export default function AdminPostPropertyContent() {
           state: formState,
           removedMediaIds,
         });
-        setPendingToast("Property updated successfully");
+        setRedirectToast("Property updated successfully");
       } else {
         await createAdminProperty(buildAdminPropertyFormData(formState, projectDetails), token);
-        setPendingToast("Property listed successfully");
+        setRedirectToast("Property listed successfully");
       }
       router.push(afterSubmitPath);
     } catch (error) {

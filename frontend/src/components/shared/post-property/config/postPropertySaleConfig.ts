@@ -626,10 +626,9 @@ export function getBuilderSaleFormConfig(
       details: { ...base.details, ...override.details, ...subtypeOverride?.details },
       amenities: {
         ...base.amenities,
-        washrooms:
-          base.amenities.washrooms === "hidden" ? "hidden" : "optional",
         ...override.amenities,
         ...subtypeOverride?.amenities,
+        washrooms: "hidden",
       },
       photos: base.photos,
       pricing: { ...base.pricing, ...override.pricing, ...subtypeOverride?.pricing },

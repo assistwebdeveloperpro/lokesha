@@ -1,20 +1,20 @@
 "use client";
 
 import PostPropertyAmountInput from "./PostPropertyAmountInput";
-import PostPropertyInput from "../PostPropertyInput";
-import ExpandableIconTileSelect from "../ExpandableIconTileSelect";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import { getFormConfig, getSaleFormConfig } from "../postPropertySaleConfig";
+import PostPropertyInput from "../components/PostPropertyInput";
+import ExpandableIconTileSelect from "../components/ExpandableIconTileSelect";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import { getFormConfig, getSaleFormConfig } from "../config/postPropertySaleConfig";
 import {
   PRICE_INCLUSION_OPTIONS,
   type PricingOthersFieldErrors,
   type PricingOthersValues,
   type PropertyTypeId,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_INNER_PANEL,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 
 const checkboxClassName =
   "h-4.5 w-4.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500";

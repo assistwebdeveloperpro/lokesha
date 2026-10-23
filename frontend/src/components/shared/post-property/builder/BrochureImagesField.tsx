@@ -2,7 +2,7 @@
 
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef } from "react";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import {
   createRowId,
   type BrochureImage,

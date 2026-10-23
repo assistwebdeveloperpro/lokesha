@@ -1,4 +1,4 @@
-import type { PricingOthersValues } from "../postPropertyForm.shared";
+import type { PricingOthersValues } from "../config/postPropertyForm.shared";
 import type { ProjectDetailsValues } from "@/components/master/post-property/postPropertyProjectDetails";
 import type { BuilderConfig } from "./builderConfig";
 

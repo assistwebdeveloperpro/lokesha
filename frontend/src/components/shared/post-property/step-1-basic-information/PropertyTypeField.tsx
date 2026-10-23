@@ -2,9 +2,9 @@ import {
   PROPERTY_TYPES,
   SUB_TYPES_BY_PROPERTY_TYPE,
   type PropertyTypeId,
-} from "../postPropertyForm.shared";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import { postPropertyTileClass } from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.shared";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 import PropertySubTypeField from "./PropertySubTypeField";
 
 export default function PropertyTypeField({

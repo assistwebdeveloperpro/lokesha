@@ -1,16 +1,16 @@
 "use client";
 
 import PostPropertyAmountInput from "../step-5-pricing-and-additional-details/PostPropertyAmountInput";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyInput from "../PostPropertyInput";
-import type { PricingOthersValues } from "../postPropertyForm.shared";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyInput from "../components/PostPropertyInput";
+import type { PricingOthersValues } from "../config/postPropertyForm.shared";
 import {
   POST_PROPERTY_BHK_BADGE,
   POST_PROPERTY_BHK_PANEL,
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SUBSECTION_LABEL,
   postPropertyChipClass,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 import {
   BHK_OPTIONS,
   EMPTY_BHK_CHARGES,

@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { cn } from "@/lib/utils";
 import {
   getActiveNavLabel,
@@ -211,6 +212,7 @@ function UserDashboardShellInner({
   const handleLogout = () => {
     closeSidebarOnMobile();
     logout();
+    setRedirectToast("Signed out successfully.");
     router.replace("/login");
   };
 

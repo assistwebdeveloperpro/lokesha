@@ -1,4 +1,4 @@
-import { POST_PROPERTY_REQUIRED_ASTERISK } from "./postPropertyForm.styles";
+import { POST_PROPERTY_REQUIRED_ASTERISK } from "../config/postPropertyForm.styles";
 
 export default function PostPropertyRequiredAsterisk() {
   return (

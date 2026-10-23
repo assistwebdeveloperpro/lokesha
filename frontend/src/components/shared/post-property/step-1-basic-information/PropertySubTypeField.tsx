@@ -1,5 +1,5 @@
-import type { PropertySubTypeOption } from "../postPropertyForm.shared";
-import { postPropertyTileClass } from "../postPropertyForm.styles";
+import type { PropertySubTypeOption } from "../config/postPropertyForm.shared";
+import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 
 export default function PropertySubTypeField({
   title,

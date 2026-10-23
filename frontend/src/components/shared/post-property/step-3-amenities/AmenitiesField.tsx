@@ -2,12 +2,12 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { getCatalogAmenities } from "@/services/property.service";
-import PostPropertyInput from "../PostPropertyInput";
-import ChipSelectField from "../ChipSelectField";
-import ExpandableIconTileSelect from "../ExpandableIconTileSelect";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyRequiredAsterisk from "../PostPropertyRequiredAsterisk";
-import { getFormConfig, type AmenitySection } from "../postPropertySaleConfig";
+import PostPropertyInput from "../components/PostPropertyInput";
+import ChipSelectField from "../components/ChipSelectField";
+import ExpandableIconTileSelect from "../components/ExpandableIconTileSelect";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyRequiredAsterisk from "../components/PostPropertyRequiredAsterisk";
+import { getFormConfig, type AmenitySection } from "../config/postPropertySaleConfig";
 import {
   BUSINESS_OPTIONS,
   FACING_OPTIONS,
@@ -21,12 +21,12 @@ import {
   type FurnishingStatusId,
   type ImageTileOption,
   type PropertyTypeId,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SUBSECTION_LABEL,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 
 const checkboxClassName =
   "h-4.5 w-4.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500";

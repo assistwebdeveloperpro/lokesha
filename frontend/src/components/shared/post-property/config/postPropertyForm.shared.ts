@@ -23,15 +23,22 @@ import {
 } from "lucide-react";
 import type { StaticImageData } from "next/image";
 import type { IndianState } from "@/data/indianStatesCities";
-import carParkingInclusionImage from "../../../../public/assets/images/price_inclusion/car-parking.svg";
-import clubMembershipInclusionImage from "../../../../public/assets/images/price_inclusion/club_membership.svg";
-import plcInclusionImage from "../../../../public/assets/images/price_inclusion/plc.svg";
-import commercialImage from "../../../../public/assets/images/property_type/commercial.svg";
-import landImage from "../../../../public/assets/images/property_type/land.svg";
-import pgImage from "../../../../public/assets/images/property_type/pg.svg";
-import plotImage from "../../../../public/assets/images/property_type/plot.svg";
-import residentialImage from "../../../../public/assets/images/property_type/residential.svg";
-import { parseAmountNumber } from "./postPropertyAmount";
+import { validateWithSchema } from "@/lib/validation/joi";
+import { createAddressLocationSchema } from "@/lib/validation/schemas/address.schema";
+import {
+  MAX_NOTICE_PERIOD_MONTHS,
+  isValidAmount,
+  isValidNoticePeriod,
+} from "@/lib/validation/schemas/pricing.schema";
+import carParkingInclusionImage from "../../../../../public/assets/images/price_inclusion/car-parking.svg";
+import clubMembershipInclusionImage from "../../../../../public/assets/images/price_inclusion/club_membership.svg";
+import plcInclusionImage from "../../../../../public/assets/images/price_inclusion/plc.svg";
+import commercialImage from "../../../../../public/assets/images/property_type/commercial.svg";
+import landImage from "../../../../../public/assets/images/property_type/land.svg";
+import pgImage from "../../../../../public/assets/images/property_type/pg.svg";
+import plotImage from "../../../../../public/assets/images/property_type/plot.svg";
+import residentialImage from "../../../../../public/assets/images/property_type/residential.svg";
+import { parseAmountNumber } from "../utils/postPropertyAmount";
 import {
   getFormConfig,
   getSaleFormConfig,
@@ -341,28 +348,12 @@ export function validateAddressLocation(
   values: AddressLocationValues,
   options?: { projectNameOptional?: boolean },
 ): AddressLocationFieldErrors {
-  const errors: AddressLocationFieldErrors = {};
+  const { errors } = validateWithSchema(
+    createAddressLocationSchema(options),
+    values,
+  );
 
-  if (!options?.projectNameOptional && !values.projectName.trim()) {
-    errors.projectName =
-      "Please enter the name of society, building, or project name";
-  }
-
-  if (!values.locality.trim()) {
-    errors.locality = "Please enter locality";
-  }
-
-  if (!values.pinCode.trim()) {
-    errors.pinCode = "Please enter pin code";
-  } else if (!/^\d{6}$/.test(values.pinCode.trim())) {
-    errors.pinCode = "Pin code must be 6 digits";
-  }
-
-  if (!values.propertyDescription.trim()) {
-    errors.propertyDescription = "Please enter property description";
-  }
-
-  return errors;
+  return errors as AddressLocationFieldErrors;
 }
 
 export function hasAddressLocationErrors(
@@ -1428,7 +1419,9 @@ export type PricingOthersFieldErrors = Partial<
   >
 >;
 
-export const MAX_NOTICE_PERIOD_MONTHS = 60;
+export { MAX_NOTICE_PERIOD_MONTHS };
+
+const hasInvalidAmount = (raw: string) => !isValidAmount(parseAmountNumber(raw));
 
 function validateRentPricing(
   values: PricingOthersValues,
@@ -1437,24 +1430,19 @@ function validateRentPricing(
 
   if (!values.monthlyRent.trim()) {
     errors.monthlyRent = "Please enter monthly rent";
-  } else if (parseAmountNumber(values.monthlyRent) < 0) {
+  } else if (hasInvalidAmount(values.monthlyRent)) {
     errors.monthlyRent = "Please enter a valid monthly rent";
   }
 
-  const noticePeriod = Number(values.noticePeriod);
   if (!values.noticePeriod.trim()) {
     errors.noticePeriod = "Please enter notice period";
-  } else if (
-    !Number.isInteger(noticePeriod) ||
-    noticePeriod < 0 ||
-    noticePeriod > MAX_NOTICE_PERIOD_MONTHS
-  ) {
+  } else if (!isValidNoticePeriod(Number(values.noticePeriod))) {
     errors.noticePeriod = `Notice period must be between 0 and ${MAX_NOTICE_PERIOD_MONTHS} months`;
   }
 
   if (!values.depositAmount.trim()) {
     errors.depositAmount = "Please enter deposit amount";
-  } else if (parseAmountNumber(values.depositAmount) < 0) {
+  } else if (hasInvalidAmount(values.depositAmount)) {
     errors.depositAmount = "Please enter a valid deposit amount";
   }
 
@@ -1473,14 +1461,14 @@ export function validatePricingOthers(
 
     if (!values.expectedPrice.trim()) {
       errors.expectedPrice = "Please enter expected price";
-    } else if (parseAmountNumber(values.expectedPrice) < 0) {
+    } else if (hasInvalidAmount(values.expectedPrice)) {
       errors.expectedPrice = "Please enter a valid expected price";
     }
 
     if (saleConfig.pricing.bookingAmount === "required") {
       if (!values.bookingAmount.trim()) {
         errors.bookingAmount = "Please enter booking amount";
-      } else if (parseAmountNumber(values.bookingAmount) < 0) {
+      } else if (hasInvalidAmount(values.bookingAmount)) {
         errors.bookingAmount = "Please enter a valid booking amount";
       }
     }
@@ -1514,13 +1502,13 @@ export function validatePricingOthers(
 
   if (!values.expectedPrice.trim()) {
     errors.expectedPrice = "Please enter expected price";
-  } else if (parseAmountNumber(values.expectedPrice) < 0) {
+  } else if (hasInvalidAmount(values.expectedPrice)) {
     errors.expectedPrice = "Please enter a valid expected price";
   }
 
   if (!values.bookingAmount.trim()) {
     errors.bookingAmount = "Please enter booking amount";
-  } else if (parseAmountNumber(values.bookingAmount) < 0) {
+  } else if (hasInvalidAmount(values.bookingAmount)) {
     errors.bookingAmount = "Please enter a valid booking amount";
   }
 

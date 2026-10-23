@@ -23,7 +23,14 @@ import {
   type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
   type PropertyTypeId,
-} from "./postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
+import {
+  applyDetailsChange,
+  clearAmenitiesErrors,
+  clearDetailsErrors,
+  clearPricingErrors,
+  revokePhotoPreviews,
+} from "../state/postPropertyFormState";
 
 export type SubTypeTab = { id: string; label: string };
 
@@ -86,15 +93,6 @@ function reconcileBySubType<T>(
   return { map: {}, single: kept[nextIds[0]] ?? createFallback() };
 }
 
-function revokePhotoPreviews(photos: PhotosVideosValues) {
-  for (const items of Object.values(photos.mediaByCategory)) {
-    items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
-  }
-  if (photos.brochure) {
-    URL.revokeObjectURL(photos.brochure.previewUrl);
-  }
-}
-
 function mergePhotos(list: PhotosVideosValues[]): PhotosVideosValues {
   const merged = createEmptyPhotosVideosValues();
 
@@ -111,114 +109,6 @@ function mergePhotos(list: PhotosVideosValues[]): PhotosVideosValues {
   }
 
   return merged;
-}
-
-function applyDetailsChange<K extends keyof PropertyDetailsValues>(
-  current: PropertyDetailsValues,
-  field: K,
-  value: PropertyDetailsValues[K],
-): PropertyDetailsValues {
-  const next = { ...current, [field]: value };
-
-  if (field === "propertyTransaction") {
-    next.constructionStatus = "";
-    next.possessionDate = "";
-    next.ageOfConstruction = "";
-  }
-
-  if (field === "totalFloors") {
-    next.floorNumber = "";
-  }
-
-  return next;
-}
-
-const DETAILS_ERROR_FIELDS = new Set<string>([
-  "carpetAreaNumber",
-  "carpetAreaType",
-  "superBuildUpNumber",
-  "superBuildUpType",
-  "availableFrom",
-  "leaseContractTill",
-  "tenantPreferences",
-  "pgName",
-  "occupancies",
-  "pgGender",
-  "propertyTransaction",
-  "constructionStatus",
-  "ageOfConstruction",
-  "possessionDate",
-  "bedrooms",
-  "balcony",
-  "totalFloors",
-  "floorNumber",
-  "bathrooms",
-  "plotAreaNumber",
-  "plotAreaType",
-  "terraceAreaNumber",
-  "terraceAreaType",
-  "penthouseType",
-  "floorsAllowed",
-  "currentlyLeasedOut",
-]);
-
-function clearDetailsErrors(
-  current: PropertyDetailsFieldErrors,
-  field: keyof PropertyDetailsValues,
-): PropertyDetailsFieldErrors {
-  const fieldsToClear = new Set<keyof PropertyDetailsFieldErrors>();
-
-  if (DETAILS_ERROR_FIELDS.has(field)) {
-    fieldsToClear.add(field as keyof PropertyDetailsFieldErrors);
-  }
-  if (field === "propertyTransaction") {
-    fieldsToClear.add("constructionStatus");
-    fieldsToClear.add("possessionDate");
-    fieldsToClear.add("ageOfConstruction");
-  }
-  if (field === "totalFloors") {
-    fieldsToClear.add("floorNumber");
-  }
-
-  if (![...fieldsToClear].some((key) => key in current)) {
-    return current;
-  }
-
-  const next = { ...current };
-  for (const key of fieldsToClear) {
-    delete next[key];
-  }
-  return next;
-}
-
-function clearAmenitiesErrors(
-  current: AmenitiesFieldErrors,
-  field: keyof AmenitiesValues,
-): AmenitiesFieldErrors {
-  const next = { ...current };
-  delete next[field as keyof AmenitiesFieldErrors];
-  if (field === "status") {
-    delete next.furnishing;
-  }
-  if (field === "carParkingAvailable") {
-    delete next.carParking;
-  }
-  return Object.keys(next).length === Object.keys(current).length
-    ? current
-    : next;
-}
-
-function clearPricingErrors(
-  current: PricingOthersFieldErrors,
-  field: keyof PricingOthersValues,
-): PricingOthersFieldErrors {
-  if (!(field in current)) {
-    return current;
-  }
-
-  const next = { ...current };
-  delete next[field as keyof PricingOthersFieldErrors];
-  return next;
 }
 
 function omitKey<T>(source: Record<string, T>, id: string): Record<string, T> {

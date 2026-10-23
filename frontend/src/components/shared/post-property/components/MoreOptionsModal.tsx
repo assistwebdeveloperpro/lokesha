@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { postPropertyChipClass } from "./postPropertyForm.styles";
+import { postPropertyChipClass } from "../config/postPropertyForm.styles";
 
 type MoreOptionsModalProps = {
   isOpen: boolean;

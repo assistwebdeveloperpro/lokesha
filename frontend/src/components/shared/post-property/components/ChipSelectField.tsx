@@ -4,7 +4,7 @@ import { useState } from "react";
 import MoreOptionsModal from "./MoreOptionsModal";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
-import { postPropertyChipClass } from "./postPropertyForm.styles";
+import { postPropertyChipClass } from "../config/postPropertyForm.styles";
 
 type ChipSelectFieldProps = {
   legend: string;

@@ -10,7 +10,7 @@ import {
   type PricingOthersValues,
   type PropertyDetailsValues,
   type PropertyTypeId,
-} from "./postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 
 export type EditFormState = {
   listingType: ListingTypeId;

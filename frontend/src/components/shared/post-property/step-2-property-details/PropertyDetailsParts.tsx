@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import ChipSelectField from "../ChipSelectField";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyInput from "../PostPropertyInput";
-import type { SaleDetailsConfig } from "../postPropertySaleConfig";
+import ChipSelectField from "../components/ChipSelectField";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyInput from "../components/PostPropertyInput";
+import type { SaleDetailsConfig } from "../config/postPropertySaleConfig";
 import {
   AGE_OF_CONSTRUCTION_OPTIONS,
   AREA_TYPE_OPTIONS,
@@ -18,12 +18,12 @@ import {
   type ConstructionStatusId,
   type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_TWO_COLUMN_GRID,
   postPropertyChipClass,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 
 export type PropertyDetailsPartProps = {
   values: PropertyDetailsValues;

@@ -1,9 +1,9 @@
 "use client";
 
-import ChipSelectField from "../ChipSelectField";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyRequiredAsterisk from "../PostPropertyRequiredAsterisk";
-import type { AmenitiesValues } from "../postPropertyForm.shared";
+import ChipSelectField from "../components/ChipSelectField";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyRequiredAsterisk from "../components/PostPropertyRequiredAsterisk";
+import type { AmenitiesValues } from "../config/postPropertyForm.shared";
 import {
   POST_PROPERTY_BHK_BADGE,
   POST_PROPERTY_BHK_PANEL,
@@ -11,7 +11,7 @@ import {
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SUBSECTION_LABEL,
   postPropertyChipClass,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 import {
   BHK_OPTIONS,
   EMPTY_BHK_CAR_PARKING,

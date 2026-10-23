@@ -5,6 +5,7 @@
   --foreground: #171717;
   --font-sans: var(--font-inter);
   --font-display: var(--font-geist-sans);
+  --z-index-toast: 99999;
   --color-lokesha-emerald: #10b981;
   --color-navy-sidebar: #12192b;
   --color-navy-blue: var(--color-navy-sidebar);
@@ -182,133 +183,97 @@ body:has(.post-property-page-bg) {
   }
 }
 
-/* Toast notifications */
-.lokesha-toast-container {
+/* Toast notifications — visual match of insolvenztool's colored toasts */
+.app-toast-container {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 100;
+  top: 1em;
+  right: 1em;
+  z-index: var(--z-index-toast);
   display: flex;
-  width: 100%;
-  max-width: 360px;
+  width: 320px;
+  max-width: calc(100vw - 2em);
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   pointer-events: none;
 }
 
-.lokesha-toast {
+.app-toast {
   position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 64px;
   width: 100%;
-  overflow: hidden;
-  border-left: 4px solid transparent;
   border-radius: 0.75rem;
-  background-color: #ffffff;
-  padding: 1.25rem 2.25rem 1.25rem 1rem;
-  color: #1e293b;
-  box-shadow:
-    0 10px 25px -5px rgba(15, 23, 42, 0.15),
-    0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 18px 32px 18px 14px;
+  color: #ffffff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
   pointer-events: auto;
-  animation: lokesha-toast-in 0.25s ease-out;
+  cursor: pointer;
+  animation: app-toast-in 0.4s ease;
 }
 
-.lokesha-toast--success {
-  background-color: #10b981;
-  color: white;
-  border-left-color: white;
-
+.app-toast--success {
+  background-color: #28a745;
 }
 
-.lokesha-toast--error {
-  background-color: #ef4444;
-  color: white;
-    border-left-color: white;
+.app-toast--error {
+  background-color: #dc3545;
 }
 
-.lokesha-toast__icon {
-  margin-top: 0.1rem;
+.app-toast__icon {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
   flex-shrink: 0;
 }
 
-.lokesha-toast--success .lokesha-toast__icon {
-  color: white;
+.app-toast__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 
-.lokesha-toast--error .lokesha-toast__icon {
-  color: white;
-}
-
-.lokesha-toast__message {
+.app-toast__message {
   flex: 1;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 400;
   line-height: 1.4;
 }
 
-.lokesha-toast__close {
+.app-toast__close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 6px;
+  right: 6px;
   display: inline-flex;
-  height: 1.5rem;
-  width: 1.5rem;
-  align-items: center;
-  justify-content: center;
+  margin: 0;
+  padding: 2px;
   border: none;
-  border-radius: 9999px;
-  background-color: #f1f5f9;
-  color: #334155;
+  border-radius: 6px;
+  background: transparent;
+  color: #ffffff;
+  opacity: 0.95;
   cursor: pointer;
-  transition:
-    background-color 0.15s,
-    color 0.15s;
 }
 
-.lokesha-toast__close:hover {
-  background-color: #f1f5f9;
-  color: #334155;
+.app-toast__close svg {
+  display: block;
+  width: 14px;
+  height: 16px;
+  fill: currentColor;
 }
 
-.lokesha-toast__progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  width: 100%;
-  transform-origin: left;
-  animation-name: lokesha-toast-progress;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.lokesha-toast--success .lokesha-toast__progress {
-  background-color: rgba(255, 255, 255, 0.45);
-}
-
-.lokesha-toast:hover .lokesha-toast__progress {
-  animation-play-state: paused;
-}
-
-@keyframes lokesha-toast-in {
+@keyframes app-toast-in {
   from {
-    opacity: 0;
-    transform: translateX(16px);
+    transform: translate3d(110%, 0, 0);
   }
   to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes lokesha-toast-progress {
-  from {
-    transform: scaleX(1);
-  }
-  to {
-    transform: scaleX(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 

@@ -21,7 +21,7 @@ import {
   getSaleFormConfig,
   resolveSubType,
   type CommonDetailSections,
-} from "@/components/shared/post-property/postPropertySaleConfig";
+} from "@/components/shared/post-property/config/postPropertySaleConfig";
 import { getBuilderConfig } from "@/components/shared/post-property/builder/builderConfig";
 import {
   POST_PROPERTY_CHECKBOX_ROW,

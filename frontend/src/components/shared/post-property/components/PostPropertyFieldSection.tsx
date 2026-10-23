@@ -5,7 +5,7 @@ import {
   POST_PROPERTY_SECTION_DESC,
   POST_PROPERTY_SECTION_HEADER,
   POST_PROPERTY_SECTION_TITLE,
-} from "./postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 
 type PostPropertyFieldSectionProps = {
   title: string;

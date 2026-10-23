@@ -1,8 +1,8 @@
 "use client";
 
-import ChipSelectField from "../ChipSelectField";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyInput from "../PostPropertyInput";
+import ChipSelectField from "../components/ChipSelectField";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyInput from "../components/PostPropertyInput";
 import {
   CheckboxRow,
   MultiChipSelectField,

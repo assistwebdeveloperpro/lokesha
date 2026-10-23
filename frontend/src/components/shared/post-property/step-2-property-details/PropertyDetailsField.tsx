@@ -1,11 +1,11 @@
-import PostPropertyInput from "../PostPropertyInput";
-import ChipSelectField from "../ChipSelectField";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
+import PostPropertyInput from "../components/PostPropertyInput";
+import ChipSelectField from "../components/ChipSelectField";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import TenantPreferenceField from "./TenantPreferenceField";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_TWO_COLUMN_GRID,
-} from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.styles";
 import {
   AGE_OF_CONSTRUCTION_OPTIONS,
   AREA_TYPE_OPTIONS,
@@ -21,7 +21,7 @@ import {
   type PropertyDetailsFieldErrors,
   type PropertyDetailsValues,
   type PropertyTypeId,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 import {
   CommercialDetails,
   LandDetails,
@@ -29,7 +29,7 @@ import {
   PlotDetails,
   SaleDetails,
 } from "./PropertyDetailsVariants";
-import { getFormConfig } from "../postPropertySaleConfig";
+import { getFormConfig } from "../config/postPropertySaleConfig";
 
 const areaTypeDropdownOptions = [
   { value: "", label: "Select unit" },

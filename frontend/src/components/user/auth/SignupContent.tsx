@@ -7,8 +7,11 @@ import FloatingInput from "@/components/shared/FloatingInput";
 import AuthFormBackLink from "@/components/shared/auth/AuthFormBackLink";
 import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import MathCaptcha, { type MathCaptchaHandle } from "@/components/shared/auth/MathCaptcha";
+import { validateWithSchema } from "@/lib/validation/joi";
+import { signupSchema } from "@/lib/validation/schemas/auth.schema";
 import { ApiError } from "@/services/apiClient";
 import { signup } from "@/services/auth.service";
+import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 
 const userTypes = [
@@ -17,7 +20,14 @@ const userTypes = [
   { id: "builder", label: "Builder" },
 ] as const;
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SCHEMA_FIELD_TO_ERROR_KEY = {
+  name: "name",
+  agency_name: "agencyName",
+  company_name: "companyName",
+  email: "email",
+  mobile_number: "mobile",
+  agreed_to_terms: "terms",
+} as const;
 
 const requiredLabel = (text: string) => (
   <>
@@ -61,33 +71,22 @@ export default function SignupContent() {
     setFormError(undefined);
     let showErrorToast = true;
 
-    const nextErrors: typeof errors = {};
-    if (!name.trim()) {
-      nextErrors.name = "Please enter your name.";
-    } else if (name.trim().length < 3) {
-      nextErrors.name = "Name must be at least 3 characters long.";
-    } else if (name.trim().length > 100) {
-      nextErrors.name = "Name must be at most 100 characters long.";
-    }
-    if (userType === "agent" && !agencyName.trim()) {
-      nextErrors.agencyName = "Please enter agency name.";
-    }
-    if (userType === "builder" && !companyName.trim()) {
-      nextErrors.companyName = "Please enter company name.";
-    }
-    if (!email.trim()) {
-      nextErrors.email = "Please enter your email id.";
-    } else if (!EMAIL_PATTERN.test(email.trim())) {
-      nextErrors.email = "Please enter a valid email id.";
-    }
     const mobileDigits = mobile.replace(/\D/g, "");
-    if (!mobile.trim()) {
-      nextErrors.mobile = "Please enter mobile number.";
-    } else if (mobileDigits.length !== 10) {
-      nextErrors.mobile = "Mobile number must be exactly 10 digits.";
-    }
-    if (!agreedToTerms) {
-      nextErrors.terms = "Please accept the terms and conditions.";
+    const { errors: schemaErrors } = validateWithSchema(signupSchema, {
+      role: userType,
+      name,
+      email,
+      mobile_number: mobileDigits,
+      agreed_to_terms: agreedToTerms,
+      ...(userType === "agent" && { agency_name: agencyName }),
+      ...(userType === "builder" && { company_name: companyName }),
+    });
+
+    const nextErrors: typeof errors = {};
+    for (const [schemaField, field] of Object.entries(SCHEMA_FIELD_TO_ERROR_KEY)) {
+      if (schemaErrors[schemaField]) {
+        nextErrors[field] = schemaErrors[schemaField];
+      }
     }
     if (!mathAnswer.trim()) {
       nextErrors.mathAnswer = "Please enter the answer.";
@@ -113,7 +112,7 @@ export default function SignupContent() {
         mobile_number: mobileDigits,
         agreed_to_terms: agreedToTerms,
       });
-      showToast("Registered successfully! Please login to continue.");
+      setRedirectToast("Registered successfully! Please login to continue.");
       router.push("/login");
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {

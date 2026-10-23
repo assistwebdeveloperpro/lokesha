@@ -6,6 +6,8 @@ import FloatingInput from "@/components/shared/FloatingInput";
 import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
 import MathCaptcha, { type MathCaptchaHandle } from "@/components/shared/auth/MathCaptcha";
 import VerifyForm from "./VerifyForm";
+import { validateWithSchema } from "@/lib/validation/joi";
+import { loginSchema } from "@/lib/validation/schemas/auth.schema";
 import { login } from "@/services/auth.service";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 
@@ -34,11 +36,11 @@ export default function LoginContent() {
 
     const nextErrors: typeof errors = {};
     const mobileDigits = mobile.replace(/\D/g, "");
-    if (!mobile.trim()) {
-      nextErrors.mobile = "Please enter your mobile number.";
-    } else if (mobileDigits.length < 10) {
-      nextErrors.mobile =
-        "Mobile number should be of min. 10 digits. Please re-enter.";
+    const { errors: schemaErrors } = validateWithSchema(loginSchema, {
+      mobile_number: mobileDigits,
+    });
+    if (schemaErrors.mobile_number) {
+      nextErrors.mobile = schemaErrors.mobile_number;
     }
     if (!mathAnswer.trim()) {
       nextErrors.mathAnswer = "Please enter the answer.";

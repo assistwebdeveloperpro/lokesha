@@ -1,10 +1,10 @@
-import ChipSelectField from "../ChipSelectField";
-import ExpandableIconTileSelect from "../ExpandableIconTileSelect";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import PostPropertyInput from "../PostPropertyInput";
+import ChipSelectField from "../components/ChipSelectField";
+import ExpandableIconTileSelect from "../components/ExpandableIconTileSelect";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import PostPropertyInput from "../components/PostPropertyInput";
 import TenantPreferenceField from "./TenantPreferenceField";
 import type { ReactNode } from "react";
-import type { CommonDetailSections, SaleDetailsConfig } from "../postPropertySaleConfig";
+import type { CommonDetailSections, SaleDetailsConfig } from "../config/postPropertySaleConfig";
 import {
   AgeOfConstructionChips,
   AreaDetailsSection,
@@ -38,7 +38,7 @@ import {
   TERRACE_ENTRY_OPTIONS,
   numberOptions,
   type AreaTypeId,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 
 export function CommercialDetails({
   isRent,

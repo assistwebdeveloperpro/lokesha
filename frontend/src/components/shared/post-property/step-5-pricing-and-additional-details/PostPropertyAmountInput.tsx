@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
-import PostPropertyInput from "../PostPropertyInput";
-import { formatAmountDisplay, sanitizeAmountRaw } from "../postPropertyAmount";
+import PostPropertyInput from "../components/PostPropertyInput";
+import { formatAmountDisplay, sanitizeAmountRaw } from "../utils/postPropertyAmount";
 
 type PostPropertyAmountInputProps = Omit<
   ComponentProps<typeof PostPropertyInput>,

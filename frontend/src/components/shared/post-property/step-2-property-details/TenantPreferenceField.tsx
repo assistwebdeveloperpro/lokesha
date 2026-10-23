@@ -1,9 +1,9 @@
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import {
   TENANT_PREFERENCE_OPTIONS,
   type ImageTileOption,
-} from "../postPropertyForm.shared";
-import { postPropertyTileClass } from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.shared";
+import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 
 export default function TenantPreferenceField({
   value,

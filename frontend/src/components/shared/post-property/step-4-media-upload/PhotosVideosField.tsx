@@ -24,9 +24,9 @@ import {
   type PropertyTypeId,
   type PhotosVideosValues,
   type PropertyMediaFile,
-} from "../postPropertyForm.shared";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
-import { postPropertyChipClass } from "../postPropertyForm.styles";
+} from "../config/postPropertyForm.shared";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import { postPropertyChipClass } from "../config/postPropertyForm.styles";
 
 const uploadButtonClassName =
   "bg-linear-to-r-navy-blue inline-flex cursor-pointer items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-slate-900/15 transition hover:shadow-slate-900/25 active:scale-[0.99]";

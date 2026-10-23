@@ -1,15 +1,15 @@
 import { useMemo } from "react";
-import PostPropertyInput from "../PostPropertyInput";
-import PostPropertyRequiredAsterisk from "../PostPropertyRequiredAsterisk";
+import PostPropertyInput from "../components/PostPropertyInput";
+import PostPropertyRequiredAsterisk from "../components/PostPropertyRequiredAsterisk";
 import {
   getStateOptions,
   type IndianState,
 } from "@/data/indianStatesCities";
-import PostPropertyFieldSection from "../PostPropertyFieldSection";
+import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import type {
   AddressLocationFieldErrors,
   AddressLocationValues,
-} from "../postPropertyForm.shared";
+} from "../config/postPropertyForm.shared";
 
 export default function AddressLocationField({
   values,
