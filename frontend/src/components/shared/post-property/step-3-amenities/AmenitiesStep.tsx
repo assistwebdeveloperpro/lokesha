@@ -39,7 +39,6 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
             isRent={isRent}
             propertyType={draft.propertyType}
             subType={subForms.firstTabId}
-            catalogSubTypes={draft.propertySubTypes}
             values={subForms.getAmenities(subForms.firstTabId)}
             onChange={subForms.changeAmenitiesAll}
             errors={subForms.getCommonAmenitiesErrors()}

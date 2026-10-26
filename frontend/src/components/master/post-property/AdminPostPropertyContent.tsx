@@ -2,14 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { DEFAULT_STATE } from "@/data/indianStatesCities";
-import { ApiError } from "@/services/apiClient";
-import { createAdminProperty } from "@/services/adminProperty.service";
-import { getAdminToken } from "@/services/adminSession";
 import type { PropertyMedia } from "@/services/property.service";
-import { getToken } from "@/services/session";
 import AddressLocationField from "./step-1-basic-information/AddressLocationField";
 import ListingTypeField from "./step-1-basic-information/ListingTypeField";
 import PropertyTypeField from "./step-1-basic-information/PropertyTypeField";
@@ -70,8 +65,6 @@ import {
 } from "./postPropertyForm.shared";
 import { resolveSubType } from "@/components/shared/post-property/config/postPropertySaleConfig";
 import { mapPropertyToFormState } from "./postPropertyEdit";
-import { buildAdminPropertyFormData } from "./postPropertyPayload";
-import { saveEditedProperty } from "./saveEditedProperty";
 import { useEditProperty } from "./useEditProperty";
 import {
   POST_PROPERTY_BACK_BTN,
@@ -143,8 +136,6 @@ export default function AdminPostPropertyContent() {
   const currentStep = getStepFromSearchParam(searchParams.get("step"));
   const editId = searchParams.get("edit");
   const basePath = "/backend/properties/post-property";
-  const loginPath = "/backend/login";
-  const afterSubmitPath = "/backend/properties/manage-properties";
   const isEditMode = Boolean(editId);
   const {
     property: editProperty,
@@ -190,9 +181,7 @@ export default function AdminPostPropertyContent() {
   const [pricingOthersErrors, setPricingOthersErrors] =
     useState<PricingOthersFieldErrors>({});
   const [photosError, setPhotosError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingMedia, setExistingMedia] = useState<PropertyMedia[]>([]);
-  const [removedMediaIds, setRemovedMediaIds] = useState<string[]>([]);
   const [possessionDatePastAnchor, setPossessionDatePastAnchor] =
     useState("");
   const [availableFromPastAnchor, setAvailableFromPastAnchor] = useState("");
@@ -240,7 +229,6 @@ export default function AdminPostPropertyContent() {
 
   const handleRemoveExistingMedia =(mediaId: string) => {
     setExistingMedia((current) => current.filter((media) => media.id !== mediaId));
-    setRemovedMediaIds((current) => [...current, mediaId]);
     setPhotosError("");
   };
 
@@ -504,11 +492,7 @@ export default function AdminPostPropertyContent() {
     return null;
   };
 
-  const handleSubmit = async () => {
-    if (isSubmitting) {
-      return;
-    }
-
+  const handleSubmit = () => {
     const firstInvalidStep = applyFullFormValidation();
     if (firstInvalidStep !== null) {
       if (firstInvalidStep !== currentStep) {
@@ -521,57 +505,7 @@ export default function AdminPostPropertyContent() {
       return;
     }
 
-    const token = editId ? getToken() : getAdminToken();
-    if (!token) {
-      router.push(loginPath);
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const formState = {
-      listingType,
-      propertyType,
-      propertySubType,
-      addressLocation,
-      propertyDetails,
-      amenities,
-      photosVideos,
-      pricingOthers,
-    };
-
-    try {
-      if (editId) {
-        await saveEditedProperty({
-          propertyId: editId,
-          token,
-          state: formState,
-          removedMediaIds,
-        });
-        setRedirectToast("Property updated successfully");
-      } else {
-        await createAdminProperty(buildAdminPropertyFormData(formState, projectDetails), token);
-        setRedirectToast("Property listed successfully");
-      }
-      router.push(afterSubmitPath);
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        router.push(loginPath);
-        return;
-      }
-
-      if (error instanceof ApiError) {
-        const message =
-          error.errors && error.errors.length > 0
-            ? error.errors[0]
-            : error.message;
-        showToast(message, "error");
-      } else {
-        showToast("Something went wrong. Please try again.", "error");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    showToast("Posting properties is currently unavailable.", "error");
   };
 
   const handlePropertyTypeChange = (nextPropertyType: PropertyTypeId) => {
@@ -976,16 +910,9 @@ export default function AdminPostPropertyContent() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isSubmitting}
-                className={`${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
+                className={POST_PROPERTY_PRIMARY_BTN}
               >
-                {isSubmitting
-                  ? isEditMode
-                    ? "Saving..."
-                    : "Submitting..."
-                  : isEditMode
-                    ? "Save Changes"
-                    : "Submit"}
+                {isEditMode ? "Save Changes" : "Submit"}
               </button>
             </div>
           </div>

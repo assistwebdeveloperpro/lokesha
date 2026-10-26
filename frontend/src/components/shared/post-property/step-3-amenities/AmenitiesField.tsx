@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { getCatalogAmenities } from "@/services/property.service";
+import type { ReactNode } from "react";
 import PostPropertyInput from "../components/PostPropertyInput";
 import ChipSelectField from "../components/ChipSelectField";
 import ExpandableIconTileSelect from "../components/ExpandableIconTileSelect";
@@ -64,12 +63,9 @@ export default function AmenitiesField({
   builder = false,
   builderExtras,
   sections,
-  catalogSubTypes,
 }: {
   // Renders only (or all but) the given sections, used to ask shared sections once above the tabs
   sections?: { only?: AmenitySection[]; except?: AmenitySection[] };
-  // Catalog options come from the union of these sub types
-  catalogSubTypes?: string[];
   hideCarParking?: boolean;
   builder?: boolean;
   builderExtras?: ReactNode;
@@ -109,49 +105,9 @@ export default function AmenitiesField({
   const amenitiesRequired = saleConfig
     ? saleConfig.amenities === "required"
     : isResidentialLike;
-  const catalogKey = catalogSubTypes?.join(",") ?? "";
-  const [amenityOptions, setAmenityOptions] = useState<ImageTileOption[]>([]);
-  const [furnishingOptions, setFurnishingOptions] = useState<ImageTileOption[]>(
-    [],
-  );
+  const amenityOptions: ImageTileOption[] = [];
+  const furnishingOptions: ImageTileOption[] = [];
 
-  useEffect(() => {
-    let cancelled = false;
-    const toOptions = (items: { amenityKey: string; name: string; imagePath: string }[]) =>
-      items.map((item) => ({
-        id: item.amenityKey,
-        label: item.name,
-        image: item.imagePath,
-      }));
-
-    const subTypeIds = catalogKey ? catalogKey.split(",") : [subType];
-    Promise.all(
-      subTypeIds.map((propertySubType) =>
-        getCatalogAmenities({
-          listingType: isRent ? "rent-lease" : "sale",
-          propertyType,
-          propertySubType,
-        }),
-      ),
-    )
-      .then((catalogs) => {
-        if (cancelled) return;
-        const unique = <T extends { amenityKey: string }>(items: T[]) => [
-          ...new Map(items.map((item) => [item.amenityKey, item])).values(),
-        ];
-        setAmenityOptions(toOptions(unique(catalogs.flatMap((catalog) => catalog.amenities))));
-        setFurnishingOptions(toOptions(unique(catalogs.flatMap((catalog) => catalog.furnishing))));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setAmenityOptions([]);
-        setFurnishingOptions([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isRent, propertyType, subType, catalogKey]);
   const showClubMembership =
     !hideCarParking &&
     (saleConfig ? saleConfig.clubMembership : !isRent && !isCommercial && !isPg);

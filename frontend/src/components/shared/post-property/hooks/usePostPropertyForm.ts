@@ -6,11 +6,8 @@ import {
   showsConstructionProgress,
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
-import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
-import { createProperty } from "@/services/property.service";
-import { getToken } from "@/services/session";
 import { getMergedBuilderConfig } from "../builder/builderConfig";
 import {
   validateBuilderPricing,
@@ -55,21 +52,13 @@ import {
   INITIAL_PROPERTY_DETAILS,
 } from "../state/postPropertyInitialValues";
 import { getSubTypeLayout } from "../utils/postPropertyLayout";
-import { buildPropertyFormData } from "../utils/postPropertyPayload";
 import { getFormConfig } from "../config/postPropertySaleConfig";
 import type { PostingAsId } from "../config/postingAs";
 import { resolveFirstInvalidStep } from "../validation/postPropertyStepValidation";
-import {
-  getSubmitErrorMessage,
-  isUnauthorizedError,
-} from "../validation/postPropertySubmitError";
-import { saveEditedProperty } from "../utils/saveEditedProperty";
 import { useEditProperty } from "./useEditProperty";
 import { useSubTypeForms } from "./useSubTypeForms";
 
 const BASE_PATH = "/post-property";
-const LOGIN_PATH = "/login";
-const AFTER_SUBMIT_PATH = "/user/properties/manage-properties";
 const MISSING_PHOTOS_MESSAGE = "Please add at least one photo";
 
 export function usePostPropertyForm() {
@@ -454,50 +443,7 @@ export function usePostPropertyForm() {
       return;
     }
 
-    const token = getToken();
-    if (!token) {
-      router.push(LOGIN_PATH);
-      return;
-    }
-
-    dispatch({ type: "submittingChanged", isSubmitting: true });
-
-    // Several sub types still send one set of values until the backend takes a list
-    const tabValues = isMultiSubType ? subForms.getSubmitValues() : null;
-    const formState = {
-      listingType,
-      propertyType,
-      propertySubType,
-      addressLocation,
-      propertyDetails: tabValues?.details ?? propertyDetails,
-      amenities: tabValues?.amenities ?? amenities,
-      photosVideos: tabValues?.photos ?? photosVideos,
-      pricingOthers: tabValues?.pricing ?? pricingOthers,
-    };
-
-    try {
-      if (editId) {
-        await saveEditedProperty({
-          propertyId: editId,
-          token,
-          state: formState,
-          removedMediaIds: draft.removedMediaIds,
-        });
-        setRedirectToast("Property updated successfully");
-      } else {
-        await createProperty(buildPropertyFormData(formState), token);
-        setRedirectToast("Property listed successfully");
-      }
-      router.push(AFTER_SUBMIT_PATH);
-    } catch (error) {
-      if (isUnauthorizedError(error)) {
-        router.push(LOGIN_PATH);
-        return;
-      }
-      showToast(getSubmitErrorMessage(error), "error");
-    } finally {
-      dispatch({ type: "submittingChanged", isSubmitting: false });
-    }
+    showToast("Posting properties is currently unavailable.", "error");
   };
 
   return {
