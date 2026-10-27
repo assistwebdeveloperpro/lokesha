@@ -26,7 +26,7 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "../config/postPropertyForm.shared";
-import type { EditFormState } from "../utils/postPropertyEdit";
+import type { SerializableFormState } from "./postPropertyDraftSnapshot";
 import {
   applyDetailsChange,
   clearAmenitiesErrors,
@@ -75,7 +75,7 @@ export type DraftErrors = Pick<
 >;
 
 export type PostPropertyAction =
-  | { type: "hydrated"; form: EditFormState; media: PropertyMedia[] }
+  | { type: "draftRestored"; form: SerializableFormState }
   | { type: "listingTypeChanged"; listingType: ListingTypeId }
   | { type: "propertyTypeChanged"; propertyType: PropertyTypeId }
   | { type: "subTypeChanged"; subType: string }
@@ -237,22 +237,15 @@ export function postPropertyReducer(
   action: PostPropertyAction,
 ): PostPropertyDraft {
   switch (action.type) {
-    case "hydrated": {
-      const { form, media } = action;
+    // A saved draft or a posted property replaces the form; errors start clean
+    case "draftRestored":
       return {
-        ...state,
-        listingType: form.listingType,
-        propertyType: form.propertyType,
-        propertySubTypes: [form.propertySubType],
-        addressLocation: form.addressLocation,
-        propertyDetails: form.propertyDetails,
-        possessionDatePastAnchor: form.propertyDetails.possessionDate,
-        availableFromPastAnchor: form.propertyDetails.availableFrom,
-        amenities: form.amenities,
-        pricingOthers: form.pricingOthers,
-        existingMedia: media,
+        ...createInitialDraft(),
+        ...action.form,
+        // A date already in the past stays valid for a listing that was saved with it
+        possessionDatePastAnchor: action.form.propertyDetails.possessionDate,
+        availableFromPastAnchor: action.form.propertyDetails.availableFrom,
       };
-    }
 
     case "listingTypeChanged": {
       if (action.listingType === state.listingType) {

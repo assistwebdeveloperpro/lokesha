@@ -42,7 +42,26 @@ const AREA_MAX_FIELDS = [
 ] as const;
 
 type AreaMaxField = (typeof AREA_MAX_FIELDS)[number];
-type AreaMaxValues = Record<AreaMaxField, string>;
+export type AreaMaxValues = Record<AreaMaxField, string>;
+
+// Per tab values worth keeping in a server draft
+export type SubTypeFormsSnapshot = {
+  activeId: string;
+  details: Record<string, PropertyDetailsValues>;
+  areaMax: Record<string, AreaMaxValues>;
+  amenities: Record<string, AmenitiesValues>;
+  pricing: Record<string, PricingOthersValues>;
+  photos: Record<string, PhotosVideosValues>;
+};
+
+export const EMPTY_SUB_TYPE_FORMS_SNAPSHOT: SubTypeFormsSnapshot = {
+  activeId: "",
+  details: {},
+  areaMax: {},
+  amenities: {},
+  pricing: {},
+  photos: {},
+};
 
 const EMPTY_AREA_MAX: AreaMaxValues = {
   carpetAreaMax: "",
@@ -135,6 +154,7 @@ export function useSubTypeForms({
   commonDetailsFields = [],
   commonAmenitiesFields = [],
   sharedPhotos = false,
+  optionalAmenities = false,
 }: {
   propertyType: PropertyTypeId;
   listingType: ListingTypeId;
@@ -170,6 +190,7 @@ export function useSubTypeForms({
   commonAmenitiesFields?: ReadonlyArray<keyof AmenitiesValues>;
   // One photo set for the whole project, kept on the first tab
   sharedPhotos?: boolean;
+  optionalAmenities?: boolean;
 }) {
   const [details, setDetails] = useState<Record<string, PropertyDetailsValues>>({});
   const [detailsErrors, setDetailsErrors] = useState<
@@ -405,6 +426,7 @@ export function useSubTypeForms({
           listingType,
           subType: id,
           builder,
+          optionalAmenities,
         }),
       ),
     pricing: () =>
@@ -527,6 +549,28 @@ export function useSubTypeForms({
     setPhotosErrors({});
   };
 
+  const getSnapshot = (): SubTypeFormsSnapshot => ({
+    activeId,
+    details,
+    areaMax,
+    amenities,
+    pricing,
+    photos,
+  });
+
+  const restore = (snapshot: SubTypeFormsSnapshot) => {
+    setDetails(snapshot.details);
+    setAreaMax(snapshot.areaMax);
+    setAmenities(snapshot.amenities);
+    setPricing(snapshot.pricing);
+    setPhotos(snapshot.photos);
+    setActiveId(snapshot.activeId);
+    setDetailsErrors({});
+    setAmenitiesErrors({});
+    setPricingErrors({});
+    setPhotosErrors({});
+  };
+
   const mapPhotos = (update: (values: PhotosVideosValues) => PhotosVideosValues) =>
     setPhotos((current) =>
       Object.fromEntries(
@@ -585,6 +629,8 @@ export function useSubTypeForms({
     validateStep,
     changeSelection,
     reset,
+    getSnapshot,
+    restore,
     resetListingFields,
     getSubmitValues,
   };

@@ -3,7 +3,6 @@ import {
   ProjectHighlightsField,
   ProjectOverviewField,
 } from "@/components/master/post-property/step-1-basic-information/ProjectDetailsField";
-import FloorPlansField from "@/components/master/post-property/step-4-media-upload/FloorPlansField";
 import {
   VideoWalkthroughField,
   VirtualTourField,
@@ -13,6 +12,7 @@ import PostPropertyInput from "../components/PostPropertyInput";
 import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
 import BrochureImagesField from "./BrochureImagesField";
 import BuilderExtraDetailsField from "./BuilderExtraDetailsField";
+import FloorPlansField from "./FloorPlansField";
 import {
   ProjectExtraDetailsField,
   ProjectSpecificationsField,
@@ -63,7 +63,7 @@ export function BuilderProjectBlocks({ form }: BuilderFormBlocksProps) {
 
 // Brochure images, floor plans and walkthroughs are project wide, so they never sit in a tab
 export function BuilderMediaBlocks({ form }: BuilderFormBlocksProps) {
-  const { draft, derived, handlers } = form;
+  const { draft, derived, handlers, mediaUploader } = form;
 
   if (!derived.showBuilderFields) {
     return null;
@@ -76,6 +76,7 @@ export function BuilderMediaBlocks({ form }: BuilderFormBlocksProps) {
       <BrochureImagesField
         values={draft.projectDetails}
         onChange={handlers.changeProjectDetails}
+        uploader={mediaUploader}
       />
       {derived.builderConfig.showFloorPlans ? (
         <FloorPlansField
@@ -85,6 +86,7 @@ export function BuilderMediaBlocks({ form }: BuilderFormBlocksProps) {
           values={draft.projectDetails}
           onChange={handlers.changeProjectDetails}
           autoTitles={floorPlanTitles.length > 0 ? floorPlanTitles : undefined}
+          uploader={mediaUploader}
         />
       ) : null}
       <VideoWalkthroughField

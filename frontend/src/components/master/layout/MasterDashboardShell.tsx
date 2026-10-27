@@ -15,6 +15,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { setRedirectToast } from "@/components/shared/ui/redirectToast";
+import AdminNotificationBell from "@/components/master/notifications/AdminNotificationBell";
 import { cn } from "@/lib/utils";
 import {
   getMasterActiveNavLabel,
@@ -361,7 +362,10 @@ function MasterDashboardShellInner({
               </p> */}
             </div>
 
-            <MasterProfileMenu adminName={adminName} onSignOut={handleLogout} />
+            <div className="flex items-center gap-3">
+              <AdminNotificationBell />
+              <MasterProfileMenu adminName={adminName} onSignOut={handleLogout} />
+            </div>
           </div>
         </header>
 

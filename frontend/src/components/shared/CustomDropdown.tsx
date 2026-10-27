@@ -76,7 +76,7 @@ export default function CustomDropdown({
   const fieldTextColor = blackText
     ? "text-black font-medium"
     : mutedText
-      ? "text-slate-600 font-normal"
+      ? "text-slate-600 font-medium"
       : "text-slate-900 font-medium";
 
   const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none transition-colors ${

@@ -12,7 +12,13 @@ const userOfficeRoutes = require("./modules/user/dashboard/user-office/user-offi
 const userReraRoutes = require("./modules/user/dashboard/user-rera/user-rera.routes");
 const userProfileRoutes = require("./modules/user/dashboard/user-profile/user-profile.routes");
 const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-messages/user-saved-messages.routes");
-const adminAuthRoutes = require("./modules/master/auth/admin-auth.routes");
+const userNotificationsRoutes = require("./modules/user/dashboard/user-notifications/user-notifications.routes");
+const adminAuthRoutes =require("./modules/master/auth/admin-auth.routes");
+const propertyRoutes = require("./modules/landing/property/property.routes");
+const propertyReviewRoutes = require("./modules/master/dashboard/property-review/property-review.routes");
+const adminNotificationsRoutes = require("./modules/master/dashboard/admin-notifications/admin-notifications.routes");
+const { LIMITS } = require("./modules/landing/property/property.constants");
+const { scheduleDraftCleanup } = require("./modules/landing/property/property-cleanup.service");
 
 const app = express();
 
@@ -21,6 +27,7 @@ app.use(
     origin: process.env.FRONTEND_URL,
   })
 );
+app.use("/api/property", express.json({ limit: LIMITS.maxFormDataBytes }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
@@ -34,8 +41,13 @@ app.use("/api/user/office", userOfficeRoutes);
 app.use("/api/user/rera", userReraRoutes);
 app.use("/api/user/profile", userProfileRoutes);
 app.use("/api/user/saved-messages", userSavedMessagesRoutes);
+app.use("/api/user/notifications", userNotificationsRoutes);
+
+app.use("/api/property", propertyRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
+app.use("/api/master/property-review", propertyReviewRoutes);
+app.use("/api/master/notifications", adminNotificationsRoutes);
 
 const PORT = process.env.PORT;
 
@@ -44,6 +56,7 @@ async function startServer() {
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    scheduleDraftCleanup();
   });
 }
 

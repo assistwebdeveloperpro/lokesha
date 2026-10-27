@@ -1,25 +1,37 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   showsConstructionProgress,
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
+import { ApiError } from "@/services/apiClient";
+import {
+  completeDraft,
+  fetchDraftFilePreview,
+  getDraft,
+  submitProperty,
+  updateProperty,
+  type PropertyStatus,
+  type SaveDraftInput,
+} from "@/services/property.service";
 import { getMergedBuilderConfig } from "../builder/builderConfig";
 import {
   validateBuilderPricing,
   validateBuilderProjectType,
   type BuilderFieldErrors,
 } from "../builder/builderValidation";
-import { mapPropertyToFormState } from "../utils/postPropertyEdit";
+import { mapDetailToForm } from "../utils/postPropertyEdit";
 import {
   arePhotosRequired,
   getStepFromSearchParam,
   getTotalMediaCount,
   hasAddressLocationErrors,
+  hasFailedMedia,
+  hasUploadingMedia,
   hasAmenitiesErrors,
   hasPropertyDetailsErrors,
   isRentListing,
@@ -35,6 +47,7 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "../config/postPropertyForm.shared";
+import { createDraftFormData, hydrateFormState } from "../state/postPropertyDraftSnapshot";
 import {
   createInitialDraft,
   postPropertyReducer,
@@ -51,32 +64,49 @@ import {
   INITIAL_PRICING_OTHERS,
   INITIAL_PROPERTY_DETAILS,
 } from "../state/postPropertyInitialValues";
+import { loadDraftPreviews } from "../utils/draftPreviews";
+import { focusFirstInvalidField } from "../utils/focusFirstInvalidField";
+import { createDraftMediaUploader, createPropertyMediaUploader } from "../utils/mediaUploader";
+import { buildPropertyPayload } from "../utils/postPropertyPayload";
 import { getSubTypeLayout } from "../utils/postPropertyLayout";
 import { getFormConfig } from "../config/postPropertySaleConfig";
-import type { PostingAsId } from "../config/postingAs";
+import { resolveOptionalAmenities, type PostingAsId } from "../config/postingAs";
+import { resolveBackendErrors } from "../validation/postPropertyBackendErrors";
 import { resolveFirstInvalidStep } from "../validation/postPropertyStepValidation";
+import { getSubmitErrorMessage, isUnauthorizedError } from "../validation/postPropertySubmitError";
 import { useEditProperty } from "./useEditProperty";
+import { usePostPropertyDraft } from "./usePostPropertyDraft";
 import { useSubTypeForms } from "./useSubTypeForms";
 
 const BASE_PATH = "/post-property";
+const MANAGE_PROPERTIES_PATH = "/user/properties/manage-properties";
+const SUBMIT_AFTER_EDIT_STATUSES: PropertyStatus[] = ["draft", "rejected"];
+const SUBMITTED_MESSAGE = "Your property has been submitted for review.";
+
+type SaveMode = "submit" | "draft";
 const MISSING_PHOTOS_MESSAGE = "Please add at least one photo";
+const UPLOADING_MESSAGE = "Please wait for the uploads to finish";
+const FAILED_UPLOADS_MESSAGE = "Some files failed to upload. Retry or remove them to continue";
 
 export function usePostPropertyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const { role, isAuthReady } = useAuth();
+  const { role, token, isAuthReady } = useAuth();
   const currentStep = getStepFromSearchParam(searchParams.get("step"));
   const editId = searchParams.get("edit");
+  const draftParam = searchParams.get("draft");
   const isEditMode = Boolean(editId);
-  const {
-    property: editProperty,
-    isLoading: isLoadingEdit,
-    error: editError,
-  } = useEditProperty(editId);
+  const { detail: editDetail, isLoading: isLoadingEdit, error: editError } = useEditProperty(editId);
 
   const [draft, dispatch] = useReducer(postPropertyReducer, undefined, createInitialDraft);
-  const [postingAs, setPostingAs] = useState<PostingAsId | "">("");
+  const [selectedPostingAs, setPostingAs] = useState<PostingAsId | "">("");
+  // A posted property keeps the way it was posted; only a new one lets staff choose
+  const postingAs: PostingAsId | "" = editDetail
+    ? editDetail.payload.postingAs === "builder"
+      ? "builder"
+      : ""
+    : selectedPostingAs;
   const {
     listingType,
     propertyType,
@@ -95,6 +125,15 @@ export function usePostPropertyForm() {
   const isStaff = isAuthReady && role === "lokesha_staff";
   const showBuilderFields =
     isAuthReady && (role === "builder" || (isStaff && postingAs === "builder"));
+  const isBuilderPost = showBuilderFields || Boolean(editDetail?.payload.project);
+  const optionalAmenities = resolveOptionalAmenities({
+    role,
+    isStaff,
+    postingAs,
+    isBuilderPost,
+    isOwnerAgentListing:
+      isEditMode && Boolean(editDetail) && !editDetail.payload.project,
+  });
   const builderConfig = getMergedBuilderConfig(propertyType, propertySubTypes);
   const addressValidationOptions = {
     projectNameOptional: showBuilderFields && !builderConfig.projectNameRequired,
@@ -115,6 +154,7 @@ export function usePostPropertyForm() {
     isRent,
     subTypes: propertySubTypes,
     builder: showBuilderFields,
+    optionalAmenities,
     initials: {
       details: INITIAL_PROPERTY_DETAILS,
       amenities: INITIAL_AMENITIES,
@@ -154,25 +194,160 @@ export function usePostPropertyForm() {
 
   // Prefill every step once the property being edited has loaded
   useEffect(() => {
-    if (!editProperty) {
+    if (!editDetail) {
       return;
     }
 
-    dispatch({
-      type: "hydrated",
-      form: mapPropertyToFormState(editProperty),
-      media: editProperty.media,
-    });
-  }, [editProperty]);
+    const mapped = mapDetailToForm(editDetail);
+    dispatch({ type: "draftRestored", form: mapped.form });
+    if (mapped.postingAs === "builder") {
+      setPostingAs("builder");
+    }
+  }, [editDetail]);
 
-  const goToStep = (step: number) => {
+  // Read by the draft hook at save time, so it always sees the latest form values
+  const getDraftInput = (): SaveDraftInput => ({
+    currentStep,
+    formData: createDraftFormData({
+      form: {
+        listingType,
+        propertyType,
+        propertySubTypes,
+        addressLocation,
+        propertyDetails,
+        amenities,
+        pricingOthers,
+        projectDetails,
+        photosVideos,
+      },
+      postingAs,
+      tabs: subForms.getSnapshot(),
+    }),
+  });
+
+  const requestedStep = useRef<number | null>(null);
+
+  const serverDraft = usePostPropertyDraft({
+    token,
+    enabled: !isEditMode,
+    getInput: getDraftInput,
+    // The URL can lag behind a step change, so the requested step wins
+    onCreated: (draftId) => {
+      const params = new URLSearchParams(window.location.search);
+      params.set("draft", draftId);
+      if (requestedStep.current !== null) {
+        if (requestedStep.current > 1) {
+          params.set("step", String(requestedStep.current));
+        } else {
+          params.delete("step");
+        }
+      }
+      router.replace(`${BASE_PATH}?${params.toString()}`, { scroll: false });
+    },
+  });
+
+  // Files go to the draft of a new property, or straight to the listing that is being edited
+  const { ensureDraftId } = serverDraft;
+  const mediaUploader = useMemo(
+    () =>
+      editId
+        ? createPropertyMediaUploader({ propertyId: editId, getToken: () => token })
+        : createDraftMediaUploader({ getToken: () => token, ensureDraftId }),
+    [editId, token, ensureDraftId],
+  );
+
+  const requestedDraftId = useRef<string | null>(null);
+  const [settledDraftId, setSettledDraftId] = useState<string | null>(null);
+
+  // A draft created in this session is already in state, so only ?draft= from a link is loaded
+  const isRestoringDraft =
+    Boolean(draftParam) &&
+    !isEditMode &&
+    !(isAuthReady && !token) &&
+    settledDraftId !== draftParam &&
+    serverDraft.draftId !== draftParam;
+
+  // Resume a saved draft from ?draft=<id>
+  useEffect(() => {
+    if (!draftParam || isEditMode || !token) {
+      return;
+    }
+    if (serverDraft.draftId === draftParam || requestedDraftId.current === draftParam) {
+      return;
+    }
+
+    requestedDraftId.current = draftParam;
+    const startFresh = (message: string) => {
+      showToast(message, "error");
+      router.replace(BASE_PATH, { scroll: false });
+    };
+
+    getDraft(draftParam, token)
+      .then(({ draft: savedDraft }) => {
+        const restored = hydrateFormState(savedDraft.formData);
+        if (!restored) {
+          startFresh("This draft can no longer be opened. Starting a new form.");
+          return;
+        }
+
+        dispatch({ type: "draftRestored", form: restored.form });
+        subForms.restore(restored.tabs);
+        setPostingAs(restored.postingAs);
+        serverDraft.adopt(savedDraft.id);
+
+        // Previews arrive in the background; the files themselves are already attached
+        void loadDraftPreviews(
+          restored,
+          (fileName) => fetchDraftFilePreview(savedDraft.id, fileName, token),
+          {
+            updatePhotos: (update) => {
+              dispatch({ type: "photosSet", update });
+              subForms.mapPhotos(update);
+            },
+            updateProject: (update) => dispatch({ type: "projectSet", update }),
+          },
+        );
+
+        if (!searchParams.get("step") && savedDraft.currentStep > 1) {
+          const params = new URLSearchParams({ draft: savedDraft.id, step: String(savedDraft.currentStep) });
+          router.replace(`${BASE_PATH}?${params.toString()}`, { scroll: false });
+        }
+      })
+      .catch(() => startFresh("This draft could not be found. Starting a new form."))
+      .finally(() => setSettledDraftId(draftParam));
+  }, [draftParam, isEditMode, token, serverDraft, subForms, searchParams, router, showToast]);
+
+  // Every step change stores the form, so leaving and coming back loses nothing
+  const goToStep = (step: number, { save = true }: { save?: boolean } = {}) => {
     const params = new URLSearchParams();
     if (editId) params.set("edit", editId);
+    const savedDraftId = serverDraft.draftId ?? draftParam;
+    if (savedDraftId && !isEditMode) params.set("draft", savedDraftId);
     if (step > 1) params.set("step", String(step));
 
+    requestedStep.current = step;
     const query = params.toString();
     router.push(query ? `${BASE_PATH}?${query}` : BASE_PATH, { scroll: false });
+
+    if (save) {
+      void serverDraft.save(step);
+    }
   };
+
+  const pendingInvalidFocus = useRef(false);
+  const [invalidAttempt, setInvalidAttempt] = useState(0);
+
+  const requestInvalidFieldFocus = () => {
+    pendingInvalidFocus.current = true;
+    setInvalidAttempt((attempt) => attempt + 1);
+  };
+
+  // Runs after render so the errors, the tab and the step are already on screen
+  useEffect(() => {
+    if (pendingInvalidFocus.current && focusFirstInvalidField()) {
+      pendingInvalidFocus.current = false;
+    }
+  }, [invalidAttempt, currentStep]);
 
   const replaceErrors = (errors: Partial<DraftErrors>) =>
     dispatch({ type: "errorsReplaced", errors });
@@ -198,13 +373,34 @@ export function usePostPropertyForm() {
       listingType,
       subType: propertySubType,
       builder: showBuilderFields,
+      optionalAmenities,
     });
 
+  // Files that are still uploading or failed would be missing from the posted property
+  const getUploadBlocker = (): string => {
+    const photoSets = isMultiSubType
+      ? subForms.tabs.map((tab) => subForms.getPhotos(tab.id))
+      : [photosVideos];
+
+    const projectFiles = showBuilderFields
+      ? [...projectDetails.brochureImages, ...projectDetails.floorPlans]
+      : [];
+
+    if (photoSets.some(hasUploadingMedia) || projectFiles.some(({ status }) => status === "uploading")) {
+      return UPLOADING_MESSAGE;
+    }
+    if (photoSets.some(hasFailedMedia) || projectFiles.some(({ status }) => status === "error")) {
+      return FAILED_UPLOADS_MESSAGE;
+    }
+    return "";
+  };
+
   const getSinglePhotosError = () =>
-    arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
+    getUploadBlocker() ||
+    (arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
     getTotalMediaCount(photosVideos) + existingMedia.length === 0
       ? MISSING_PHOTOS_MESSAGE
-      : "";
+      : "");
 
   const clearConstructionProgressPhotos = () => {
     revokeConstructionProgressPreviews(photosVideos);
@@ -232,7 +428,7 @@ export function usePostPropertyForm() {
     if ((next === "builder") !== (postingAs === "builder")) {
       subForms.reset();
       dispatch({ type: "draftReset" });
-      goToStep(1);
+      goToStep(1, { save: false });
     }
     setPostingAs(next);
   };
@@ -308,9 +504,12 @@ export function usePostPropertyForm() {
     const errors = validateAddressLocation(addressLocation, addressValidationOptions);
     replaceErrors({ addressLocationErrors: errors });
 
-    if (!hasAddressLocationErrors(errors)) {
-      goToStep(2);
+    if (hasAddressLocationErrors(errors)) {
+      requestInvalidFieldFocus();
+      return;
     }
+
+    goToStep(2);
   };
 
   const handlePropertyDetailsNext = () => {
@@ -320,6 +519,7 @@ export function usePostPropertyForm() {
 
       if (hasTabErrors || projectErrors.projectType) {
         mergeBuilderErrors(projectErrors);
+        requestInvalidFieldFocus();
         return;
       }
 
@@ -335,6 +535,7 @@ export function usePostPropertyForm() {
     if (hasPropertyDetailsErrors(errors) || projectErrors.projectType) {
       replaceErrors({ propertyDetailsErrors: errors });
       mergeBuilderErrors(projectErrors);
+      requestInvalidFieldFocus();
       return;
     }
 
@@ -344,34 +545,52 @@ export function usePostPropertyForm() {
 
   const handleAmenitiesNext = () => {
     if (isMultiSubType) {
-      if (!subForms.validateStep("amenities")) {
-        goToStep(4);
+      if (subForms.validateStep("amenities")) {
+        requestInvalidFieldFocus();
+        return;
       }
+
+      goToStep(4);
       return;
     }
 
     const errors = validateSingleAmenities();
     replaceErrors({ amenitiesErrors: errors });
 
-    if (!hasAmenitiesErrors(errors)) {
-      goToStep(4);
+    if (hasAmenitiesErrors(errors)) {
+      requestInvalidFieldFocus();
+      return;
     }
+
+    goToStep(4);
   };
 
   const handlePhotosNext = () => {
     if (isMultiSubType) {
-      if (!subForms.validateStep("photos")) {
-        goToStep(5);
+      const uploadBlocker = getUploadBlocker();
+      if (uploadBlocker) {
+        showToast(uploadBlocker, "error");
+        return;
       }
+
+      if (subForms.validateStep("photos")) {
+        requestInvalidFieldFocus();
+        return;
+      }
+
+      goToStep(5);
       return;
     }
 
     const photosError = getSinglePhotosError();
     replaceErrors({ photosError });
 
-    if (!photosError) {
-      goToStep(5);
+    if (photosError) {
+      requestInvalidFieldFocus();
+      return;
     }
+
+    goToStep(5);
   };
 
   // Returns the earliest step with an error, or null when the whole form is valid
@@ -426,7 +645,67 @@ export function usePostPropertyForm() {
     });
   };
 
-  const handleSubmit = async () => {
+  const buildPayload = () =>
+    buildPropertyPayload({
+      listingType,
+      propertyType,
+      address: addressLocation,
+      builderProject: showBuilderFields ? projectDetails : undefined,
+      postingAsBuilder: isStaff && postingAs === "builder",
+      listings: isMultiSubType
+        ? subForms.tabs.map((tab) => ({
+            subType: tab.id,
+            details: subForms.getDetails(tab.id),
+            amenities: subForms.getAmenities(tab.id),
+            pricing: subForms.getPricing(tab.id),
+            photos: subForms.getPhotos(tab.id),
+            project: showBuilderFields ? subForms.getProject(tab.id) : undefined,
+          }))
+        : [
+            {
+              subType: propertySubType,
+              details: propertyDetails,
+              amenities,
+              pricing: pricingOthers,
+              photos: photosVideos,
+              project: showBuilderFields ? projectDetails : undefined,
+            },
+          ],
+    });
+
+  // The backend checks everything again; its field errors are shown where the field lives
+  const handleSubmitFailure = (error: unknown) => {
+    if (isUnauthorizedError(error)) {
+      showToast("Your session has expired. Please log in again.", "error");
+      return;
+    }
+
+    if (error instanceof ApiError && error.fields) {
+      const backendErrors = resolveBackendErrors(error.fields, { isMulti: isMultiSubType });
+      if (backendErrors.step !== null) {
+        replaceErrors({
+          addressLocationErrors: backendErrors.addressLocationErrors,
+          propertyDetailsErrors: backendErrors.propertyDetailsErrors,
+          amenitiesErrors: backendErrors.amenitiesErrors,
+          pricingOthersErrors: backendErrors.pricingOthersErrors,
+          photosError: backendErrors.photosError,
+        });
+        goToStep(backendErrors.step);
+        showToast(backendErrors.firstMessage, "error");
+        return;
+      }
+    }
+
+    showToast(getSubmitErrorMessage(error), "error");
+  };
+
+  const editedStatus = editDetail?.property.status;
+  // A draft or rejected listing is sent for review when its edit is saved
+  const submitsOnSave = !editId || SUBMIT_AFTER_EDIT_STATUSES.includes(editedStatus as PropertyStatus);
+  // Only a new property or one that is still a draft can be kept as a draft
+  const canSaveAsDraft = !editId || editedStatus === "draft";
+
+  const handleSubmit = async (mode: SaveMode = "submit") => {
     if (draft.isSubmitting) {
       return;
     }
@@ -436,6 +715,7 @@ export function usePostPropertyForm() {
       if (firstInvalidStep !== currentStep) {
         goToStep(firstInvalidStep);
       }
+      requestInvalidFieldFocus();
       showToast(
         "Some required fields are still empty. Please check the highlighted fields.",
         "error",
@@ -443,17 +723,55 @@ export function usePostPropertyForm() {
       return;
     }
 
-    showToast("Posting properties is currently unavailable.", "error");
+    if (!token) {
+      showToast("Please log in to post your property.", "error");
+      return;
+    }
+
+    dispatch({ type: "submittingChanged", isSubmitting: true });
+    try {
+      if (editId) {
+        await updateProperty(editId, buildPayload(), token);
+        const sendForReview = mode === "submit" && submitsOnSave;
+        if (sendForReview) {
+          await submitProperty(editId, token);
+        }
+        showToast(sendForReview ? SUBMITTED_MESSAGE : "Your changes have been saved.", "success");
+        router.push(MANAGE_PROPERTIES_PATH);
+        return;
+      }
+
+      // The draft only needs to exist; the listing is built from the payload, not from the saved form
+      const draftId = await serverDraft.ensureDraftId();
+      if (!draftId) {
+        showToast("We could not save your files. Please try again.", "error");
+        return;
+      }
+
+      await completeDraft(draftId, buildPayload(), { submit: mode === "submit" }, token);
+      serverDraft.adopt(null);
+      showToast(mode === "submit" ? SUBMITTED_MESSAGE : "Your property has been saved as a draft.", "success");
+      router.push(MANAGE_PROPERTIES_PATH);
+    } catch (error) {
+      handleSubmitFailure(error);
+    } finally {
+      dispatch({ type: "submittingChanged", isSubmitting: false });
+    }
   };
 
   return {
     currentStep,
     isEditMode,
+    canSaveAsDraft,
+    submitsOnSave,
     editStatus: {
-      isBlocking: isEditMode && (isLoadingEdit || Boolean(editError) || !editProperty),
+      isBlocking:
+        isRestoringDraft || (isEditMode && (isLoadingEdit || Boolean(editError) || !editDetail)),
       error: editError,
     },
     draft,
+    serverDraft,
+    mediaUploader,
     staff: {
       isStaff,
       postingAs,
@@ -463,13 +781,13 @@ export function usePostPropertyForm() {
       propertySubType,
       isRent,
       showBuilderFields,
+      optionalAmenities,
       builderConfig,
       addressValidationOptions,
       isMultiSubType,
       activeTabId: subForms.activeTabId,
       pricingTabs,
       activePricingTabId,
-      existingBrochureName: editProperty?.brochurePath?.split("/").pop() ?? null,
     },
     layout,
     subForms,
@@ -491,7 +809,8 @@ export function usePostPropertyForm() {
       submitPropertyDetails: handlePropertyDetailsNext,
       submitAmenities: handleAmenitiesNext,
       submitPhotos: handlePhotosNext,
-      submit: handleSubmit,
+      submit: () => handleSubmit("submit"),
+      saveAsDraft: () => handleSubmit("draft"),
     },
   };
 }

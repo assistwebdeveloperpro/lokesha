@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/user/dashboard/notifications/NotificationBell";
 import {
   getActiveNavLabel,
   getActiveSectionHref,
@@ -406,7 +407,10 @@ function UserDashboardShellInner({
               </div> */}
             </div>
 
-            <UserDashboardProfileMenu userName={userName} onSignOut={handleLogout} />
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <UserDashboardProfileMenu userName={userName} onSignOut={handleLogout} />
+            </div>
           </div>
         </header>
 

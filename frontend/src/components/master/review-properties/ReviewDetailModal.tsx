@@ -1,0 +1,149 @@
+"use client";
+
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAdminToken } from "@/services/adminSession";
+import { ApiError, getAssetUrl } from "@/services/apiClient";
+import { getReviewProperty, type ReviewDetailResponse } from "@/services/propertyReview.service";
+import { toDisplayEntries } from "./reviewPropertiesShared";
+
+type LoadResult = { id: string; detail: ReviewDetailResponse | null; error: string };
+
+const LOAD_ERROR = "Unable to load this property. Please try again.";
+
+function Section({ title, entries }: { title: string; entries: { label: string; value: string }[] }) {
+  if (entries.length === 0) return null;
+
+  return (
+    <section className="mt-5">
+      <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">{title}</h3>
+      <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        {entries.map(({ label, value }) => (
+          <div key={label} className="flex justify-between gap-3 border-b border-slate-100 py-1 text-sm">
+            <dt className="text-slate-500">{label}</dt>
+            <dd className="text-right font-medium text-slate-800">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+export default function ReviewDetailModal({ propertyId, onClose }: { propertyId: string; onClose: () => void }) {
+  const [result, setResult] = useState<LoadResult | null>(null);
+
+  useEffect(() => {
+    const token = getAdminToken();
+    let cancelled = false;
+
+    const request = token ? getReviewProperty(propertyId, token) : Promise.reject(new ApiError(LOAD_ERROR, 401));
+    request
+      .then((detail) => !cancelled && setResult({ id: propertyId, detail, error: "" }))
+      .catch(() => !cancelled && setResult({ id: propertyId, detail: null, error: LOAD_ERROR }));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [propertyId]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  const current = result?.id === propertyId ? result : null;
+  const detail = current?.detail ?? null;
+  const listing = detail?.payload.listings[0];
+  const images = detail?.media.filter((item) => item.mediaType === "image") ?? [];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Close details"
+        className="absolute inset-0 cursor-pointer bg-slate-900/40"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="review-detail-heading"
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-slate-200 bg-white p-5 shadow-xl sm:p-6"
+      >
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="absolute right-3 top-3 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+        >
+          <X className="h-4 w-4" aria-hidden />
+        </button>
+
+        {!current ? (
+          <div className="animate-pulse space-y-3" aria-busy="true">
+            <div className="h-6 w-1/2 rounded bg-slate-200" />
+            <div className="h-40 rounded bg-slate-100" />
+          </div>
+        ) : !detail || !listing ? (
+          <p className="py-10 text-center text-sm text-red-600" role="alert">
+            {current.error}
+          </p>
+        ) : (
+          <>
+            <h2 id="review-detail-heading" className="pr-8 text-lg font-bold text-slate-900">
+              {detail.property.title}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {detail.owner.name} · {detail.owner.mobile}
+            </p>
+
+            {detail.property.rejectionReason ? (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                Rejected: {detail.property.rejectionReason}
+              </p>
+            ) : null}
+
+            {images.length > 0 ? (
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {images.map((image) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={image.id}
+                    src={getAssetUrl(image.path)}
+                    alt={image.category}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-lg border border-slate-200 object-cover"
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-500">No photos uploaded.</p>
+            )}
+
+            {listing.description ? <p className="mt-4 text-sm text-slate-700">{listing.description}</p> : null}
+
+            <Section title="Address" entries={toDisplayEntries(detail.payload.address)} />
+            <Section title="Details" entries={toDisplayEntries(listing.details)} />
+            <Section title="Plot" entries={toDisplayEntries(listing.plotDetails)} />
+            <Section title="Pricing" entries={toDisplayEntries(listing.pricing)} />
+            <Section
+              title="Amenities"
+              entries={toDisplayEntries({ amenities: listing.amenities?.amenities, furnishing: listing.amenities?.furnishing })}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

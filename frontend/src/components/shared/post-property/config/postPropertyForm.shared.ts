@@ -38,6 +38,7 @@ import landImage from "../../../../../public/assets/images/property_type/land.sv
 import pgImage from "../../../../../public/assets/images/property_type/pg.svg";
 import plotImage from "../../../../../public/assets/images/property_type/plot.svg";
 import residentialImage from "../../../../../public/assets/images/property_type/residential.svg";
+import type { UploadedFileRef } from "../utils/mediaUploader";
 import { parseAmountNumber } from "../utils/postPropertyAmount";
 import {
   getFormConfig,
@@ -1135,6 +1136,27 @@ export type AmenitiesFieldErrors = Partial<
 export function validateAmenities(
   values: AmenitiesValues,
   propertyType?: PropertyTypeId,
+  context?: {
+    listingType?: ListingTypeId;
+    subType?: string;
+    builder?: boolean;
+    optionalAmenities?: boolean;
+  },
+): AmenitiesFieldErrors {
+  const errors = validateRequiredAmenities(values, propertyType, context);
+
+  if (context?.optionalAmenities) {
+    delete errors.status;
+    delete errors.furnishing;
+    delete errors.amenities;
+  }
+
+  return errors;
+}
+
+function validateRequiredAmenities(
+  values: AmenitiesValues,
+  propertyType?: PropertyTypeId,
   context?: { listingType?: ListingTypeId; subType?: string; builder?: boolean },
 ): AmenitiesFieldErrors {
   const errors: AmenitiesFieldErrors = {};
@@ -1321,19 +1343,10 @@ function getBasePhotoCategories(
 }
 
 export function arePhotosRequired(
-  propertyType: PropertyTypeId,
-  context?: { listingType?: ListingTypeId; subType?: string },
+  _propertyType?: PropertyTypeId,
+  _context?: { listingType?: ListingTypeId; subType?: string },
 ): boolean {
-  const saleConfig = getFormConfig(
-    context?.listingType,
-    propertyType,
-    context?.subType,
-  );
-  if (saleConfig) {
-    return saleConfig.photos.required;
-  }
-
-  return propertyType === "residential";
+  return true;
 }
 
 export const MAX_PROPERTY_MEDIA_COUNT = 50;
@@ -1351,11 +1364,21 @@ export const ACCEPTED_BROCHURE_TYPES = ["application/pdf"];
 export const ACCEPTED_BROCHURE_EXTENSIONS = ".pdf";
 export const MIN_PHOTOS_FOR_WARNING = 5;
 
+// local: only in the browser (admin form); the others belong to files sent to the server at once
+export type MediaUploadStatus = "local" | "uploading" | "uploaded" | "error";
+
 export type PropertyMediaFile = {
   id: string;
   previewUrl: string;
-  file: File;
   type: "image" | "video";
+  name: string;
+  status: MediaUploadStatus;
+  // Kept while a file is local, uploading or failed, so a failed upload can be retried
+  file?: File;
+  // The stored copy once uploaded
+  remote?: UploadedFileRef;
+  // Why the upload failed, shown on the thumbnail
+  errorMessage?: string;
 };
 
 export type PhotosVideosValues = {
@@ -1378,12 +1401,17 @@ export function createEmptyPhotosVideosValues(): PhotosVideosValues {
   };
 }
 
-export function createPropertyMediaFromFile(file: File): PropertyMediaFile {
+export function createPropertyMediaFromFile(
+  file: File,
+  status: MediaUploadStatus = "local",
+): PropertyMediaFile {
   return {
     id: `media-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     previewUrl: URL.createObjectURL(file),
     file,
+    name: file.name,
     type: file.type.startsWith("video/") ? "video" : "image",
+    status,
   };
 }
 
@@ -1393,6 +1421,19 @@ export function getTotalMediaCount(values: PhotosVideosValues): number {
     0,
   );
 }
+
+function listAllMedia(values: PhotosVideosValues): PropertyMediaFile[] {
+  return [
+    ...PHOTO_CATEGORY_OPTIONS.flatMap((category) => values.mediaByCategory[category.id]),
+    ...(values.brochure ? [values.brochure] : []),
+  ];
+}
+
+export const hasUploadingMedia = (values: PhotosVideosValues) =>
+  listAllMedia(values).some((media) => media.status === "uploading");
+
+export const hasFailedMedia = (values: PhotosVideosValues) =>
+  listAllMedia(values).some((media) => media.status === "error");
 
 export const PRICE_INCLUSION_OPTIONS: ImageTileOption[] = [
   {

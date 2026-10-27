@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useAmenityOptions } from "../hooks/useAmenityOptions";
 import PostPropertyInput from "../components/PostPropertyInput";
 import ChipSelectField from "../components/ChipSelectField";
 import ExpandableIconTileSelect from "../components/ExpandableIconTileSelect";
@@ -18,7 +19,6 @@ import {
   type AmenitiesValues,
   type FacingOption,
   type FurnishingStatusId,
-  type ImageTileOption,
   type PropertyTypeId,
 } from "../config/postPropertyForm.shared";
 import {
@@ -61,9 +61,11 @@ export default function AmenitiesField({
   errors = {},
   hideCarParking = false,
   builder = false,
+  optionalAmenities = false,
   builderExtras,
   sections,
 }: {
+  optionalAmenities?: boolean;
   // Renders only (or all but) the given sections, used to ask shared sections once above the tabs
   sections?: { only?: AmenitySection[]; except?: AmenitySection[] };
   hideCarParking?: boolean;
@@ -102,11 +104,19 @@ export default function AmenitiesField({
   const showAmenities =
     inScope("amenities") &&
     (saleConfig ? saleConfig.amenities !== "hidden" : !isPg && !isLand);
-  const amenitiesRequired = saleConfig
-    ? saleConfig.amenities === "required"
-    : isResidentialLike;
-  const amenityOptions: ImageTileOption[] = [];
-  const furnishingOptions: ImageTileOption[] = [];
+  const amenitiesRequired =
+    !optionalAmenities &&
+    (saleConfig ? saleConfig.amenities === "required" : isResidentialLike);
+  const {
+    amenities: amenityOptions,
+    furnishing: furnishingOptions,
+    hasError: optionsFailed,
+  } = useAmenityOptions({
+    listingType: isRent ? "rent-lease" : "sale",
+    propertyType,
+    subType,
+  });
+  const optionsError = optionsFailed ? "Unable to load the options. Please refresh the page." : undefined;
 
   const showClubMembership =
     !hideCarParking &&
@@ -175,12 +185,12 @@ export default function AmenitiesField({
       {showStatus ? (
         <PostPropertyFieldSection
           title="Status & Furnishing"
-          required
+          required={!optionalAmenities}
           description="Choose furnished status and select available items"
         >
           <ChipSelectField
             legend="Status"
-            required
+            required={!optionalAmenities}
             bare
             options={FURNISHING_STATUS_OPTIONS.map((option) => option.label)}
             value={
@@ -196,12 +206,12 @@ export default function AmenitiesField({
             <div className="mt-5">
               <ExpandableIconTileSelect
                 legend="Furnishing"
-                required
+                required={!optionalAmenities}
                 bare
                 options={furnishingOptions}
                 value={values.furnishing}
                 onChange={(nextValue) => onChange("furnishing", nextValue)}
-                error={errors.furnishing}
+                error={errors.furnishing ?? optionsError}
               />
             </div>
           ) : null}
@@ -215,7 +225,7 @@ export default function AmenitiesField({
           options={amenityOptions}
           value={values.amenities}
           onChange={(nextValue) => onChange("amenities", nextValue)}
-          error={errors.amenities}
+          error={errors.amenities ?? optionsError}
         />
       ) : null}
 

@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
@@ -28,6 +29,18 @@ const ALLOWED_PROFILE_PHOTO_MIME_TYPES = [
   "image/bmp",
   "image/x-ms-bmp",
 ];
+
+const {
+  LIMITS: PROPERTY_LIMITS,
+  STORAGE: PROPERTY_STORAGE,
+  UPLOAD_MIME_TYPES: PROPERTY_MIME_TYPES,
+} = require("../modules/landing/property/property.constants");
+
+const PROPERTY_MAX_FILE_BYTES = {
+  media: PROPERTY_LIMITS.maxMediaBytes,
+  "floor-plan": PROPERTY_LIMITS.maxFloorPlanBytes,
+  brochure: PROPERTY_LIMITS.maxBrochureBytes,
+};
 
 fs.mkdirSync(OFFICE_PHOTOS_DIR, { recursive: true });
 fs.mkdirSync(RERA_DOCUMENTS_DIR, { recursive: true });
@@ -144,7 +157,71 @@ function handleContactPersonPhotoUpload(req, res, next) {
   });
 }
 
+function createPropertyUpload(kind, resolveDestination) {
+  const mimeTypes = PROPERTY_MIME_TYPES[kind];
+
+  return multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const destination = resolveDestination(req);
+        fs.mkdirSync(destination, { recursive: true });
+        cb(null, destination);
+      },
+      filename: (req, file, cb) =>
+        cb(null, `${kind}-${crypto.randomUUID()}${mimeTypes[file.mimetype]}`),
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!mimeTypes[file.mimetype]) {
+        return cb(new Error("This file format is not allowed"));
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: PROPERTY_MAX_FILE_BYTES[kind], files: 1 },
+  }).single("file");
+}
+
+function createPropertyUploadHandler(resolveDestination, resolveKind) {
+  const uploads = Object.fromEntries(
+    Object.keys(PROPERTY_MIME_TYPES).map((kind) => [
+      kind,
+      createPropertyUpload(kind, resolveDestination),
+    ])
+  );
+
+  // The kind is validated by the route before this runs
+  return (req, res, next) => {
+    uploads[resolveKind(req)](req, res, (error) => {
+      if (error) {
+        const status = error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+        return res.status(status).json({ message: error.message || "File upload failed" });
+      }
+      next();
+    });
+  };
+}
+
+const queryKind = (req) => req.validatedQuery.kind;
+
+const handleDraftFileUpload = createPropertyUploadHandler(
+  (req) => path.join(PROPERTY_STORAGE.tempDraftsDir, req.params.id),
+  queryKind
+);
+
+// Posted listings keep their files in the public property folder
+const handlePropertyFileUpload = createPropertyUploadHandler(
+  (req) => path.join(PROPERTY_STORAGE.propertiesDir, req.params.id),
+  queryKind
+);
+
+const handleFloorPlanUpload = createPropertyUploadHandler(
+  (req) => path.join(PROPERTY_STORAGE.propertiesDir, req.params.id),
+  () => "floor-plan"
+);
+
 module.exports = {
+  handleDraftFileUpload,
+  handlePropertyFileUpload,
+  handleFloorPlanUpload,
   handleOfficePhotosUpload,
   OFFICE_PHOTOS_DIR,
   handleReraDocumentUpload,

@@ -8,15 +8,15 @@ import SubTypeDetailsTabs from "../step-2-property-details/SubTypeDetailsTabs";
 import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
 import PricingOthersField from "./PricingOthersField";
 
-function getSubmitLabel(isSubmitting: boolean, isEditMode: boolean) {
+function getSubmitLabel(isSubmitting: boolean, sendsForReview: boolean) {
   if (isSubmitting) {
-    return isEditMode ? "Saving..." : "Submitting...";
+    return sendsForReview ? "Submitting..." : "Saving...";
   }
-  return isEditMode ? "Save Changes" : "Submit";
+  return sendsForReview ? "Submit for Review" : "Save Changes";
 }
 
 export default function PricingOthersStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers, isEditMode } = form;
+  const { draft, derived, layout, subForms, handlers, canSaveAsDraft, submitsOnSave } = form;
   const { showBuilderFields, isMultiSubType, isRent, builderConfig } = derived;
   const { propertyType } = draft;
 
@@ -81,8 +81,10 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
     <PostPropertyStepCard
       title="Add Pricing & Other Details"
       description="Step 5 of 5 - Set your price and finalize the listing"
-      actionLabel={getSubmitLabel(draft.isSubmitting, isEditMode)}
+      actionLabel={getSubmitLabel(draft.isSubmitting, submitsOnSave)}
       onAction={handlers.submit}
+      secondaryActionLabel={canSaveAsDraft ? "Save as Draft" : undefined}
+      onSecondaryAction={canSaveAsDraft ? handlers.saveAsDraft : undefined}
       onBack={handlers.goBack}
       isActionDisabled={draft.isSubmitting}
     >

@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { INITIAL_ADDRESS_LOCATION, INITIAL_PRICING_OTHERS } from "../state/postPropertyInitialValues";
+import {
+  INITIAL_ADDRESS_LOCATION,
+  INITIAL_AMENITIES,
+  INITIAL_PRICING_OTHERS,
+} from "../state/postPropertyInitialValues";
 import {
   hasAddressLocationErrors,
   hasPricingOthersErrors,
   validateAddressLocation,
+  validateAmenities,
   validatePricingOthers,
 } from "../config/postPropertyForm.shared";
 
@@ -111,5 +116,57 @@ describe("validatePricingOthers for sale", () => {
     );
 
     expect(errors).toEqual({});
+  });
+});
+
+describe("validateAmenities", () => {
+  const context = { listingType: "sale" as const };
+  const requiredKeys = ["status", "amenities"];
+
+  it("requires status and amenities for a residential listing", () => {
+    const errors = validateAmenities(INITIAL_AMENITIES, "residential", context);
+
+    expect(Object.keys(errors)).toEqual(expect.arrayContaining(requiredKeys));
+  });
+
+  it("requires a furnishing item once a furnished status is chosen", () => {
+    const errors = validateAmenities(
+      { ...INITIAL_AMENITIES, status: "furnished" },
+      "residential",
+      context,
+    );
+
+    expect(errors.furnishing).toBeDefined();
+  });
+
+  it("skips status, furnishing and amenities errors when optional", () => {
+    const errors = validateAmenities(INITIAL_AMENITIES, "residential", {
+      ...context,
+      optionalAmenities: true,
+    });
+
+    expect(errors.status).toBeUndefined();
+    expect(errors.furnishing).toBeUndefined();
+    expect(errors.amenities).toBeUndefined();
+  });
+
+  it("skips the furnishing item error when optional", () => {
+    const errors = validateAmenities(
+      { ...INITIAL_AMENITIES, status: "furnished" },
+      "residential",
+      { ...context, optionalAmenities: true },
+    );
+
+    expect(errors.furnishing).toBeUndefined();
+  });
+
+  it("still validates other fields when optional", () => {
+    const errors = validateAmenities(
+      { ...INITIAL_AMENITIES, carParkingAvailable: true },
+      "residential",
+      { ...context, optionalAmenities: true },
+    );
+
+    expect(errors.carParking).toBeDefined();
   });
 });

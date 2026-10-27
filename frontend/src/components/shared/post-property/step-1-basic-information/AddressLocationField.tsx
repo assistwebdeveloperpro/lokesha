@@ -159,7 +159,7 @@ export default function AddressLocationField({
             onChange={(event) =>
               onChange("propertyDescription", event.target.value)
             }
-            className={`w-full resize-y border-0 border-b bg-transparent px-0 pb-2.5 pt-2 text-sm font-normal leading-relaxed text-slate-600 outline-none transition-colors placeholder:text-slate-400 ${
+            className={`w-full resize-y border-0 border-b bg-transparent px-0 pb-2.5 pt-2 text-sm font-medium leading-relaxed text-slate-600 outline-none transition-colors placeholder:text-slate-400 ${
               errors.propertyDescription
                 ? "border-red-500 focus:border-red-500"
                 : "border-slate-300 focus:border-sky-600"

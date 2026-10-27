@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   POST_PROPERTY_BACK_BTN,
   POST_PROPERTY_PRIMARY_BTN,
+  POST_PROPERTY_SECONDARY_BTN,
   POST_PROPERTY_STEP_ACCENT,
   POST_PROPERTY_STEP_DESC,
   POST_PROPERTY_STEP_HEADER,
@@ -15,6 +16,8 @@ type PostPropertyStepCardProps = {
   actionLabel: string;
   onAction: () => void;
   onBack?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   isActionDisabled?: boolean;
   children: ReactNode;
 };
@@ -25,6 +28,8 @@ export default function PostPropertyStepCard({
   actionLabel,
   onAction,
   onBack,
+  secondaryActionLabel,
+  onSecondaryAction,
   isActionDisabled = false,
   children,
 }: PostPropertyStepCardProps) {
@@ -53,7 +58,17 @@ export default function PostPropertyStepCard({
       <div className="space-y-6">
         {children}
 
-        <div className="flex justify-center border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7">
+        <div className="flex flex-col items-center justify-center gap-3 border-t border-slate-100/90 bg-linear-to-t from-slate-50/50 to-transparent pt-7 sm:flex-row sm:gap-4">
+          {secondaryActionLabel && onSecondaryAction ? (
+            <button
+              type="button"
+              onClick={onSecondaryAction}
+              disabled={isActionDisabled}
+              className={`${POST_PROPERTY_SECONDARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              {secondaryActionLabel}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onAction}

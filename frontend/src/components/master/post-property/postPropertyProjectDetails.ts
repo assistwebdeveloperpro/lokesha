@@ -91,7 +91,19 @@ export type SpecificationGroup = {
   items: SpecificationItem[];
 };
 
-export type BrochureImage = { id: string; file: File; previewUrl: string };
+// Fields below the preview belong to the user form, where files are sent to a draft at once
+export type RowUploadFields = {
+  status?: "uploading" | "uploaded" | "error";
+  remote?: { id: string; path: string; kind?: "media" | "floor-plan" | "brochure" };
+  errorMessage?: string;
+};
+
+export type BrochureImage = {
+  id: string;
+  file?: File;
+  previewUrl: string;
+  name?: string;
+} & RowUploadFields;
 
 export type HighlightTextRow = { id: string; text: string };
 
@@ -107,7 +119,7 @@ export type FloorPlanRow = {
   planType: FloorPlanPlanType;
   file: File | null;
   previewUrl: string;
-};
+} & RowUploadFields;
 
 export function findFloorPlanRow(
   floorPlans: FloorPlanRow[],

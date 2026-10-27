@@ -128,12 +128,13 @@ function appendMediaFiles(formData: FormData, photosVideos: PhotosVideosValues):
 
   for (const category of PHOTO_CATEGORY_OPTIONS) {
     for (const item of photosVideos.mediaByCategory[category.id]) {
+      if (!item.file) continue;
       formData.append("media", item.file);
       mediaCategories.push(category.id);
     }
   }
 
-  if (photosVideos.brochure) {
+  if (photosVideos.brochure?.file) {
     formData.append("brochure", photosVideos.brochure.file);
   }
 

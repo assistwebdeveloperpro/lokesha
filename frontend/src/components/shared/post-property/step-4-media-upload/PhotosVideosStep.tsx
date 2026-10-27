@@ -14,10 +14,9 @@ const BUILDER_EXCLUDED_CATEGORY_IDS: PhotoCategoryId[] = [
 ];
 
 export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers } = form;
+  const { draft, derived, layout, subForms, handlers, mediaUploader } = form;
   const { showBuilderFields, isMultiSubType, activeTabId, builderConfig } = derived;
   const { propertyType, listingType, existingMedia } = draft;
-  const { existingBrochureName } = derived;
 
   const builderExtraCategoryIds: PhotoCategoryId[] | undefined =
     showBuilderFields &&
@@ -41,7 +40,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
           error={subForms.photosErrors[subForms.firstTabId]}
           existingMedia={existingMedia}
           onRemoveExisting={handlers.removeExistingMedia}
-          existingBrochureName={existingBrochureName}
+          uploader={mediaUploader}
         />
       );
     }
@@ -57,7 +56,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
             subType={subForms.firstTabId}
             values={subForms.getPhotos(subForms.firstTabId)}
             onChange={(next) => subForms.changePhotos(subForms.firstTabId, next)}
-            existingBrochureName={existingBrochureName}
+            uploader={mediaUploader}
           />
           <BuilderMediaBlocks form={form} />
           <SubTypeDetailsTabs
@@ -81,6 +80,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
               error={subForms.photosErrors[activeTabId]}
               existingMedia={activeTabId === subForms.firstTabId ? existingMedia : []}
               onRemoveExisting={handlers.removeExistingMedia}
+              uploader={mediaUploader}
             />
           </SubTypeDetailsTabs>
         </>
@@ -100,7 +100,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
         error={draft.photosError}
         existingMedia={existingMedia}
         onRemoveExisting={handlers.removeExistingMedia}
-        existingBrochureName={existingBrochureName}
+        uploader={mediaUploader}
       />
     );
   };

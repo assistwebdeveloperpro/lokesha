@@ -1,8 +1,18 @@
 "use client";
 
-import { AlertTriangle, ImagePlus, Play, Upload } from "lucide-react";
+import { AlertTriangle, ImagePlus, Loader2, Play, RotateCw, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { PropertyMedia } from "@/services/property.service";
+import type { MediaUploader } from "../utils/mediaUploader";
+import {
+  MAX_PARALLEL_UPLOADS,
+  addMediaItems,
+  findMediaItem,
+  removeMediaItem,
+  removeStoredMedia,
+  runWithConcurrency,
+  uploadMediaItem,
+} from "../utils/photosVideosValues";
 import ExistingMediaThumbnail from "./ExistingMediaThumbnail";
 import MediaRemoveButton from "./MediaRemoveButton";
 import {
@@ -34,28 +44,75 @@ const uploadButtonClassName =
 const categoryTabClassName = (isSelected: boolean) =>
   `${postPropertyChipClass(isSelected)} px-3.5 py-2 text-sm sm:px-4 sm:py-2.5`;
 
+function UploadStatusOverlay({
+  media,
+  onRetry,
+}: {
+  media: PropertyMediaFile;
+  onRetry: () => void;
+}) {
+  if (media.status === "uploading") {
+    return (
+      <span
+        className="absolute inset-0 flex items-center justify-center bg-white/70"
+        role="status"
+        aria-label="Uploading"
+      >
+        <Loader2 className="h-6 w-6 animate-spin text-sky-600" aria-hidden />
+      </span>
+    );
+  }
+
+  if (media.status === "error") {
+    return (
+      <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-white/85 px-2 text-center">
+        <span className="line-clamp-2 text-xs font-medium text-red-600" role="alert">
+          {media.errorMessage ?? "Upload failed"}
+        </span>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-semibold text-sky-700 shadow ring-1 ring-sky-200 transition hover:text-sky-900"
+        >
+          <RotateCw className="h-3 w-3" aria-hidden /> Retry
+        </button>
+      </span>
+    );
+  }
+
+  return null;
+}
+
 function MediaThumbnail({
   media,
   index,
   onRemove,
+  onRetry,
 }: {
   media: PropertyMediaFile;
   index: number;
   onRemove: () => void;
+  onRetry: () => void;
 }) {
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
       {media.type === "video" ? (
         <div className="relative flex h-full w-full items-center justify-center bg-slate-100">
-          <video
-            src={media.previewUrl}
-            className="h-full w-full object-cover"
-            muted
-            playsInline
-          />
+          {media.previewUrl ? (
+            <video
+              src={media.previewUrl}
+              className="h-full w-full object-cover"
+              muted
+              playsInline
+            />
+          ) : null}
           <span className="absolute inset-0 flex items-center justify-center bg-slate-900/20">
             <Play className="h-8 w-8 fill-white text-white" aria-hidden />
           </span>
+        </div>
+      ) : !media.previewUrl ? (
+        <div className="flex h-full w-full items-center justify-center bg-slate-100">
+          <ImagePlus className="h-8 w-8 text-slate-400" aria-hidden />
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
@@ -65,6 +122,7 @@ function MediaThumbnail({
           className="h-full w-full object-cover"
         />
       )}
+      <UploadStatusOverlay media={media} onRetry={onRetry} />
       <MediaRemoveButton
         label={`Remove media ${index + 1}`}
         onRemove={onRemove}
@@ -99,9 +157,12 @@ export default function PhotosVideosField({
   excludedCategoryIds = [],
   extraCategoryIds = [],
   parts = "all",
+  uploader,
 }: {
   // "photos" or "brochure" renders only that half, so the brochure can sit above sub type tabs
   parts?: "all" | "photos" | "brochure";
+  // With an uploader every file is sent to the server as soon as it is chosen
+  uploader?: MediaUploader;
   excludedCategoryIds?: PhotoCategoryId[];
   extraCategoryIds?: PhotoCategoryId[];
   propertyType?: PropertyTypeId;
@@ -132,8 +193,36 @@ export default function PhotosVideosField({
   const [isDragging, setIsDragging] = useState(false);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const brochureInputRef = useRef<HTMLInputElement>(null);
-  const valuesRef = useRef(values);
-  valuesRef.current = values;
+  // Uploads finish long after the render that started them, so they write to the newest values
+  const latestValues = useRef(values);
+  useEffect(() => {
+    latestValues.current = values;
+  });
+
+  const commit = (update: (current: PhotosVideosValues) => PhotosVideosValues) => {
+    latestValues.current = update(latestValues.current);
+    onChange(latestValues.current);
+  };
+
+  const startUploads = (
+    items: PropertyMediaFile[],
+    kind: "media" | "brochure",
+    meta: { category?: string },
+  ) => {
+    if (!uploader) return;
+
+    const context = { uploader, getValues: () => latestValues.current, commit };
+    void runWithConcurrency(items, MAX_PARALLEL_UPLOADS, (item) =>
+      uploadMediaItem(context, item, kind, meta),
+    );
+  };
+
+  const retryUpload = (mediaId: string) => {
+    const media = findMediaItem(latestValues.current, mediaId);
+    if (media) {
+      startUploads([media], "media", { category: activeCategory });
+    }
+  };
 
   const categoryMedia = values.mediaByCategory[activeCategory];
   const categoryExistingMedia = existingMedia.filter(
@@ -146,7 +235,7 @@ export default function PhotosVideosField({
 
   useEffect(() => {
     return () => {
-      const currentValues = valuesRef.current;
+      const currentValues = latestValues.current;
 
       PHOTO_CATEGORY_OPTIONS.forEach((category) => {
         currentValues.mediaByCategory[category.id].forEach((media) => {
@@ -216,30 +305,24 @@ export default function PhotosVideosField({
       return;
     }
 
-    const nextMedia = valid.map(createPropertyMediaFromFile);
-    onChange({
-      ...values,
-      mediaByCategory: {
-        ...values.mediaByCategory,
-        [activeCategory]: [...categoryMedia, ...nextMedia],
-      },
-    });
+    const nextMedia = valid.map((file) =>
+      createPropertyMediaFromFile(file, uploader ? "uploading" : "local"),
+    );
+    commit((current) => addMediaItems(current, activeCategory, nextMedia));
+    startUploads(nextMedia, "media", { category: activeCategory });
   };
 
   const handleRemoveMedia = (mediaId: string) => {
     setMediaError(null);
-    const removedMedia = categoryMedia.find((media) => media.id === mediaId);
+    const removedMedia = findMediaItem(latestValues.current, mediaId);
     if (removedMedia) {
       URL.revokeObjectURL(removedMedia.previewUrl);
     }
 
-    onChange({
-      ...values,
-      mediaByCategory: {
-        ...values.mediaByCategory,
-        [activeCategory]: categoryMedia.filter((media) => media.id !== mediaId),
-      },
-    });
+    commit((current) => removeMediaItem(current, mediaId));
+    if (uploader) {
+      void removeStoredMedia(uploader, removedMedia);
+    }
   };
 
   const handleBrochureSelect = (file: File) => {
@@ -255,22 +338,36 @@ export default function PhotosVideosField({
 
     setBrochureError(null);
 
-    if (values.brochure) {
-      URL.revokeObjectURL(values.brochure.previewUrl);
+    const previous = latestValues.current.brochure;
+    if (previous) {
+      URL.revokeObjectURL(previous.previewUrl);
     }
 
-    onChange({
-      ...values,
-      brochure: createPropertyMediaFromFile(file),
-    });
+    const brochure = createPropertyMediaFromFile(file, uploader ? "uploading" : "local");
+    commit((current) => ({ ...current, brochure }));
+    if (uploader) {
+      void removeStoredMedia(uploader, previous);
+    }
+    startUploads([brochure], "brochure", {});
   };
 
   const handleRemoveBrochure = () => {
-    if (values.brochure) {
-      URL.revokeObjectURL(values.brochure.previewUrl);
+    const previous = latestValues.current.brochure;
+    if (previous) {
+      URL.revokeObjectURL(previous.previewUrl);
     }
     setBrochureError(null);
-    onChange({ ...values, brochure: null });
+    commit((current) => ({ ...current, brochure: null }));
+    if (uploader) {
+      void removeStoredMedia(uploader, previous);
+    }
+  };
+
+  const retryBrochureUpload = () => {
+    const brochure = latestValues.current.brochure;
+    if (brochure) {
+      startUploads([brochure], "brochure", {});
+    }
   };
 
   const openMediaPicker = () => {
@@ -356,6 +453,7 @@ export default function PhotosVideosField({
                     media={media}
                     index={index}
                     onRemove={() => handleRemoveMedia(media.id)}
+                    onRetry={() => retryUpload(media.id)}
                   />
                 ))}
               </div>
@@ -436,8 +534,27 @@ export default function PhotosVideosField({
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-sky-100 bg-sky-50/40 px-4 py-3">
             <Upload className="h-5 w-5 shrink-0 text-sky-600" aria-hidden />
             <span className="flex-1 truncate text-sm font-medium text-slate-700">
-              {values.brochure.file.name}
+              {values.brochure.name}
             </span>
+            {values.brochure.status === "uploading" ? (
+              <span className="inline-flex items-center gap-1.5 text-sm text-slate-500" role="status">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Uploading
+              </span>
+            ) : null}
+            {values.brochure.status === "error" ? (
+              <>
+                <span className="text-sm text-red-600" role="alert">
+                  {values.brochure.errorMessage ?? "Upload failed"}
+                </span>
+                <button
+                  type="button"
+                  onClick={retryBrochureUpload}
+                  className="inline-flex cursor-pointer items-center gap-1 text-sm font-semibold text-sky-700 transition hover:text-sky-900"
+                >
+                  <RotateCw className="h-3.5 w-3.5" aria-hidden /> Retry
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               onClick={handleRemoveBrochure}

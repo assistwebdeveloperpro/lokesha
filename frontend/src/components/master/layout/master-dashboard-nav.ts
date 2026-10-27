@@ -24,6 +24,7 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     children: [
       { label: "Post Property", href: "/backend/properties/post-property" },
       { label: "Manage Properties", href: "/backend/properties/manage-properties" },
+      { label: "Review Properties", href: "/backend/properties/review-properties" },
     ],
   },
 ];

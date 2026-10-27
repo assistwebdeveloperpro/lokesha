@@ -10,7 +10,14 @@ import AmenitiesField from "./AmenitiesField";
 
 export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
   const { draft, derived, layout, subForms, handlers } = form;
-  const { showBuilderFields, isMultiSubType, activeTabId, isRent, builderConfig } = derived;
+  const {
+    showBuilderFields,
+    optionalAmenities,
+    isMultiSubType,
+    activeTabId,
+    isRent,
+    builderConfig,
+  } = derived;
   const { amenitySections } = layout;
   const builderExtras = showBuilderFields ? <BuilderAmenityExtras form={form} /> : undefined;
 
@@ -26,6 +33,7 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
           errors={draft.amenitiesErrors}
           hideCarParking={showBuilderFields}
           builder={showBuilderFields}
+          optionalAmenities={optionalAmenities}
           builderExtras={builderExtras}
         />
       );

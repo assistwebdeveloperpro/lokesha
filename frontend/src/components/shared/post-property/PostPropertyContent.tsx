@@ -10,11 +10,16 @@ import PropertyDetailsStep from "./step-2-property-details/PropertyDetailsStep";
 import AmenitiesStep from "./step-3-amenities/AmenitiesStep";
 import PhotosVideosStep from "./step-4-media-upload/PhotosVideosStep";
 import PricingOthersStep from "./step-5-pricing-and-additional-details/PricingOthersStep";
+import SavedDraftsBanner from "./components/SavedDraftsBanner";
 import { usePostPropertyForm } from "./hooks/usePostPropertyForm";
+import { useSavedDrafts } from "./hooks/useSavedDrafts";
 
 export default function PostPropertyContent() {
   const form = usePostPropertyForm();
-  const { currentStep, isEditMode, editStatus, staff } = form;
+  const { currentStep, isEditMode, editStatus, staff, serverDraft } = form;
+  // Only a fresh form offers earlier drafts; one that has its own draft is already being saved
+  const canResumeDraft = currentStep === 1 && !isEditMode && !serverDraft.draftId;
+  const savedDrafts = useSavedDrafts(canResumeDraft);
   const showPostingAs = staff.isStaff && !isEditMode;
   const isFormVisible = !showPostingAs || staff.postingAs !== "";
 
@@ -23,7 +28,10 @@ export default function PostPropertyContent() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-360 px-3 py-8 sm:px-4 sm:py-10 lg:px-4">
+    <div
+      data-post-property-form
+      className="mx-auto w-full max-w-360 px-3 py-8 sm:px-4 sm:py-10 lg:px-4"
+    >
       <header>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-30">
           <div className="shrink-0">
@@ -37,6 +45,12 @@ export default function PostPropertyContent() {
           <ProgressBar percent={getProgressForStep(currentStep)} />
         </div>
       </header>
+
+      <SavedDraftsBanner
+        drafts={savedDrafts.drafts}
+        deletingId={savedDrafts.deletingId}
+        onDelete={savedDrafts.remove}
+      />
 
       <section className="mt-8 sm:mt-10">
         <FormStepper currentStep={currentStep} />

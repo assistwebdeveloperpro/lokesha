@@ -32,6 +32,24 @@ export class ApiError extends Error {
   }
 }
 
+// For authenticated files that cannot be used as a plain image or video URL
+export async function apiFetchBlob(path: string, token: string): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new ApiError("Unable to reach the server. Please try again.", 0);
+  }
+
+  if (!response.ok) {
+    throw new ApiError("Unable to load the file.", response.status);
+  }
+
+  return response.blob();
+}
+
 type ApiFetchOptions = Omit<RequestInit, "body"> & { body?: unknown };
 
 type ErrorPayload = {
