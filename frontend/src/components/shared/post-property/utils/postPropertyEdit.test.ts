@@ -114,6 +114,7 @@ function toDetail(
     payload,
     media,
     floorPlans,
+    listingFiles: [{ propertyId: "p1", media, floorPlans }],
   };
 }
 
@@ -465,6 +466,53 @@ describe("mapDetailToForm builder", () => {
 
   it("builds the same payload again", () => {
     expectRoundTrip(input, media, floorPlans);
+  });
+
+  it("restores every sub type into its own tab with its own photos", () => {
+    const duplexProject: ProjectDetailsValues = {
+      ...project,
+      availableSizes: [
+        ...project.availableSizes,
+        { ...createAvailableSizeRow("Duplex"), bhk: "4 BHK", size: "2400", price: "9000000" },
+      ],
+    };
+    const multiInput: PropertyPayloadInput = {
+      ...input,
+      builderProject: duplexProject,
+      listings: [
+        listing("flat-apartment", { details: { ...INITIAL_PROPERTY_DETAILS, ageOfConstruction: "lt-1" }, project: duplexProject }),
+        listing("duplex", { details: { ...INITIAL_PROPERTY_DETAILS, ageOfConstruction: "1-to-2" }, project: duplexProject }),
+      ],
+    };
+    const duplexPhoto: PropertyMediaFileDto = {
+      id: "m2",
+      path: "/uploads/properties/p2/m2.jpg",
+      category: "main-photo",
+      mediaType: "image",
+      originalName: "duplex.jpg",
+      mimeType: "image/jpeg",
+      size: 1,
+    };
+    const detail = toDetail(multiInput, media, floorPlans);
+    detail.payload.listings[0].propertyId = "p1";
+    detail.payload.listings[1].propertyId = "p2";
+    detail.listingFiles = [
+      { propertyId: "p1", media, floorPlans },
+      { propertyId: "p2", media: [duplexPhoto], floorPlans: [] },
+    ];
+
+    const { form, tabs } = mapDetailToForm(detail);
+
+    expect(form.propertySubTypes).toEqual(["flat-apartment", "duplex"]);
+    expect(tabs.details["flat-apartment"].ageOfConstruction).toBe("lt-1");
+    expect(tabs.details.duplex.ageOfConstruction).toBe("1-to-2");
+    expect(tabs.photos.duplex.mediaByCategory["main-photo"][0]).toMatchObject({ remote: { id: "m2" } });
+    expect(tabs.photos["flat-apartment"].mediaByCategory["main-photo"]).toHaveLength(0);
+    expect(form.projectDetails.availableSizes.map((row) => [row.bhk, row.unitType])).toEqual([
+      ["2 BHK", "Flat/Apartment"],
+      ["6+ BHK", "Flat/Apartment"],
+      ["4 BHK", "Duplex"],
+    ]);
   });
 });
 

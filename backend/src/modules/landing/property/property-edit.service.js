@@ -10,37 +10,59 @@ const { changeStatus, markEdited } = require("./property-status.service");
 const { validateCompletePayload } = require("./property-payload.validation");
 const { AppError, validationError } = require("./property.errors");
 const { LIMITS, PROPERTY_TYPE_TO_DB, getRule } = require("./property.constants");
+const { isAdminCaller, toStatusActor } = require("./property-actor");
 
 const MAX_FLOOR_PLANS = 20;
 const SUBMITTABLE_STATUSES = ["draft", "rejected", "closed"];
+const ADMIN_SUBMITTABLE_STATUSES = ["draft", "closed"];
 const DEFAULT_PLAN_TYPE = "2d";
 
-const toActor = (user) => ({ userId: user.id });
+const toActor = toStatusActor;
+
+// Admins are not limited to their own listings, so no owner id is applied
+const toOwnerId = (user) => (isAdminCaller(user) ? undefined : user.id);
 
 async function lockOwnedProperty(trx, propertyId, user) {
-  const property = await editRepository.findPropertyForUpdate(trx, propertyId, user.id);
+  const property = await editRepository.findPropertyForUpdate(trx, propertyId, toOwnerId(user));
   if (!property) {
     throw new AppError("Property not found", 404);
   }
   return property;
 }
 
-function findListingCountError(value) {
-  return value.listings.length === 1 ? {} : { listings: "Exactly one listing can be edited at a time" };
+// Admins can edit any listing, but only publish and close the ones they created
+function assertCanChangeStatus(user, property) {
+  if (isAdminCaller(user) && property.admin_id !== user.adminId) {
+    throw new AppError("You can only change the status of listings created by admins", 403);
+  }
+}
+
+// A single listing may change its sub type; a post with several keeps the sub types it was posted with
+function findListingCountError(value, members) {
+  if (members.length === 1) {
+    return value.listings.length === 1 ? {} : { listings: "Exactly one listing can be edited at a time" };
+  }
+
+  const wanted = value.listings.map((listing) => listing.propertySubType).sort();
+  const posted = members.map((member) => member.sub_type_slug).sort();
+  return wanted.length === posted.length && wanted.every((slug, index) => slug === posted[index])
+    ? {}
+    : { listings: "Every sub type of this property must be edited together" };
 }
 
 // Files are managed by their own endpoints, so an edit never touches them
 async function updateProperty(user, propertyId, { payload }) {
-  const existing = await readRepository.findOwnedProperty(propertyId, user.id);
+  const existing = await readRepository.findOwnedProperty(propertyId, toOwnerId(user));
   if (!existing) {
     throw new AppError("Property not found", 404);
   }
+  const members = [existing, ...((await readRepository.findGroupSiblings(existing)) ?? [])];
 
   const { value, fields } = validateCompletePayload(payload, { isBuilderPost: Boolean(existing.builder_project_id) });
   if (!value) {
     throw validationError(fields);
   }
-  Object.assign(fields, findListingCountError(value));
+  Object.assign(fields, findListingCountError(value, members));
   if (Object.keys(fields).length) {
     throw validationError(fields);
   }
@@ -50,26 +72,37 @@ async function updateProperty(user, propertyId, { payload }) {
     throw validationError(fields);
   }
 
-  const [listing] = value.listings;
-  const rule = getRule(value.propertyType, listing.propertySubType);
-  const subTypeRow = lookups.subTypes.get(listing.propertySubType);
+  // The listing of a sub type belongs to the property that was posted with it
+  const targetIdOf = (listing) =>
+    members.length === 1 ? propertyId : members.find((member) => member.sub_type_slug === listing.propertySubType).id;
 
   return db.transaction(async (trx) => {
-    const locked = await lockOwnedProperty(trx, propertyId, user);
+    const group = await lockOwnedGroup(trx, propertyId, user);
+    const [{ builder_project_id: projectId }] = group;
 
     if (value.project) {
-      await writer.replaceProject(trx, locked.builder_project_id, value.project);
+      await writer.replaceProject(trx, projectId, value.project);
     }
-    await editRepository.updateProperty(trx, propertyId, {
-      listing_type: value.listingType,
-      property_type: PROPERTY_TYPE_TO_DB[value.propertyType],
-      property_sub_type_id: subTypeRow.id,
-      ...writer.buildPropertyColumns({ value, listing, rule, subTypeRow }),
-    });
-    await editRepository.deleteListingChildren(trx, propertyId);
-    await writer.insertListingDetails(trx, { value, lookups }, listing, propertyId);
 
-    const status = await markEdited(trx, locked, toActor(user));
+    let status;
+    for (const [index, listing] of value.listings.entries()) {
+      const targetId = targetIdOf(listing);
+      const rule = getRule(value.propertyType, listing.propertySubType);
+      const subTypeRow = lookups.subTypes.get(listing.propertySubType);
+
+      await editRepository.updateProperty(trx, targetId, {
+        listing_type: value.listingType,
+        property_type: PROPERTY_TYPE_TO_DB[value.propertyType],
+        property_sub_type_id: subTypeRow.id,
+        ...writer.buildPropertyColumns({ value, listing, rule, subTypeRow }),
+      });
+      await editRepository.deleteListingChildren(trx, targetId);
+      await writer.insertListingDetails(trx, { value, lookups }, listing, targetId);
+
+      const locked = group.find((member) => member.id === targetId);
+      const memberStatus = await markEdited(trx, locked, toActor(user), { notify: index === 0 });
+      if (targetId === propertyId) status = memberStatus;
+    }
     return { id: propertyId, status };
   });
 }
@@ -80,42 +113,79 @@ async function wasEditedSinceClosed(trx, property) {
   return !closedAt || property.updated_at > closedAt;
 }
 
+// A post with several sub types is one property to its owner, so status changes apply to all of them
+async function lockOwnedGroup(trx, propertyId, user) {
+  const group = await editRepository.findGroupForUpdate(trx, propertyId, toOwnerId(user));
+  if (!group.length) {
+    throw new AppError("Property not found", 404);
+  }
+  return group;
+}
+
 async function submitProperty(user, propertyId) {
   return db.transaction(async (trx) => {
-    const locked = await lockOwnedProperty(trx, propertyId, user);
-    if (!SUBMITTABLE_STATUSES.includes(locked.status)) {
-      throw new AppError(`A ${locked.status} property cannot be submitted`, 409);
+    const group = await lockOwnedGroup(trx, propertyId, user);
+    const submittable = isAdminCaller(user) ? ADMIN_SUBMITTABLE_STATUSES : SUBMITTABLE_STATUSES;
+
+    for (const locked of group) {
+      assertCanChangeStatus(user, locked);
+      if (!submittable.includes(locked.status)) {
+        throw new AppError(`A ${locked.status} property cannot be submitted`, 409);
+      }
     }
 
-    const targetStatus = locked.status === "closed" && !(await wasEditedSinceClosed(trx, locked)) ? "published" : "pending";
-    await changeStatus(trx, { propertyId, from: locked.status, to: targetStatus, actor: toActor(user) });
+    let targetStatus;
+    for (const [index, locked] of group.entries()) {
+      const goesLive =
+        isAdminCaller(user) || (locked.status === "closed" && !(await wasEditedSinceClosed(trx, locked)));
+      const memberStatus = goesLive ? "published" : "pending";
+      await changeStatus(trx, {
+        propertyId: locked.id,
+        from: locked.status,
+        to: memberStatus,
+        actor: toActor(user),
+        notify: index === 0,
+      });
+      if (locked.id === propertyId) targetStatus = memberStatus;
+    }
     return { id: propertyId, status: targetStatus };
   });
 }
 
 async function closeProperty(user, propertyId) {
   return db.transaction(async (trx) => {
-    const locked = await lockOwnedProperty(trx, propertyId, user);
+    const group = await lockOwnedGroup(trx, propertyId, user);
 
-    await changeStatus(trx, { propertyId, from: locked.status, to: "closed", actor: toActor(user) });
+    for (const locked of group) {
+      assertCanChangeStatus(user, locked);
+      await changeStatus(trx, { propertyId: locked.id, from: locked.status, to: "closed", actor: toActor(user) });
+    }
     return { id: propertyId, status: "closed" };
   });
 }
 
 async function deleteProperty(user, propertyId) {
-  await db.transaction(async (trx) => {
-    const locked = await lockOwnedProperty(trx, propertyId, user);
+  const group = await db.transaction(async (trx) => {
+    const locked = await lockOwnedGroup(trx, propertyId, user);
 
-    await editRepository.deleteProperty(trx, propertyId);
-    // The project goes with its last listing
-    if (locked.builder_project_id && (await editRepository.countProjectProperties(trx, locked.builder_project_id)) === 0) {
-      await editRepository.deleteProject(trx, locked.builder_project_id);
+    for (const { id } of locked) {
+      await editRepository.deleteProperty(trx, id);
     }
+    // The project goes with its last listing
+    const projectId = locked[0].builder_project_id;
+    if (projectId && (await editRepository.countProjectProperties(trx, projectId)) === 0) {
+      await editRepository.deleteProject(trx, projectId);
+    }
+    return locked;
   });
 
-  await filesService.removePropertyFolder(propertyId).catch((error) => {
-    console.error("Failed to remove property folder:", propertyId, error.message);
-  });
+  await Promise.all(
+    group.map(({ id }) =>
+      filesService.removePropertyFolder(id).catch((error) => {
+        console.error("Failed to remove property folder:", id, error.message);
+      })
+    )
+  );
 }
 
 async function assertCanAddFile(trx, propertyId, { kind, meta }) {

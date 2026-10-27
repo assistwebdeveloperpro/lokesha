@@ -84,6 +84,30 @@ describe("toListItem", () => {
       mainImage: "/x.jpg",
     });
   });
+
+  it("folds the sub types of one post into a single item with its price range", () => {
+    const item = toListItem(
+      {
+        ...baseProperty,
+        sub_type_slugs: ["shop", "office-space"],
+        sub_type_names: ["Shop", "Office Space"],
+        price_min: "2500000.00",
+        price_max: "9000000.00",
+      },
+      []
+    );
+
+    expect(item).toMatchObject({
+      projectName: "Sky Towers",
+      priceMin: 2500000,
+      priceMax: 9000000,
+      subType: { slug: "shop", name: "Shop" },
+      subTypes: [
+        { slug: "shop", name: "Shop" },
+        { slug: "office-space", name: "Office Space" },
+      ],
+    });
+  });
 });
 
 describe("fromRow", () => {

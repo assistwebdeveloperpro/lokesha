@@ -256,7 +256,7 @@ function PlotLandAreaSection({
           : areaTypeDropdownOptions
       }
       value={values[id]}
-      error={errors[id]}
+      error={id === "carpetAreaType" ? errors.carpetAreaType : undefined}
       onChange={(value) => onChange(id, value as AreaTypeId | "")}
       dropdownMenuClassName={dropdownMenuClassName}
     />

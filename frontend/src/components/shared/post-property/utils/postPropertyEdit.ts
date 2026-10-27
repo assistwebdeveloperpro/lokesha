@@ -30,6 +30,11 @@ import type {
 } from "@/services/property.service";
 import type { PostingAsId } from "../config/postingAs";
 import {
+  EMPTY_SUB_TYPE_FORMS_SNAPSHOT,
+  type AreaMaxValues,
+  type SubTypeFormsSnapshot,
+} from "../hooks/useSubTypeForms";
+import {
   FACING_OPTIONS,
   MANAGED_BY_OPTIONS,
   PENTHOUSE_TYPE_OPTIONS,
@@ -65,6 +70,7 @@ import {
 
 export type EditedForm = {
   form: SerializableFormState;
+  tabs: SubTypeFormsSnapshot;
   postingAs: PostingAsId | "";
 };
 
@@ -310,48 +316,54 @@ function mapSpecifications(
   return [...groups.values()];
 }
 
+const subTypeLabelOf = (propertyType: PropertyTypeId, subType: string) =>
+  SUB_TYPES_BY_PROPERTY_TYPE[propertyType]?.find((option) => option.id === subType)?.label ?? "";
+
+// The first listing leads: project wide values are read from it, the unit sizes from every listing
 function mapProject(
   payload: PropertyPayload,
-  listing: PropertyListingPayload,
+  listings: PropertyListingPayload[],
   propertyType: PropertyTypeId,
   floorPlans: PropertyFloorPlanDto[],
   brochureImages: BrochureImage[],
 ): ProjectDetailsValues {
+  const [listing] = listings;
   const project = payload.project;
   const details: PayloadFields = listing.details ?? {};
   const builder = listing.builder?.listing ?? {};
-  const subTypeLabel =
-    SUB_TYPES_BY_PROPERTY_TYPE[propertyType]?.find((option) => option.id === listing.propertySubType)?.label ?? "";
+  const subTypeLabel = subTypeLabelOf(propertyType, listing.propertySubType);
 
   const bhkCarParking: Record<string, BhkCarParking> = {};
   const bhkCharges: Record<string, BhkCharges> = {};
-  const availableSizes = (listing.variants ?? []).map((variant) => {
-    const bhk = toBhkLabel(variant.details?.bhk);
-    const charges = variant.charges;
+  const availableSizes = listings.flatMap((item) =>
+    (item.variants ?? []).map((variant) => {
+      const bhk = toBhkLabel(variant.details?.bhk);
+      const charges = variant.charges;
 
-    if (charges) {
-      bhkCarParking[bhk] = {
-        available: flag(charges.carParkingAvailable),
-        count: text(charges.carParkingCount),
-        clubMembership: flag(charges.clubMembership),
-      };
-      bhkCharges[bhk] = {
-        transferFee: text(charges.transferFee),
-        bookingAmount: text(charges.bookingAmount),
-        maintenanceCharges: text(charges.maintenanceCharges),
-        benefitsRemarks: text(charges.benefitsRemarks),
-      };
-    }
+      if (charges) {
+        bhkCarParking[bhk] = {
+          available: flag(charges.carParkingAvailable),
+          count: text(charges.carParkingCount),
+          clubMembership: flag(charges.clubMembership),
+        };
+        bhkCharges[bhk] = {
+          transferFee: text(charges.transferFee),
+          bookingAmount: text(charges.bookingAmount),
+          maintenanceCharges: text(charges.maintenanceCharges),
+          benefitsRemarks: text(charges.benefitsRemarks),
+        };
+      }
 
-    return {
-      ...createAvailableSizeRow(subTypeLabel),
-      bhk,
-      sizeUnit: labelOf(LAND_SIZE_UNIT_OPTIONS, variant.sizeUnit) || LAND_SIZE_UNIT_OPTIONS[0],
-      size: text(variant.size),
-      price: text(variant.price),
-      unitsAvailable: text(variant.unitsAvailable),
-    };
-  });
+      return {
+        ...createAvailableSizeRow(subTypeLabelOf(propertyType, item.propertySubType)),
+        bhk,
+        sizeUnit: labelOf(LAND_SIZE_UNIT_OPTIONS, variant.sizeUnit) || LAND_SIZE_UNIT_OPTIONS[0],
+        size: text(variant.size),
+        price: text(variant.price),
+        unitsAvailable: text(variant.unitsAvailable),
+      };
+    }),
+  );
 
   const initial = createInitialProjectDetails(subTypeLabel);
   const projectTypeLabel = Object.keys(PROJECT_TYPE_KEYS).find((label) => PROJECT_TYPE_KEYS[label] === project?.projectType);
@@ -408,28 +420,74 @@ function mapProject(
   };
 }
 
+const AREA_MAX_FIELDS = {
+  carpetAreaMax: "carpetAreaMax",
+  superBuildUpMax: "superBuiltUpMax",
+  plotAreaMax: "plotAreaMax",
+  terraceAreaMax: "terraceAreaMax",
+} as const;
+
+const mapAreaMax = (listing: PropertyListingPayload): AreaMaxValues => {
+  const builder = listing.builder?.listing ?? {};
+  return {
+    carpetAreaMax: text(builder[AREA_MAX_FIELDS.carpetAreaMax]),
+    superBuildUpMax: text(builder[AREA_MAX_FIELDS.superBuildUpMax]),
+    plotAreaMax: text(builder[AREA_MAX_FIELDS.plotAreaMax]),
+    terraceAreaMax: text(builder[AREA_MAX_FIELDS.terraceAreaMax]),
+  };
+};
+
+// The files of each sub type; older responses only carry those of the opened property
+function getListingFiles(detail: PropertyDetailResponse) {
+  return (
+    detail.listingFiles ?? [
+      { propertyId: detail.property.id, media: detail.media, floorPlans: detail.floorPlans },
+    ]
+  );
+}
+
 // The inverse of buildPropertyPayload: a loaded listing becomes the form state again
 export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
   const { payload } = detail;
   const [listing] = payload.listings;
   const propertyType = payload.propertyType as PropertyTypeId;
   const isBuilder = Boolean(payload.project);
-  const { photos, brochureImages } = mapPhotos(detail.media, isBuilder);
+  const listingFiles = getListingFiles(detail);
+  const { photos, brochureImages } = mapPhotos(listingFiles[0].media, isBuilder);
+  const isMulti = payload.listings.length > 1;
+
+  // Each sub type of a multi sub type post keeps its own steps 2 to 5 in its tab
+  const tabs: SubTypeFormsSnapshot = isMulti
+    ? {
+        activeId: listing.propertySubType,
+        details: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapDetails(item)])),
+        areaMax: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapAreaMax(item)])),
+        amenities: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapAmenities(item)])),
+        pricing: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapPricing(item)])),
+        photos: Object.fromEntries(
+          payload.listings.map((item, index) => [
+            item.propertySubType,
+            mapPhotos(listingFiles[index].media, isBuilder).photos,
+          ]),
+        ),
+      }
+    : EMPTY_SUB_TYPE_FORMS_SNAPSHOT;
 
   return {
-    postingAs: payload.postingAs === "builder" ? "builder" : "",
+    postingAs: payload.postingAs === "builder" || payload.project ? "builder" : "",
+    tabs,
     form: {
       listingType: payload.listingType as ListingTypeId,
       propertyType,
       // PG listings have no sub type picker
-      propertySubTypes: [propertyType === "pg-co-living" ? "" : listing.propertySubType],
+      propertySubTypes: payload.listings.map((item) => (propertyType === "pg-co-living" ? "" : item.propertySubType)),
       addressLocation: mapAddress(payload, listing.description),
       propertyDetails: mapDetails(listing),
       amenities: mapAmenities(listing),
       pricingOthers: mapPricing(listing),
       photosVideos: photos,
       projectDetails: isBuilder
-        ? mapProject(payload, listing, propertyType, detail.floorPlans, brochureImages)
+        ? mapProject(payload, payload.listings, propertyType, listingFiles[0].floorPlans, brochureImages)
         : createInitialProjectDetails(),
     },
   };

@@ -430,17 +430,25 @@ export function normalizePossessionDateForInput(value: string): string {
   return trimmed;
 }
 
+const READY_TO_MOVE_STATUS = "ready-to-move";
+
 function isAllowedPossessionDate(
   dateValue: string,
   referenceDate: Date = new Date(),
   allowedPastDate?: string,
+  constructionStatus?: string,
 ): boolean {
   const parsed = parseIsoDateValue(dateValue);
   if (!parsed) {
     return false;
   }
 
-  if (parsed >= getTodayIsoDate(referenceDate)) {
+  const today = getTodayIsoDate(referenceDate);
+  if (constructionStatus === READY_TO_MOVE_STATUS) {
+    return parsed <= today;
+  }
+
+  if (parsed >= today) {
     return true;
   }
 
@@ -450,13 +458,49 @@ function isAllowedPossessionDate(
   return Boolean(allowedPast && parsed === allowedPast);
 }
 
-export function getPossessionDateInputMin(currentValue: string): string {
+function getPossessionDateError(
+  values: { possessionDate: string; constructionStatus: string },
+  allowedPastDate?: string,
+): string | undefined {
+  if (!values.possessionDate.trim()) {
+    return "Please select possession date";
+  }
+  if (
+    isAllowedPossessionDate(
+      values.possessionDate,
+      new Date(),
+      allowedPastDate,
+      values.constructionStatus,
+    )
+  ) {
+    return undefined;
+  }
+  return values.constructionStatus === READY_TO_MOVE_STATUS
+    ? "Possession date cannot be in the future"
+    : "Possession date cannot be in the past";
+}
+
+export function getPossessionDateInputMin(
+  currentValue: string,
+  constructionStatus?: string,
+): string | undefined {
+  if (constructionStatus === READY_TO_MOVE_STATUS) {
+    return undefined;
+  }
   const today = getTodayIsoDate();
   const parsed = parseIsoDateValue(currentValue);
   if (parsed && parsed < today) {
     return parsed;
   }
   return today;
+}
+
+export function getPossessionDateInputMax(
+  constructionStatus?: string,
+): string | undefined {
+  return constructionStatus === READY_TO_MOVE_STATUS
+    ? getTodayIsoDate()
+    : undefined;
 }
 
 export type PropertyDetailsValues = {
@@ -631,6 +675,7 @@ function validateAvailableFrom(
       errors.availableFrom = "Please select available from date";
     }
   } else if (
+    values.constructionStatus !== READY_TO_MOVE_STATUS &&
     !isAllowedPossessionDate(values.availableFrom, new Date(), pastAnchor)
   ) {
     errors.availableFrom = "Available from date cannot be in the past";
@@ -737,16 +782,12 @@ function validateSaleDetails(
     if (!values.constructionStatus) {
       errors.constructionStatus = "Please select construction status";
     }
-    if (!values.possessionDate.trim()) {
-      errors.possessionDate = "Please select possession date";
-    } else if (
-      !isAllowedPossessionDate(
-        values.possessionDate,
-        new Date(),
-        options?.possessionDatePastAnchor,
-      )
-    ) {
-      errors.possessionDate = "Possession date cannot be in the past";
+    const possessionError = getPossessionDateError(
+      values,
+      options?.possessionDatePastAnchor,
+    );
+    if (possessionError) {
+      errors.possessionDate = possessionError;
     }
     if (!values.ageOfConstruction) {
       errors.ageOfConstruction = "Please select age of construction";
@@ -817,16 +858,12 @@ function validateSaleTransaction(
       errors.constructionStatus = "Please select construction status";
     }
 
-    if (!values.possessionDate.trim()) {
-      errors.possessionDate = "Please select possession date";
-    } else if (
-      !isAllowedPossessionDate(
-        values.possessionDate,
-        new Date(),
-        options?.possessionDatePastAnchor,
-      )
-    ) {
-      errors.possessionDate = "Possession date cannot be in the past";
+    const possessionError = getPossessionDateError(
+      values,
+      options?.possessionDatePastAnchor,
+    );
+    if (possessionError) {
+      errors.possessionDate = possessionError;
     }
   }
 
@@ -1019,16 +1056,12 @@ function validateResidentialDetails(
       errors.constructionStatus = "Please select construction status";
     }
 
-    if (!values.possessionDate.trim()) {
-      errors.possessionDate = "Please select possession date";
-    } else if (
-      !isAllowedPossessionDate(
-        values.possessionDate,
-        new Date(),
-        options?.possessionDatePastAnchor,
-      )
-    ) {
-      errors.possessionDate = "Possession date cannot be in the past";
+    const possessionError = getPossessionDateError(
+      values,
+      options?.possessionDatePastAnchor,
+    );
+    if (possessionError) {
+      errors.possessionDate = possessionError;
     }
   }
 

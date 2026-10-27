@@ -1,6 +1,6 @@
 const Joi = require("joi");
 const f = require("./property-payload.fields");
-const { OPTION_GROUPS, PROPERTY_TYPE_TO_DB, getRule } = require("./property.constants");
+const { OPTION_GROUPS, PROPERTY_TYPE_TO_DB, POSTING_AS_ROLES, getRule } = require("./property.constants");
 
 const FORM_TYPE_BY_DB_TYPE = Object.fromEntries(
   Object.entries(PROPERTY_TYPE_TO_DB).map(([formType, dbType]) => [dbType, formType])
@@ -25,16 +25,28 @@ function pickMainImage(images = []) {
   return main?.file_path ?? null;
 }
 
+const toNumberOrNull = (value) => (value === null || value === undefined ? null : Number(value));
+
+// Rows are one posted property; a post with several sub types arrives as arrays of them
 function toListItem(row, images) {
+  const slugs = row.sub_type_slugs ?? [row.sub_type_slug];
+  const names = row.sub_type_names ?? [row.sub_type_name];
+  const subTypes = slugs.map((slug, index) => ({ slug, name: names[index] }));
+  const priceMin = toNumberOrNull(row.price_min ?? row.price);
+
   return {
     id: row.id,
     listingNumber: Number(row.listing_number),
     title: row.title,
-    price: row.price === null ? null : Number(row.price),
+    projectName: row.project_name ?? null,
+    price: priceMin,
+    priceMin,
+    priceMax: toNumberOrNull(row.price_max ?? row.price),
     status: row.status,
     listingType: row.listing_type,
     propertyType: FORM_TYPE_BY_DB_TYPE[row.property_type],
-    subType: { slug: row.sub_type_slug, name: row.sub_type_name },
+    subType: subTypes[0],
+    subTypes,
     city: row.city,
     mainImage: pickMainImage(images),
     createdAt: row.created_at,
@@ -47,6 +59,10 @@ function groupBy(rows, key) {
     return groups;
   }, {});
 }
+
+// Images of every sub type of the row, so the card still has a photo when only a later one has any
+const collectRowImages = (row, imagesByProperty) =>
+  (row.member_ids ?? [row.id]).flatMap((id) => imagesByProperty[id] ?? []);
 
 const toMediaDto = (row) => ({
   id: row.id,
@@ -172,7 +188,7 @@ function toPropertyDetail(data) {
     payload: {
       listingType: property.listing_type,
       propertyType,
-      ...(isBuilderListing && data.role === "lokesha_staff" && { postingAs: "builder" }),
+      ...(isBuilderListing && POSTING_AS_ROLES.includes(data.role) && { postingAs: "builder" }),
       address: f.fromRow(property, f.ADDRESS),
       ...(isBuilderListing && { project: toProjectPayload(data.project) }),
       listings: [listing],
@@ -182,4 +198,12 @@ function toPropertyDetail(data) {
   };
 }
 
-module.exports = { pickMainImage, toListItem, toPropertyDetail, toMediaDto, toFloorPlanDto, groupBy };
+module.exports = {
+  pickMainImage,
+  toListItem,
+  toPropertyDetail,
+  toMediaDto,
+  toFloorPlanDto,
+  groupBy,
+  collectRowImages,
+};

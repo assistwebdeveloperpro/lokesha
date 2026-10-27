@@ -31,6 +31,33 @@ async function assertOwnedProperty(req, res, next) {
   }
 }
 
+// Admin drafts are scoped to the admin, but admins can attach files to any posted listing
+async function assertAdminDraft(req, res, next) {
+  try {
+    const exists = await repository.draftExistsForOwner(req.params.id, { adminId: req.admin.id });
+    if (!exists) {
+      return res.status(404).json({ message: "Draft not found" });
+    }
+    return next();
+  } catch (error) {
+    console.error("Property middleware error:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+}
+
+async function assertPropertyExists(req, res, next) {
+  try {
+    const exists = await editRepository.propertyExistsForOwner(req.params.id);
+    if (!exists) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    return next();
+  } catch (error) {
+    console.error("Property middleware error:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+}
+
 // Validates the multipart fields and removes the stored file when they are invalid
 function validateUploadedFile(schema) {
   return async (req, res, next) => {
@@ -51,4 +78,10 @@ function validateUploadedFile(schema) {
   };
 }
 
-module.exports = { assertOwnedDraft, assertOwnedProperty, validateUploadedFile };
+module.exports = {
+  assertOwnedDraft,
+  assertOwnedProperty,
+  assertAdminDraft,
+  assertPropertyExists,
+  validateUploadedFile,
+};

@@ -3,6 +3,7 @@ import {
   type AmenityOptionDto,
   type AmenityOptionsQuery,
   type AmenityOptionsResponse,
+  type PropertyScope,
 } from "@/services/property.service";
 import type { ImageTileOption } from "../config/postPropertyForm.shared";
 
@@ -32,12 +33,13 @@ type Fetcher = typeof getAmenityOptions;
 export function createAmenityOptionsLoader(fetcher: Fetcher = getAmenityOptions) {
   const cache = new Map<string, Promise<AmenityTileOptions>>();
 
-  return function load(query: AmenityOptionsQuery, token: string): Promise<AmenityTileOptions> {
+  // The options are the same for users and admins, so the cache is shared
+  return function load(query: AmenityOptionsQuery, token: string, scope: PropertyScope = "user"): Promise<AmenityTileOptions> {
     const key = getAmenityOptionsKey(query);
     const cached = cache.get(key);
     if (cached) return cached;
 
-    const request = fetcher(query, token).then(toTileOptions);
+    const request = fetcher(query, token, scope).then(toTileOptions);
     cache.set(key, request);
     // A failed request is not kept, so the next render can try again
     request.catch(() => cache.delete(key));

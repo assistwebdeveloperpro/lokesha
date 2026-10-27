@@ -7,9 +7,9 @@ import {
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
 import { useToast } from "@/components/shared/ui/ToastProvider";
-import { useAuth } from "@/hooks/useAuth";
 import { ApiError } from "@/services/apiClient";
 import {
+  closeProperty,
   completeDraft,
   fetchDraftFilePreview,
   getDraft,
@@ -71,6 +71,7 @@ import { buildPropertyPayload } from "../utils/postPropertyPayload";
 import { getSubTypeLayout } from "../utils/postPropertyLayout";
 import { getFormConfig } from "../config/postPropertySaleConfig";
 import { resolveOptionalAmenities, type PostingAsId } from "../config/postingAs";
+import { usePostPropertyAuth, usePostPropertyMode } from "../config/postPropertyMode";
 import { resolveBackendErrors } from "../validation/postPropertyBackendErrors";
 import { resolveFirstInvalidStep } from "../validation/postPropertyStepValidation";
 import { getSubmitErrorMessage, isUnauthorizedError } from "../validation/postPropertySubmitError";
@@ -78,10 +79,10 @@ import { useEditProperty } from "./useEditProperty";
 import { usePostPropertyDraft } from "./usePostPropertyDraft";
 import { useSubTypeForms } from "./useSubTypeForms";
 
-const BASE_PATH = "/post-property";
-const MANAGE_PROPERTIES_PATH = "/user/properties/manage-properties";
 const SUBMIT_AFTER_EDIT_STATUSES: PropertyStatus[] = ["draft", "rejected"];
+const ADMIN_SUBMIT_AFTER_EDIT_STATUSES: PropertyStatus[] = ["draft", "closed"];
 const SUBMITTED_MESSAGE = "Your property has been submitted for review.";
+const PUBLISHED_MESSAGE = "Your property has been published.";
 
 type SaveMode = "submit" | "draft";
 const MISSING_PHOTOS_MESSAGE = "Please add at least one photo";
@@ -92,7 +93,8 @@ export function usePostPropertyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const { role, token, isAuthReady } = useAuth();
+  const { scope, basePath, managePath } = usePostPropertyMode();
+  const { role, token, isAuthReady, isAdmin } = usePostPropertyAuth();
   const currentStep = getStepFromSearchParam(searchParams.get("step"));
   const editId = searchParams.get("edit");
   const draftParam = searchParams.get("draft");
@@ -102,8 +104,9 @@ export function usePostPropertyForm() {
   const [draft, dispatch] = useReducer(postPropertyReducer, undefined, createInitialDraft);
   const [selectedPostingAs, setPostingAs] = useState<PostingAsId | "">("");
   // A posted property keeps the way it was posted; only a new one lets staff choose
+  // A project marks a builder listing even when its owner is a builder user, not staff
   const postingAs: PostingAsId | "" = editDetail
-    ? editDetail.payload.postingAs === "builder"
+    ? editDetail.payload.postingAs === "builder" || editDetail.payload.project
       ? "builder"
       : ""
     : selectedPostingAs;
@@ -122,7 +125,8 @@ export function usePostPropertyForm() {
 
   const propertySubType = propertySubTypes[0] ?? "";
   const isRent = isRentListing(listingType);
-  const isStaff = isAuthReady && role === "lokesha_staff";
+  // Staff and admins both choose who they are posting the listing as
+  const isStaff = isAuthReady && (isAdmin || role === "lokesha_staff");
   const showBuilderFields =
     isAuthReady && (role === "builder" || (isStaff && postingAs === "builder"));
   const isBuilderPost = showBuilderFields || Boolean(editDetail?.payload.project);
@@ -131,8 +135,7 @@ export function usePostPropertyForm() {
     isStaff,
     postingAs,
     isBuilderPost,
-    isOwnerAgentListing:
-      isEditMode && Boolean(editDetail) && !editDetail.payload.project,
+    isOwnerAgentListing: isEditMode && editDetail !== null && !editDetail.payload.project,
   });
   const builderConfig = getMergedBuilderConfig(propertyType, propertySubTypes);
   const addressValidationOptions = {
@@ -200,9 +203,12 @@ export function usePostPropertyForm() {
 
     const mapped = mapDetailToForm(editDetail);
     dispatch({ type: "draftRestored", form: mapped.form });
+    subForms.restore(mapped.tabs);
     if (mapped.postingAs === "builder") {
       setPostingAs("builder");
     }
+    // Runs once per loaded property; restore only sets state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editDetail]);
 
   // Read by the draft hook at save time, so it always sees the latest form values
@@ -229,6 +235,7 @@ export function usePostPropertyForm() {
 
   const serverDraft = usePostPropertyDraft({
     token,
+    scope,
     enabled: !isEditMode,
     getInput: getDraftInput,
     // The URL can lag behind a step change, so the requested step wins
@@ -242,19 +249,35 @@ export function usePostPropertyForm() {
           params.delete("step");
         }
       }
-      router.replace(`${BASE_PATH}?${params.toString()}`, { scroll: false });
+      router.replace(`${basePath}?${params.toString()}`, { scroll: false });
     },
   });
 
   // Files go to the draft of a new property, or straight to the listing that is being edited
   const { ensureDraftId } = serverDraft;
+  // Project wide files (brochure, floor plans) live on the first sub type of a multi sub type post
+  const editListings = editDetail?.payload.listings;
+  const leadPropertyId = editListings?.[0]?.propertyId ?? editId;
   const mediaUploader = useMemo(
     () =>
-      editId
-        ? createPropertyMediaUploader({ propertyId: editId, getToken: () => token })
-        : createDraftMediaUploader({ getToken: () => token, ensureDraftId }),
-    [editId, token, ensureDraftId],
+      leadPropertyId
+        ? createPropertyMediaUploader({ propertyId: leadPropertyId, scope, getToken: () => token })
+        : createDraftMediaUploader({ scope, getToken: () => token, ensureDraftId }),
+    [leadPropertyId, scope, token, ensureDraftId],
   );
+  // Photos of each sub type are stored on the property posted with that sub type
+  const subTypeUploaders = useMemo(
+    () =>
+      Object.fromEntries(
+        (editListings ?? []).flatMap(({ propertyId, propertySubType }) =>
+          propertyId
+            ? [[propertySubType, createPropertyMediaUploader({ propertyId, scope, getToken: () => token })]]
+            : [],
+        ),
+      ),
+    [editListings, scope, token],
+  );
+  const getMediaUploader = (subType: string) => subTypeUploaders[subType] ?? mediaUploader;
 
   const requestedDraftId = useRef<string | null>(null);
   const [settledDraftId, setSettledDraftId] = useState<string | null>(null);
@@ -279,10 +302,10 @@ export function usePostPropertyForm() {
     requestedDraftId.current = draftParam;
     const startFresh = (message: string) => {
       showToast(message, "error");
-      router.replace(BASE_PATH, { scroll: false });
+      router.replace(basePath, { scroll: false });
     };
 
-    getDraft(draftParam, token)
+    getDraft(draftParam, token, scope)
       .then(({ draft: savedDraft }) => {
         const restored = hydrateFormState(savedDraft.formData);
         if (!restored) {
@@ -298,7 +321,7 @@ export function usePostPropertyForm() {
         // Previews arrive in the background; the files themselves are already attached
         void loadDraftPreviews(
           restored,
-          (fileName) => fetchDraftFilePreview(savedDraft.id, fileName, token),
+          (fileName) => fetchDraftFilePreview(savedDraft.id, fileName, token, scope),
           {
             updatePhotos: (update) => {
               dispatch({ type: "photosSet", update });
@@ -310,12 +333,12 @@ export function usePostPropertyForm() {
 
         if (!searchParams.get("step") && savedDraft.currentStep > 1) {
           const params = new URLSearchParams({ draft: savedDraft.id, step: String(savedDraft.currentStep) });
-          router.replace(`${BASE_PATH}?${params.toString()}`, { scroll: false });
+          router.replace(`${basePath}?${params.toString()}`, { scroll: false });
         }
       })
       .catch(() => startFresh("This draft could not be found. Starting a new form."))
       .finally(() => setSettledDraftId(draftParam));
-  }, [draftParam, isEditMode, token, serverDraft, subForms, searchParams, router, showToast]);
+  }, [draftParam, isEditMode, token, scope, basePath, serverDraft, subForms, searchParams, router, showToast]);
 
   // Every step change stores the form, so leaving and coming back loses nothing
   const goToStep = (step: number, { save = true }: { save?: boolean } = {}) => {
@@ -327,7 +350,7 @@ export function usePostPropertyForm() {
 
     requestedStep.current = step;
     const query = params.toString();
-    router.push(query ? `${BASE_PATH}?${query}` : BASE_PATH, { scroll: false });
+    router.push(query ? `${basePath}?${query}` : basePath, { scroll: false });
 
     if (save) {
       void serverDraft.save(step);
@@ -700,10 +723,16 @@ export function usePostPropertyForm() {
   };
 
   const editedStatus = editDetail?.property.status;
-  // A draft or rejected listing is sent for review when its edit is saved
-  const submitsOnSave = !editId || SUBMIT_AFTER_EDIT_STATUSES.includes(editedStatus as PropertyStatus);
+  // Admins can only publish or close the listings they created themselves
+  const isAdminOwnedEdit = isAdmin && editDetail?.source === "admin";
+  const submitAfterEditStatuses = isAdmin ? ADMIN_SUBMIT_AFTER_EDIT_STATUSES : SUBMIT_AFTER_EDIT_STATUSES;
+  // A new listing, or an edited one in a status that allows it, goes live or to review when saved
+  const submitsOnSave =
+    !editId || ((!isAdmin || isAdminOwnedEdit) && submitAfterEditStatuses.includes(editedStatus as PropertyStatus));
   // Only a new property or one that is still a draft can be kept as a draft
   const canSaveAsDraft = !editId || editedStatus === "draft";
+  const canClose = isAdminOwnedEdit && editedStatus === "published";
+  const submittedMessage = isAdmin ? PUBLISHED_MESSAGE : SUBMITTED_MESSAGE;
 
   const handleSubmit = async (mode: SaveMode = "submit") => {
     if (draft.isSubmitting) {
@@ -731,13 +760,13 @@ export function usePostPropertyForm() {
     dispatch({ type: "submittingChanged", isSubmitting: true });
     try {
       if (editId) {
-        await updateProperty(editId, buildPayload(), token);
+        await updateProperty(editId, buildPayload(), token, scope);
         const sendForReview = mode === "submit" && submitsOnSave;
         if (sendForReview) {
-          await submitProperty(editId, token);
+          await submitProperty(editId, token, scope);
         }
-        showToast(sendForReview ? SUBMITTED_MESSAGE : "Your changes have been saved.", "success");
-        router.push(MANAGE_PROPERTIES_PATH);
+        showToast(sendForReview ? submittedMessage : "Your changes have been saved.", "success");
+        router.push(managePath);
         return;
       }
 
@@ -748,12 +777,29 @@ export function usePostPropertyForm() {
         return;
       }
 
-      await completeDraft(draftId, buildPayload(), { submit: mode === "submit" }, token);
+      await completeDraft(draftId, buildPayload(), { submit: mode === "submit" }, token, scope);
       serverDraft.adopt(null);
-      showToast(mode === "submit" ? SUBMITTED_MESSAGE : "Your property has been saved as a draft.", "success");
-      router.push(MANAGE_PROPERTIES_PATH);
+      showToast(mode === "submit" ? submittedMessage : "Your property has been saved as a draft.", "success");
+      router.push(managePath);
     } catch (error) {
       handleSubmitFailure(error);
+    } finally {
+      dispatch({ type: "submittingChanged", isSubmitting: false });
+    }
+  };
+
+  const handleClose = async () => {
+    if (!editId || !token || draft.isSubmitting) {
+      return;
+    }
+
+    dispatch({ type: "submittingChanged", isSubmitting: true });
+    try {
+      await closeProperty(editId, token, scope);
+      showToast("The property has been closed.", "success");
+      router.push(managePath);
+    } catch (error) {
+      showToast(getSubmitErrorMessage(error), "error");
     } finally {
       dispatch({ type: "submittingChanged", isSubmitting: false });
     }
@@ -764,6 +810,8 @@ export function usePostPropertyForm() {
     isEditMode,
     canSaveAsDraft,
     submitsOnSave,
+    canClose,
+    isAdmin,
     editStatus: {
       isBlocking:
         isRestoringDraft || (isEditMode && (isLoadingEdit || Boolean(editError) || !editDetail)),
@@ -772,6 +820,7 @@ export function usePostPropertyForm() {
     draft,
     serverDraft,
     mediaUploader,
+    getMediaUploader,
     staff: {
       isStaff,
       postingAs,
@@ -811,6 +860,7 @@ export function usePostPropertyForm() {
       submitPhotos: handlePhotosNext,
       submit: () => handleSubmit("submit"),
       saveAsDraft: () => handleSubmit("draft"),
+      close: handleClose,
     },
   };
 }

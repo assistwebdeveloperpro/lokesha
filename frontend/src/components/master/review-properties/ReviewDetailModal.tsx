@@ -4,6 +4,11 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAdminToken } from "@/services/adminSession";
 import { ApiError, getAssetUrl } from "@/services/apiClient";
+import {
+  SUB_TYPES_BY_PROPERTY_TYPE,
+  type PropertyTypeId,
+} from "@/components/shared/post-property/config/postPropertyForm.shared";
+import type { PropertyListingPayload, PropertyMediaFileDto } from "@/services/property.service";
 import { getReviewProperty, type ReviewDetailResponse } from "@/services/propertyReview.service";
 import { toDisplayEntries } from "./reviewPropertiesShared";
 
@@ -26,6 +31,71 @@ function Section({ title, entries }: { title: string; entries: { label: string; 
         ))}
       </dl>
     </section>
+  );
+}
+
+const getListingImages = (detail: ReviewDetailResponse, index: number) =>
+  (detail.listingFiles?.[index]?.media ?? detail.media).filter((item) => item.mediaType === "image");
+
+const getSubTypeLabel = (propertyType: string, slug: string) =>
+  SUB_TYPES_BY_PROPERTY_TYPE[propertyType as PropertyTypeId]?.find((option) => option.id === slug)?.label ?? slug;
+
+// Steps 2 to 5 of one sub type: its photos, details, pricing, amenities and unit charges
+function SubTypeBlock({
+  propertyType,
+  listing,
+  images,
+  showHeading,
+}: {
+  propertyType: string;
+  listing: PropertyListingPayload;
+  images: PropertyMediaFileDto[];
+  showHeading: boolean;
+}) {
+  return (
+    <div className={showHeading ? "mt-6 rounded-xl border border-slate-200 p-4" : ""}>
+      {showHeading ? (
+        <h3 className="text-base font-bold text-navy-blue">{getSubTypeLabel(propertyType, listing.propertySubType)}</h3>
+      ) : null}
+
+      {images.length > 0 ? (
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {images.map((image) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={image.id}
+              src={getAssetUrl(image.path)}
+              alt={image.category}
+              loading="lazy"
+              className="aspect-square w-full rounded-lg border border-slate-200 object-cover"
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-slate-500">No photos uploaded.</p>
+      )}
+
+      <Section title="Details" entries={toDisplayEntries(listing.details)} />
+      <Section title="Plot" entries={toDisplayEntries(listing.plotDetails)} />
+      <Section title="Pricing" entries={toDisplayEntries(listing.pricing)} />
+      <Section
+        title="Amenities"
+        entries={toDisplayEntries({ amenities: listing.amenities?.amenities, furnishing: listing.amenities?.furnishing })}
+      />
+      {(listing.variants ?? []).map((variant, index) => (
+        <Section
+          key={`${variant.label ?? "unit"}-${index}`}
+          title={`Unit - ${variant.label ?? index + 1}`}
+          entries={toDisplayEntries({
+            size: variant.size,
+            sizeUnit: variant.sizeUnit,
+            price: variant.price,
+            unitsAvailable: variant.unitsAvailable,
+            ...variant.charges,
+          })}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -65,7 +135,6 @@ export default function ReviewDetailModal({ propertyId, onClose }: { propertyId:
   const current = result?.id === propertyId ? result : null;
   const detail = current?.detail ?? null;
   const listing = detail?.payload.listings[0];
-  const images = detail?.media.filter((item) => item.mediaType === "image") ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -114,33 +183,19 @@ export default function ReviewDetailModal({ propertyId, onClose }: { propertyId:
               </p>
             ) : null}
 
-            {images.length > 0 ? (
-              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {images.map((image) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={image.id}
-                    src={getAssetUrl(image.path)}
-                    alt={image.category}
-                    loading="lazy"
-                    className="aspect-square w-full rounded-lg border border-slate-200 object-cover"
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-500">No photos uploaded.</p>
-            )}
-
             {listing.description ? <p className="mt-4 text-sm text-slate-700">{listing.description}</p> : null}
 
             <Section title="Address" entries={toDisplayEntries(detail.payload.address)} />
-            <Section title="Details" entries={toDisplayEntries(listing.details)} />
-            <Section title="Plot" entries={toDisplayEntries(listing.plotDetails)} />
-            <Section title="Pricing" entries={toDisplayEntries(listing.pricing)} />
-            <Section
-              title="Amenities"
-              entries={toDisplayEntries({ amenities: listing.amenities?.amenities, furnishing: listing.amenities?.furnishing })}
-            />
+
+            {detail.payload.listings.map((item, index) => (
+              <SubTypeBlock
+                key={item.propertySubType}
+                propertyType={detail.payload.propertyType}
+                listing={item}
+                images={getListingImages(detail, index)}
+                showHeading={detail.payload.listings.length > 1}
+              />
+            ))}
           </>
         )}
       </div>

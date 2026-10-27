@@ -33,10 +33,13 @@ export function getDraftSubtitle(draft: Pick<DraftSummary, "summary">): string {
   return [listingLabel, summary?.locality].filter(Boolean).join(" · ");
 }
 
-export function getResumeHref(draft: Pick<DraftSummary, "id" | "currentStep">): string {
+export function getResumeHref(
+  draft: Pick<DraftSummary, "id" | "currentStep">,
+  basePath = "/post-property",
+): string {
   const step = Math.min(Math.max(draft.currentStep, 1), FORM_STEPS.length);
   const params = new URLSearchParams({ draft: draft.id });
   if (step > 1) params.set("step", String(step));
 
-  return `/post-property?${params.toString()}`;
+  return `${basePath}?${params.toString()}`;
 }

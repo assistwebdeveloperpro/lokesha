@@ -22,6 +22,11 @@ const owner = { owner_name: "Asha", owner_email: "asha@example.com", owner_mobil
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // A property without siblings is a group of one
+  reviewRepository.findGroupForUpdate.mockImplementation(async (...args) => {
+    const property = await reviewRepository.findPropertyForUpdate(...args);
+    return property ? [property] : [];
+  });
 });
 
 describe("listProperties", () => {
@@ -34,8 +39,9 @@ describe("listProperties", () => {
         status: "pending",
         listing_type: "sale",
         property_type: "pg",
-        sub_type_slug: "pg",
-        sub_type_name: "PG",
+        member_ids: ["p1"],
+        sub_type_slugs: ["pg"],
+        sub_type_names: ["PG"],
         ...owner,
       },
     ]);
@@ -74,6 +80,16 @@ describe("getProperty", () => {
 
 describe("approveProperty and rejectProperty", () => {
   const pending = { id: "p1", status: "pending", user_id: "u1", title: "Sky Towers" };
+
+  it("decides every sub type of the post but tells the owner once", async () => {
+    reviewRepository.findGroupForUpdate.mockResolvedValue([pending, { ...pending, id: "p2" }]);
+
+    await approveProperty(admin, "p1");
+
+    expect(changeStatus).toHaveBeenCalledTimes(2);
+    expect(changeStatus).toHaveBeenCalledWith(mockTrx, expect.objectContaining({ propertyId: "p2", to: "published" }));
+    expect(notificationRepository.insertNotification).toHaveBeenCalledTimes(1);
+  });
 
   it("tells the owner when the property is approved", async () => {
     reviewRepository.findPropertyForUpdate.mockResolvedValue(pending);

@@ -8,17 +8,27 @@ import SubTypeDetailsTabs from "../step-2-property-details/SubTypeDetailsTabs";
 import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
 import PricingOthersField from "./PricingOthersField";
 
-function getSubmitLabel(isSubmitting: boolean, sendsForReview: boolean) {
-  if (isSubmitting) {
-    return sendsForReview ? "Submitting..." : "Saving...";
+function getSubmitLabel(isSubmitting: boolean, submitsOnSave: boolean, isAdmin: boolean) {
+  if (!submitsOnSave) {
+    return isSubmitting ? "Saving..." : "Save Changes";
   }
-  return sendsForReview ? "Submit for Review" : "Save Changes";
+  if (isAdmin) {
+    return isSubmitting ? "Publishing..." : "Publish";
+  }
+  return isSubmitting ? "Submitting..." : "Submit for Review";
 }
 
 export default function PricingOthersStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers, canSaveAsDraft, submitsOnSave } = form;
+  const { draft, derived, layout, subForms, handlers, canSaveAsDraft, submitsOnSave, canClose, isAdmin } = form;
   const { showBuilderFields, isMultiSubType, isRent, builderConfig } = derived;
   const { propertyType } = draft;
+
+  // Admins can close a published listing, which is not possible for a draft
+  const secondaryAction = canSaveAsDraft
+    ? { label: "Save as Draft", onClick: handlers.saveAsDraft }
+    : canClose
+      ? { label: "Mark as Closed", onClick: handlers.close }
+      : undefined;
 
   const renderPricingFields = () => {
     if (showBuilderFields && isMultiSubType && layout.sharedPricing) {
@@ -81,10 +91,10 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
     <PostPropertyStepCard
       title="Add Pricing & Other Details"
       description="Step 5 of 5 - Set your price and finalize the listing"
-      actionLabel={getSubmitLabel(draft.isSubmitting, submitsOnSave)}
+      actionLabel={getSubmitLabel(draft.isSubmitting, submitsOnSave, isAdmin)}
       onAction={handlers.submit}
-      secondaryActionLabel={canSaveAsDraft ? "Save as Draft" : undefined}
-      onSecondaryAction={canSaveAsDraft ? handlers.saveAsDraft : undefined}
+      secondaryActionLabel={secondaryAction?.label}
+      onSecondaryAction={secondaryAction?.onClick}
       onBack={handlers.goBack}
       isActionDisabled={draft.isSubmitting}
     >

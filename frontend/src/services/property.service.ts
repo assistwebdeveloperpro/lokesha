@@ -126,6 +126,8 @@ export type PropertyProjectPayload = {
 };
 
 export type PropertyListingPayload = {
+  // Only on a loaded property: the stored property of this sub type
+  propertyId?: string;
   propertySubType: string;
   description: string;
   facing?: string;
@@ -211,11 +213,16 @@ export type PropertyListItem = {
   id: string;
   listingNumber: number;
   title: string;
+  projectName: string | null;
   price: number | null;
+  // Lowest and highest price across the sub types posted together
+  priceMin: number | null;
+  priceMax: number | null;
   status: PropertyStatus;
   listingType: string;
   propertyType: string;
   subType: { slug: string; name: string };
+  subTypes: { slug: string; name: string }[];
   city: string | null;
   mainImage: string | null;
   // Only set for rejected properties
@@ -271,6 +278,10 @@ export type PropertyDetailResponse = {
   payload: PropertyPayload;
   media: PropertyMediaFileDto[];
   floorPlans: PropertyFloorPlanDto[];
+  // The files of every sub type, in the order of payload.listings
+  listingFiles: Array<{ propertyId: string; media: PropertyMediaFileDto[]; floorPlans: PropertyFloorPlanDto[] }>;
+  // Only sent to admins, who can open listings from anyone
+  source?: "admin" | "user";
 };
 
 export type PropertyStatusResult = { message: string; id: string; status: PropertyStatus };
@@ -283,6 +294,14 @@ export type DraftFileMeta = {
 
 const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 
+// The admin panel posts through its own endpoints but shares the same payloads
+export type PropertyScope = "user" | "admin";
+
+const SCOPE_BASE_PATH: Record<PropertyScope, string> = {
+  user: "/property",
+  admin: "/master/post-property",
+};
+
 function buildFileFormData(file: File, meta: DraftFileMeta) {
   const formData = new FormData();
   formData.append("file", file);
@@ -292,37 +311,37 @@ function buildFileFormData(file: File, meta: DraftFileMeta) {
   return formData;
 }
 
-export function createDraft(input: Partial<SaveDraftInput>, token: string) {
-  return apiFetch<{ draft: DraftDetail }>("/property/drafts", {
+export function createDraft(input: Partial<SaveDraftInput>, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ draft: DraftDetail }>(`${SCOPE_BASE_PATH[scope]}/drafts`, {
     method: "POST",
     body: input,
     headers: authHeaders(token),
   });
 }
 
-export function listDrafts(token: string) {
-  return apiFetch<{ drafts: DraftSummary[] }>("/property/drafts", {
+export function listDrafts(token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ drafts: DraftSummary[] }>(`${SCOPE_BASE_PATH[scope]}/drafts`, {
     method: "GET",
     headers: authHeaders(token),
   });
 }
 
-export function getDraft(id: string, token: string) {
-  return apiFetch<{ draft: DraftDetail }>(`/property/drafts/${id}`, {
+export function getDraft(id: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ draft: DraftDetail }>(`${SCOPE_BASE_PATH[scope]}/drafts/${id}`, {
     method: "GET",
     headers: authHeaders(token),
   });
 }
 
-export function saveDraft(id: string, input: SaveDraftInput, token: string) {
+export function saveDraft(id: string, input: SaveDraftInput, token: string, scope: PropertyScope = "user") {
   return apiFetch<{ draft: { id: string; currentStep: number; updatedAt: string } }>(
-    `/property/drafts/${id}`,
+    `${SCOPE_BASE_PATH[scope]}/drafts/${id}`,
     { method: "PUT", body: input, headers: authHeaders(token) },
   );
 }
 
-export function deleteDraft(id: string, token: string) {
-  return apiFetch<{ message: string }>(`/property/drafts/${id}`, {
+export function deleteDraft(id: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ message: string }>(`${SCOPE_BASE_PATH[scope]}/drafts/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -334,24 +353,30 @@ export function uploadDraftFile(
   kind: DraftFileKind,
   meta: DraftFileMeta,
   token: string,
+  scope: PropertyScope = "user",
 ) {
-  return apiFetch<{ file: DraftFile }>(`/property/drafts/${draftId}/files?kind=${kind}`, {
+  return apiFetch<{ file: DraftFile }>(`${SCOPE_BASE_PATH[scope]}/drafts/${draftId}/files?kind=${kind}`, {
     method: "POST",
     body: buildFileFormData(file, meta),
     headers: authHeaders(token),
   });
 }
 
-export function deleteDraftFile(draftId: string, fileName: string, token: string) {
-  return apiFetch<{ message: string }>(`/property/drafts/${draftId}/files/${fileName}`, {
+export function deleteDraftFile(draftId: string, fileName: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ message: string }>(`${SCOPE_BASE_PATH[scope]}/drafts/${draftId}/files/${fileName}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
 }
 
 // Draft files are private, so previews are fetched with the token and shown from a blob URL
-export async function fetchDraftFilePreview(draftId: string, fileName: string, token: string) {
-  const blob = await apiFetchBlob(`/property/drafts/${draftId}/files/${fileName}`, token);
+export async function fetchDraftFilePreview(
+  draftId: string,
+  fileName: string,
+  token: string,
+  scope: PropertyScope = "user",
+) {
+  const blob = await apiFetchBlob(`${SCOPE_BASE_PATH[scope]}/drafts/${draftId}/files/${fileName}`, token);
   return URL.createObjectURL(blob);
 }
 
@@ -360,8 +385,9 @@ export function completeDraft(
   payload: PropertyPayload,
   options: { submit: boolean },
   token: string,
+  scope: PropertyScope = "user",
 ) {
-  return apiFetch<CompleteDraftResult>(`/property/drafts/${draftId}/complete`, {
+  return apiFetch<CompleteDraftResult>(`${SCOPE_BASE_PATH[scope]}/drafts/${draftId}/complete`, {
     method: "POST",
     body: { payload, submit: options.submit },
     headers: authHeaders(token),
@@ -382,14 +408,14 @@ export type AmenityOptionsQuery = {
   subType?: string;
 };
 
-export function getAmenityOptions(query: AmenityOptionsQuery, token: string) {
+export function getAmenityOptions(query: AmenityOptionsQuery, token: string, scope: PropertyScope = "user") {
   const params = new URLSearchParams({
     listingType: query.listingType,
     propertyType: query.propertyType,
     ...(query.subType && { subType: query.subType }),
   });
 
-  return apiFetch<AmenityOptionsResponse>(`/property/amenities?${params.toString()}`, {
+  return apiFetch<AmenityOptionsResponse>(`${SCOPE_BASE_PATH[scope]}/amenities?${params.toString()}`, {
     method: "GET",
     headers: authHeaders(token),
   });
@@ -408,30 +434,32 @@ export function getMyProperties(query: PropertyListQuery, token: string) {
   });
 }
 
-export function getPropertyById(id: string, token: string) {
-  return apiFetch<PropertyDetailResponse>(`/property/${id}`, {
+export function getPropertyById(id: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<PropertyDetailResponse>(`${SCOPE_BASE_PATH[scope]}/${id}`, {
     method: "GET",
     headers: authHeaders(token),
   });
 }
 
-export function updateProperty(id: string, payload: PropertyPayload, token: string) {
-  return apiFetch<PropertyStatusResult>(`/property/${id}`, {
+export function updateProperty(id: string, payload: PropertyPayload, token: string, scope: PropertyScope = "user") {
+  return apiFetch<PropertyStatusResult>(`${SCOPE_BASE_PATH[scope]}/${id}`, {
     method: "PUT",
     body: { payload },
     headers: authHeaders(token),
   });
 }
 
-export function submitProperty(id: string, token: string) {
-  return apiFetch<PropertyStatusResult>(`/property/${id}/submit`, {
+// Admin listings are published right away, so there is no review submit for them
+export function submitProperty(id: string, token: string, scope: PropertyScope = "user") {
+  const action = scope === "admin" ? "publish" : "submit";
+  return apiFetch<PropertyStatusResult>(`${SCOPE_BASE_PATH[scope]}/${id}/${action}`, {
     method: "POST",
     headers: authHeaders(token),
   });
 }
 
-export function closeProperty(id: string, token: string) {
-  return apiFetch<PropertyStatusResult>(`/property/${id}/close`, {
+export function closeProperty(id: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<PropertyStatusResult>(`${SCOPE_BASE_PATH[scope]}/${id}/close`, {
     method: "POST",
     headers: authHeaders(token),
   });
@@ -450,29 +478,36 @@ export function uploadPropertyMedia(
   kind: "media" | "brochure",
   meta: DraftFileMeta,
   token: string,
+  scope: PropertyScope = "user",
 ) {
   return apiFetch<{ media: PropertyMediaFileDto; status: PropertyStatus }>(
-    `/property/${id}/media?kind=${kind}`,
+    `${SCOPE_BASE_PATH[scope]}/${id}/media?kind=${kind}`,
     { method: "POST", body: buildFileFormData(file, meta), headers: authHeaders(token) },
   );
 }
 
-export function deletePropertyMedia(id: string, mediaId: string, token: string) {
-  return apiFetch<{ message: string; status: PropertyStatus }>(`/property/${id}/media/${mediaId}`, {
+export function deletePropertyMedia(id: string, mediaId: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ message: string; status: PropertyStatus }>(`${SCOPE_BASE_PATH[scope]}/${id}/media/${mediaId}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
 }
 
-export function uploadPropertyFloorPlan(id: string, file: File, meta: DraftFileMeta, token: string) {
+export function uploadPropertyFloorPlan(
+  id: string,
+  file: File,
+  meta: DraftFileMeta,
+  token: string,
+  scope: PropertyScope = "user",
+) {
   return apiFetch<{ floorPlan: PropertyFloorPlanDto; status: PropertyStatus }>(
-    `/property/${id}/floor-plans`,
+    `${SCOPE_BASE_PATH[scope]}/${id}/floor-plans`,
     { method: "POST", body: buildFileFormData(file, meta), headers: authHeaders(token) },
   );
 }
 
-export function deletePropertyFloorPlan(id: string, planId: string, token: string) {
-  return apiFetch<{ message: string; status: PropertyStatus }>(`/property/${id}/floor-plans/${planId}`, {
+export function deletePropertyFloorPlan(id: string, planId: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ message: string; status: PropertyStatus }>(`${SCOPE_BASE_PATH[scope]}/${id}/floor-plans/${planId}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });

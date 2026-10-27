@@ -13,6 +13,7 @@ import {
   BASEMENT_FLOOR_OPTIONS,
   formatFloorConfiguration,
   getFloorNumberOptionGroups,
+  getPossessionDateInputMax,
   getPossessionDateInputMin,
   numberOptions,
   type AgeOfConstructionId,
@@ -414,7 +415,11 @@ export function ConstructionAlwaysSections({
             variant="underline"
             type="date"
             staticLabel
-            min={getPossessionDateInputMin(values.possessionDate)}
+            min={getPossessionDateInputMin(
+              values.possessionDate,
+              values.constructionStatus,
+            )}
+            max={getPossessionDateInputMax(values.constructionStatus)}
             value={values.possessionDate}
             error={errors.possessionDate}
             onChange={(value) => onChange("possessionDate", value)}
@@ -486,7 +491,11 @@ export function TransactionConstructionSections({
                 variant="underline"
                 type="date"
                 staticLabel
-                min={getPossessionDateInputMin(values.possessionDate)}
+                min={getPossessionDateInputMin(
+                  values.possessionDate,
+                  values.constructionStatus,
+                )}
+                max={getPossessionDateInputMax(values.constructionStatus)}
                 value={values.possessionDate}
                 error={errors.possessionDate}
                 onChange={(value) => onChange("possessionDate", value)}
@@ -676,7 +685,10 @@ export function EntranceAvailableRow({
           variant="underline"
           type="date"
           staticLabel
-          min={getPossessionDateInputMin(values.availableFrom)}
+          min={getPossessionDateInputMin(
+            values.availableFrom,
+            values.constructionStatus,
+          )}
           value={values.availableFrom}
           error={errors.availableFrom}
           onChange={(value) => onChange("availableFrom", value)}

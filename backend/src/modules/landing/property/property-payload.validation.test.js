@@ -133,6 +133,41 @@ describe("validateCompletePayload", () => {
     expect(Object.keys(validateCompletePayload(body, { isBuilderPost: false }).fields)).toContain("listings.0.details.leaseContractTill");
   });
 
+  describe("possession date for ready to move", () => {
+    const dayOffset = (days) => {
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      return date.toLocaleDateString("en-CA");
+    };
+    const withConstruction = (construction) =>
+      payload("residential", "flat-apartment", "sale", { construction });
+    const fieldsOf = (body) => Object.keys(validateCompletePayload(body, { isBuilderPost: false }).fields);
+
+    it("accepts a past possession date", () => {
+      const body = withConstruction({ status: "ready-to-move", possessionDate: dayOffset(-30) });
+
+      expect(fieldsOf(body)).not.toContain("listings.0.construction.possessionDate");
+    });
+
+    it("accepts today as the possession date", () => {
+      const body = withConstruction({ status: "ready-to-move", possessionDate: dayOffset(0) });
+
+      expect(fieldsOf(body)).not.toContain("listings.0.construction.possessionDate");
+    });
+
+    it("rejects a future possession date", () => {
+      const body = withConstruction({ status: "ready-to-move", possessionDate: dayOffset(30) });
+
+      expect(fieldsOf(body)).toContain("listings.0.construction.possessionDate");
+    });
+
+    it("allows a future possession date while under construction", () => {
+      const body = withConstruction({ status: "under-construction", possessionDate: dayOffset(30) });
+
+      expect(fieldsOf(body)).not.toContain("listings.0.construction.possessionDate");
+    });
+  });
+
   it("defaults the PG sub type and requires the PG name", () => {
     const body = payload("pg-co-living", "pg", "rent-lease");
     delete body.listings[0].propertySubType;

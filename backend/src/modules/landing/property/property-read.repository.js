@@ -24,33 +24,59 @@ function applyListFilters(query, userId, { status, listingType, propertyType }) 
   return query;
 }
 
-async function findListingsByUser(userId, filters) {
-  const { page, limit } = filters;
+// Sub types posted together share a group, and builder posts fall back to their project
+const GROUP_KEY = "coalesce(p.listing_group_id, p.builder_project_id, p.id)";
 
-  return applyListFilters(db("properties as p"), userId, filters)
+const firstOfGroup = (column, alias) =>
+  db.raw(`(array_agg(${column} order by p.listing_number))[1] as ${alias}`);
+
+const GROUP_COLUMNS = {
+  id: "p.id",
+  listing_number: "p.listing_number",
+  title: "p.title",
+  status: "p.status",
+  listing_type: "p.listing_type",
+  property_type: "p.property_type",
+  city: "p.city",
+};
+
+// One row per posted property; every sub type of a group is folded into its row
+// query must already be filtered and may carry extra joins, extraColumns reads from them
+function selectGroupedListings(query, { page, limit }, extraColumns = {}, order = "min(p.created_at) desc") {
+  return query
     .join("property_sub_types as st", "st.id", "p.property_sub_type_id")
+    .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
+    .leftJoin("builder_listing_details as bld", "bld.property_id", "p.id")
+    .groupByRaw(GROUP_KEY)
     .select(
-      "p.id",
-      "p.listing_number",
-      "p.title",
-      "p.price",
-      "p.status",
-      "p.listing_type",
-      "p.property_type",
-      "p.city",
-      "p.created_at",
-      "st.slug as sub_type_slug",
-      "st.name as sub_type_name"
+      ...Object.entries({ ...GROUP_COLUMNS, ...extraColumns }).map(([alias, column]) =>
+        firstOfGroup(column, alias)
+      ),
+      db.raw("array_agg(p.id order by p.listing_number) as member_ids"),
+      db.raw("array_agg(st.slug order by p.listing_number) as sub_type_slugs"),
+      db.raw("array_agg(st.name order by p.listing_number) as sub_type_names"),
+      db.raw("min(coalesce(bld.price_min, p.price)) as price_min"),
+      db.raw("max(coalesce(bld.price_max, p.price)) as price_max"),
+      db.raw("coalesce(max(bp.project_name), max(p.project_name)) as project_name"),
+      db.raw("min(p.created_at) as created_at")
     )
-    .orderBy("p.created_at", "desc")
-    .orderBy("p.id", "desc")
+    .orderByRaw(order)
+    .orderByRaw(`${GROUP_KEY} desc`)
     .limit(limit)
     .offset((page - 1) * limit);
 }
 
-async function countListingsByUser(userId, filters) {
-  const [{ count }] = await applyListFilters(db("properties as p"), userId, filters).count("p.id as count");
+async function countGroupedListings(query) {
+  const [{ count }] = await query.select(db.raw(`count(distinct ${GROUP_KEY}) as count`));
   return Number(count);
+}
+
+async function findListingsByUser(userId, filters) {
+  return selectGroupedListings(applyListFilters(db("properties as p"), userId, filters), filters);
+}
+
+async function countListingsByUser(userId, filters) {
+  return countGroupedListings(applyListFilters(db("properties as p"), userId, filters));
 }
 
 async function findImagesByPropertyIds(propertyIds) {
@@ -81,11 +107,31 @@ async function findAmenityOptions({ listingType, propertyType, subType }) {
     .orderBy([{ column: "a.kind" }, { column: "a.sort_order" }]);
 }
 
+// userId is left out for admins, who can open any property
 async function findOwnedProperty(id, userId) {
+  const query = db("properties as p")
+    .join("property_sub_types as st", "st.id", "p.property_sub_type_id")
+    .where({ "p.id": id });
+
+  if (userId) query.where("p.user_id", userId);
+  return query.first("p.*", "st.slug as sub_type_slug");
+}
+
+// The other sub types posted together with this property, in posting order
+async function findGroupSiblings(property) {
+  const scope = property.listing_group_id
+    ? { "p.listing_group_id": property.listing_group_id }
+    : property.builder_project_id
+      ? { "p.builder_project_id": property.builder_project_id }
+      : null;
+  if (!scope) return [];
+
   return db("properties as p")
     .join("property_sub_types as st", "st.id", "p.property_sub_type_id")
-    .where({ "p.id": id, "p.user_id": userId })
-    .first("p.*", "st.slug as sub_type_slug");
+    .where(scope)
+    .whereNot({ "p.id": property.id })
+    .orderBy("p.listing_number", "asc")
+    .select("p.*", "st.slug as sub_type_slug");
 }
 
 async function findTypeRow(typeTable, propertyId) {
@@ -187,12 +233,15 @@ async function findRejectionReasons(propertyIds) {
 }
 
 module.exports = {
+  selectGroupedListings,
+  countGroupedListings,
   findRejectionReasons,
   findListingsByUser,
   countListingsByUser,
   findImagesByPropertyIds,
   findAmenityOptions,
   findOwnedProperty,
+  findGroupSiblings,
   findTypeRow,
   findPlotDetails,
   findSaleDetails,

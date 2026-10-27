@@ -3,6 +3,7 @@ const writeRepository = require("./property-write.repository");
 const { toRow, toSnakeCase, PROJECT } = require("./property-payload.fields");
 const derive = require("./property.derive");
 const { OPTION_GROUPS, PROPERTY_TYPE_TO_DB, getRule } = require("./property.constants");
+const { toOwnerColumns } = require("./property-actor");
 
 const AMENITY_KIND_BY_PAYLOAD_KEY = { amenities: "amenity", furnishing: "furnishing" };
 
@@ -111,15 +112,16 @@ function buildPropertyColumns({ value, listing, rule, subTypeRow }) {
   };
 }
 
-function buildPropertyRow({ id, user, value, listing, rule, subTypeRow, projectId }) {
+function buildPropertyRow({ id, user, value, listing, rule, subTypeRow, projectId, groupId }) {
   return {
     id,
-    user_id: user.id,
+    ...toOwnerColumns(user),
     listed_by: user.role,
     listing_type: value.listingType,
     property_type: PROPERTY_TYPE_TO_DB[value.propertyType],
     property_sub_type_id: subTypeRow.id,
     builder_project_id: projectId ?? null,
+    listing_group_id: groupId ?? null,
     status: "draft",
     ...buildPropertyColumns({ value, listing, rule, subTypeRow }),
   };
@@ -162,7 +164,7 @@ async function insertProject(trx, user, project) {
 
   await writeRepository.insertBuilderProject(trx, {
     id: projectId,
-    user_id: user.id,
+    ...toOwnerColumns(user),
     ...buildProjectColumns(project),
   });
   await insertProjectChildren(trx, projectId, project);

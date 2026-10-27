@@ -153,7 +153,7 @@ export default function AddressLocationField({
           <textarea
             id="propertyDescription"
             value={values.propertyDescription}
-            rows={3}
+            rows={2}
             aria-invalid={Boolean(errors.propertyDescription)}
             placeholder="Describe your property, highlights, and nearby amenities"
             onChange={(event) =>

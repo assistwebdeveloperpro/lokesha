@@ -23,6 +23,7 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     icon: Building2,
     children: [
       { label: "Post Property", href: "/backend/properties/post-property" },
+      { label: "Our Listings", href: "/backend/properties/our-listings" },
       { label: "Manage Properties", href: "/backend/properties/manage-properties" },
       { label: "Review Properties", href: "/backend/properties/review-properties" },
     ],

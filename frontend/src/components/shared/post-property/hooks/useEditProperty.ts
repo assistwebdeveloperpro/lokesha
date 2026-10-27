@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ApiError } from "@/services/apiClient";
 import { getPropertyById, type PropertyDetailResponse } from "@/services/property.service";
-import { getToken } from "@/services/session";
+import { usePostPropertyMode } from "../config/postPropertyMode";
 
 type LoadResult = { id: string; detail: PropertyDetailResponse | null; error: string };
 
@@ -25,6 +25,7 @@ function toErrorMessage(error: unknown) {
 
 // Loads the property being edited; only the owner can read it, others get a not found
 export function useEditProperty(editId: string | null): UseEditPropertyResult {
+  const { scope, getToken } = usePostPropertyMode();
   const [result, setResult] = useState<LoadResult | null>(null);
 
   useEffect(() => {
@@ -33,7 +34,7 @@ export function useEditProperty(editId: string | null): UseEditPropertyResult {
     let cancelled = false;
     const token = getToken();
     const request = token
-      ? getPropertyById(editId, token)
+      ? getPropertyById(editId, token, scope)
       : Promise.reject(new ApiError(LOGIN_MESSAGE, 401));
 
     request
@@ -47,7 +48,7 @@ export function useEditProperty(editId: string | null): UseEditPropertyResult {
     return () => {
       cancelled = true;
     };
-  }, [editId]);
+  }, [editId, scope, getToken]);
 
   const current = editId && result?.id === editId ? result : null;
 

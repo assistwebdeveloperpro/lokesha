@@ -3,6 +3,7 @@ import {
   formatPostedDate,
   formatPrice,
   getEditHref,
+  getHeading,
   getListingLabel,
   getStatusAction,
   getSubtitle,
@@ -19,6 +20,25 @@ describe("formatPrice", () => {
 
   it("handles a missing price", () => {
     expect(formatPrice({ price: null, listingType: "sale" })).toBe("Price on request");
+  });
+
+  it("shows a range when the sub types are priced differently", () => {
+    expect(formatPrice({ price: 2500000, priceMin: 2500000, priceMax: 9000000, listingType: "sale" })).toBe(
+      "₹25,00,000 - ₹90,00,000",
+    );
+  });
+
+  it("shows one amount when the range is a single price", () => {
+    expect(formatPrice({ price: 2500000, priceMin: 2500000, priceMax: 2500000, listingType: "sale" })).toBe(
+      "₹25,00,000",
+    );
+  });
+});
+
+describe("getHeading", () => {
+  it("prefers the project name over the title", () => {
+    expect(getHeading({ title: "Sky Towers Shop", projectName: "Sky Towers" })).toBe("Sky Towers");
+    expect(getHeading({ title: "Shop in Vesu", projectName: null })).toBe("Shop in Vesu");
   });
 });
 
@@ -37,6 +57,14 @@ describe("getSubtitle", () => {
     expect(getSubtitle({ subType: { slug: "flat-apartment", name: "Flat/Apartment" }, city: "Surat" })).toBe(
       "Flat/Apartment · Surat",
     );
+  });
+
+  it("lists every sub type posted together", () => {
+    const subTypes = [
+      { slug: "shop", name: "Shop" },
+      { slug: "showroom", name: "Showroom" },
+    ];
+    expect(getSubtitle({ subType: subTypes[0], subTypes, city: "Surat" })).toBe("Shop, Showroom · Surat");
   });
 
   it("skips a missing city", () => {

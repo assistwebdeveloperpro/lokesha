@@ -1,4 +1,5 @@
 const { db } = require("../../../../config/db");
+const readRepository = require("../../../landing/property/property-read.repository");
 
 function applyFilters(query, { status, listingType, propertyType }) {
   query.where("p.status", status);
@@ -8,37 +9,42 @@ function applyFilters(query, { status, listingType, propertyType }) {
 }
 
 // Oldest first, so the longest waiting listing is reviewed first
-async function findListings(filters) {
-  const { page, limit } = filters;
+const OWNER_COLUMNS = {
+  owner_name: "u.name",
+  owner_email: "u.email",
+  owner_mobile: "u.mobile_number",
+};
 
-  return applyFilters(db("properties as p"), filters)
-    .join("property_sub_types as st", "st.id", "p.property_sub_type_id")
-    .join("users as u", "u.id", "p.user_id")
-    .select(
-      "p.id",
-      "p.listing_number",
-      "p.title",
-      "p.price",
-      "p.status",
-      "p.listing_type",
-      "p.property_type",
-      "p.city",
-      "p.created_at",
-      "st.slug as sub_type_slug",
-      "st.name as sub_type_name",
-      "u.name as owner_name",
-      "u.email as owner_email",
-      "u.mobile_number as owner_mobile"
-    )
-    .orderBy("p.updated_at", "asc")
-    .orderBy("p.id", "asc")
-    .limit(limit)
-    .offset((page - 1) * limit);
+// One row per posted property, so a post with several sub types is reviewed once
+async function findListings(filters) {
+  const query = applyFilters(db("properties as p"), filters).join("users as u", "u.id", "p.user_id");
+
+  return readRepository.selectGroupedListings(query, filters, OWNER_COLUMNS, "min(p.updated_at) asc");
 }
 
 async function countListings(filters) {
-  const [{ count }] = await applyFilters(db("properties as p"), filters).count("p.id as count");
-  return Number(count);
+  return readRepository.countGroupedListings(applyFilters(db("properties as p"), filters));
+}
+
+// The other sub types posted with the property, locked so the whole post is decided together
+async function findGroupForUpdate(trx, id) {
+  const property = await findPropertyForUpdate(trx, id);
+  if (!property) return [];
+
+  const scope = property.listing_group_id
+    ? { listing_group_id: property.listing_group_id }
+    : property.builder_project_id
+      ? { builder_project_id: property.builder_project_id }
+      : null;
+  if (!scope) return [property];
+
+  const siblings = await trx("properties")
+    .where(scope)
+    .whereNot({ id })
+    .orderBy("listing_number", "asc")
+    .forUpdate()
+    .select("id", "status", "user_id", "title", "listing_group_id", "builder_project_id");
+  return [property, ...siblings];
 }
 
 async function findPropertyWithOwner(id) {
@@ -58,7 +64,7 @@ async function findPropertyWithOwner(id) {
 
 // Locks the row so two reviewers cannot decide the same listing
 async function findPropertyForUpdate(trx, id) {
-  return trx("properties").where({ id }).forUpdate().first("id", "status", "user_id", "title");
+  return trx("properties").where({ id }).forUpdate().first("id", "status", "user_id", "title", "listing_group_id", "builder_project_id");
 }
 
-module.exports = { findListings, countListings, findPropertyWithOwner, findPropertyForUpdate };
+module.exports = { findListings, countListings, findPropertyWithOwner, findPropertyForUpdate, findGroupForUpdate };

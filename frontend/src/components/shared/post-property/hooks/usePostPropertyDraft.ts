@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createDraft, saveDraft, type SaveDraftInput } from "@/services/property.service";
+import {
+  createDraft,
+  saveDraft,
+  type PropertyScope,
+  type SaveDraftInput,
+} from "@/services/property.service";
 import {
   createDraftSaveQueue,
   type DraftSaveQueue,
@@ -10,6 +15,7 @@ import {
 
 type UsePostPropertyDraftOptions = {
   token: string | null;
+  scope: PropertyScope;
   // Off while editing a posted property, which has no draft
   enabled: boolean;
   getInput: () => SaveDraftInput;
@@ -19,6 +25,7 @@ type UsePostPropertyDraftOptions = {
 // Keeps the form in a server draft; the draft is created on the first save
 export function usePostPropertyDraft({
   token,
+  scope,
   enabled,
   getInput,
   onCreated,
@@ -26,9 +33,9 @@ export function usePostPropertyDraft({
   const [draftId, setDraftId] = useState<string | null>(null);
   const [status, setStatus] = useState<DraftSaveStatus>("idle");
 
-  const latest = useRef({ token, getInput, onCreated });
+  const latest = useRef({ token, scope, getInput, onCreated });
   useEffect(() => {
-    latest.current = { token, getInput, onCreated };
+    latest.current = { token, scope, getInput, onCreated };
   });
 
   // Created on first use, from an event handler or effect, never while rendering
@@ -37,11 +44,11 @@ export function usePostPropertyDraft({
     queueRef.current ??= createDraftSaveQueue(
       {
         create: async (input) => {
-          const { draft } = await createDraft(input, latest.current.token ?? "");
+          const { draft } = await createDraft(input, latest.current.token ?? "", latest.current.scope);
           return draft.id;
         },
         update: async (id, input) => {
-          await saveDraft(id, input, latest.current.token ?? "");
+          await saveDraft(id, input, latest.current.token ?? "", latest.current.scope);
         },
       },
       {

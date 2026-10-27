@@ -14,7 +14,7 @@ const BUILDER_EXCLUDED_CATEGORY_IDS: PhotoCategoryId[] = [
 ];
 
 export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers, mediaUploader } = form;
+  const { draft, derived, layout, subForms, handlers, mediaUploader, getMediaUploader } = form;
   const { showBuilderFields, isMultiSubType, activeTabId, builderConfig } = derived;
   const { propertyType, listingType, existingMedia } = draft;
 
@@ -80,7 +80,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
               error={subForms.photosErrors[activeTabId]}
               existingMedia={activeTabId === subForms.firstTabId ? existingMedia : []}
               onRemoveExisting={handlers.removeExistingMedia}
-              uploader={mediaUploader}
+              uploader={getMediaUploader(activeTabId)}
             />
           </SubTypeDetailsTabs>
         </>

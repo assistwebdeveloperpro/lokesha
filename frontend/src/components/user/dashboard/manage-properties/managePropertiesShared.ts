@@ -85,21 +85,32 @@ export const STATUS_ACTION_LABELS: Record<StatusAction, string> = {
 
 const priceFormatter = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
 
-export function formatPrice(item: Pick<PropertyListItem, "price" | "listingType">): string {
-  if (item.price === null) {
+type PriceFields = Pick<PropertyListItem, "price" | "listingType"> & Partial<Pick<PropertyListItem, "priceMin" | "priceMax">>;
+
+const formatAmount = (amount: number) => `₹${priceFormatter.format(amount)}`;
+
+// Shows a min - max range when the sub types of one post are priced differently
+export function formatPrice(item: PriceFields): string {
+  const min = item.priceMin ?? item.price;
+  const max = item.priceMax ?? min;
+  if (min === null || min === undefined) {
     return "Price on request";
   }
 
-  const amount = `₹${priceFormatter.format(item.price)}`;
+  const amount = max !== null && max !== min ? `${formatAmount(min)} - ${formatAmount(max)}` : formatAmount(min);
   return item.listingType === "rent-lease" ? `${amount}/month` : amount;
 }
+
+export const getHeading = (item: Pick<PropertyListItem, "title" | "projectName">): string =>
+  item.projectName || item.title;
 
 export function getListingLabel(item: Pick<PropertyListItem, "listingType" | "propertyType">): string {
   return item.propertyType === PG_PROPERTY_TYPE ? "PG" : (LISTING_TYPE_LABELS[item.listingType] ?? item.listingType);
 }
 
-export function getSubtitle(item: Pick<PropertyListItem, "subType" | "city">): string {
-  return [item.subType.name, item.city].filter(Boolean).join(" · ");
+export function getSubtitle(item: Pick<PropertyListItem, "subType" | "city"> & Partial<Pick<PropertyListItem, "subTypes">>): string {
+  const subTypes = item.subTypes?.length ? item.subTypes : [item.subType];
+  return [subTypes.map(({ name }) => name).join(", "), item.city].filter(Boolean).join(" · ");
 }
 
 export function getStatusAction(status: PropertyStatus): StatusAction | null {

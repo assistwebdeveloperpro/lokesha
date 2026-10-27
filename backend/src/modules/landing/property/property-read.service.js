@@ -30,17 +30,20 @@ async function listMyProperties(user, query) {
     readRepository.countListingsByUser(user.id, filters),
   ]);
 
-  const images = await readRepository.findImagesByPropertyIds(rows.map(({ id }) => id));
+  const images = await readRepository.findImagesByPropertyIds(rows.flatMap((row) => row.member_ids));
   const imagesByProperty = mapper.groupBy(images, "property_id");
 
-  const rejectedIds = rows.filter((row) => row.status === "rejected").map(({ id }) => id);
-  const reasons = rejectedIds.length ? await readRepository.findRejectionReasons(rejectedIds) : [];
+  const rejectedRows = rows.filter((row) => row.status === "rejected");
+  const reasons = rejectedRows.length
+    ? await readRepository.findRejectionReasons(rejectedRows.flatMap((row) => row.member_ids))
+    : [];
   const reasonByProperty = new Map(reasons.map((row) => [row.property_id, row.reason]));
+  const findReason = (row) => row.member_ids.map((id) => reasonByProperty.get(id)).find(Boolean) ?? null;
 
   return {
     items: rows.map((row) => ({
-      ...mapper.toListItem(row, imagesByProperty[row.id]),
-      rejectionReason: reasonByProperty.get(row.id) ?? null,
+      ...mapper.toListItem(row, mapper.collectRowImages(row, imagesByProperty)),
+      rejectionReason: findReason(row),
     })),
     page: query.page,
     limit: query.limit,
@@ -49,7 +52,7 @@ async function listMyProperties(user, query) {
 }
 
 // ownerRole decides how the listing was posted, so it is the owner's role, not the viewer's
-async function buildPropertyDetail(property, ownerRole) {
+async function buildSingleDetail(property, ownerRole) {
   const propertyId = property.id;
   const rule = getRule(DB_TYPE_TO_FORM_TYPE[property.property_type], property.sub_type_slug);
   const isSale = property.listing_type === "sale";
@@ -102,6 +105,23 @@ async function buildPropertyDetail(property, ownerRole) {
   });
 }
 
+// A post with several sub types opens as one property: a listing and its own files per sub type
+async function buildPropertyDetail(property, ownerRole) {
+  const siblings = (await readRepository.findGroupSiblings(property)) ?? [];
+  const members = [property, ...siblings].sort((a, b) => Number(a.listing_number) - Number(b.listing_number));
+  const details = await Promise.all(members.map((member) => buildSingleDetail(member, ownerRole)));
+  const opened = details.find((detail) => detail.property.id === property.id);
+
+  return {
+    ...opened,
+    payload: {
+      ...opened.payload,
+      listings: details.map((detail) => ({ ...detail.payload.listings[0], propertyId: detail.property.id })),
+    },
+    listingFiles: details.map(({ property: { id }, media, floorPlans }) => ({ propertyId: id, media, floorPlans })),
+  };
+}
+
 async function getMyProperty(user, propertyId) {
   const property = await readRepository.findOwnedProperty(propertyId, user.id);
   if (!property) {
@@ -111,4 +131,14 @@ async function getMyProperty(user, propertyId) {
   return buildPropertyDetail(property, user.role);
 }
 
-module.exports = { listAmenityOptions, listMyProperties, getMyProperty, buildPropertyDetail };
+async function getPropertyForAdmin(propertyId) {
+  const property = await readRepository.findOwnedProperty(propertyId);
+  if (!property) {
+    throw new AppError("Property not found", 404);
+  }
+
+  const detail = await buildPropertyDetail(property, property.listed_by);
+  return { ...detail, source: property.admin_id ? "admin" : "user" };
+}
+
+module.exports = { listAmenityOptions, listMyProperties, getMyProperty, getPropertyForAdmin, buildPropertyDetail };

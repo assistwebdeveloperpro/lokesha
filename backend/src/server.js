@@ -15,6 +15,8 @@ const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-mes
 const userNotificationsRoutes = require("./modules/user/dashboard/user-notifications/user-notifications.routes");
 const adminAuthRoutes =require("./modules/master/auth/admin-auth.routes");
 const propertyRoutes = require("./modules/landing/property/property.routes");
+const adminPostPropertyRoutes = require("./modules/master/dashboard/post-property/admin-post-property.routes");
+const managePropertiesRoutes = require("./modules/master/dashboard/manage-properties/manage-properties.routes");
 const propertyReviewRoutes = require("./modules/master/dashboard/property-review/property-review.routes");
 const adminNotificationsRoutes = require("./modules/master/dashboard/admin-notifications/admin-notifications.routes");
 const { LIMITS } = require("./modules/landing/property/property.constants");
@@ -28,6 +30,7 @@ app.use(
   })
 );
 app.use("/api/property", express.json({ limit: LIMITS.maxFormDataBytes }));
+app.use("/api/master/post-property", express.json({ limit: LIMITS.maxFormDataBytes }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
@@ -46,6 +49,8 @@ app.use("/api/user/notifications", userNotificationsRoutes);
 app.use("/api/property", propertyRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
+app.use("/api/master/post-property", adminPostPropertyRoutes);
+app.use("/api/master/manage-properties", managePropertiesRoutes);
 app.use("/api/master/property-review", propertyReviewRoutes);
 app.use("/api/master/notifications", adminNotificationsRoutes);
 

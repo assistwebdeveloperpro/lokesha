@@ -40,7 +40,7 @@ describe("createAmenityOptionsLoader", () => {
     await load(query, "t");
 
     expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(fetcher).toHaveBeenCalledWith(query, "t");
+    expect(fetcher).toHaveBeenCalledWith(query, "t", "user");
     expect(first).toBe(second);
   });
 

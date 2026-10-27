@@ -11,13 +11,15 @@ describe("listMyProperties", () => {
     readRepository.findListingsByUser.mockResolvedValue([
       {
         id: "p1",
+        member_ids: ["p1"],
         listing_number: "100001",
-        price: null,
+        price_min: null,
+        price_max: null,
         status: "draft",
         listing_type: "sale",
         property_type: "residential",
-        sub_type_slug: "duplex",
-        sub_type_name: "Duplex",
+        sub_type_slugs: ["duplex"],
+        sub_type_names: ["Duplex"],
       },
     ]);
     readRepository.countListingsByUser.mockResolvedValue(11);
@@ -35,8 +37,8 @@ describe("listMyProperties", () => {
 
   it("adds the rejection reason to rejected properties only", async () => {
     readRepository.findListingsByUser.mockResolvedValue([
-      { id: "p1", status: "rejected", listing_type: "sale", property_type: "residential", sub_type_slug: "duplex", sub_type_name: "Duplex" },
-      { id: "p2", status: "pending", listing_type: "sale", property_type: "residential", sub_type_slug: "duplex", sub_type_name: "Duplex" },
+      { id: "p1", member_ids: ["p1"], status: "rejected", listing_type: "sale", property_type: "residential", sub_type_slugs: ["duplex"], sub_type_names: ["Duplex"] },
+      { id: "p2", member_ids: ["p2"], status: "pending", listing_type: "sale", property_type: "residential", sub_type_slugs: ["duplex"], sub_type_names: ["Duplex"] },
     ]);
     readRepository.countListingsByUser.mockResolvedValue(2);
     readRepository.findImagesByPropertyIds.mockResolvedValue([]);
@@ -50,7 +52,7 @@ describe("listMyProperties", () => {
 
   it("does not look up reasons when nothing is rejected", async () => {
     readRepository.findListingsByUser.mockResolvedValue([
-      { id: "p2", status: "pending", listing_type: "sale", property_type: "residential", sub_type_slug: "duplex", sub_type_name: "Duplex" },
+      { id: "p2", member_ids: ["p2"], status: "pending", listing_type: "sale", property_type: "residential", sub_type_slugs: ["duplex"], sub_type_names: ["Duplex"] },
     ]);
     readRepository.countListingsByUser.mockResolvedValue(1);
     readRepository.findImagesByPropertyIds.mockResolvedValue([]);
@@ -136,5 +138,35 @@ describe("getMyProperty", () => {
       propertyType: "pg-co-living",
       listings: [{ propertySubType: "pg", details: { pgName: "Sunrise" }, pricing: { monthlyRent: 9000 } }],
     });
+  });
+
+  it("returns every sub type posted together with its own listing and files", async () => {
+    const row = (id, number, slug) => ({
+      id,
+      listing_number: number,
+      listing_group_id: "g1",
+      price: null,
+      listing_type: "rent-lease",
+      property_type: "pg",
+      sub_type_slug: slug,
+      status: "draft",
+      builder_project_id: null,
+      description: "d",
+    });
+    readRepository.findOwnedProperty.mockResolvedValue(row("p2", "100002", "pg"));
+    readRepository.findGroupSiblings.mockResolvedValue([row("p1", "100001", "pg")]);
+    readRepository.findTypeRow.mockResolvedValue({});
+    readRepository.findRentDetails.mockResolvedValue({});
+    readRepository.findSelections.mockResolvedValue([]);
+    readRepository.findAmenities.mockResolvedValue([]);
+    readRepository.findMedia.mockImplementation(async (id) => [{ id: `m-${id}`, file_path: `/${id}.jpg` }]);
+    readRepository.findFloorPlans.mockResolvedValue([]);
+
+    const result = await getMyProperty(user, "p2");
+
+    expect(result.property.id).toBe("p2");
+    expect(result.payload.listings.map((listing) => listing.propertyId)).toEqual(["p1", "p2"]);
+    expect(result.listingFiles.map((files) => files.propertyId)).toEqual(["p1", "p2"]);
+    expect(result.listingFiles[0].media[0].path).toBe("/p1.jpg");
   });
 });

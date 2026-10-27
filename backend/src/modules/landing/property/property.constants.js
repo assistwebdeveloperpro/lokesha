@@ -154,6 +154,15 @@ const STATUS_TRANSITIONS = {
   closed: ["published", "pending"],
 };
 
+
+const POSTING_AS_ROLES = ["lokesha_staff", "admin"];
+
+const ADMIN_STATUS_TRANSITIONS = {
+  draft: ["published"],
+  published: ["closed"],
+  closed: ["published"],
+};
+
 const DEFAULT_RULE = {
   typeTable: "residential",
   plotDetails: false,
@@ -335,6 +344,8 @@ module.exports = {
   UPLOAD_MIME_TYPES,
   STORAGE,
   STATUS_TRANSITIONS,
+  ADMIN_STATUS_TRANSITIONS,
+  POSTING_AS_ROLES,
   RULES,
   getRule,
   isBuilderAllowed,

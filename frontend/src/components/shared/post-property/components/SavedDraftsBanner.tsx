@@ -6,6 +6,7 @@ import { useState } from "react";
 import ConfirmDeleteModal from "@/components/shared/ui/ConfirmDeleteModal";
 import type { DraftSummary } from "@/services/property.service";
 import { FORM_STEPS } from "../config/postPropertyForm.shared";
+import { usePostPropertyMode } from "../config/postPropertyMode";
 import { getDraftSubtitle, getDraftTitle, getResumeHref } from "../utils/draftListLabels";
 
 type SavedDraftsBannerProps = {
@@ -17,6 +18,7 @@ type SavedDraftsBannerProps = {
 const dateFormatter = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" });
 
 export default function SavedDraftsBanner({ drafts, deletingId, onDelete }: SavedDraftsBannerProps) {
+  const { basePath } = usePostPropertyMode();
   const [pendingDraft, setPendingDraft] = useState<DraftSummary | null>(null);
 
   const confirmDelete = async () => {
@@ -58,7 +60,7 @@ export default function SavedDraftsBanner({ drafts, deletingId, onDelete }: Save
                 </p>
               </div>
               <Link
-                href={getResumeHref(draft)}
+                href={getResumeHref(draft, basePath)}
                 className="bg-linear-to-r-navy-blue inline-flex min-h-9 items-center rounded-lg px-4 text-sm font-semibold text-white shadow"
               >
                 Continue

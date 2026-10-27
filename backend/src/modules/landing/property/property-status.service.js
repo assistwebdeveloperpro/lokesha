@@ -1,17 +1,20 @@
 const writeRepository = require("./property-write.repository");
-const { STATUS_TRANSITIONS } = require("./property.constants");
+const { STATUS_TRANSITIONS, ADMIN_STATUS_TRANSITIONS } = require("./property.constants");
 const { AppError } = require("./property.errors");
 const adminNotifications = require("../../master/dashboard/admin-notifications/admin-notifications.service");
 
-function assertTransition(from, to) {
-  if (!STATUS_TRANSITIONS[from]?.includes(to)) {
+function assertTransition(from, to, actor = {}) {
+  // Review approvals also act as an admin, only direct publishing skips review
+  const transitions = actor.bypassReview ? ADMIN_STATUS_TRANSITIONS : STATUS_TRANSITIONS;
+  if (!transitions[from]?.includes(to)) {
     throw new AppError(`Cannot change status from ${from} to ${to}`, 409);
   }
 }
 
 // actor is { userId } or { adminId }; the status and its history row change together
-async function changeStatus(trx, { propertyId, from, to, actor, reason }) {
-  assertTransition(from, to);
+// notify is turned off for all but one of the sub types of a post, so admins hear about it once
+async function changeStatus(trx, { propertyId, from, to, actor, reason, notify = true }) {
+  assertTransition(from, to, actor);
 
   await writeRepository.updatePropertyStatus(trx, propertyId, {
     status: to,
@@ -27,19 +30,20 @@ async function changeStatus(trx, { propertyId, from, to, actor, reason }) {
   });
 
   // Every way into review tells the admins in the same transaction
-  if (to === "pending") {
+  if (to === "pending" && notify) {
     await adminNotifications.notifyPropertyPending(trx, { propertyId, from });
   }
 }
 
 // A published listing goes back to review after any owner edit
-async function markEdited(trx, property, actor) {
+async function markEdited(trx, property, actor, { notify = true } = {}) {
   if (property.status === "closed") {
     // Reopen compares updated_at with the close time to spot edits
     await writeRepository.updatePropertyStatus(trx, property.id, {});
     return property.status;
   }
-  if (property.status !== "published") {
+  // Admin edits never need a new review
+  if (property.status !== "published" || actor.bypassReview) {
     return property.status;
   }
 
@@ -49,6 +53,7 @@ async function markEdited(trx, property, actor) {
     to: "pending",
     actor,
     reason: "Edited by owner",
+    notify,
   });
   return "pending";
 }

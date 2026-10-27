@@ -7,10 +7,11 @@ const writer = require("./property-listing.writer");
 const { changeStatus } = require("./property-status.service");
 const { validateCompletePayload } = require("./property-payload.validation");
 const { AppError, validationError } = require("./property.errors");
-const { getRule } = require("./property.constants");
+const { POSTING_AS_ROLES, getRule } = require("./property.constants");
+const { isAdminCaller, toOwner, toStatusActor } = require("./property-actor");
 
 function isBuilderPost(user, payload) {
-  return user.role === "builder" || (user.role === "lokesha_staff" && payload?.postingAs === "builder");
+  return user.role === "builder" || (POSTING_AS_ROLES.includes(user.role) && payload?.postingAs === "builder");
 }
 
 // Every file must be a distinct file of this draft; the plan keeps the stored facts per listing
@@ -86,14 +87,14 @@ async function insertFiles(trx, { propertyId, files, moved }) {
 }
 
 async function insertListing(trx, context, listing, index) {
-  const { user, value, lookups, files, projectId, moved } = context;
+  const { user, value, lookups, files, projectId, groupId, moved } = context;
   const rule = getRule(value.propertyType, listing.propertySubType);
   const subTypeRow = lookups.subTypes.get(listing.propertySubType);
   const propertyId = crypto.randomUUID();
 
   const property = await writeRepository.insertProperty(
     trx,
-    writer.buildPropertyRow({ id: propertyId, user, value, listing, rule, subTypeRow, projectId })
+    writer.buildPropertyRow({ id: propertyId, user, value, listing, rule, subTypeRow, projectId, groupId })
   );
 
   await writer.insertListingDetails(trx, context, listing, propertyId);
@@ -102,7 +103,8 @@ async function insertListing(trx, context, listing, index) {
     property_id: propertyId,
     from_status: null,
     to_status: "draft",
-    changed_by_user_id: user.id,
+    changed_by_user_id: user.id ?? null,
+    changed_by_admin_id: user.adminId ?? null,
   });
 
   return property;
@@ -110,7 +112,7 @@ async function insertListing(trx, context, listing, index) {
 
 // Saves the draft as real listings; files move last and are restored when anything fails
 async function completeDraft(user, draftId, { payload, submit }) {
-  const owner = { userId: user.id };
+  const { listedBy, ...owner } = toOwner(user);
   const draft = await draftRepository.findDraftByIdForOwner(draftId, owner);
   if (!draft) {
     throw new AppError("Draft not found", 404);
@@ -136,16 +138,26 @@ async function completeDraft(user, draftId, { payload, submit }) {
       }
 
       const projectId = value.project ? await writer.insertProject(trx, user, value.project) : null;
-      const context = { user, value, lookups, files, projectId, moved };
+      // Sub types posted together share one group, so they are listed as a single property
+      const groupId = value.listings.length > 1 ? crypto.randomUUID() : null;
+      const context = { user, value, lookups, files, projectId, groupId, moved };
       const properties = [];
 
       for (const [index, listing] of value.listings.entries()) {
         properties.push(await insertListing(trx, context, listing, index));
       }
       if (submit) {
-        for (const property of properties) {
-          await changeStatus(trx, { propertyId: property.id, from: "draft", to: "pending", actor: owner });
-          property.status = "pending";
+        // Admin listings go live directly, everyone else goes to review
+        const targetStatus = isAdminCaller(user) ? "published" : "pending";
+        for (const [index, property] of properties.entries()) {
+          await changeStatus(trx, {
+            propertyId: property.id,
+            from: "draft",
+            to: targetStatus,
+            actor: toStatusActor(user),
+            notify: index === 0,
+          });
+          property.status = targetStatus;
         }
       }
 

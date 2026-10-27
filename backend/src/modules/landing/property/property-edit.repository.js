@@ -21,26 +21,53 @@ const LISTING_CHILD_TABLES = [
   "builder_specifications",
 ];
 
+// userId is left out for admins, who can manage any property
+const scopeToOwner = (query, column, userId) => (userId ? query.where(column, userId) : query);
+
 async function propertyExistsForOwner(id, userId) {
-  const property = await db("properties").where({ id, user_id: userId }).first("id");
+  const property = await scopeToOwner(db("properties").where({ id }), "user_id", userId).first("id");
   return Boolean(property);
 }
 
-// Locks the owner's row so concurrent edits and status changes run one at a time
+const LOCKED_COLUMNS = [
+  "p.id",
+  "p.status",
+  "p.admin_id",
+  "p.updated_at",
+  "p.listing_type",
+  "p.property_type",
+  "p.builder_project_id",
+  "p.listing_group_id",
+  "st.slug as sub_type_slug",
+];
+
+const lockableProperties = (trx) =>
+  trx("properties as p").join("property_sub_types as st", "st.id", "p.property_sub_type_id");
+
+// Locks the row so concurrent edits and status changes run one at a time
 async function findPropertyForUpdate(trx, id, userId) {
-  return trx("properties as p")
-    .join("property_sub_types as st", "st.id", "p.property_sub_type_id")
-    .where({ "p.id": id, "p.user_id": userId })
+  return scopeToOwner(lockableProperties(trx).where({ "p.id": id }), "p.user_id", userId)
     .forUpdate("p")
-    .first(
-      "p.id",
-      "p.status",
-      "p.updated_at",
-      "p.listing_type",
-      "p.property_type",
-      "p.builder_project_id",
-      "st.slug as sub_type_slug"
-    );
+    .first(...LOCKED_COLUMNS);
+}
+
+// Locks the property and the other sub types posted with it; the property itself comes first
+async function findGroupForUpdate(trx, id, userId) {
+  const property = await findPropertyForUpdate(trx, id, userId);
+  if (!property) return [];
+
+  const groupScope = property.listing_group_id
+    ? { "p.listing_group_id": property.listing_group_id }
+    : property.builder_project_id
+      ? { "p.builder_project_id": property.builder_project_id }
+      : null;
+  if (!groupScope) return [property];
+
+  const siblings = await scopeToOwner(lockableProperties(trx).where(groupScope).whereNot({ "p.id": id }), "p.user_id", userId)
+    .orderBy("p.listing_number", "asc")
+    .forUpdate("p")
+    .select(...LOCKED_COLUMNS);
+  return [property, ...siblings];
 }
 
 async function updateProperty(trx, id, columns) {
@@ -109,6 +136,7 @@ async function deleteFloorPlan(trx, id) {
 module.exports = {
   propertyExistsForOwner,
   findPropertyForUpdate,
+  findGroupForUpdate,
   updateProperty,
   deleteListingChildren,
   countProjectProperties,

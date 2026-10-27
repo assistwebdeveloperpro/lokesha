@@ -13,6 +13,7 @@ import {
   formatPostedDate,
   formatPrice,
   getEditHref,
+  getHeading,
   getListingLabel,
   getStatusAction,
   getSubtitle,
@@ -84,8 +85,8 @@ export default function PropertyCard({ property, isBusy, onDelete, onStatusActio
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-4 sm:p-5">
-        <h2 className="truncate text-base font-bold text-slate-900 sm:text-lg" title={property.title}>
-          {property.title}
+        <h2 className="truncate text-base font-bold text-slate-900 sm:text-lg" title={getHeading(property)}>
+          {getHeading(property)}
         </h2>
         <p className="truncate text-sm text-slate-500">{getSubtitle(property)}</p>
         <p className="mt-2 text-xl font-bold text-navy-blue">{formatPrice(property)}</p>

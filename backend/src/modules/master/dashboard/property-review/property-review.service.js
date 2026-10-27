@@ -18,11 +18,14 @@ async function listProperties(query) {
   };
 
   const [rows, total] = await Promise.all([reviewRepository.findListings(filters), reviewRepository.countListings(filters)]);
-  const images = await readRepository.findImagesByPropertyIds(rows.map(({ id }) => id));
+  const images = await readRepository.findImagesByPropertyIds(rows.flatMap((row) => row.member_ids));
   const imagesByProperty = mapper.groupBy(images, "property_id");
 
   return {
-    items: rows.map((row) => ({ ...mapper.toListItem(row, imagesByProperty[row.id]), owner: toOwner(row) })),
+    items: rows.map((row) => ({
+      ...mapper.toListItem(row, mapper.collectRowImages(row, imagesByProperty)),
+      owner: toOwner(row),
+    })),
     page: query.page,
     limit: query.limit,
     total,
@@ -41,13 +44,21 @@ async function getProperty(propertyId) {
 
 async function decide(admin, propertyId, { to, reason }) {
   return db.transaction(async (trx) => {
-    const property = await reviewRepository.findPropertyForUpdate(trx, propertyId);
+    const [property, ...siblings] = await reviewRepository.findGroupForUpdate(trx, propertyId);
     if (!property) {
       throw new AppError("Property not found", 404);
     }
 
-    // Only a listing waiting for review can be decided; anything else is a 409
-    await changeStatus(trx, { propertyId, from: property.status, to, actor: { adminId: admin.id }, reason });
+    // Every sub type of the post is decided together; only a listing waiting for review can be decided, else 409
+    for (const member of [property, ...siblings]) {
+      await changeStatus(trx, {
+        propertyId: member.id,
+        from: member.status,
+        to,
+        actor: { adminId: admin.id },
+        reason,
+      });
+    }
 
     // Saved in the same transaction, so the owner is told only about a decision that was stored
     const notification = to === "published" ? notificationTemplates.propertyApproved : notificationTemplates.propertyRejected;

@@ -212,6 +212,7 @@ async function streamDraftFile(req, res) {
 }
 
 module.exports = {
+  handleError,
   createDraft,
   listDrafts,
   getDraft,

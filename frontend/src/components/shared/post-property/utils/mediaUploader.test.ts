@@ -42,7 +42,7 @@ describe("createDraftMediaUploader", () => {
 
     const ref = await createUploader().upload(file, "media", { category: "exterior" });
 
-    expect(uploadDraftFile).toHaveBeenCalledWith("draft-1", file, "media", { category: "exterior" }, "token-1");
+    expect(uploadDraftFile).toHaveBeenCalledWith("draft-1", file, "media", { category: "exterior" }, "token-1", "user");
     expect(ref).toEqual({ id: "media-1.jpg", path: "temp/drafts/draft-1/media-1.jpg" });
   });
 
@@ -51,7 +51,7 @@ describe("createDraftMediaUploader", () => {
 
     await createUploader().remove({ id: "media-1.jpg", path: "temp/drafts/draft-1/media-1.jpg" });
 
-    expect(deleteDraftFile).toHaveBeenCalledWith("draft-1", "media-1.jpg", "token-1");
+    expect(deleteDraftFile).toHaveBeenCalledWith("draft-1", "media-1.jpg", "token-1", "user");
   });
 
   it("fails without touching the server when the draft cannot be created", async () => {
@@ -93,7 +93,7 @@ describe("createPropertyMediaUploader", () => {
 
     const ref = await create().upload(file, "brochure", {});
 
-    expect(uploadPropertyMedia).toHaveBeenCalledWith(propertyId, file, "brochure", {}, "token-1");
+    expect(uploadPropertyMedia).toHaveBeenCalledWith(propertyId, file, "brochure", {}, "token-1", "user");
     expect(ref).toEqual({ id: "row-1", path: "/uploads/properties/property-1/a.jpg", kind: "brochure" });
   });
 
@@ -104,7 +104,7 @@ describe("createPropertyMediaUploader", () => {
 
     const ref = await create().upload(file, "floor-plan", { planType: "3d" });
 
-    expect(uploadPropertyFloorPlan).toHaveBeenCalledWith(propertyId, file, { planType: "3d" }, "token-1");
+    expect(uploadPropertyFloorPlan).toHaveBeenCalledWith(propertyId, file, { planType: "3d" }, "token-1", "user");
     expect(ref).toEqual({ id: "plan-1", path: "/uploads/properties/property-1/f.png", kind: "floor-plan" });
   });
 
@@ -115,8 +115,8 @@ describe("createPropertyMediaUploader", () => {
     await create().remove({ id: "row-1", path: "p", kind: "media" });
     await create().remove({ id: "plan-1", path: "p", kind: "floor-plan" });
 
-    expect(deletePropertyMedia).toHaveBeenCalledWith(propertyId, "row-1", "token-1");
-    expect(deletePropertyFloorPlan).toHaveBeenCalledWith(propertyId, "plan-1", "token-1");
+    expect(deletePropertyMedia).toHaveBeenCalledWith(propertyId, "row-1", "token-1", "user");
+    expect(deletePropertyFloorPlan).toHaveBeenCalledWith(propertyId, "plan-1", "token-1", "user");
   });
 
   it("fails without a token", async () => {

@@ -33,6 +33,7 @@ import {
   AREA_TYPE_OPTIONS,
   CONSTRUCTION_STATUS_OPTIONS,
   PROPERTY_TRANSACTION_OPTIONS,
+  getPossessionDateInputMax,
   getPossessionDateInputMin,
   isRentListing,
   type AgeOfConstructionId,
@@ -323,7 +324,11 @@ export default function PropertyDetailsField({
                 variant="underline"
                 type="date"
                 staticLabel
-                min={getPossessionDateInputMin(values.possessionDate)}
+                min={getPossessionDateInputMin(
+                  values.possessionDate,
+                  values.constructionStatus,
+                )}
+                max={getPossessionDateInputMax(values.constructionStatus)}
                 value={values.possessionDate}
                 error={errors.possessionDate}
                 onChange={(value) => onChange("possessionDate", value)}
@@ -467,7 +472,10 @@ export default function PropertyDetailsField({
                     variant="underline"
                     type="date"
                     staticLabel
-                    min={getPossessionDateInputMin(values.availableFrom)}
+                    min={getPossessionDateInputMin(
+                      values.availableFrom,
+                      values.constructionStatus,
+                    )}
                     value={values.availableFrom}
                     error={errors.availableFrom}
                     onChange={(value) => onChange("availableFrom", value)}

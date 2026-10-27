@@ -6,12 +6,9 @@ const { AppError } = require("./property.errors");
 const { completeDraft } = require("./property-complete.service");
 const { listAmenityOptions, listMyProperties, getMyProperty } = require("./property-read.service");
 const editService = require("./property-edit.service");
+const { toOwner } = require("./property-actor");
 
 const DEFAULT_PLAN_TYPE = "2d";
-
-function toOwner(user) {
-  return { userId: user.id, listedBy: user.role };
-}
 
 function toDraftSummary(draft) {
   return {

@@ -9,6 +9,11 @@ const MAX_SPECIFICATIONS = 200;
 const MAX_VARIANTS = 50;
 const MAX_PROJECT_ITEMS = 50;
 
+const READY_TO_MOVE = "ready-to-move";
+
+// Local calendar date as YYYY-MM-DD, matching the raw date strings in the payload
+const getTodayIsoDate = () => new Date().toLocaleDateString("en-CA");
+
 const listOf = (item, max) => Joi.array().items(item).max(max).default([]);
 const keyList = Joi.array().items(Joi.string().trim().max(50)).unique().max(100).default([]);
 
@@ -176,10 +181,14 @@ function collectErrors(error, prefix, fields) {
 
 // Rules that span several fields and cannot be expressed per key
 function crossCheckListing(listing, { listingType, builder }, prefix, fields) {
-  const { details = {}, builder: builderBlock } = listing;
+  const { details = {}, construction = {}, builder: builderBlock } = listing;
   const add = (path, message) => {
     fields[[...prefix, path].join(".")] = message;
   };
+
+  if (construction.status === READY_TO_MOVE && construction.possessionDate > getTodayIsoDate()) {
+    add("construction.possessionDate", "Possession date cannot be in the future for a ready to move property");
+  }
 
   if (details.floorNumber !== undefined && details.totalFloors !== undefined && details.floorNumber > details.totalFloors) {
     add("details.floorNumber", "Floor number cannot be more than total floors");

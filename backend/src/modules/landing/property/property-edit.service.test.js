@@ -46,7 +46,13 @@ const buildPayload = () => ({
 
 beforeEach(() => {
   editRepository.findPropertyForUpdate.mockResolvedValue(locked());
+  // A property without siblings is a group of one
+  editRepository.findGroupForUpdate.mockImplementation(async (...args) => {
+    const property = await editRepository.findPropertyForUpdate(...args);
+    return property ? [property] : [];
+  });
   readRepository.findOwnedProperty.mockResolvedValue(locked());
+  readRepository.findGroupSiblings.mockResolvedValue([]);
   writeRepository.findSubTypes.mockResolvedValue([{ id: "st-1", slug: "flat-apartment", name: "Flat/Apartment" }]);
   filesService.removePropertyFile.mockResolvedValue();
   filesService.removePropertyFolder.mockResolvedValue();
@@ -88,6 +94,50 @@ describe("updateProperty", () => {
       PROPERTY_ID,
       expect.objectContaining({ listing_type: "sale", property_type: "residential", property_sub_type_id: "st-1" })
     );
+  });
+
+  describe("with several sub types", () => {
+    const SIBLING_ID = "9a1c7e44-2b6d-4f0a-8c13-5d7e9f0a1b22";
+    const builder = { id: "user-1", role: "builder" };
+    const listingOf = (propertySubType) => ({
+      ...buildPayload().listings[0],
+      propertySubType,
+      details: {},
+      variants: [{ label: "2 BHK", price: 100, details: { bhk: 2 } }],
+    });
+    const buildGroupPayload = (...subTypes) => ({
+      ...buildPayload(),
+      project: { projectName: "Green Heights" },
+      listings: subTypes.map(listingOf),
+    });
+
+    beforeEach(() => {
+      readRepository.findOwnedProperty.mockResolvedValue(
+        locked({ sub_type_slug: "flat-apartment", builder_project_id: "bp-1" })
+      );
+      readRepository.findGroupSiblings.mockResolvedValue([locked({ id: SIBLING_ID, sub_type_slug: "duplex" })]);
+      editRepository.findGroupForUpdate.mockResolvedValue([
+        locked({ builder_project_id: "bp-1" }),
+        locked({ id: SIBLING_ID, builder_project_id: "bp-1" }),
+      ]);
+      writeRepository.findSubTypes.mockResolvedValue([
+        { id: "st-1", slug: "flat-apartment", name: "Flat/Apartment" },
+        { id: "st-2", slug: "duplex", name: "Duplex" },
+      ]);
+    });
+
+    it("updates the property that was posted with each sub type", async () => {
+      await service.updateProperty(builder, PROPERTY_ID, { payload: buildGroupPayload("flat-apartment", "duplex") });
+
+      expect(editRepository.updateProperty).toHaveBeenCalledWith(mockTrx, PROPERTY_ID, expect.objectContaining({ property_sub_type_id: "st-1" }));
+      expect(editRepository.updateProperty).toHaveBeenCalledWith(mockTrx, SIBLING_ID, expect.objectContaining({ property_sub_type_id: "st-2" }));
+    });
+
+    it("rejects an edit that leaves a sub type out", async () => {
+      await expect(
+        service.updateProperty(builder, PROPERTY_ID, { payload: buildGroupPayload("flat-apartment") })
+      ).rejects.toMatchObject({ statusCode: 400 });
+    });
   });
 
   it("sends a published listing back to review", async () => {
@@ -163,6 +213,39 @@ describe("status changes", () => {
     editRepository.findPropertyForUpdate.mockResolvedValue(undefined);
 
     await expect(service.submitProperty(user, PROPERTY_ID)).rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+describe("a post with several sub types", () => {
+  const SIBLING_ID = "9a1c7e44-2b6d-4f0a-8c13-5d7e9f0a1b22";
+
+  beforeEach(() => {
+    editRepository.findGroupForUpdate.mockResolvedValue([locked(), locked({ id: SIBLING_ID })]);
+  });
+
+  it("submits every sub type together", async () => {
+    await expect(service.submitProperty(user, PROPERTY_ID)).resolves.toEqual({ id: PROPERTY_ID, status: "pending" });
+
+    expect(writeRepository.updatePropertyStatus).toHaveBeenCalledWith(mockTrx, PROPERTY_ID, expect.objectContaining({ status: "pending" }));
+    expect(writeRepository.updatePropertyStatus).toHaveBeenCalledWith(mockTrx, SIBLING_ID, expect.objectContaining({ status: "pending" }));
+  });
+
+  it("closes every sub type together", async () => {
+    editRepository.findGroupForUpdate.mockResolvedValue([
+      locked({ status: "published" }),
+      locked({ id: SIBLING_ID, status: "published" }),
+    ]);
+
+    await service.closeProperty(user, PROPERTY_ID);
+
+    expect(writeRepository.updatePropertyStatus).toHaveBeenCalledWith(mockTrx, SIBLING_ID, expect.objectContaining({ status: "closed" }));
+  });
+
+  it("deletes every sub type and the folder of each", async () => {
+    await service.deleteProperty(user, PROPERTY_ID);
+
+    expect(editRepository.deleteProperty).toHaveBeenCalledWith(mockTrx, SIBLING_ID);
+    expect(filesService.removePropertyFolder).toHaveBeenCalledWith(SIBLING_ID);
   });
 });
 
