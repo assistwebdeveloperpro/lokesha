@@ -1,5 +1,6 @@
 import AvailableSizesField from "@/components/master/post-property/step-2-property-details/AvailableSizesField";
 import BuilderPropertyDetailsField from "@/components/master/post-property/step-2-property-details/PropertyDetailsField";
+import { getBhkAreaErrorSubTypes } from "../builder/bhkAreaDetails";
 import { BuilderProjectBlocks } from "../builder/BuilderFormBlocks";
 import PostPropertyStepCard from "../components/PostPropertyStepCard";
 import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
@@ -10,6 +11,14 @@ import SubTypeDetailsTabs from "./SubTypeDetailsTabs";
 export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }) {
   const { draft, derived, layout, subForms, handlers } = form;
   const { showBuilderFields, isMultiSubType, activeTabId, propertySubType } = derived;
+  const showBhkAreaErrors = Boolean(draft.builderErrors.bhkAreas);
+  const bhkAreaErrorIds = showBhkAreaErrors
+    ? getBhkAreaErrorSubTypes(
+        draft.projectDetails,
+        draft.propertyType,
+        subForms.tabs.map((tab) => tab.id),
+      )
+    : [];
 
   const renderDetailsFields = () => {
     if (showBuilderFields && isMultiSubType) {
@@ -38,7 +47,7 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
             tabs={subForms.tabs}
             activeId={activeTabId}
             onActiveChange={subForms.setActiveId}
-            errorIds={subForms.errorIds.details}
+            errorIds={[...subForms.errorIds.details, ...bhkAreaErrorIds]}
             title="Subtype Details"
             description="You’ve selected multiple subtypes. Switch between the tabs below to enter the details for each subtype separately."
           >
@@ -64,6 +73,7 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
               builderLayout
               hideAvailableSizes
               hideCommon={layout.commonSections}
+              showBhkAreaErrors={showBhkAreaErrors}
             />
           </SubTypeDetailsTabs>
         </>
@@ -82,6 +92,7 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
           projectDetails={draft.projectDetails}
           onProjectDetailsChange={handlers.changeProjectDetails}
           builderLayout
+          showBhkAreaErrors={showBhkAreaErrors}
         />
       );
     }

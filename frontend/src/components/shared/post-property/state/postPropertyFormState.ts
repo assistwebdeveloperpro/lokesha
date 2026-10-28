@@ -128,10 +128,23 @@ const omitKeys = <T extends object>(source: T, keys: ReadonlyArray<keyof T>): T 
 export function withoutHiddenDetailsErrors(
   errors: PropertyDetailsFieldErrors,
   builder: boolean,
+  bhkAreas = false,
 ): PropertyDetailsFieldErrors {
-  return builder
-    ? omitKeys(errors, ["bedrooms", "balcony", "floorNumber", "bathrooms"])
-    : errors;
+  if (!builder) {
+    return errors;
+  }
+
+  const hidden: Array<keyof PropertyDetailsFieldErrors> = [
+    "bedrooms",
+    "balcony",
+    "floorNumber",
+    "bathrooms",
+    ...(bhkAreas
+      ? (["carpetAreaNumber", "carpetAreaType", "superBuildUpNumber", "superBuildUpType"] as const)
+      : []),
+  ];
+
+  return omitKeys(errors, hidden);
 }
 
 export function withoutHiddenPricingErrors(

@@ -1,4 +1,3 @@
-import type { ManageListStatus } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
 import { Archive, BadgeCheck, Building2, ClipboardList, FilePenLine, ShieldX } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -7,9 +6,14 @@ import type { ListingStatusFilter } from "./useManageProperties";
 const POST_PROPERTY_PATH = "/backend/properties/post-property";
 
 const EMPTY_STATE_COPY: Record<
-  ManageListStatus,
+  ListingStatusFilter,
   { title: string; description: string; showPostCta: boolean }
 > = {
+  all: {
+    title: "No properties yet",
+    description: "Properties posted by users and the admin team will appear here.",
+    showPostCta: false,
+  },
   draft: {
     title: "No draft properties",
     description: "Drafts stay private until they are published. Start a listing or check back when new drafts are saved.",
@@ -115,8 +119,7 @@ type ManagePropertiesEmptyStateProps = {
 };
 
 export default function ManagePropertiesEmptyState({ status, scope = "manage" }: ManagePropertiesEmptyStateProps) {
-  const copy =
-    scope === "admin" ? ADMIN_EMPTY_STATE_COPY[status] : EMPTY_STATE_COPY[status as ManageListStatus];
+  const copy = scope === "admin" ? ADMIN_EMPTY_STATE_COPY[status] : EMPTY_STATE_COPY[status];
   const { title, description, showPostCta } = copy;
   const { icon: Icon, iconWrap, iconColor } = EMPTY_STATE_VISUALS[status];
 

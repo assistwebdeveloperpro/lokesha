@@ -1,5 +1,8 @@
 "use client";
 
+import { Fragment, useState, type ReactNode } from "react";
+import BhkTabList from "./BhkTabList";
+import { getVariantLabel } from "./bhkAreaDetails";
 import PostPropertyAmountInput from "../step-5-pricing-and-additional-details/PostPropertyAmountInput";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyInput from "../components/PostPropertyInput";
@@ -9,12 +12,9 @@ import {
   POST_PROPERTY_BHK_PANEL,
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SUBSECTION_LABEL,
-  postPropertyChipClass,
 } from "../config/postPropertyForm.styles";
 import {
-  BHK_OPTIONS,
   EMPTY_BHK_CHARGES,
-  getChargeBhks,
   getSelectedBhks,
   type BhkCharges,
   type ProjectDetailsValues,
@@ -69,6 +69,17 @@ function ChargeFields({ values, idSuffix, onChange }: ChargeFieldsProps) {
   );
 }
 
+function SectionWrapper({ children }: { children: ReactNode }) {
+  return (
+    <PostPropertyFieldSection
+      title="Other Charges & Remarks"
+      description="Add transfer fee, booking amount, and other details"
+    >
+      {children}
+    </PostPropertyFieldSection>
+  );
+}
+
 export default function BhkChargesField({
   values,
   onChange,
@@ -77,7 +88,16 @@ export default function BhkChargesField({
   singleBlock = false,
   showAssuredReturn = false,
   assuredReturnError,
+  bhkList,
+  unitType,
+  embedded = false,
 }: {
+  // BHKs of one sub type; defaults to every BHK of the project
+  bhkList?: string[];
+  // Label of the sub type the BHKs belong to
+  unitType?: string;
+  // Rendered inside sub type tabs, so the section heading is skipped
+  embedded?: boolean;
   singleBlock?: boolean;
   showAssuredReturn?: boolean;
   assuredReturnError?: string;
@@ -92,61 +112,31 @@ export default function BhkChargesField({
     value: PricingOthersValues[K],
   ) => void;
 }) {
-  const fromSizes = getSelectedBhks(values);
-  const bhks = singleBlock ? [] : getChargeBhks(values);
+  const bhks = singleBlock ? [] : (bhkList ?? getSelectedBhks(values));
+  const [selectedBhk, setSelectedBhk] = useState("");
+  const activeBhk = bhks.includes(selectedBhk) ? selectedBhk : (bhks[0] ?? "");
 
-  // BHKs from step 2 stay selected; the rest can be toggled here
-  const toggleBhk = (bhk: string) => {
-    if (fromSizes.includes(bhk)) {
-      return;
-    }
-    onChange(
-      "chargeBhks",
-      values.chargeBhks.includes(bhk)
-        ? values.chargeBhks.filter((item) => item !== bhk)
-        : [...values.chargeBhks, bhk],
+  // Charges are stored per BHK and unit type, so Flat and Duplex 2 BHK stay apart
+  const chargesKey = (bhk: string) => {
+    const row = values.availableSizes.find(
+      (item) => item.bhk === bhk && (!unitType || !item.unitType || item.unitType === unitType),
     );
+    return row ? getVariantLabel(row) : bhk;
   };
+  const getCharges = (bhk: string) =>
+    values.bhkCharges[chargesKey(bhk)] ?? values.bhkCharges[bhk] ?? EMPTY_BHK_CHARGES;
 
   const update = (bhk: string, patch: Partial<BhkCharges>) =>
     onChange("bhkCharges", {
       ...values.bhkCharges,
-      [bhk]: { ...(values.bhkCharges[bhk] ?? EMPTY_BHK_CHARGES), ...patch },
+      [chargesKey(bhk)]: { ...getCharges(bhk), ...patch },
     });
 
+  const Wrapper = embedded ? Fragment : SectionWrapper;
+
   return (
-    <PostPropertyFieldSection
-      title="Other Charges & Remarks"
-      description="Add transfer fee, booking amount, and other details"
-    >
+    <Wrapper>
       <div className="space-y-6">
-        {singleBlock ? null : (
-        <div className={POST_PROPERTY_INNER_PANEL}>
-          <p className={POST_PROPERTY_SUBSECTION_LABEL}>Select BHK</p>
-          <p className="mb-3 text-sm text-slate-500">
-            BHKs from Available Sizes are pre-selected. Add more to set charges
-            per configuration.
-          </p>
-          <div className="flex flex-wrap gap-2.5">
-            {BHK_OPTIONS.map((bhk) => {
-              const isSelected = bhks.includes(bhk);
-
-              return (
-                <button
-                  key={bhk}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => toggleBhk(bhk)}
-                  className={`${postPropertyChipClass(isSelected)} min-w-11 px-3.5 py-2.5 text-sm sm:min-w-12 sm:px-4`}
-                >
-                  {bhk}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        )}
-
         {bhks.length === 0 ? (
           <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
             {singleBlock ? null : (
@@ -187,18 +177,24 @@ export default function BhkChargesField({
           />
           </div>
         ) : (
-          bhks.map((bhk) => (
-            <div key={bhk} className={POST_PROPERTY_BHK_PANEL}>
-              <span className={POST_PROPERTY_BHK_BADGE}>{bhk}</span>
+          <>
+            <BhkTabList
+              bhks={bhks}
+              activeBhk={activeBhk}
+              onSelect={setSelectedBhk}
+              label="Charges by BHK"
+            />
+            <div role="tabpanel" className={POST_PROPERTY_BHK_PANEL}>
               <ChargeFields
-                idSuffix={`-${bhk}`}
-                values={values.bhkCharges[bhk] ?? EMPTY_BHK_CHARGES}
-                onChange={(patch) => update(bhk, patch)}
+                key={activeBhk}
+                idSuffix={`-${activeBhk}`}
+                values={getCharges(activeBhk)}
+                onChange={(patch) => update(activeBhk, patch)}
               />
             </div>
-          ))
+          </>
         )}
       </div>
-    </PostPropertyFieldSection>
+    </Wrapper>
   );
 }

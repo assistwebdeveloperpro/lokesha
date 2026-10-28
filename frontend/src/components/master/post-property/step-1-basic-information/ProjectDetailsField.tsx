@@ -342,18 +342,18 @@ export function PrimeLocationHighlightsField({
               <PostPropertyInput
                 id={`highlightPlace-${row.id}`}
                 label="Place / Landmark"
+                placeholder="e.g. Ahmedabad Metro Station"
                 variant="underline"
-                prominentLabel
-                compactProminentLabel
+                staticLabel
                 value={row.place}
                 onChange={(value) => update(row.id, { place: value })}
               />
               <PostPropertyInput
                 id={`highlightDistance-${row.id}`}
                 label="Distance (km / mins)"
+                placeholder="e.g. 2 km or 10 mins"
                 variant="underline"
-                prominentLabel
-                compactProminentLabel
+                staticLabel
                 value={row.distance}
                 onChange={(value) => update(row.id, { distance: value })}
               />

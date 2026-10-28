@@ -10,10 +10,11 @@ import {
   getReviewProperties,
   rejectReviewProperty,
   type ReviewListItem,
-  type ReviewStatus,
 } from "@/services/propertyReview.service";
 import { PAGE_SIZE } from "./reviewPropertiesShared";
 
+// Decided listings move to manage properties, so only pending ones are reviewed here
+const REVIEW_STATUS = "pending";
 const LOGIN_PATH = "/backend/login";
 const LOAD_ERROR = "We could not load the properties. Please try again.";
 
@@ -24,7 +25,6 @@ function getErrorMessage(error: unknown) {
 export function useReviewProperties() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [status, setStatus] = useState<ReviewStatus>("pending");
   const [reloadToken, setReloadToken] = useState(0);
   const [properties, setProperties] = useState<ReviewListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -33,7 +33,7 @@ export function useReviewProperties() {
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<ReviewListItem | null>(null);
-  const [viewingId, setViewingId] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<ReviewListItem | null>(null);
   const nextPage = useRef(2);
 
   const expireSession = useCallback(() => {
@@ -60,7 +60,7 @@ export function useReviewProperties() {
     }
 
     let cancelled = false;
-    getReviewProperties({ page: 1, limit: PAGE_SIZE, status }, token)
+    getReviewProperties({ page: 1, limit: PAGE_SIZE, status: REVIEW_STATUS }, token)
       .then((response) => {
         if (cancelled) return;
         setProperties(response.items);
@@ -83,13 +83,7 @@ export function useReviewProperties() {
     return () => {
       cancelled = true;
     };
-  }, [status, reloadToken, expireSession, router]);
-
-  const changeStatus = (next: ReviewStatus) => {
-    if (next === status) return;
-    setIsLoading(true);
-    setStatus(next);
-  };
+  }, [reloadToken, expireSession, router]);
 
   const reload = () => {
     setIsLoading(true);
@@ -102,7 +96,7 @@ export function useReviewProperties() {
 
     setIsLoadingMore(true);
     try {
-      const response = await getReviewProperties({ page: nextPage.current, limit: PAGE_SIZE, status }, token);
+      const response = await getReviewProperties({ page: nextPage.current, limit: PAGE_SIZE, status: REVIEW_STATUS }, token);
       // A decision meanwhile can shift pages, so duplicates are dropped
       setProperties((current) => {
         const known = new Set(current.map((item) => item.id));
@@ -117,7 +111,7 @@ export function useReviewProperties() {
     }
   };
 
-  // The decided listing leaves the current tab, which only shows one status
+  // The decided listing is no longer pending
   const removeFromList = (id: string) => {
     setProperties((current) => current.filter((item) => item.id !== id));
     setTotal((current) => Math.max(0, current - 1));
@@ -159,7 +153,6 @@ export function useReviewProperties() {
   };
 
   return {
-    status,
     properties,
     total,
     isLoading,
@@ -167,16 +160,15 @@ export function useReviewProperties() {
     error,
     busyId,
     rejecting,
-    viewingId,
+    viewing,
     hasMore: properties.length < total,
-    changeStatus,
     reload,
     loadMore,
     approve,
     requestReject: setRejecting,
     cancelReject: () => setRejecting(null),
     confirmReject,
-    viewProperty: setViewingId,
-    closeView: () => setViewingId(null),
+    viewProperty: setViewing,
+    closeView: () => setViewing(null),
   };
 }

@@ -9,6 +9,8 @@ const toListedBy = (row) => ({
   name: row.admin_id ? row.admin_name : row.user_name,
 });
 
+const toOwner = (row) => ({ name: row.owner_name, email: row.owner_email, mobile: row.owner_mobile });
+
 async function listProperties(query) {
   const filters = {
     ...query,
@@ -26,6 +28,7 @@ async function listProperties(query) {
     items: rows.map((row) => ({
       ...mapper.toListItem(row, mapper.collectRowImages(row, imagesByProperty)),
       listedBy: toListedBy(row),
+      owner: toOwner(row),
     })),
     page: query.page,
     limit: query.limit,

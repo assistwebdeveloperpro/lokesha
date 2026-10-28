@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { getVariantLabel } from "./bhkAreaDetails";
+import BhkTabList from "./BhkTabList";
 import ChipSelectField from "../components/ChipSelectField";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "../components/PostPropertyRequiredAsterisk";
@@ -10,13 +13,9 @@ import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SUBSECTION_LABEL,
-  postPropertyChipClass,
 } from "../config/postPropertyForm.styles";
 import {
-  BHK_OPTIONS,
   EMPTY_BHK_CAR_PARKING,
-  getChargeBhks,
-  getSelectedBhks,
   type BhkCarParking,
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
@@ -26,6 +25,25 @@ const checkboxClassName =
 
 const COUNT_OPTIONS = ["1", "2", "3", "4", "5", "6", "7"];
 const MORE_COUNT_OPTIONS = ["8", "9", "10"];
+
+type ParkingTab = { key: string; bhk: string };
+
+// Parking is stored per BHK and unit type; the unit type is only shown when a BHK repeats
+function getParkingTabs(values: ProjectDetailsValues): Map<string, ParkingTab> {
+  const rows = values.availableSizes.filter((row) => row.bhk);
+  const unitTypesByBhk = new Map<string, Set<string>>();
+  for (const row of rows) {
+    unitTypesByBhk.set(row.bhk, (unitTypesByBhk.get(row.bhk) ?? new Set()).add(row.unitType));
+  }
+
+  const tabs = new Map<string, ParkingTab>();
+  for (const row of rows) {
+    const key = getVariantLabel(row);
+    const isRepeated = (unitTypesByBhk.get(row.bhk)?.size ?? 0) > 1;
+    tabs.set(isRepeated ? key : row.bhk, { key, bhk: row.bhk });
+  }
+  return tabs;
+}
 
 export default function BhkCarParkingField({
   values,
@@ -50,27 +68,27 @@ export default function BhkCarParkingField({
   ) => void;
   error?: string;
 }) {
-  const fromSizes = getSelectedBhks(values);
-  const bhks = singleBlock ? [] : getChargeBhks(values);
+  const tabs = singleBlock ? new Map<string, ParkingTab>() : getParkingTabs(values);
+  const bhks = [...tabs.keys()];
+  const [selectedBhk, setSelectedBhk] = useState("");
+  const activeBhk = bhks.includes(selectedBhk) ? selectedBhk : (bhks[0] ?? "");
+  const activeTab = tabs.get(activeBhk);
+  const activeParking = activeTab
+    ? (values.bhkCarParking[activeTab.key] ??
+      values.bhkCarParking[activeTab.bhk] ??
+      EMPTY_BHK_CAR_PARKING)
+    : EMPTY_BHK_CAR_PARKING;
 
-  // BHKs from step 2 stay selected; the rest can be toggled here
-  const toggleBhk = (bhk: string) => {
-    if (fromSizes.includes(bhk)) {
+  const update = (patch: Partial<BhkCarParking>) => {
+    if (!activeTab) {
       return;
     }
-    onChange(
-      "chargeBhks",
-      values.chargeBhks.includes(bhk)
-        ? values.chargeBhks.filter((item) => item !== bhk)
-        : [...values.chargeBhks, bhk],
-    );
-  };
 
-  const update = (bhk: string, patch: Partial<BhkCarParking>) =>
     onChange("bhkCarParking", {
       ...values.bhkCarParking,
-      [bhk]: { ...(values.bhkCarParking[bhk] ?? EMPTY_BHK_CAR_PARKING), ...patch },
+      [activeTab.key]: { ...activeParking, ...patch },
     });
+  };
 
   return (
     <PostPropertyFieldSection
@@ -78,37 +96,10 @@ export default function BhkCarParkingField({
       description={
         singleBlock
           ? "Tell buyers about the car parking in this project"
-          : "Select a BHK to set its car parking and club membership separately"
+          : "Set car parking and club membership for each BHK selected in Available Sizes"
       }
     >
       <div className="space-y-6">
-        {singleBlock ? null : (
-        <div className={POST_PROPERTY_INNER_PANEL}>
-          <p className={POST_PROPERTY_SUBSECTION_LABEL}>Select BHK</p>
-          <p className="mb-3 text-sm text-slate-500">
-            BHKs from Available Sizes are pre-selected. Add more to configure
-            parking separately.
-          </p>
-          <div className="flex flex-wrap gap-2.5">
-            {BHK_OPTIONS.map((bhk) => {
-              const isSelected = bhks.includes(bhk);
-
-              return (
-                <button
-                  key={bhk}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => toggleBhk(bhk)}
-                  className={`${postPropertyChipClass(isSelected)} min-w-11 px-3.5 py-2.5 text-sm sm:min-w-12 sm:px-4`}
-                >
-                  {bhk}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        )}
-
         {bhks.length === 0 ? (
           <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
             {singleBlock ? null : (
@@ -160,54 +151,53 @@ export default function BhkCarParkingField({
             )}
           </div>
         ) : (
-          bhks.map((bhk) => {
-            const parking = values.bhkCarParking[bhk] ?? EMPTY_BHK_CAR_PARKING;
-
-            return (
-              <div key={bhk} className={POST_PROPERTY_BHK_PANEL}>
-                <span className={POST_PROPERTY_BHK_BADGE}>{bhk}</span>
-                <label className={POST_PROPERTY_CHECKBOX_ROW}>
-                  <input
-                    type="checkbox"
-                    checked={parking.available}
-                    onChange={(event) =>
-                      update(bhk, {
-                        available: event.target.checked,
-                        count: event.target.checked ? parking.count : "",
-                      })
-                    }
-                    className={checkboxClassName}
-                  />
-                  <span className="text-sm font-semibold text-slate-800">
-                    Car Parking Available
-                  </span>
-                </label>
-                {parking.available ? (
-                  <ChipSelectField
-                    legend={`Car Parking (${bhk})`}
-                    bare
-                    options={COUNT_OPTIONS}
-                    value={parking.count}
-                    onChange={(value) => update(bhk, { count: value })}
-                    moreOptions={MORE_COUNT_OPTIONS}
-                  />
-                ) : null}
-                <label className={POST_PROPERTY_CHECKBOX_ROW}>
-                  <input
-                    type="checkbox"
-                    checked={parking.clubMembership}
-                    onChange={(event) =>
-                      update(bhk, { clubMembership: event.target.checked })
-                    }
-                    className={checkboxClassName}
-                  />
-                  <span className="text-sm font-semibold text-slate-800">
-                    Club Membership
-                  </span>
-                </label>
-              </div>
-            );
-          })
+          <>
+            <BhkTabList
+              bhks={bhks}
+              activeBhk={activeBhk}
+              onSelect={setSelectedBhk}
+              label="Parking by BHK"
+            />
+            <div role="tabpanel" className={POST_PROPERTY_BHK_PANEL}>
+              <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                <input
+                  type="checkbox"
+                  checked={activeParking.available}
+                  onChange={(event) =>
+                    update({
+                      available: event.target.checked,
+                      count: event.target.checked ? activeParking.count : "",
+                    })
+                  }
+                  className={checkboxClassName}
+                />
+                <span className="text-sm font-semibold text-slate-800">
+                  Car Parking Available
+                </span>
+              </label>
+              {activeParking.available ? (
+                <ChipSelectField
+                  legend={`Car Parking (${activeBhk})`}
+                  bare
+                  options={COUNT_OPTIONS}
+                  value={activeParking.count}
+                  onChange={(value) => update({ count: value })}
+                  moreOptions={MORE_COUNT_OPTIONS}
+                />
+              ) : null}
+              <label className={POST_PROPERTY_CHECKBOX_ROW}>
+                <input
+                  type="checkbox"
+                  checked={activeParking.clubMembership}
+                  onChange={(event) => update({ clubMembership: event.target.checked })}
+                  className={checkboxClassName}
+                />
+                <span className="text-sm font-semibold text-slate-800">
+                  Club Membership
+                </span>
+              </label>
+            </div>
+          </>
         )}
       </div>
     </PostPropertyFieldSection>

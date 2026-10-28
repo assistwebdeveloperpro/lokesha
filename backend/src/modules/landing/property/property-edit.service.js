@@ -168,8 +168,9 @@ async function deleteProperty(user, propertyId) {
   const group = await db.transaction(async (trx) => {
     const locked = await lockOwnedGroup(trx, propertyId, user);
 
-    for (const { id } of locked) {
-      await editRepository.deleteProperty(trx, id);
+    for (const property of locked) {
+      assertCanChangeStatus(user, property);
+      await editRepository.deleteProperty(trx, property.id);
     }
     // The project goes with its last listing
     const projectId = locked[0].builder_project_id;

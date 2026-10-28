@@ -1,4 +1,5 @@
 import BhkCarParkingField from "../builder/BhkCarParkingField";
+import { getBuilderConfig } from "../builder/builderConfig";
 import {
   BuilderAmenityExtras,
   BuilderHighlightBlocks,
@@ -20,6 +21,8 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
   } = derived;
   const { amenitySections } = layout;
   const builderExtras = showBuilderFields ? <BuilderAmenityExtras form={form} /> : undefined;
+  const parkingPerSubType =
+    showBuilderFields && isMultiSubType && draft.propertyType === "commercial";
 
   const renderAmenityFields = () => {
     if (!(showBuilderFields && isMultiSubType)) {
@@ -57,30 +60,57 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
           />
         ) : null}
         <BuilderHighlightBlocks form={form} />
-        {amenitySections.perSubType.length > 0 ? (
+        {amenitySections.perSubType.length > 0 || parkingPerSubType ? (
           <SubTypeDetailsTabs
             tabs={subForms.tabs}
             activeId={activeTabId}
             onActiveChange={subForms.setActiveId}
             errorIds={subForms.errorIds.amenities}
-            title="Amenities for each sub type"
-            description="Open each tab and choose the amenities for that sub type."
+            title={
+              amenitySections.perSubType.length > 0
+                ? "Amenities for each sub type"
+                : "Parking for each sub type"
+            }
+            description={
+              amenitySections.perSubType.length > 0
+                ? "Open each tab and choose the amenities for that sub type."
+                : "Open each tab and set the car parking for that sub type."
+            }
           >
-            <AmenitiesField
-              key={activeTabId}
-              isRent={isRent}
-              propertyType={draft.propertyType}
-              subType={activeTabId}
-              values={subForms.getAmenities(activeTabId)}
-              onChange={(field, value) =>
-                subForms.changeAmenities(activeTabId, field, value)
-              }
-              errors={subForms.amenitiesErrors[activeTabId] ?? {}}
-              hideCarParking
-              builder
-              builderExtras={builderExtras}
-              sections={{ only: amenitySections.perSubType }}
-            />
+            <div className="space-y-6">
+              {amenitySections.perSubType.length > 0 ? (
+                <AmenitiesField
+                  key={activeTabId}
+                  isRent={isRent}
+                  propertyType={draft.propertyType}
+                  subType={activeTabId}
+                  values={subForms.getAmenities(activeTabId)}
+                  onChange={(field, value) =>
+                    subForms.changeAmenities(activeTabId, field, value)
+                  }
+                  errors={subForms.amenitiesErrors[activeTabId] ?? {}}
+                  hideCarParking
+                  builder
+                  builderExtras={builderExtras}
+                  sections={{ only: amenitySections.perSubType }}
+                />
+              ) : null}
+              {parkingPerSubType &&
+              getBuilderConfig(draft.propertyType, activeTabId).carParking !== "none" ? (
+                <BhkCarParkingField
+                  key={`parking-${activeTabId}`}
+                  values={draft.projectDetails}
+                  onChange={handlers.changeProjectDetails}
+                  amenities={subForms.getAmenities(activeTabId)}
+                  onAmenitiesChange={(field, value) =>
+                    subForms.changeAmenities(activeTabId, field, value)
+                  }
+                  error={subForms.amenitiesErrors[activeTabId]?.carParking}
+                  singleBlock
+                  hideClubMembership
+                />
+              ) : null}
+            </div>
           </SubTypeDetailsTabs>
         ) : null}
       </>
@@ -99,7 +129,7 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
 
       {showBuilderFields ? (
         <>
-          {builderConfig.carParking === "none" ? null : (
+          {builderConfig.carParking === "none" || parkingPerSubType ? null : (
             <BhkCarParkingField
               values={draft.projectDetails}
               onChange={handlers.changeProjectDetails}

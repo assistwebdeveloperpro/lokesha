@@ -182,7 +182,10 @@ export function useSubTypeForms({
   project: ProjectDetailsValues;
   anchors: { possession?: string; availableFrom?: string };
   existingMediaCount: number;
-  filterDetailsErrors?: (errors: PropertyDetailsFieldErrors) => PropertyDetailsFieldErrors;
+  filterDetailsErrors?: (
+    errors: PropertyDetailsFieldErrors,
+    subType: string,
+  ) => PropertyDetailsFieldErrors;
   filterPricingErrors?: (errors: PricingOthersFieldErrors) => PricingOthersFieldErrors;
   // Detail fields asked once above the tabs; every tab reads the first tab's value
   commonDetailsFields?: ReadonlyArray<keyof PropertyDetailsValues>;
@@ -341,10 +344,12 @@ export function useSubTypeForms({
   const isCommonDetailsField = (field: string) =>
     (commonDetailsFields as ReadonlyArray<string>).includes(field);
 
-  // Builder parking is asked once for the project, so its errors never belong to a tab
+  // Builder parking is asked once for the project, except commercial where each tab has its own
   const isCommonAmenitiesField = (field: string) =>
     (commonAmenitiesFields as ReadonlyArray<string>).includes(field) ||
-    (builder && ["carParking", "carParkingAvailable", "clubMembership"].includes(field));
+    (builder &&
+      propertyType !== "commercial" &&
+      ["carParking", "carParkingAvailable", "clubMembership"].includes(field));
 
   const getCommonAmenitiesErrors = (): AmenitiesFieldErrors => {
     const merged: Record<string, unknown> = {};
@@ -418,6 +423,7 @@ export function useSubTypeForms({
             availableFromPastAnchor: anchors.availableFrom || undefined,
             builder,
           }),
+          id,
         ),
       ),
     amenities: () =>

@@ -20,7 +20,7 @@ const buttonClassName =
 type ReviewPropertyCardProps = {
   property: ReviewListItem;
   isBusy: boolean;
-  onView: (id: string) => void;
+  onView: (property: ReviewListItem) => void;
   onApprove: (property: ReviewListItem) => void;
   onReject: (property: ReviewListItem) => void;
 };
@@ -87,7 +87,7 @@ export default function ReviewPropertyCard({ property, isBusy, onView, onApprove
           <button
             type="button"
             aria-label={`View details for ${property.title}`}
-            onClick={() => onView(property.id)}
+            onClick={() => onView(property)}
             className="inline-flex min-h-11 w-full basis-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-sky-200 hover:bg-sky-50/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue"
           >
             <span className="bg-linear-to-r-navy-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm">

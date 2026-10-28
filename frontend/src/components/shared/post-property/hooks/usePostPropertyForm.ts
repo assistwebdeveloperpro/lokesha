@@ -18,7 +18,8 @@ import {
   type PropertyStatus,
   type SaveDraftInput,
 } from "@/services/property.service";
-import { getMergedBuilderConfig } from "../builder/builderConfig";
+import { getBhkAreaErrorSubTypes, getBhkAreaTabs } from "../builder/bhkAreaDetails";
+import { getBuilderConfig, getMergedBuilderConfig } from "../builder/builderConfig";
 import {
   validateBuilderPricing,
   validateBuilderProjectType,
@@ -93,7 +94,7 @@ export function usePostPropertyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const { scope, basePath, managePath } = usePostPropertyMode();
+  const { scope, basePath, managePath, createdPath } = usePostPropertyMode();
   const { role, token, isAuthReady, isAdmin } = usePostPropertyAuth();
   const currentStep = getStepFromSearchParam(searchParams.get("step"));
   const editId = searchParams.get("edit");
@@ -182,7 +183,12 @@ export function usePostPropertyForm() {
       availableFrom: draft.availableFromPastAnchor,
     },
     existingMediaCount: existingMedia.length,
-    filterDetailsErrors: (errors) => withoutHiddenDetailsErrors(errors, showBuilderFields),
+    filterDetailsErrors: (errors, subType) =>
+      withoutHiddenDetailsErrors(
+        errors,
+        showBuilderFields,
+        showBuilderFields && getBhkAreaTabs(projectDetails, propertyType, subType).length > 0,
+      ),
     filterPricingErrors: (errors) => withoutHiddenPricingErrors(errors, showBuilderFields),
   });
   const isMultiSubType = subForms.isMulti;
@@ -389,7 +395,14 @@ export function usePostPropertyForm() {
         builder: showBuilderFields,
       }),
       showBuilderFields,
+      showBuilderFields && getBhkAreaTabs(projectDetails, propertyType, propertySubType).length > 0,
     );
+
+  const validateBhkAreas = (): BuilderFieldErrors =>
+    showBuilderFields &&
+    getBhkAreaErrorSubTypes(projectDetails, propertyType, propertySubTypes).length > 0
+      ? { bhkAreas: "Please complete the area details of every BHK" }
+      : {};
 
   const validateSingleAmenities = () =>
     validateAmenities(amenities, propertyType, {
@@ -538,31 +551,36 @@ export function usePostPropertyForm() {
   const handlePropertyDetailsNext = () => {
     if (isMultiSubType) {
       const hasTabErrors = subForms.validateStep("details");
-      const projectErrors = validateBuilderProjectType(projectDetails, builderConfig);
+      const projectErrors = {
+        ...validateBuilderProjectType(projectDetails, builderConfig),
+        ...validateBhkAreas(),
+      };
 
-      if (hasTabErrors || projectErrors.projectType) {
-        mergeBuilderErrors(projectErrors);
+      if (hasTabErrors || projectErrors.projectType || projectErrors.bhkAreas) {
+        mergeBuilderErrors({ bhkAreas: undefined, ...projectErrors });
         requestInvalidFieldFocus();
         return;
       }
 
+      mergeBuilderErrors({ bhkAreas: undefined });
       goToStep(3);
       return;
     }
 
     const errors = validateSingleDetails();
-    const projectErrors = showBuilderFields
-      ? validateBuilderProjectType(projectDetails, builderConfig)
+    const projectErrors: BuilderFieldErrors = showBuilderFields
+      ? { ...validateBuilderProjectType(projectDetails, builderConfig), ...validateBhkAreas() }
       : {};
 
-    if (hasPropertyDetailsErrors(errors) || projectErrors.projectType) {
+    if (hasPropertyDetailsErrors(errors) || projectErrors.projectType || projectErrors.bhkAreas) {
       replaceErrors({ propertyDetailsErrors: errors });
-      mergeBuilderErrors(projectErrors);
+      mergeBuilderErrors({ bhkAreas: undefined, ...projectErrors });
       requestInvalidFieldFocus();
       return;
     }
 
     replaceErrors({ propertyDetailsErrors: {} });
+    mergeBuilderErrors({ bhkAreas: undefined });
     goToStep(3);
   };
 
@@ -616,6 +634,19 @@ export function usePostPropertyForm() {
     goToStep(5);
   };
 
+  // Each sub type tab has its own assured return
+  const validateTabsBuilderPricing = (): BuilderFieldErrors =>
+    subForms.tabs.reduce<BuilderFieldErrors>(
+      (errors, tab) =>
+        errors.assuredReturn
+          ? errors
+          : validateBuilderPricing(
+              subForms.getPricing(tab.id),
+              getBuilderConfig(propertyType, tab.id),
+            ),
+      {},
+    );
+
   // Returns the earliest step with an error, or null when the whole form is valid
   const validateWholeForm = (): number | null => {
     const address = validateAddressLocation(addressLocation, addressValidationOptions);
@@ -623,10 +654,10 @@ export function usePostPropertyForm() {
     const builder: BuilderFieldErrors = showBuilderFields
       ? {
           ...validateBuilderProjectType(projectDetails, builderConfig),
-          ...validateBuilderPricing(
-            isMultiSubType ? subForms.getPricing(subForms.firstTabId) : pricingOthers,
-            builderConfig,
-          ),
+          ...validateBhkAreas(),
+          ...(isMultiSubType
+            ? validateTabsBuilderPricing()
+            : validateBuilderPricing(pricingOthers, builderConfig)),
         }
       : {};
     const amenitiesErrors = isMultiSubType ? {} : validateSingleAmenities();
@@ -778,9 +809,11 @@ export function usePostPropertyForm() {
       }
 
       await completeDraft(draftId, buildPayload(), { submit: mode === "submit" }, token, scope);
+      // The draft is gone now, so the ?draft= loader must not look it up again
+      requestedDraftId.current = draftId;
       serverDraft.adopt(null);
       showToast(mode === "submit" ? submittedMessage : "Your property has been saved as a draft.", "success");
-      router.push(managePath);
+      router.push(createdPath);
     } catch (error) {
       handleSubmitFailure(error);
     } finally {

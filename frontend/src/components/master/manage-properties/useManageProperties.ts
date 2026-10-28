@@ -10,15 +10,21 @@ import {
   type ManageListedBy,
   type ManageListItem,
   type ManageListQuery,
+  type ManageOwner,
 } from "@/services/adminManageProperties.service";
 import { ApiError } from "@/services/apiClient";
-import { closeProperty, submitProperty } from "@/services/property.service";
+import { closeProperty, deleteProperty, submitProperty } from "@/services/property.service";
+import type { ListingModalAction } from "@/components/user/dashboard/manage-properties/ListingActionModal";
 
 export type ListingStatusFilter = ManageListStatus | "all";
+
+type PropertyViewTarget = Pick<ManageListItem, "id"> & { owner?: ManageOwner };
 
 type UseManagePropertiesOptions = {
   source?: ManageListedBy["source"];
   initialStatus?: ListingStatusFilter;
+  focusPropertyId?: string | null;
+  onFocusPropertyOpened?: () => void;
 };
 
 const LOGIN_PATH = "/backend/login";
@@ -37,7 +43,12 @@ function toListQuery(page: number, status: ListingStatusFilter, source?: ManageL
   };
 }
 
-export function useManageProperties({ source, initialStatus = "published" }: UseManagePropertiesOptions = {}) {
+export function useManageProperties({
+  source,
+  initialStatus = "published",
+  focusPropertyId = null,
+  onFocusPropertyOpened,
+}: UseManagePropertiesOptions = {}) {
   const router = useRouter();
   const { showToast } = useToast();
   const [status, setStatus] = useState<ListingStatusFilter>(initialStatus);
@@ -48,7 +59,14 @@ export function useManageProperties({ source, initialStatus = "published" }: Use
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ManageListItem | null>(null);
+  const [pendingListingAction, setPendingListingAction] = useState<{
+    property: ManageListItem;
+    action: ListingModalAction;
+  } | null>(null);
+  const [viewing, setViewing] = useState<PropertyViewTarget | null>(null);
   const nextPage = useRef(2);
+  const openedFocusPropertyId = useRef<string | null>(null);
 
   const expireSession = useCallback(() => {
     clearAdminSession();
@@ -98,6 +116,19 @@ export function useManageProperties({ source, initialStatus = "published" }: Use
       cancelled = true;
     };
   }, [status, source, reloadToken, expireSession, router]);
+
+  useEffect(() => {
+    if (!focusPropertyId) {
+      openedFocusPropertyId.current = null;
+      return;
+    }
+    if (isLoading || openedFocusPropertyId.current === focusPropertyId) return;
+
+    openedFocusPropertyId.current = focusPropertyId;
+    const match = properties.find((item) => item.id === focusPropertyId);
+    setViewing({ id: focusPropertyId, owner: match?.owner });
+    onFocusPropertyOpened?.();
+  }, [focusPropertyId, isLoading, properties, onFocusPropertyOpened]);
 
   const changeStatus = (next: ListingStatusFilter) => {
     if (next === status) return;
@@ -163,8 +194,37 @@ export function useManageProperties({ source, initialStatus = "published" }: Use
   const publish = (property: ManageListItem) =>
     changeListingStatus(property, (token) => submitProperty(property.id, token, "admin"), "Property published.");
 
-  const close = (property: ManageListItem) =>
-    changeListingStatus(property, (token) => closeProperty(property.id, token, "admin"), "Property closed.");
+  const confirmListingAction = async () => {
+    if (!pendingListingAction) return;
+
+    const { property, action } = pendingListingAction;
+    await (action === "close"
+      ? changeListingStatus(property, (token) => closeProperty(property.id, token, "admin"), "Property closed.")
+      : publish(property));
+    setPendingListingAction(null);
+  };
+
+  const confirmDelete = async () => {
+    const token = getAdminToken();
+    if (!pendingDelete) return;
+    if (!token) {
+      expireSession();
+      return;
+    }
+
+    const target = pendingDelete;
+    setBusyId(target.id);
+    try {
+      await deleteProperty(target.id, token, "admin");
+      removeFromList(target.id);
+      setPendingDelete(null);
+      showToast("Property deleted successfully.", "success");
+    } catch (failure) {
+      handleFailure(failure);
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return {
     status,
@@ -178,7 +238,18 @@ export function useManageProperties({ source, initialStatus = "published" }: Use
     changeStatus,
     reload,
     loadMore,
+    viewing,
+    pendingDelete,
+    pendingListingAction,
+    viewProperty: (property: ManageListItem) => setViewing({ id: property.id, owner: property.owner }),
+    closeView: () => setViewing(null),
     publish,
-    close,
+    requestDelete: setPendingDelete,
+    cancelDelete: () => setPendingDelete(null),
+    confirmDelete,
+    requestListingAction: (property: ManageListItem, action: ListingModalAction) =>
+      setPendingListingAction({ property, action }),
+    cancelListingAction: () => setPendingListingAction(null),
+    confirmListingAction,
   };
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import { Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
 import NotificationSidebar from "./NotificationSidebar";
 import { useNotifications, userNotificationSource, type NotificationSource } from "./useNotifications";
+import type { UserNotification } from "@/services/userNotifications.service";
 
 const MAX_BADGE_COUNT = 99;
 
@@ -11,9 +13,21 @@ type NotificationBellProps = {
 };
 
 export default function NotificationBell({ source = userNotificationSource }: NotificationBellProps) {
+  const router = useRouter();
   const notifications = useNotifications(source);
   const { unreadCount } = notifications;
   const badge = unreadCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : String(unreadCount);
+
+  const activateNotification = (notification: UserNotification) => {
+    const href = source.getNotificationHref?.(notification);
+    if (!href) return;
+
+    if (!notification.isRead) {
+      void notifications.markAsRead(notification.id);
+    }
+    notifications.close();
+    router.push(href);
+  };
 
   return (
     <>
@@ -33,7 +47,11 @@ export default function NotificationBell({ source = userNotificationSource }: No
         ) : null}
       </button>
 
-      <NotificationSidebar notifications={notifications} />
+      <NotificationSidebar
+        notifications={notifications}
+        getNotificationHref={source.getNotificationHref}
+        onActivate={activateNotification}
+      />
     </>
   );
 }

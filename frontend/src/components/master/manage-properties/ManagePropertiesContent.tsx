@@ -1,9 +1,15 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 import PropertyFilterGrid, { PropertyFilterEmpty } from "@/components/shared/ui/PropertyFilterGrid";
 import PropertyCardSkeleton from "@/components/user/dashboard/manage-properties/PropertyCardSkeleton";
+import DeletePropertyModal from "@/components/user/dashboard/manage-properties/DeletePropertyModal";
+import ListingActionModal from "@/components/user/dashboard/manage-properties/ListingActionModal";
 import { MANAGE_TABS } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
+import ReviewDetailModal from "@/components/master/review-properties/ReviewDetailModal";
 import ManagePropertiesEmptyState from "./ManagePropertiesEmptyState";
 import ManagePropertyCard from "./ManagePropertyCard";
 import { useManageProperties, type ListingStatusFilter } from "./useManageProperties";
@@ -15,6 +21,13 @@ export const OUR_LISTING_TABS: { status: ListingStatusFilter; label: string }[] 
   { status: "closed", label: "Closed" },
 ];
 
+export const MASTER_MANAGE_TABS: { status: ListingStatusFilter; label: string }[] = [
+  { status: "all", label: "All" },
+  { status: "published", label: "Published" },
+  { status: "rejected", label: "Rejected" },
+  { status: "closed", label: "Closed" },
+];
+
 type ManagePropertiesContentProps = {
   title?: string;
   description?: string;
@@ -22,6 +35,8 @@ type ManagePropertiesContentProps = {
   tabs?: { status: ListingStatusFilter; label: string }[];
   initialStatus?: ListingStatusFilter;
   showSourceBadge?: boolean;
+  showOwnerDetails?: boolean;
+  allowListingActions?: boolean;
   showPropertyCount?: boolean;
 };
 
@@ -35,14 +50,39 @@ export default function ManagePropertiesContent({
   tabs = MANAGE_TABS,
   initialStatus = "published",
   showSourceBadge = true,
+  showOwnerDetails = true,
+  allowListingActions = true,
   showPropertyCount = true,
 }: ManagePropertiesContentProps) {
-  const manage = useManageProperties({ source, initialStatus });
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const focusPropertyId = searchParams.get("property");
+
+  const clearFocusPropertyParam = useCallback(() => {
+    if (!searchParams.has("property")) return;
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("property");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  }, [pathname, router, searchParams]);
+
+  const manage = useManageProperties({
+    source,
+    initialStatus,
+    focusPropertyId,
+    onFocusPropertyOpened: clearFocusPropertyParam,
+  });
   const { status, properties, total, isLoading, error, busyId } = manage;
+
+  const closePropertyView = () => {
+    manage.closeView();
+    clearFocusPropertyParam();
+  };
 
   return (
     <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">{title}</h1>
           {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
@@ -54,9 +94,10 @@ export default function ManagePropertiesContent({
         </div>
         <Link
           href={POST_PROPERTY_PATH}
-          className="bg-linear-to-r-navy-blue inline-flex min-h-10 items-center rounded-xl px-5 text-sm font-semibold text-white shadow-md"
+          className="bg-linear-to-r-navy-blue inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
         >
-          Post Property
+          <Plus className="h-4 w-4" aria-hidden />
+          Post New Property
         </Link>
       </header>
 
@@ -122,8 +163,12 @@ export default function ManagePropertiesContent({
                   property={property}
                   isBusy={busyId === property.id}
                   showSourceBadge={showSourceBadge}
+                  showOwnerDetails={showOwnerDetails}
+                  allowListingActions={allowListingActions}
+                  onView={manage.viewProperty}
                   onPublish={manage.publish}
-                  onClose={manage.close}
+                  onDelete={manage.requestDelete}
+                  onListingAction={manage.requestListingAction}
                 />
               ))}
             </PropertyFilterGrid>
@@ -142,6 +187,27 @@ export default function ManagePropertiesContent({
           </>
         )}
       </section>
+
+      {manage.viewing ? (
+        <ReviewDetailModal propertyId={manage.viewing.id} owner={manage.viewing.owner} onClose={closePropertyView} />
+      ) : null}
+      {manage.pendingDelete ? (
+        <DeletePropertyModal
+          propertyTitle={manage.pendingDelete.title}
+          isDeleting={busyId === manage.pendingDelete.id}
+          onCancel={manage.cancelDelete}
+          onConfirm={manage.confirmDelete}
+        />
+      ) : null}
+      {manage.pendingListingAction ? (
+        <ListingActionModal
+          action={manage.pendingListingAction.action}
+          propertyTitle={manage.pendingListingAction.property.title}
+          isSubmitting={busyId === manage.pendingListingAction.property.id}
+          onCancel={manage.cancelListingAction}
+          onConfirm={manage.confirmListingAction}
+        />
+      ) : null}
     </div>
   );
 }

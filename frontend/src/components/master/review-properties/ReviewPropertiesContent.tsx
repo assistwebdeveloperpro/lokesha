@@ -6,14 +6,13 @@ import ReviewDetailModal from "./ReviewDetailModal";
 import RejectPropertyModal from "./RejectPropertyModal";
 import ReviewPropertiesEmptyState from "./ReviewPropertiesEmptyState";
 import ReviewPropertyCard from "./ReviewPropertyCard";
-import { REVIEW_TABS } from "./reviewPropertiesShared";
 import { useReviewProperties } from "./useReviewProperties";
 
 const SKELETON_COUNT = 6;
 
 export default function ReviewPropertiesContent() {
   const review = useReviewProperties();
-  const { status, properties, total, isLoading, error, busyId } = review;
+  const { properties, total, isLoading, error, busyId } = review;
 
   return (
     <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
@@ -26,38 +25,12 @@ export default function ReviewPropertiesContent() {
         ) : null}
       </header>
 
-      <div
-        className="mt-5 flex w-full min-w-0 flex-nowrap gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/90 bg-slate-100/90 p-1.5 shadow-inner shadow-slate-200/40 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        role="tablist"
-        aria-label="Property status"
-      >
-        {REVIEW_TABS.map((tab) => {
-          const isSelected = status === tab.status;
-          return (
-            <button
-              key={tab.status}
-              type="button"
-              role="tab"
-              aria-selected={isSelected}
-              onClick={() => review.changeStatus(tab.status)}
-              className={`min-h-10 shrink-0 cursor-pointer rounded-xl px-4 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                isSelected
-                  ? "bg-white text-navy-blue shadow-sm ring-1 ring-slate-200/90"
-                  : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
       <section
         className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-4 sm:p-5"
         aria-live="polite"
       >
         {isLoading ? (
-          <PropertyFilterGrid replayKey={`${status}-loading`} variant="skeleton" isBusy>
+          <PropertyFilterGrid replayKey="loading" variant="skeleton" isBusy>
             {Array.from({ length: SKELETON_COUNT }, (_, index) => (
               <PropertyCardSkeleton key={index} />
             ))}
@@ -76,12 +49,12 @@ export default function ReviewPropertiesContent() {
             </button>
           </div>
         ) : properties.length === 0 ? (
-          <PropertyFilterEmpty replayKey={`${status}-empty`}>
-            <ReviewPropertiesEmptyState status={status} />
+          <PropertyFilterEmpty replayKey="empty">
+            <ReviewPropertiesEmptyState status="pending" />
           </PropertyFilterEmpty>
         ) : (
           <>
-            <PropertyFilterGrid replayKey={`${status}-list`}>
+            <PropertyFilterGrid replayKey="list">
               {properties.map((property) => (
                 <ReviewPropertyCard
                   key={property.id}
@@ -118,7 +91,9 @@ export default function ReviewPropertiesContent() {
         />
       ) : null}
 
-      {review.viewingId ? <ReviewDetailModal propertyId={review.viewingId} onClose={review.closeView} /> : null}
+      {review.viewing ? (
+        <ReviewDetailModal propertyId={review.viewing.id} owner={review.viewing.owner} onClose={review.closeView} />
+      ) : null}
     </div>
   );
 }

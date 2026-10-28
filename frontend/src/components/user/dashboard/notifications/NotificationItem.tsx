@@ -10,19 +10,49 @@ type NotificationItemProps = {
   notification: UserNotification;
   isBusy: boolean;
   onMarkAsRead: (id: string) => void;
+  href?: string | null;
+  onActivate?: (notification: UserNotification) => void;
 };
 
 const REJECTED_TYPE = "property_rejected";
 const REJECTION_PREFIX = /^Your property was (?:rejected:|not approved\. Reason:)\s*/i;
 
-export default function NotificationItem({ notification, isBusy, onMarkAsRead }: NotificationItemProps) {
+export default function NotificationItem({
+  notification,
+  isBusy,
+  onMarkAsRead,
+  href = null,
+  onActivate,
+}: NotificationItemProps) {
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = notification.image && !hasImageError;
   const isRejected = notification.type === REJECTED_TYPE;
   const rejectionReason = notification.message.replace(REJECTION_PREFIX, "");
+  const isActivatable = Boolean(href && onActivate);
+
+  const handleActivate = () => {
+    if (!isActivatable || isBusy) return;
+    onActivate?.(notification);
+  };
 
   return (
-    <li className={`flex gap-3 border-b border-slate-100 px-4 py-4 ${isBusy ? "opacity-60" : ""}`}>
+    <li className={`border-b border-slate-100 ${isBusy ? "opacity-60" : ""}`}>
+      <div
+        role={isActivatable ? "button" : undefined}
+        tabIndex={isActivatable ? 0 : undefined}
+        onClick={isActivatable ? handleActivate : undefined}
+        onKeyDown={
+          isActivatable
+            ? (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleActivate();
+                }
+              }
+            : undefined
+        }
+        className={`flex gap-3 px-4 py-4 ${isActivatable ? "cursor-pointer transition hover:bg-slate-50" : ""}`}
+      >
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
         {showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -66,7 +96,10 @@ export default function NotificationItem({ notification, isBusy, onMarkAsRead }:
             <button
               type="button"
               disabled={isBusy}
-              onClick={() => onMarkAsRead(notification.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onMarkAsRead(notification.id);
+              }}
               className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-sky-700 transition hover:text-sky-900 disabled:cursor-not-allowed"
             >
               <Check className="h-3.5 w-3.5" aria-hidden />
@@ -75,6 +108,7 @@ export default function NotificationItem({ notification, isBusy, onMarkAsRead }:
           )}
           <span className="shrink-0 text-xs text-slate-400">{formatTimeAgo(notification.createdAt)}</span>
         </div>
+      </div>
       </div>
     </li>
   );

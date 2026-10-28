@@ -10,6 +10,7 @@ export type PostPropertyMode = {
   scope: PropertyScope;
   basePath: string;
   managePath: string;
+  createdPath: string;
   getToken: () => string | null;
 };
 
@@ -17,13 +18,20 @@ export const USER_POST_PROPERTY_MODE: PostPropertyMode = {
   scope: "user",
   basePath: "/post-property",
   managePath: "/user/properties/manage-properties",
+  createdPath: "/user/properties/manage-properties",
   getToken,
+};
+
+export const USER_DASHBOARD_POST_PROPERTY_MODE: PostPropertyMode = {
+  ...USER_POST_PROPERTY_MODE,
+  basePath: "/user/properties/post-new-properties",
 };
 
 export const ADMIN_POST_PROPERTY_MODE: PostPropertyMode = {
   scope: "admin",
   basePath: "/backend/properties/post-property",
   managePath: "/backend/properties/manage-properties",
+  createdPath: "/backend/properties/our-listings",
   getToken: getAdminToken,
 };
 

@@ -19,6 +19,7 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "../config/postPropertyForm.shared";
+import { getVariantLabel } from "../builder/bhkAreaDetails";
 import { sanitizeAmountRaw } from "./postPropertyAmount";
 
 // Everything one listing (the single form, or one sub type tab) is built from
@@ -264,8 +265,10 @@ function buildVariants(
     .filter((row) => row.unitType === unitTypeLabel || (!row.unitType && isFirstListing))
     .filter((row) => row.bhk || hasValue(toNumber(row.size)) || hasValue(toNumber(row.price)))
     .map((row) => {
-      const parking = project.bhkCarParking[row.bhk];
-      const charges = project.bhkCharges[row.bhk];
+      const label = getVariantLabel(row);
+      const parking = project.bhkCarParking[label] ?? project.bhkCarParking[row.bhk];
+      const charges = project.bhkCharges[label] ?? project.bhkCharges[row.bhk];
+      const area = project.bhkAreaDetails[label];
       const chargeFields = compact({
         carParkingAvailable: parking?.available,
         carParkingCount: parking?.available ? toNumber(parking.count) : undefined,
@@ -277,12 +280,23 @@ function buildVariants(
       });
 
       return {
-        label: toText([row.bhk, row.unitType].filter(Boolean).join(" ")),
+        label: toText(label),
         size: toNumber(row.size),
         sizeUnit: toSlug(row.sizeUnit),
         price: toNumber(row.price),
         unitsAvailable: toNumber(row.unitsAvailable),
-        details: propertyType === "residential" ? compact({ bhk: toBhk(row.bhk) }) : {},
+        details:
+          propertyType === "residential"
+            ? compact({
+                bhk: toBhk(row.bhk),
+                carpetArea: area && toNumber(area.carpetAreaMin),
+                carpetAreaMax: area && toNumber(area.carpetAreaMax),
+                carpetAreaUnit: area?.carpetAreaType,
+                superBuiltUpArea: area && toNumber(area.superBuildUpMin),
+                superBuiltUpAreaMax: area && toNumber(area.superBuildUpMax),
+                superBuiltUpAreaUnit: area?.superBuildUpType,
+              })
+            : {},
         ...(Object.keys(chargeFields).length > 0 && { charges: chargeFields }),
       };
     });

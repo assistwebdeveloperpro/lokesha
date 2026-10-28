@@ -1,15 +1,30 @@
 "use client";
 
-import { Building2, CalendarDays, CircleCheck, CircleX, Hash, Pencil, UserRound } from "lucide-react";
+import {
+  Archive,
+  Building2,
+  CalendarDays,
+  CircleCheck,
+  Eye,
+  Hash,
+  Pencil,
+  Phone,
+  RotateCcw,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import type { ListingModalAction } from "@/components/user/dashboard/manage-properties/ListingActionModal";
 import {
+  STATUS_ACTION_LABELS,
   STATUS_BADGE_CLASSES,
   STATUS_LABELS,
   formatPostedDate,
   formatPrice,
   getHeading,
   getListingLabel,
+  getStatusAction,
   getSubtitle,
 } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
 import type { ManageListItem } from "@/services/adminManageProperties.service";
@@ -20,27 +35,53 @@ const EDIT_PATH = "/backend/properties/post-property";
 const actionButtonClassName =
   "inline-flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
 
+const listingActionButtonClassName =
+  "inline-flex min-h-11 w-full basis-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
+
+const LISTING_ACTION_STYLES = {
+  close: {
+    button:
+      "border-amber-200/90 bg-amber-50/80 text-amber-950 hover:border-amber-300 hover:bg-amber-100/80 focus-visible:outline-amber-500",
+    icon: "text-amber-700 ring-amber-200/90",
+  },
+  reopen: {
+    button:
+      "border-emerald-200/90 bg-emerald-50/80 text-emerald-950 hover:border-emerald-300 hover:bg-emerald-100/80 focus-visible:outline-emerald-500",
+    icon: "text-emerald-700 ring-emerald-200/90",
+  },
+} as const;
+
 type ManagePropertyCardProps = {
   property: ManageListItem;
   isBusy: boolean;
   showSourceBadge?: boolean;
+  showOwnerDetails?: boolean;
+  allowListingActions?: boolean;
+  onView: (property: ManageListItem) => void;
   onPublish: (property: ManageListItem) => void;
-  onClose: (property: ManageListItem) => void;
+  onDelete: (property: ManageListItem) => void;
+  onListingAction: (property: ManageListItem, action: ListingModalAction) => void;
 };
 
 export default function ManagePropertyCard({
   property,
   isBusy,
   showSourceBadge = true,
+  showOwnerDetails = true,
+  allowListingActions = true,
+  onView,
   onPublish,
-  onClose,
+  onDelete,
+  onListingAction,
 }: ManagePropertyCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = property.mainImage && !hasImageError;
   // Admins edit any listing but only publish and close the ones created by admins
   const isAdminListing = property.listedBy.source === "admin";
-  const canPublish = isAdminListing && (property.status === "draft" || property.status === "closed");
-  const canClose = isAdminListing && property.status === "published";
+  const canChangeListing = isAdminListing && allowListingActions;
+  const canPublish = canChangeListing && property.status === "draft";
+  const statusAction = canChangeListing ? getStatusAction(property.status) : null;
+  const listingAction = statusAction === "close" || statusAction === "reopen" ? statusAction : null;
 
   return (
     <article
@@ -115,10 +156,29 @@ export default function ManagePropertyCard({
                 </span>
               </p>
             ) : null}
+            {showOwnerDetails && property.owner.mobile ? (
+              <p className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700">
+                <Phone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+                {property.owner.mobile}
+              </p>
+            ) : null}
           </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
+          {showOwnerDetails ? (
+            <button
+              type="button"
+              aria-label={`View details for ${property.title}`}
+              onClick={() => onView(property)}
+              className="inline-flex min-h-11 w-full basis-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-sky-200 hover:bg-sky-50/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue"
+            >
+              <span className="bg-linear-to-r-navy-blue flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm">
+                <Eye className="h-4 w-4" aria-hidden />
+              </span>
+              View details
+            </button>
+          ) : null}
           <Link
             href={`${EDIT_PATH}?edit=${property.id}`}
             aria-label={`Edit ${property.title}`}
@@ -128,26 +188,47 @@ export default function ManagePropertyCard({
             <Pencil className="h-4 w-4" aria-hidden />
             Edit
           </Link>
+          {canChangeListing ? (
+            <button
+              type="button"
+              disabled={isBusy}
+              aria-label={`Delete ${property.title}`}
+              onClick={() => onDelete(property)}
+              className={`${actionButtonClassName} border-red-300 text-red-600 hover:bg-red-50 focus-visible:outline-red-500`}
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              Delete
+            </button>
+          ) : null}
           {canPublish ? (
             <button
               type="button"
               disabled={isBusy}
               onClick={() => onPublish(property)}
-              className={`${actionButtonClassName} border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:outline-emerald-500`}
+              className={`${actionButtonClassName} basis-full border-emerald-300 text-emerald-600 hover:bg-emerald-50 focus-visible:outline-emerald-500`}
             >
               <CircleCheck className="h-4 w-4" aria-hidden />
-              {property.status === "closed" ? "Re-publish" : "Publish"}
+              Publish
             </button>
           ) : null}
-          {canClose ? (
+          {listingAction ? (
             <button
               type="button"
               disabled={isBusy}
-              onClick={() => onClose(property)}
-              className={`${actionButtonClassName} border-red-200 text-red-600 hover:bg-red-50 focus-visible:outline-red-500`}
+              aria-label={`${STATUS_ACTION_LABELS[listingAction]} ${property.title}`}
+              onClick={() => onListingAction(property, listingAction)}
+              className={`${listingActionButtonClassName} ${LISTING_ACTION_STYLES[listingAction].button}`}
             >
-              <CircleX className="h-4 w-4" aria-hidden />
-              Mark as Closed
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ${LISTING_ACTION_STYLES[listingAction].icon}`}
+              >
+                {listingAction === "close" ? (
+                  <Archive className="h-4 w-4" aria-hidden />
+                ) : (
+                  <RotateCcw className="h-4 w-4" aria-hidden />
+                )}
+              </span>
+              {STATUS_ACTION_LABELS[listingAction]}
             </button>
           ) : null}
         </div>

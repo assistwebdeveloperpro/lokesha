@@ -465,8 +465,8 @@ export function closeProperty(id: string, token: string, scope: PropertyScope = 
   });
 }
 
-export function deleteProperty(id: string, token: string) {
-  return apiFetch<{ message: string }>(`/property/${id}`, {
+export function deleteProperty(id: string, token: string, scope: PropertyScope = "user") {
+  return apiFetch<{ message: string }>(`${SCOPE_BASE_PATH[scope]}/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });

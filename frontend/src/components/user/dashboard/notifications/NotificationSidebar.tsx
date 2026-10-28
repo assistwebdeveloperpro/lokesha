@@ -3,12 +3,14 @@
 import { BellOff, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import type { NotificationStatus } from "@/services/userNotifications.service";
+import type { NotificationStatus, UserNotification } from "@/services/userNotifications.service";
 import NotificationItem from "./NotificationItem";
 import type { useNotifications } from "./useNotifications";
 
 type NotificationSidebarProps = {
   notifications: ReturnType<typeof useNotifications>;
+  getNotificationHref?: (notification: UserNotification) => string | null;
+  onActivate?: (notification: UserNotification) => void;
 };
 
 const TABS: { status: NotificationStatus; label: string }[] = [
@@ -21,7 +23,11 @@ const EMPTY_MESSAGES: Record<NotificationStatus, string> = {
   read: "No read notifications yet.",
 };
 
-export default function NotificationSidebar({ notifications }: NotificationSidebarProps) {
+export default function NotificationSidebar({
+  notifications,
+  getNotificationHref,
+  onActivate,
+}: NotificationSidebarProps) {
   const { isOpen, tab, items, unreadCount, isMarkingAll, isLoading, isLoadingMore, error, busyId, hasMore, close } = notifications;
   const [mounted, setMounted] = useState(false);
 
@@ -152,6 +158,8 @@ export default function NotificationSidebar({ notifications }: NotificationSideb
                     notification={notification}
                     isBusy={busyId === notification.id}
                     onMarkAsRead={notifications.markAsRead}
+                    href={getNotificationHref?.(notification) ?? null}
+                    onActivate={onActivate}
                   />
                 ))}
               </ul>

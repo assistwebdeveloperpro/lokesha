@@ -10,6 +10,7 @@ import {
   createInitialProjectDetails,
   createInitialSpecifications,
   createRowId,
+  type BhkAreaDetails,
   type BhkCharges,
   type BhkCarParking,
   type BrochureImage,
@@ -28,6 +29,7 @@ import type {
   PropertyMediaFileDto,
   PropertyPayload,
 } from "@/services/property.service";
+import { getVariantLabel } from "../builder/bhkAreaDetails";
 import type { PostingAsId } from "../config/postingAs";
 import {
   EMPTY_SUB_TYPE_FORMS_SNAPSHOT,
@@ -335,18 +337,32 @@ function mapProject(
 
   const bhkCarParking: Record<string, BhkCarParking> = {};
   const bhkCharges: Record<string, BhkCharges> = {};
+  const bhkAreaDetails: Record<string, BhkAreaDetails> = {};
   const availableSizes = listings.flatMap((item) =>
     (item.variants ?? []).map((variant) => {
       const bhk = toBhkLabel(variant.details?.bhk);
+      const unitType = subTypeLabelOf(propertyType, item.propertySubType);
       const charges = variant.charges;
+      const area = variant.details;
+
+      if (bhk && area?.carpetArea !== undefined) {
+        bhkAreaDetails[getVariantLabel({ bhk, unitType })] = {
+          carpetAreaMin: text(area.carpetArea),
+          carpetAreaMax: text(area.carpetAreaMax),
+          carpetAreaType: text(area.carpetAreaUnit),
+          superBuildUpMin: text(area.superBuiltUpArea),
+          superBuildUpMax: text(area.superBuiltUpAreaMax),
+          superBuildUpType: text(area.superBuiltUpAreaUnit),
+        };
+      }
 
       if (charges) {
-        bhkCarParking[bhk] = {
+        bhkCarParking[getVariantLabel({ bhk, unitType })] = {
           available: flag(charges.carParkingAvailable),
           count: text(charges.carParkingCount),
           clubMembership: flag(charges.clubMembership),
         };
-        bhkCharges[bhk] = {
+        bhkCharges[getVariantLabel({ bhk, unitType })] = {
           transferFee: text(charges.transferFee),
           bookingAmount: text(charges.bookingAmount),
           maintenanceCharges: text(charges.maintenanceCharges),
@@ -355,7 +371,7 @@ function mapProject(
       }
 
       return {
-        ...createAvailableSizeRow(subTypeLabelOf(propertyType, item.propertySubType)),
+        ...createAvailableSizeRow(unitType),
         bhk,
         sizeUnit: labelOf(LAND_SIZE_UNIT_OPTIONS, variant.sizeUnit) || LAND_SIZE_UNIT_OPTIONS[0],
         size: text(variant.size),
@@ -407,6 +423,7 @@ function mapProject(
     availableSizes: availableSizes.length > 0 ? availableSizes : initial.availableSizes,
     bhkCarParking,
     bhkCharges,
+    bhkAreaDetails,
     projectHighlights: project?.highlights?.length
       ? project.highlights.map((item) => ({ id: createRowId(), text: item.text }))
       : initial.projectHighlights,

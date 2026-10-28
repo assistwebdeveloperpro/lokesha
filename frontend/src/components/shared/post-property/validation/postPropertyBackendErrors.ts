@@ -45,6 +45,7 @@ const AMENITY_STEP_DETAILS: Record<string, string | undefined> = {
 const DETAIL_FIELDS: Record<string, string> = {
   bedrooms: "bedrooms",
   balconies: "balcony",
+  cabins: "cabins",
   bathrooms: "bathrooms",
   totalFloors: "totalFloors",
   floorNumber: "floorNumber",

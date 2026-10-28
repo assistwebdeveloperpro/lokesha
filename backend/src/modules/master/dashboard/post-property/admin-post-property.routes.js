@@ -64,6 +64,7 @@ router.get("/:id", validateParams(uuidParamSchema), controller.getProperty);
 router.put("/:id", validateParams(uuidParamSchema), validate(propertyUpdateSchema), controller.updateProperty);
 router.post("/:id/publish", validateParams(uuidParamSchema), controller.publishProperty);
 router.post("/:id/close", validateParams(uuidParamSchema), controller.closeProperty);
+router.delete("/:id", validateParams(uuidParamSchema), controller.deleteProperty);
 
 router.post(
   "/:id/media",

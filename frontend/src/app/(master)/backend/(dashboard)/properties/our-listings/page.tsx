@@ -11,6 +11,7 @@ export default function MasterOurListingsPage() {
       tabs={OUR_LISTING_TABS}
       initialStatus="all"
       showSourceBadge={false}
+      showOwnerDetails={false}
       showPropertyCount={false}
     />
   );

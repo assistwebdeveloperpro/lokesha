@@ -20,6 +20,7 @@ export type NotificationSource = {
   getUnreadCount: (token: string) => Promise<{ unreadCount: number }>;
   markAsRead: (id: string, token: string) => Promise<{ id: string; unreadCount: number }>;
   markAllAsRead: (token: string) => Promise<{ unreadCount: number }>;
+  getNotificationHref?: (notification: UserNotification) => string | null;
 };
 
 export const userNotificationSource: NotificationSource = {

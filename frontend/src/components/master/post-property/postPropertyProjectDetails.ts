@@ -157,6 +157,24 @@ export const EMPTY_BHK_CAR_PARKING: BhkCarParking = {
   clubMembership: false,
 };
 
+export type BhkAreaDetails = {
+  carpetAreaMin: string;
+  carpetAreaMax: string;
+  carpetAreaType: string;
+  superBuildUpMin: string;
+  superBuildUpMax: string;
+  superBuildUpType: string;
+};
+
+export const EMPTY_BHK_AREA_DETAILS: BhkAreaDetails = {
+  carpetAreaMin: "",
+  carpetAreaMax: "",
+  carpetAreaType: "",
+  superBuildUpMin: "",
+  superBuildUpMax: "",
+  superBuildUpType: "",
+};
+
 export type ProjectDetailsValues = {
   carpetAreaMax: string;
   superBuildUpMax: string;
@@ -191,6 +209,7 @@ export type ProjectDetailsValues = {
   availableSizes: AvailableSizeRow[];
   bhkCarParking: Record<string, BhkCarParking>;
   bhkCharges: Record<string, BhkCharges>;
+  bhkAreaDetails: Record<string, BhkAreaDetails>;
   chargeBhks: string[];
   primeLocationHighlights: HighlightRow[];
   floorPlans: FloorPlanRow[];
@@ -333,6 +352,7 @@ export function createInitialProjectDetails(
     availableSizes: [createAvailableSizeRow(defaultUnitType)],
     bhkCarParking: {},
     bhkCharges: {},
+    bhkAreaDetails: {},
     chargeBhks: [],
     primeLocationHighlights: [{ id: createRowId(), place: "", distance: "" }],
     floorPlans: [

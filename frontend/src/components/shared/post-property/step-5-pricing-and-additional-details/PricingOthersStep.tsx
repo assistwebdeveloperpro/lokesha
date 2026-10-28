@@ -2,6 +2,9 @@ import {
   ProjectFaqField,
   ProjectPricingField,
 } from "@/components/master/post-property/step-5-pricing-and-additional-details/ProjectPricingFaqField";
+import { getBhkAreaTabs } from "../builder/bhkAreaDetails";
+import { getBuilderConfig } from "../builder/builderConfig";
+import { validateBuilderPricing } from "../builder/builderValidation";
 import BhkChargesField from "../builder/BhkChargesField";
 import PostPropertyStepCard from "../components/PostPropertyStepCard";
 import SubTypeDetailsTabs from "../step-2-property-details/SubTypeDetailsTabs";
@@ -87,6 +90,48 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
     );
   };
 
+  const renderMultiSubTypeCharges = () => {
+    const tabId = subForms.activeTabId;
+    const tabConfig = getBuilderConfig(propertyType, tabId);
+    const assuredReturnError = (id: string) =>
+      draft.builderErrors.assuredReturn
+        ? validateBuilderPricing(subForms.getPricing(id), getBuilderConfig(propertyType, id))
+            .assuredReturn
+        : undefined;
+    const errorIds = subForms.tabs
+      .filter((tab) => assuredReturnError(tab.id))
+      .map((tab) => tab.id);
+
+    return (
+      <SubTypeDetailsTabs
+        tabs={subForms.tabs}
+        activeId={tabId}
+        onActiveChange={subForms.setActiveId}
+        errorIds={errorIds}
+        title="Other Charges & Remarks"
+        description="Open each tab and add the charges for that sub type."
+      >
+        <BhkChargesField
+          key={tabId}
+          embedded
+          values={draft.projectDetails}
+          onChange={handlers.changeProjectDetails}
+          bhkList={getBhkAreaTabs(draft.projectDetails, propertyType, tabId).map(
+            (tab) => tab.bhk,
+          )}
+          unitType={subForms.tabs.find((tab) => tab.id === tabId)?.label}
+          pricingOthers={subForms.getPricing(tabId)}
+          onPricingOthersChange={(field, value) =>
+            subForms.changePricing(tabId, field, value)
+          }
+          singleBlock={!tabConfig.chargesByBhk}
+          showAssuredReturn={tabConfig.showAssuredReturn}
+          assuredReturnError={assuredReturnError(tabId)}
+        />
+      </SubTypeDetailsTabs>
+    );
+  };
+
   return (
     <PostPropertyStepCard
       title="Add Pricing & Other Details"
@@ -102,21 +147,19 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
 
       {showBuilderFields ? (
         <>
-          <BhkChargesField
-            values={draft.projectDetails}
-            onChange={handlers.changeProjectDetails}
-            pricingOthers={
-              isMultiSubType
-                ? subForms.getPricing(subForms.firstTabId)
-                : draft.pricingOthers
-            }
-            onPricingOthersChange={
-              isMultiSubType ? handlers.changeAllPricing : handlers.changePricing
-            }
-            singleBlock={!builderConfig.chargesByBhk}
-            showAssuredReturn={builderConfig.showAssuredReturn}
-            assuredReturnError={draft.builderErrors.assuredReturn}
-          />
+          {isMultiSubType ? (
+            renderMultiSubTypeCharges()
+          ) : (
+            <BhkChargesField
+              values={draft.projectDetails}
+              onChange={handlers.changeProjectDetails}
+              pricingOthers={draft.pricingOthers}
+              onPricingOthersChange={handlers.changePricing}
+              singleBlock={!builderConfig.chargesByBhk}
+              showAssuredReturn={builderConfig.showAssuredReturn}
+              assuredReturnError={draft.builderErrors.assuredReturn}
+            />
+          )}
           <ProjectPricingField
             values={draft.projectDetails}
             onChange={handlers.changeProjectDetails}

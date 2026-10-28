@@ -21,6 +21,7 @@ module.exports = {
   updateProperty: withCaller(propertyService.updateProperty),
   publishProperty: withCaller(propertyService.submitProperty),
   closeProperty: withCaller(propertyService.closeProperty),
+  deleteProperty: withCaller(propertyService.deleteProperty),
   addPropertyFile: withCaller(propertyService.addPropertyFile),
   removeMedia: withCaller(propertyService.removeMedia),
   removeFloorPlan: withCaller(propertyService.removeFloorPlan),

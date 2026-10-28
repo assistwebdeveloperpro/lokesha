@@ -44,7 +44,7 @@ export function CommercialDetails({
   isRent,
   ...part
 }: PropertyDetailsPartProps & { isRent: boolean }) {
-  const { values, onChange } = part;
+  const { values, onChange, errors } = part;
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -62,6 +62,7 @@ export function CommercialDetails({
         value={values.cabins}
         onChange={(value) => onChange("cabins", value)}
         moreOptions={numberOptions(8, 10)}
+        error={errors.cabins}
       />
 
       <TotalFloorsFields {...part} />
@@ -489,6 +490,7 @@ export function SaleCommonSections({
 
 export function SaleDetails({
   cfg,
+  beforeAreaSlot,
   areaSlot,
   afterAreaSlot,
   maxFields,
@@ -496,6 +498,7 @@ export function SaleDetails({
   ...part
 }: PropertyDetailsPartProps & {
   cfg: SaleDetailsConfig;
+  beforeAreaSlot?: ReactNode;
   areaSlot?: ReactNode;
   afterAreaSlot?: ReactNode;
   maxFields?: AreaMaxFields;
@@ -524,6 +527,8 @@ export function SaleDetails({
 
   return (
     <div className="space-y-5 sm:space-y-6">
+      {beforeAreaSlot}
+
       {cfg.area === "plot-only" ? (
         <PlotLandAreaSection
           {...part}
@@ -581,6 +586,7 @@ export function SaleDetails({
           value={values.cabins}
           onChange={(value) => onChange("cabins", value)}
           moreOptions={numberOptions(8, 10)}
+          error={errors.cabins}
         />
       ) : null}
 

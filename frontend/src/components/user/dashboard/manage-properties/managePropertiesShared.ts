@@ -7,7 +7,10 @@ export type ManageListStatus = Extract<
   "draft" | "pending" | "published" | "rejected" | "closed"
 >;
 
-export const MANAGE_TABS: { status: ManageListStatus; label: string }[] = [
+export type ManageListFilter = ManageListStatus | "all";
+
+export const MANAGE_TABS: { status: ManageListFilter; label: string }[] = [
+  { status: "all", label: "All" },
   { status: "draft", label: "Draft" },
   { status: "pending", label: "In review" },
   { status: "published", label: "Published" },
@@ -16,9 +19,14 @@ export const MANAGE_TABS: { status: ManageListStatus; label: string }[] = [
 ];
 
 export const MANAGE_EMPTY_STATES: Record<
-  ManageListStatus,
+  ManageListFilter,
   { title: string; description: string; showPostCta: boolean }
 > = {
+  all: {
+    title: "No properties yet",
+    description: "Start a new post to add your first property. Every listing you create will show up here.",
+    showPostCta: true,
+  },
   draft: {
     title: "No draft properties",
     description: "Save a listing as a draft or start a new post. Drafts stay private until you submit them.",

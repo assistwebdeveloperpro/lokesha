@@ -3,7 +3,7 @@ import type { ProjectDetailsValues } from "@/components/master/post-property/pos
 import type { BuilderConfig } from "./builderConfig";
 
 export type BuilderFieldErrors = Partial<
-  Record<"projectType" | "assuredReturn", string>
+  Record<"projectType" | "assuredReturn" | "bhkAreas", string>
 >;
 
 export function validateBuilderProjectType(

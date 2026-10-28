@@ -189,7 +189,9 @@ const VARIANT_TYPE = {
     bhk: intRange(1, 10),
     bathrooms: intRange(1, 10),
     ...areaPair("carpetArea"),
+    carpetAreaMax: area,
     ...areaPair("superBuiltUpArea"),
+    superBuiltUpAreaMax: area,
   },
   commercial: {
     ...areaPair("carpetArea"),

@@ -452,8 +452,8 @@ describe("mapDetailToForm builder", () => {
       ["2 BHK", "Flat/Apartment", "sq ft"],
       ["6+ BHK", "Flat/Apartment", "Acres"],
     ]);
-    expect(restored.bhkCarParking["2 BHK"]).toEqual({ available: true, count: "1", clubMembership: true });
-    expect(restored.bhkCharges["2 BHK"].benefitsRemarks).toBe("Free parking");
+    expect(restored.bhkCarParking["2 BHK Flat/Apartment"]).toEqual({ available: true, count: "1", clubMembership: true });
+    expect(restored.bhkCharges["2 BHK Flat/Apartment"].benefitsRemarks).toBe("Free parking");
     expect(restored.projectHighlights.map((row) => row.text)).toEqual(["Near metro"]);
     expect(restored.primeLocationHighlights[0]).toMatchObject({ place: "Airport", distance: "5 km" });
     expect(restored.brochureImages[0]).toMatchObject({ id: "bi1", status: "uploaded", remote: { kind: "media" } });

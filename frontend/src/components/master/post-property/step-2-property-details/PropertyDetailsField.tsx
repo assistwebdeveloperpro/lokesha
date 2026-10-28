@@ -24,6 +24,11 @@ import {
   type CommonDetailSections,
 } from "@/components/shared/post-property/config/postPropertySaleConfig";
 import { getBuilderConfig } from "@/components/shared/post-property/builder/builderConfig";
+import BhkAreaDetailsField from "@/components/shared/post-property/builder/BhkAreaDetailsField";
+import {
+  getBhkAreaTabs,
+  validateBhkAreaDetails,
+} from "@/components/shared/post-property/builder/bhkAreaDetails";
 import {
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_TWO_COLUMN_GRID,
@@ -71,8 +76,10 @@ export default function PropertyDetailsField({
   builderLayout = false,
   hideAvailableSizes = false,
   hideCommon,
+  showBhkAreaErrors = false,
 }: {
   builderLayout?: boolean;
+  showBhkAreaErrors?: boolean;
   hideAvailableSizes?: boolean;
   hideCommon?: Partial<CommonDetailSections>;
   listingType: ListingTypeId;
@@ -128,6 +135,10 @@ export default function PropertyDetailsField({
         showUnitsAvailable={builderLayout}
       />
     ) : null;
+  const isBhkLayout = builderLayout && propertyType === "residential" && Boolean(builderConfig?.showBhk);
+  const bhkAreaTabs = builderLayout
+    ? getBhkAreaTabs(projectDetails, propertyType, subType[0] ?? "")
+    : [];
   const withBuilderSizes = (node: ReactNode) =>
     builderLayout && availableSizes ? (
       <div className="space-y-5 sm:space-y-6">
@@ -250,13 +261,41 @@ export default function PropertyDetailsField({
       </PostPropertyFieldSection>
   );
 
+  const hasAreaExtras =
+    saleConfig && (saleConfig.details.plotArea !== "hidden" || saleConfig.details.terraceArea);
+  const areaBlock =
+    bhkAreaTabs.length > 0 ? (
+      <>
+        <BhkAreaDetailsField
+          tabs={bhkAreaTabs}
+          values={projectDetails}
+          onChange={onProjectDetailsChange}
+          errors={validateBhkAreaDetails(projectDetails, bhkAreaTabs)}
+          showErrors={showBhkAreaErrors}
+        />
+        {saleConfig && hasAreaExtras ? (
+          <PostPropertyFieldSection
+            title="Additional Area Details"
+            description="Enter plot and terrace area"
+          >
+            <div className="space-y-5">
+              <AreaExtraFields {...part} cfg={saleConfig.details} maxFields={maxFields} />
+            </div>
+          </PostPropertyFieldSection>
+        ) : null}
+      </>
+    ) : (
+      areaSection
+    );
+
   if (saleConfig) {
     return (
       <SaleDetails
         {...part}
         cfg={saleConfig.details}
-        areaSlot={areaSection}
-        afterAreaSlot={availableSizes}
+        beforeAreaSlot={isBhkLayout ? availableSizes : undefined}
+        areaSlot={areaBlock}
+        afterAreaSlot={isBhkLayout ? undefined : availableSizes}
         maxFields={maxFields}
         hide={hideCommon}
       />
@@ -265,9 +304,11 @@ export default function PropertyDetailsField({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      {areaSection}
+      {isBhkLayout ? availableSizes : null}
 
-      {availableSizes}
+      {areaBlock}
+
+      {isBhkLayout ? null : availableSizes}
 
       {isRent || hideCommon?.transaction ? null : (
       <PostPropertyFieldSection

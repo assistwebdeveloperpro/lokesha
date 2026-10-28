@@ -1,13 +1,18 @@
-import type { ManageListStatus } from "./managePropertiesShared";
+import type { ManageListFilter } from "./managePropertiesShared";
 import { MANAGE_EMPTY_STATES } from "./managePropertiesShared";
-import { Archive, BadgeCheck, ClipboardList, FilePenLine, ShieldX } from "lucide-react";
+import { Archive, BadgeCheck, ClipboardList, FilePenLine, Home, ShieldX } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const EMPTY_STATE_VISUALS: Record<
-  ManageListStatus,
+  ManageListFilter,
   { icon: LucideIcon; iconWrap: string; iconColor: string }
 > = {
+  all: {
+    icon: Home,
+    iconWrap: "bg-sky-50",
+    iconColor: "text-sky-600",
+  },
   draft: {
     icon: FilePenLine,
     iconWrap: "bg-slate-100",
@@ -36,7 +41,7 @@ const EMPTY_STATE_VISUALS: Record<
 };
 
 type ManagePropertiesEmptyStateProps = {
-  status: ManageListStatus;
+  status: ManageListFilter;
 };
 
 export default function ManagePropertiesEmptyState({ status }: ManagePropertiesEmptyStateProps) {

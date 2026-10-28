@@ -2,13 +2,6 @@ import type { ReviewStatus } from "@/services/propertyReview.service";
 
 export const PAGE_SIZE = 12;
 
-export const REVIEW_TABS: { status: ReviewStatus; label: string }[] = [
-  { status: "pending", label: "In review" },
-  { status: "published", label: "Published" },
-  { status: "rejected", label: "Rejected" },
-  { status: "closed", label: "Closed" },
-];
-
 export const REVIEW_EMPTY_STATES: Record<
   ReviewStatus,
   { title: string; description: string }

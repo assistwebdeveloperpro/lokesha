@@ -8,11 +8,17 @@ import {
   SUB_TYPES_BY_PROPERTY_TYPE,
   type PropertyTypeId,
 } from "@/components/shared/post-property/config/postPropertyForm.shared";
-import type { PropertyListingPayload, PropertyMediaFileDto } from "@/services/property.service";
-import { getReviewProperty, type ReviewDetailResponse } from "@/services/propertyReview.service";
+import {
+  getPropertyById,
+  type PropertyDetailResponse,
+  type PropertyListingPayload,
+  type PropertyMediaFileDto,
+} from "@/services/property.service";
 import { toDisplayEntries } from "./reviewPropertiesShared";
 
-type LoadResult = { id: string; detail: ReviewDetailResponse | null; error: string };
+type DetailOwner = { name: string; mobile: string };
+
+type LoadResult = { id: string; detail: PropertyDetailResponse | null; error: string };
 
 const LOAD_ERROR = "Unable to load this property. Please try again.";
 
@@ -34,7 +40,7 @@ function Section({ title, entries }: { title: string; entries: { label: string; 
   );
 }
 
-const getListingImages = (detail: ReviewDetailResponse, index: number) =>
+const getListingImages = (detail: PropertyDetailResponse, index: number) =>
   (detail.listingFiles?.[index]?.media ?? detail.media).filter((item) => item.mediaType === "image");
 
 const getSubTypeLabel = (propertyType: string, slug: string) =>
@@ -99,14 +105,16 @@ function SubTypeBlock({
   );
 }
 
-export default function ReviewDetailModal({ propertyId, onClose }: { propertyId: string; onClose: () => void }) {
+type ReviewDetailModalProps = { propertyId: string; owner?: DetailOwner; onClose: () => void };
+
+export default function ReviewDetailModal({ propertyId, owner, onClose }: ReviewDetailModalProps) {
   const [result, setResult] = useState<LoadResult | null>(null);
 
   useEffect(() => {
     const token = getAdminToken();
     let cancelled = false;
 
-    const request = token ? getReviewProperty(propertyId, token) : Promise.reject(new ApiError(LOAD_ERROR, 401));
+    const request = token ? getPropertyById(propertyId, token, "admin") : Promise.reject(new ApiError(LOAD_ERROR, 401));
     request
       .then((detail) => !cancelled && setResult({ id: propertyId, detail, error: "" }))
       .catch(() => !cancelled && setResult({ id: propertyId, detail: null, error: LOAD_ERROR }));
@@ -173,9 +181,11 @@ export default function ReviewDetailModal({ propertyId, onClose }: { propertyId:
             <h2 id="review-detail-heading" className="pr-8 text-lg font-bold text-slate-900">
               {detail.property.title}
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {detail.owner.name} · {detail.owner.mobile}
-            </p>
+            {owner ? (
+              <p className="mt-1 text-sm text-slate-500">
+                {owner.name} · {owner.mobile}
+              </p>
+            ) : null}
 
             {detail.property.rejectionReason ? (
               <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

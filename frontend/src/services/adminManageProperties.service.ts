@@ -3,7 +3,9 @@ import type { PropertyListItem, PropertyStatus } from "./property.service";
 
 export type ManageListedBy = { source: "admin" | "user"; role: string; name: string | null };
 
-export type ManageListItem = PropertyListItem & { listedBy: ManageListedBy };
+export type ManageOwner = { name: string; email: string | null; mobile: string };
+
+export type ManageListItem = PropertyListItem & { listedBy: ManageListedBy; owner: ManageOwner };
 
 export type ManageListQuery = {
   page?: number;

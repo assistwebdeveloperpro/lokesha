@@ -1,5 +1,5 @@
 export const authFormTitleClassName =
-  "font-display text-lg font-bold leading-snug tracking-tight text-slate-900 sm:text-xl";
+  "font-display text-xl font-bold leading-snug tracking-tight text-slate-900 sm:text-2xl";
 
 export const authFormDescriptionClassName =
   "mt-1.5 max-w-md text-sm leading-relaxed text-slate-600 sm:mt-2";

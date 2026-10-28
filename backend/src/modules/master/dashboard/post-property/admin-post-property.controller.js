@@ -41,7 +41,12 @@ const closeProperty = respond(async (req) => {
   return { message: "Property closed successfully", ...result };
 });
 
-const createFileUploader = (resolveKind) =>
+const deleteProperty = respond(async (req) => {
+  await service.deleteProperty(req.admin, req.params.id);
+  return { message: "Property deleted successfully" };
+});
+
+const createFileUploader =(resolveKind) =>
   respond(
     (req) =>
       service.addPropertyFile(req.admin, req.params.id, {
@@ -106,6 +111,7 @@ module.exports = {
   updateProperty,
   publishProperty,
   closeProperty,
+  deleteProperty,
   uploadPropertyMedia,
   uploadPropertyFloorPlan,
   deleteMedia,

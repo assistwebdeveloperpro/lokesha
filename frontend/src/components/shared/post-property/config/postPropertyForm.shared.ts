@@ -612,6 +612,7 @@ export type PropertyDetailsFieldErrors = Partial<
     | "possessionDate"
     | "bedrooms"
     | "balcony"
+    | "cabins"
     | "totalFloors"
     | "floorNumber"
     | "bathrooms",

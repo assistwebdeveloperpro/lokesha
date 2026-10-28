@@ -12,7 +12,7 @@ import {
   type PropertyListItem,
 } from "@/services/property.service";
 import { getToken } from "@/services/session";
-import { PAGE_SIZE, type ManageListStatus, type StatusAction } from "./managePropertiesShared";
+import { PAGE_SIZE, type ManageListFilter, type StatusAction } from "./managePropertiesShared";
 
 const LOAD_ERROR = "We could not load your properties. Please try again.";
 
@@ -26,12 +26,12 @@ function getErrorMessage(error: unknown) {
   return error instanceof ApiError ? (error.errors?.[0] ?? error.message) : "Something went wrong. Please try again.";
 }
 
-const DEFAULT_STATUS: ManageListStatus = "published";
+const DEFAULT_STATUS: ManageListFilter = "all";
 
 export function useManageProperties() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [status, setStatus] = useState<ManageListStatus>(DEFAULT_STATUS);
+  const [status, setStatus] = useState<ManageListFilter>(DEFAULT_STATUS);
   const [reloadToken, setReloadToken] = useState(0);
   const [properties, setProperties] = useState<PropertyListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -59,13 +59,16 @@ export function useManageProperties() {
   );
 
   const loadPage = useCallback(
-    async (page: number, listStatus: ManageListStatus) => {
+    async (page: number, listStatus: ManageListFilter) => {
       const token = getToken();
       if (!token) {
         router.push("/login");
         return null;
       }
-      return getMyProperties({ page, limit: PAGE_SIZE, status: listStatus }, token);
+      return getMyProperties(
+        { page, limit: PAGE_SIZE, status: listStatus === "all" ? undefined : listStatus },
+        token,
+      );
     },
     [router],
   );
@@ -103,7 +106,7 @@ export function useManageProperties() {
     };
   }, [status, reloadToken, loadPage, router]);
 
-  const changeStatus = (next: ManageListStatus) => {
+  const changeStatus = (next: ManageListFilter) => {
     if (next === status) return;
     setIsLoading(true);
     setStatus(next);
@@ -115,7 +118,7 @@ export function useManageProperties() {
   };
 
   const applyStatusChange = (id: string, nextStatus: PropertyListItem["status"]) => {
-    if (nextStatus !== status) {
+    if (status !== "all" && nextStatus !== status) {
       setProperties((current) => current.filter((item) => item.id !== id));
       setTotal((current) => Math.max(0, current - 1));
       return;
