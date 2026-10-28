@@ -11,12 +11,12 @@ import {
 import { getAdminToken } from "@/services/adminSession";
 import type { UserNotification } from "@/services/userNotifications.service";
 
-const MANAGE_PROPERTIES_PATH = "/backend/properties/manage-properties";
+const REVIEW_PROPERTIES_PATH = "/backend/properties/review-properties";
 const REVIEW_NOTIFICATION_TYPES = new Set(["property_submitted", "property_resubmitted"]);
 
 function getAdminReviewPropertyHref(notification: UserNotification) {
   if (!notification.propertyId || !REVIEW_NOTIFICATION_TYPES.has(notification.type)) return null;
-  return `${MANAGE_PROPERTIES_PATH}?property=${encodeURIComponent(notification.propertyId)}`;
+  return `${REVIEW_PROPERTIES_PATH}?property=${encodeURIComponent(notification.propertyId)}`;
 }
 
 // Defined once so the hook's effects do not restart on every render

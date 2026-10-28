@@ -33,6 +33,7 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
             hideBhk={!derived.builderConfig.showBhk}
             sizeUnits={derived.builderConfig.sizeUnits}
             showUnitsAvailable
+            error={draft.builderErrors.availableSizes}
           />
           {layout.commonDetailsCfg ? (
             <SaleCommonSections
@@ -93,6 +94,7 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
           onProjectDetailsChange={handlers.changeProjectDetails}
           builderLayout
           showBhkAreaErrors={showBhkAreaErrors}
+          availableSizesError={draft.builderErrors.availableSizes}
         />
       );
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { PAGE_SIZE, type ManageListStatus } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
 import { clearAdminSession, getAdminToken } from "@/services/adminSession";
@@ -30,8 +30,6 @@ type PropertyViewTarget = Pick<ManageListItem, "id"> & { owner?: ManageOwner };
 type UseManagePropertiesOptions = {
   source?: ManageListedBy["source"];
   initialStatus?: ListingStatusFilter;
-  focusPropertyId?: string | null;
-  onFocusPropertyOpened?: () => void;
 };
 
 const LOGIN_PATH = "/backend/login";
@@ -57,12 +55,7 @@ function toListQuery(
   };
 }
 
-export function useManageProperties({
-  source,
-  initialStatus = "published",
-  focusPropertyId = null,
-  onFocusPropertyOpened,
-}: UseManagePropertiesOptions = {}) {
+export function useManageProperties({ source, initialStatus = "published" }: UseManagePropertiesOptions = {}) {
   const router = useRouter();
   const { showToast } = useToast();
   const [filters, setFilters] = useState<ManagePropertyFilters>({
@@ -73,8 +66,9 @@ export function useManageProperties({
   const [reloadToken, setReloadToken] = useState(0);
   const [properties, setProperties] = useState<ManageListItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ManageListItem | null>(null);
@@ -83,8 +77,6 @@ export function useManageProperties({
     action: ListingModalAction;
   } | null>(null);
   const [viewing, setViewing] = useState<PropertyViewTarget | null>(null);
-  const nextPage = useRef(2);
-  const openedFocusPropertyId = useRef<string | null>(null);
 
   const expireSession = useCallback(() => {
     clearAdminSession();
@@ -110,13 +102,19 @@ export function useManageProperties({
     }
 
     let cancelled = false;
-    getManageProperties(toListQuery(1, filters, source), token)
+    let movedPage = false;
+    getManageProperties(toListQuery(page, filters, source), token)
       .then((response) => {
         if (cancelled) return;
+        const lastPage = Math.max(1, Math.ceil(response.total / PAGE_SIZE));
+        if (page > lastPage) {
+          movedPage = true;
+          setPage(lastPage);
+          return;
+        }
         setProperties(response.items);
         setTotal(response.total);
         setError("");
-        nextPage.current = 2;
       })
       .catch((failure: unknown) => {
         if (cancelled) return;
@@ -127,30 +125,21 @@ export function useManageProperties({
         setError(LOAD_ERROR);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (cancelled || movedPage) return;
+        setIsLoading(false);
+        setIsPageLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [filters, source, reloadToken, expireSession, router]);
-
-  useEffect(() => {
-    if (!focusPropertyId) {
-      openedFocusPropertyId.current = null;
-      return;
-    }
-    if (isLoading || openedFocusPropertyId.current === focusPropertyId) return;
-
-    openedFocusPropertyId.current = focusPropertyId;
-    const match = properties.find((item) => item.id === focusPropertyId);
-    setViewing({ id: focusPropertyId, owner: match?.owner });
-    onFocusPropertyOpened?.();
-  }, [focusPropertyId, isLoading, properties, onFocusPropertyOpened]);
+  }, [filters, source, page, reloadToken, expireSession, router]);
 
   const changeStatus = (next: ListingStatusFilter) => {
     if (next === filters.status) return;
     setIsLoading(true);
+    setIsPageLoading(false);
+    setPage(1);
     setFilters((current) => ({ ...current, status: next }));
   };
 
@@ -164,39 +153,38 @@ export function useManageProperties({
       return;
     }
     setIsLoading(true);
+    setIsPageLoading(false);
+    setPage(1);
     setFilters(normalized);
   };
 
   const reload = () => {
     setIsLoading(true);
+    setIsPageLoading(false);
     setReloadToken((current) => current + 1);
   };
 
-  const loadMore = async () => {
-    const token = getAdminToken();
-    if (!token || isLoadingMore) return;
-
-    setIsLoadingMore(true);
-    try {
-      const response = await getManageProperties(toListQuery(nextPage.current, filters, source), token);
-      // A status change meanwhile can shift pages, so duplicates are dropped
-      setProperties((current) => {
-        const known = new Set(current.map((item) => item.id));
-        return [...current, ...response.items.filter((item) => !known.has(item.id))];
-      });
-      setTotal(response.total);
-      nextPage.current += 1;
-    } catch (failure) {
-      handleFailure(failure);
-    } finally {
-      setIsLoadingMore(false);
-    }
+  const changePage = (next: number) => {
+    if (next === page || next < 1) return;
+    setIsPageLoading(true);
+    setPage(next);
   };
 
   // The changed listing leaves the current tab, which only shows one status
   const removeFromList = (id: string) => {
-    setProperties((current) => current.filter((item) => item.id !== id));
+    const remaining = properties.filter((item) => item.id !== id);
+    if (remaining.length === 0 && page > 1) {
+      setProperties(remaining);
+      setTotal((current) => Math.max(0, current - 1));
+      setIsPageLoading(true);
+      setPage(page - 1);
+      return;
+    }
+
+    setProperties(remaining);
     setTotal((current) => Math.max(0, current - 1));
+    setIsPageLoading(true);
+    setReloadToken((current) => current + 1);
   };
 
   const changeListingStatus = async (
@@ -262,15 +250,16 @@ export function useManageProperties({
     filters,
     properties,
     total,
+    page,
+    pageSize: PAGE_SIZE,
     isLoading,
-    isLoadingMore,
+    isPageLoading,
     error,
     busyId,
-    hasMore: properties.length < total,
     changeStatus,
     applyFilters,
     reload,
-    loadMore,
+    changePage,
     viewing,
     pendingDelete,
     pendingListingAction,

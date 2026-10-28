@@ -1,4 +1,71 @@
+import {
+  PROJECT_PHOTO_CATEGORY_IDS,
+  type PhotoCategoryId,
+} from "@/components/shared/post-property/config/postPropertyForm.shared";
+import type { PropertyDetailResponse, PropertyMediaFileDto } from "@/services/property.service";
 import type { ReviewStatus } from "@/services/propertyReview.service";
+
+export function getDetailListingFiles(detail: PropertyDetailResponse) {
+  return (
+    detail.listingFiles ?? [
+      { propertyId: detail.property.id, media: detail.media, floorPlans: detail.floorPlans },
+    ]
+  );
+}
+
+export function getProjectLevelImages(detail: PropertyDetailResponse, isMultiSubType: boolean) {
+  if (!isMultiSubType) return [];
+  const media = getDetailListingFiles(detail)[0]?.media ?? [];
+  return media.filter(
+    (item) =>
+      item.mediaType === "image" &&
+      PROJECT_PHOTO_CATEGORY_IDS.includes(item.category as PhotoCategoryId),
+  );
+}
+
+export function getMainPhotoImage(
+  detail: PropertyDetailResponse,
+  isMultiSubType: boolean,
+): PropertyMediaFileDto | null {
+  if (isMultiSubType) {
+    const projectImages = getProjectLevelImages(detail, true);
+    return projectImages.find((item) => item.category === "main-photo") ?? projectImages[0] ?? null;
+  }
+
+  const media = getDetailListingFiles(detail)[0]?.media ?? detail.media;
+  return (
+    media.find((item) => item.mediaType === "image" && item.category === "main-photo") ??
+    media.find((item) => item.mediaType === "image") ??
+    null
+  );
+}
+
+export function getSubTypeListingImages(
+  detail: PropertyDetailResponse,
+  index: number,
+  isMultiSubType: boolean,
+) {
+  const listingFiles = getDetailListingFiles(detail);
+  const media =
+    listingFiles[index]?.media ?? (index === 0 && !isMultiSubType ? detail.media : []);
+
+  return media.filter((item) => {
+    if (item.mediaType !== "image") return false;
+    if (isMultiSubType) {
+      return !PROJECT_PHOTO_CATEGORY_IDS.includes(item.category as PhotoCategoryId);
+    }
+    if (item.category === "main-photo") return false;
+    return true;
+  });
+}
+
+export function getSupplementalProjectImages(
+  detail: PropertyDetailResponse,
+  isMultiSubType: boolean,
+  mainPhoto: PropertyMediaFileDto | null,
+) {
+  return getProjectLevelImages(detail, isMultiSubType).filter((item) => item.id !== mainPhoto?.id);
+}
 
 export const PAGE_SIZE = 12;
 

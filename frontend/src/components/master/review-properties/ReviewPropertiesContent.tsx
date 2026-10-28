@@ -1,7 +1,10 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 import PropertyFilterGrid, { PropertyFilterEmpty } from "@/components/shared/ui/PropertyFilterGrid";
 import PropertyCardSkeleton from "@/components/user/dashboard/manage-properties/PropertyCardSkeleton";
+import { useHighlightProperty } from "@/components/master/manage-properties/useHighlightProperty";
 import ReviewDetailModal from "./ReviewDetailModal";
 import RejectPropertyModal from "./RejectPropertyModal";
 import ReviewPropertiesEmptyState from "./ReviewPropertiesEmptyState";
@@ -9,10 +12,35 @@ import ReviewPropertyCard from "./ReviewPropertyCard";
 import { useReviewProperties } from "./useReviewProperties";
 
 const SKELETON_COUNT = 6;
+const MANAGE_PROPERTIES_PATH = "/backend/properties/manage-properties";
 
 export default function ReviewPropertiesContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const focusPropertyId = searchParams.get("property");
+
   const review = useReviewProperties();
   const { properties, total, isLoading, error, busyId } = review;
+
+  // A property no longer pending has moved to manage properties
+  const handleFocusResolved = useCallback(
+    (isListed: boolean) => {
+      if (isListed) {
+        router.replace(pathname);
+        return;
+      }
+      router.replace(`${MANAGE_PROPERTIES_PATH}?property=${encodeURIComponent(focusPropertyId ?? "")}`);
+    },
+    [focusPropertyId, pathname, router],
+  );
+
+  const highlightedId = useHighlightProperty({
+    focusId: focusPropertyId,
+    isLoading,
+    isListed: properties.some((item) => item.id === focusPropertyId),
+    onResolved: handleFocusResolved,
+  });
 
   return (
     <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
@@ -60,6 +88,7 @@ export default function ReviewPropertiesContent() {
                   key={property.id}
                   property={property}
                   isBusy={busyId === property.id}
+                  isHighlighted={highlightedId === property.id}
                   onView={review.viewProperty}
                   onApprove={review.approve}
                   onReject={review.requestReject}

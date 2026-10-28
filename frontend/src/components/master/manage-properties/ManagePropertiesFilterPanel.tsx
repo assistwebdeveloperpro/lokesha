@@ -104,7 +104,7 @@ export default function ManagePropertiesFilterPanel({
           <button
             type="submit"
             disabled={isLoading}
-            className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 text-sm font-semibold text-white shadow-md shadow-sky-900/15 transition hover:bg-sky-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto lg:min-w-34"
+            className="bg-linear-to-r-navy-blue inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto lg:min-w-34"
           >
             <Filter className="h-4 w-4" aria-hidden />
             Filter

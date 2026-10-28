@@ -77,7 +77,9 @@ export default function PropertyDetailsField({
   hideAvailableSizes = false,
   hideCommon,
   showBhkAreaErrors = false,
+  availableSizesError,
 }: {
+  availableSizesError?: string;
   builderLayout?: boolean;
   showBhkAreaErrors?: boolean;
   hideAvailableSizes?: boolean;
@@ -133,6 +135,7 @@ export default function PropertyDetailsField({
         hideBhk={builderConfig ? !builderConfig.showBhk : false}
         sizeUnits={builderConfig?.sizeUnits}
         showUnitsAvailable={builderLayout}
+        error={availableSizesError}
       />
     ) : null;
   const isBhkLayout = builderLayout && propertyType === "residential" && Boolean(builderConfig?.showBhk);

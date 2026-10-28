@@ -156,11 +156,18 @@ export default function PhotosVideosField({
   subType,
   excludedCategoryIds = [],
   extraCategoryIds = [],
+  onlyCategoryIds,
+  title = "Upload Photos & Videos by Category",
+  description = "Select a room or area, then add photos and videos to help buyers explore your property",
   parts = "all",
   uploader,
 }: {
   // "photos" or "brochure" renders only that half, so the brochure can sit above sub type tabs
   parts?: "all" | "photos" | "brochure";
+  // Replaces the category list of the property type, in the given order
+  onlyCategoryIds?: PhotoCategoryId[];
+  title?: string;
+  description?: string;
   // With an uploader every file is sent to the server as soon as it is chosen
   uploader?: MediaUploader;
   excludedCategoryIds?: PhotoCategoryId[];
@@ -175,16 +182,20 @@ export default function PhotosVideosField({
   onRemoveExisting?: (mediaId: string) => void;
   existingBrochureName?: string | null;
 }) {
-  const categories = getPhotoCategories(propertyType, {
-    listingType,
-    subType,
-  })
-    .filter((category) => !excludedCategoryIds.includes(category.id))
-    .concat(
-      PHOTO_CATEGORY_OPTIONS.filter((category) =>
-        extraCategoryIds.includes(category.id),
-      ),
-    );
+  const categories = onlyCategoryIds
+    ? onlyCategoryIds.map(
+        (id) => PHOTO_CATEGORY_OPTIONS.find((category) => category.id === id)!,
+      )
+    : getPhotoCategories(propertyType, {
+        listingType,
+        subType,
+      })
+        .filter((category) => !excludedCategoryIds.includes(category.id))
+        .concat(
+          PHOTO_CATEGORY_OPTIONS.filter((category) =>
+            extraCategoryIds.includes(category.id),
+          ),
+        );
   const [activeCategory, setActiveCategory] = useState<PhotoCategoryId>(
     categories[0].id,
   );
@@ -232,22 +243,6 @@ export default function PhotosVideosField({
   const hasCategoryMedia = categoryMedia.length + categoryExistingMedia.length > 0;
   const showLowPhotosWarning =
     hasCategoryMedia && totalMediaCount < MIN_PHOTOS_FOR_WARNING;
-
-  useEffect(() => {
-    return () => {
-      const currentValues = latestValues.current;
-
-      PHOTO_CATEGORY_OPTIONS.forEach((category) => {
-        currentValues.mediaByCategory[category.id].forEach((media) => {
-          URL.revokeObjectURL(media.previewUrl);
-        });
-      });
-
-      if (currentValues.brochure) {
-        URL.revokeObjectURL(currentValues.brochure.previewUrl);
-      }
-    };
-  }, []);
 
   const validateMediaFiles = (files: File[]): { valid: File[]; error?: string } => {
     const remainingSlots = MAX_PROPERTY_MEDIA_COUNT - totalMediaCount;
@@ -401,9 +396,9 @@ export default function PhotosVideosField({
     <div className="space-y-5 sm:space-y-6">
       {parts === "brochure" ? null : (
       <PostPropertyFieldSection
-        title="Upload Photos & Videos by Category"
+        title={title}
         required={arePhotosRequired(propertyType, { listingType, subType })}
-        description="Select a room or area, then add photos and videos to help buyers explore your property"
+        description={description}
       >
         <div className="flex flex-wrap gap-2.5">
           {categories.map((category) => (

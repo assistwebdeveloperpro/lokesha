@@ -21,6 +21,7 @@ import {
 import { getBhkAreaErrorSubTypes, getBhkAreaTabs } from "../builder/bhkAreaDetails";
 import { getBuilderConfig, getMergedBuilderConfig } from "../builder/builderConfig";
 import {
+  validateAvailableSizes,
   validateBuilderPricing,
   validateBuilderProjectType,
   type BuilderFieldErrors,
@@ -84,6 +85,8 @@ const SUBMIT_AFTER_EDIT_STATUSES: PropertyStatus[] = ["draft", "rejected"];
 const ADMIN_SUBMIT_AFTER_EDIT_STATUSES: PropertyStatus[] = ["draft", "closed"];
 const SUBMITTED_MESSAGE = "Your property has been submitted for review.";
 const PUBLISHED_MESSAGE = "Your property has been published.";
+
+const CLEARED_SIZE_ERRORS: BuilderFieldErrors = { bhkAreas: undefined, availableSizes: undefined };
 
 type SaveMode = "submit" | "draft";
 const MISSING_PHOTOS_MESSAGE = "Please add at least one photo";
@@ -398,11 +401,13 @@ export function usePostPropertyForm() {
       showBuilderFields && getBhkAreaTabs(projectDetails, propertyType, propertySubType).length > 0,
     );
 
-  const validateBhkAreas = (): BuilderFieldErrors =>
-    showBuilderFields &&
+  const validateBhkAreas = (): BuilderFieldErrors => ({
+    ...(showBuilderFields && validateAvailableSizes(projectDetails, propertyType, propertySubTypes)),
+    ...(showBuilderFields &&
     getBhkAreaErrorSubTypes(projectDetails, propertyType, propertySubTypes).length > 0
       ? { bhkAreas: "Please complete the area details of every BHK" }
-      : {};
+      : {}),
+  });
 
   const validateSingleAmenities = () =>
     validateAmenities(amenities, propertyType, {
@@ -556,13 +561,18 @@ export function usePostPropertyForm() {
         ...validateBhkAreas(),
       };
 
-      if (hasTabErrors || projectErrors.projectType || projectErrors.bhkAreas) {
-        mergeBuilderErrors({ bhkAreas: undefined, ...projectErrors });
+      if (
+        hasTabErrors ||
+        projectErrors.projectType ||
+        projectErrors.bhkAreas ||
+        projectErrors.availableSizes
+      ) {
+        mergeBuilderErrors({ ...CLEARED_SIZE_ERRORS, ...projectErrors });
         requestInvalidFieldFocus();
         return;
       }
 
-      mergeBuilderErrors({ bhkAreas: undefined });
+      mergeBuilderErrors(CLEARED_SIZE_ERRORS);
       goToStep(3);
       return;
     }
@@ -572,15 +582,20 @@ export function usePostPropertyForm() {
       ? { ...validateBuilderProjectType(projectDetails, builderConfig), ...validateBhkAreas() }
       : {};
 
-    if (hasPropertyDetailsErrors(errors) || projectErrors.projectType || projectErrors.bhkAreas) {
+    if (
+      hasPropertyDetailsErrors(errors) ||
+      projectErrors.projectType ||
+      projectErrors.bhkAreas ||
+      projectErrors.availableSizes
+    ) {
       replaceErrors({ propertyDetailsErrors: errors });
-      mergeBuilderErrors({ bhkAreas: undefined, ...projectErrors });
+      mergeBuilderErrors({ ...CLEARED_SIZE_ERRORS, ...projectErrors });
       requestInvalidFieldFocus();
       return;
     }
 
     replaceErrors({ propertyDetailsErrors: {} });
-    mergeBuilderErrors({ bhkAreas: undefined });
+    mergeBuilderErrors(CLEARED_SIZE_ERRORS);
     goToStep(3);
   };
 

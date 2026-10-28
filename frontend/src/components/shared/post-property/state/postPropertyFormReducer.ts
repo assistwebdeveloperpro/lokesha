@@ -378,8 +378,8 @@ export function postPropertyReducer(
           action.value,
         ),
         builderErrors:
-          action.field === "projectType"
-            ? { ...state.builderErrors, projectType: undefined }
+          action.field === "projectType" || action.field === "availableSizes"
+            ? { ...state.builderErrors, [action.field]: undefined }
             : state.builderErrors,
       };
 

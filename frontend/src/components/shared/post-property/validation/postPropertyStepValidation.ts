@@ -41,7 +41,7 @@ export function resolveFirstInvalidStep({
   if (hasAddressLocationErrors(address)) {
     return 1;
   }
-  if (hasPropertyDetailsErrors(details) || tabs?.details || builder.projectType || builder.bhkAreas) {
+  if (hasPropertyDetailsErrors(details) || tabs?.details || builder.projectType || builder.bhkAreas || builder.availableSizes) {
     return 2;
   }
   if (hasAmenitiesErrors(amenities) || tabs?.amenities) {

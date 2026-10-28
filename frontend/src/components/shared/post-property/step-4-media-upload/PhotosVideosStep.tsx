@@ -1,6 +1,9 @@
 import { showsConstructionProgress } from "@/components/master/post-property/postPropertyProjectDetails";
 import { BuilderMediaBlocks } from "../builder/BuilderFormBlocks";
-import type { PhotoCategoryId } from "../config/postPropertyForm.shared";
+import {
+  PROJECT_PHOTO_CATEGORY_IDS,
+  type PhotoCategoryId,
+} from "../config/postPropertyForm.shared";
 import PostPropertyStepCard from "../components/PostPropertyStepCard";
 import SubTypeDetailsTabs from "../step-2-property-details/SubTypeDetailsTabs";
 import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
@@ -24,6 +27,9 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
     showsConstructionProgress(draft.projectDetails.projectType)
       ? ["construction-progress"]
       : undefined;
+
+  const isProjectCategory = (category?: string) =>
+    PROJECT_PHOTO_CATEGORY_IDS.includes(category as PhotoCategoryId);
 
   const renderPhotoFields = () => {
     if (showBuilderFields && isMultiSubType && layout.sharedPhotos) {
@@ -49,6 +55,22 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
       return (
         <>
           <PhotosVideosField
+            key={`${propertyType}-project`}
+            parts="photos"
+            title="Project Photos"
+            description="Main photo and photos that cover the entire project, shown for every sub type"
+            propertyType={propertyType}
+            listingType={listingType}
+            subType={subForms.firstTabId}
+            onlyCategoryIds={PROJECT_PHOTO_CATEGORY_IDS}
+            values={subForms.getPhotos(subForms.firstTabId)}
+            onChange={(next) => subForms.changePhotos(subForms.firstTabId, next)}
+            error={subForms.photosErrors[subForms.firstTabId]}
+            existingMedia={existingMedia.filter(({ category }) => isProjectCategory(category))}
+            onRemoveExisting={handlers.removeExistingMedia}
+            uploader={mediaUploader}
+          />
+          <PhotosVideosField
             key={`${propertyType}-brochure`}
             parts="brochure"
             propertyType={propertyType}
@@ -65,7 +87,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
             onActiveChange={subForms.setActiveId}
             errorIds={subForms.errorIds.photos}
             title="Photos for each sub type"
-            description="Open each tab and upload photos for that sub type."
+            description="Optionally open each tab and upload photos for that sub type."
           >
             <PhotosVideosField
               key={`${propertyType}-${activeTabId}`}
@@ -73,12 +95,24 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
               propertyType={propertyType}
               listingType={listingType}
               subType={activeTabId}
-              excludedCategoryIds={BUILDER_EXCLUDED_CATEGORY_IDS}
+              excludedCategoryIds={
+                activeTabId === subForms.firstTabId
+                  ? [...BUILDER_EXCLUDED_CATEGORY_IDS, ...PROJECT_PHOTO_CATEGORY_IDS]
+                  : BUILDER_EXCLUDED_CATEGORY_IDS
+              }
               extraCategoryIds={builderExtraCategoryIds}
               values={subForms.getPhotos(activeTabId)}
               onChange={(next) => subForms.changePhotos(activeTabId, next)}
-              error={subForms.photosErrors[activeTabId]}
-              existingMedia={activeTabId === subForms.firstTabId ? existingMedia : []}
+              error={
+                activeTabId === subForms.firstTabId
+                  ? undefined
+                  : subForms.photosErrors[activeTabId]
+              }
+              existingMedia={
+                activeTabId === subForms.firstTabId
+                  ? existingMedia.filter(({ category }) => !isProjectCategory(category))
+                  : []
+              }
               onRemoveExisting={handlers.removeExistingMedia}
               uploader={getMediaUploader(activeTabId)}
             />

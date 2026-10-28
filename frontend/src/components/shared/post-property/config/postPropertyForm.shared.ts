@@ -1315,6 +1315,13 @@ export const BUILDER_ONLY_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
 
 export type PhotoCategoryId = (typeof PHOTO_CATEGORY_OPTIONS)[number]["id"];
 
+// Photos of a multi sub type post that cover the whole project, main photo first
+export const PROJECT_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
+  "main-photo",
+  "exterior",
+  "master-plan",
+];
+
 const COMMERCIAL_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
   "washroom",
   "exterior",

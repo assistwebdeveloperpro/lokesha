@@ -3,8 +3,10 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import ListPagination from "@/components/shared/ui/ListPagination";
 import PropertyFilterGrid, { PropertyFilterEmpty } from "@/components/shared/ui/PropertyFilterGrid";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import PropertyCardSkeleton from "@/components/user/dashboard/manage-properties/PropertyCardSkeleton";
 import DeletePropertyModal from "@/components/user/dashboard/manage-properties/DeletePropertyModal";
 import ListingActionModal from "@/components/user/dashboard/manage-properties/ListingActionModal";
@@ -13,6 +15,7 @@ import ReviewDetailModal from "@/components/master/review-properties/ReviewDetai
 import ManagePropertiesEmptyState from "./ManagePropertiesEmptyState";
 import ManagePropertiesFilterPanel from "./ManagePropertiesFilterPanel";
 import ManagePropertyCard from "./ManagePropertyCard";
+import { useHighlightProperty } from "./useHighlightProperty";
 import { useManageProperties, type ListingStatusFilter } from "./useManageProperties";
 
 export const OUR_LISTING_TABS: { status: ListingStatusFilter; label: string }[] = [
@@ -60,29 +63,41 @@ export default function ManagePropertiesContent({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const focusPropertyId = searchParams.get("property");
 
-  const clearFocusPropertyParam = useCallback(() => {
-    if (!searchParams.has("property")) return;
-    const next = new URLSearchParams(searchParams.toString());
-    next.delete("property");
-    const query = next.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname);
-  }, [pathname, router, searchParams]);
+  const manage = useManageProperties({ source, initialStatus });
+  const { status, filters, properties, total, page, pageSize, isLoading, isPageLoading, error, busyId } = manage;
+  const listReplayKey = `${status}-${filters.projectName}-${filters.role}-${properties[0]?.id ?? "none"}`;
+  const resultsRef = useRef<HTMLElement>(null);
+  const previousPage = useRef(page);
 
-  const manage = useManageProperties({
-    source,
-    initialStatus,
-    focusPropertyId,
-    onFocusPropertyOpened: clearFocusPropertyParam,
+  useEffect(() => {
+    if (previousPage.current === page) return;
+    previousPage.current = page;
+    const node = resultsRef.current;
+    if (!node) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    node.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, [page]);
+
+  const handleFocusResolved = useCallback(
+    (isListed: boolean) => {
+      if (!isListed) showToast("We could not find that property in this list.", "error");
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete("property");
+      const query = next.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
+    },
+    [pathname, router, searchParams, showToast],
+  );
+
+  const highlightedId = useHighlightProperty({
+    focusId: focusPropertyId,
+    isLoading,
+    isListed: properties.some((item) => item.id === focusPropertyId),
+    onResolved: handleFocusResolved,
   });
-  const { status, filters, properties, total, isLoading, error, busyId } = manage;
-  const listReplayKey = `${status}-${filters.projectName}-${filters.role}`;
-
-  const closePropertyView = () => {
-    manage.closeView();
-    clearFocusPropertyParam();
-  };
 
   return (
     <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
@@ -140,10 +155,12 @@ export default function ManagePropertiesContent({
       )}
 
       <section
-        className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-4 sm:p-5"
+        ref={resultsRef}
+        className="mt-6 scroll-mt-4 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-4 sm:p-5"
         aria-live="polite"
+        aria-busy={isPageLoading || undefined}
       >
-        {isLoading ? (
+        {isLoading || (isPageLoading && properties.length === 0) ? (
           <PropertyFilterGrid replayKey={`${listReplayKey}-loading`} variant="skeleton" isBusy>
             {Array.from({ length: SKELETON_COUNT }, (_, index) => (
               <PropertyCardSkeleton key={index} />
@@ -168,40 +185,38 @@ export default function ManagePropertiesContent({
           </PropertyFilterEmpty>
         ) : (
           <>
-            <PropertyFilterGrid replayKey={`${listReplayKey}-list`}>
-              {properties.map((property) => (
-                <ManagePropertyCard
-                  key={property.id}
-                  property={property}
-                  isBusy={busyId === property.id}
-                  showSourceBadge={showSourceBadge}
-                  showOwnerDetails={showOwnerDetails}
-                  allowListingActions={allowListingActions}
-                  onView={manage.viewProperty}
-                  onPublish={manage.publish}
-                  onDelete={manage.requestDelete}
-                  onListingAction={manage.requestListingAction}
-                />
-              ))}
-            </PropertyFilterGrid>
-            {manage.hasMore ? (
-              <div className="mt-6 flex justify-center">
-                <button
-                  type="button"
-                  disabled={manage.isLoadingMore}
-                  onClick={manage.loadMore}
-                  className="min-h-10 cursor-pointer rounded-xl border border-navy-blue px-6 text-sm font-semibold text-navy-blue transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {manage.isLoadingMore ? "Loading..." : "Load more"}
-                </button>
-              </div>
-            ) : null}
+            <div className={isPageLoading ? "pointer-events-none opacity-60 transition-opacity" : "transition-opacity"}>
+              <PropertyFilterGrid replayKey={`${listReplayKey}-list`}>
+                {properties.map((property) => (
+                  <ManagePropertyCard
+                    key={property.id}
+                    property={property}
+                    isBusy={busyId === property.id}
+                    isHighlighted={highlightedId === property.id}
+                    showSourceBadge={showSourceBadge}
+                    showOwnerDetails={showOwnerDetails}
+                    allowListingActions={allowListingActions}
+                    onView={manage.viewProperty}
+                    onPublish={manage.publish}
+                    onDelete={manage.requestDelete}
+                    onListingAction={manage.requestListingAction}
+                  />
+                ))}
+              </PropertyFilterGrid>
+            </div>
+            <ListPagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              isDisabled={isPageLoading}
+              onPageChange={manage.changePage}
+            />
           </>
         )}
       </section>
 
       {manage.viewing ? (
-        <ReviewDetailModal propertyId={manage.viewing.id} owner={manage.viewing.owner} onClose={closePropertyView} />
+        <ReviewDetailModal propertyId={manage.viewing.id} owner={manage.viewing.owner} onClose={manage.closeView} />
       ) : null}
       {manage.pendingDelete ? (
         <DeletePropertyModal

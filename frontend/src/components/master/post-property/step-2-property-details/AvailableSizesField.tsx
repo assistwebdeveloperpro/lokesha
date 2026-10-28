@@ -28,7 +28,9 @@ export default function AvailableSizesField({
   hideBhk = false,
   sizeUnits = SIZE_UNIT_OPTIONS,
   showUnitsAvailable = false,
+  error,
 }: {
+  error?: string;
   hideBhk?: boolean;
   sizeUnits?: string[];
   showUnitsAvailable?: boolean;
@@ -176,6 +178,11 @@ export default function AvailableSizesField({
         >
           <Plus className="h-4 w-4" aria-hidden /> Add Size
         </button>
+        {error ? (
+          <p className="text-sm text-red-500" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     </PostPropertyFieldSection>
   );

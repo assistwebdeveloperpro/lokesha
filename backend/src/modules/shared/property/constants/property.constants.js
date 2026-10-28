@@ -146,7 +146,7 @@ const UPLOAD_MIME_TYPES = {
   },
 };
 
-const BACKEND_ROOT = path.resolve(__dirname, "../../../..");
+const BACKEND_ROOT = path.resolve(__dirname, "../../../../..");
 const STORAGE = {
   tempDraftsDir: path.join(BACKEND_ROOT, "storage", "temp", "drafts"),
   propertiesDir: path.join(BACKEND_ROOT, "uploads", "properties"),

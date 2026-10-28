@@ -441,15 +441,10 @@ export function useSubTypeForms({
           validatePricingOthers(getPricing(id), listingType, propertyType, id),
         ),
       ),
+    // Project wide photos live on the first tab, so one photo anywhere is enough
     photos: () => {
-      const result: Record<string, string> = {};
-      for (const tab of sharedPhotos ? tabs.slice(0, 1) : tabs) {
-        const message = getPhotosError(tab.id, getPhotos(tab.id));
-        if (message) {
-          result[tab.id] = message;
-        }
-      }
-      return result;
+      const message = getPhotosError(firstTabId, mergePhotos(tabs.map((tab) => getPhotos(tab.id))));
+      return message ? { [firstTabId]: message } : {};
     },
   };
 

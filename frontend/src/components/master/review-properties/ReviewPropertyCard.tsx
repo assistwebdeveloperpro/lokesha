@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, Check, Eye, Mail, Phone, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAssetUrl } from "@/services/apiClient";
 import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import type { ReviewListItem } from "@/services/propertyReview.service";
@@ -20,21 +20,35 @@ const buttonClassName =
 type ReviewPropertyCardProps = {
   property: ReviewListItem;
   isBusy: boolean;
+  isHighlighted?: boolean;
   onView: (property: ReviewListItem) => void;
   onApprove: (property: ReviewListItem) => void;
   onReject: (property: ReviewListItem) => void;
 };
 
-export default function ReviewPropertyCard({ property, isBusy, onView, onApprove, onReject }: ReviewPropertyCardProps) {
+export default function ReviewPropertyCard({
+  property,
+  isBusy,
+  isHighlighted = false,
+  onView,
+  onApprove,
+  onReject,
+}: ReviewPropertyCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
+  const cardRef = useRef<HTMLElement>(null);
   const showImage = property.mainImage && !hasImageError;
   const canDecide = property.status === "pending";
 
+  useEffect(() => {
+    if (isHighlighted) cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [isHighlighted]);
+
   return (
     <article
+      ref={cardRef}
       className={`group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,.08),0_4px_12px_rgba(15,23,42,.04)] transition hover:-translate-y-0.5 hover:border-slate-300/90 hover:shadow-lg ${
         isBusy ? "opacity-60" : ""
-      }`}
+      } ${isHighlighted ? "property-card-highlight" : ""}`}
       aria-busy={isBusy}
     >
       <div className="relative aspect-16/10 overflow-hidden bg-slate-100">

@@ -339,6 +339,22 @@ body:has(.post-property-page-bg) {
   animation: property-listing-empty-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+@keyframes property-highlight-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgb(14 165 233 / 0.9), 0 0 0 8px rgb(14 165 233 / 0.18), 0 12px 28px rgb(14 165 233 / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgb(14 165 233 / 0.9), 0 0 0 14px rgb(14 165 233 / 0), 0 12px 28px rgb(14 165 233 / 0.32);
+  }
+}
+
+.property-card-highlight {
+  border-color: rgb(14 165 233);
+  background-color: rgb(240 249 255);
+  animation: property-highlight-pulse 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .new-projects-badge {
     animation: none;
@@ -348,5 +364,10 @@ body:has(.post-property-page-bg) {
   .property-filter-grid > *,
   .property-filter-empty {
     animation: none;
+  }
+
+  .property-card-highlight {
+    animation: none;
+    box-shadow: 0 0 0 3px rgb(14 165 233 / 0.9), 0 0 0 8px rgb(14 165 233 / 0.18);
   }
 }

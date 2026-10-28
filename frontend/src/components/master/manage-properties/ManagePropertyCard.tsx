@@ -14,7 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ListingModalAction } from "@/components/user/dashboard/manage-properties/ListingActionModal";
 import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import {
@@ -66,6 +66,7 @@ const LISTING_ACTION_STYLES = {
 type ManagePropertyCardProps = {
   property: ManageListItem;
   isBusy: boolean;
+  isHighlighted?: boolean;
   showSourceBadge?: boolean;
   showOwnerDetails?: boolean;
   allowListingActions?: boolean;
@@ -78,6 +79,7 @@ type ManagePropertyCardProps = {
 export default function ManagePropertyCard({
   property,
   isBusy,
+  isHighlighted = false,
   showSourceBadge = true,
   showOwnerDetails = true,
   allowListingActions = true,
@@ -87,6 +89,7 @@ export default function ManagePropertyCard({
   onListingAction,
 }: ManagePropertyCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
+  const cardRef = useRef<HTMLElement>(null);
   const showImage = property.mainImage && !hasImageError;
   // Admins edit any listing but only publish and close the ones created by admins
   const isAdminListing = property.listedBy.source === "admin";
@@ -96,11 +99,16 @@ export default function ManagePropertyCard({
   const statusAction = canChangeListing ? getStatusAction(property.status) : null;
   const listingAction = statusAction === "close" || statusAction === "reopen" ? statusAction : null;
 
+  useEffect(() => {
+    if (isHighlighted) cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [isHighlighted]);
+
   return (
     <article
+      ref={cardRef}
       className={`group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,.08),0_4px_12px_rgba(15,23,42,.04)] transition hover:-translate-y-0.5 hover:border-slate-300/90 hover:shadow-lg ${
         isBusy ? "opacity-60" : ""
-      }`}
+      } ${isHighlighted ? "property-card-highlight" : ""}`}
       aria-busy={isBusy}
     >
       <div className="relative aspect-16/10 overflow-hidden bg-slate-100">
@@ -136,22 +144,21 @@ export default function ManagePropertyCard({
         <p className="truncate text-sm text-slate-500">{getSubtitle(property)}</p>
         <PropertyListPrice item={property} />
         <div className="mt-3 overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/80">
-          <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
             <span
-              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-sm font-bold tabular-nums text-navy-blue shadow-sm ring-1 ring-slate-200/80"
+              className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-sm font-bold tabular-nums text-navy-blue shadow-sm ring-1 ring-slate-200/80"
               aria-label={`Listing ID ${property.listingNumber}`}
             >
-              <Hash className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
-              {property.listingNumber}
+              <Hash className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+              <span className="truncate">{property.listingNumber}</span>
             </span>
             {showSourceBadge ? (
               <span
-                className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${
+                className={`max-w-full rounded-full px-2.5 py-1 text-xs font-semibold leading-snug wrap-break-word ${
                   isAdminListing
                     ? "bg-sky-100 text-navy-blue"
                     : "bg-white text-slate-600 ring-1 ring-slate-200/90"
                 }`}
-                title={listedByRole}
               >
                 {listedByRole}
               </span>
