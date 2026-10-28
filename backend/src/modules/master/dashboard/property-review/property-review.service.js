@@ -1,11 +1,11 @@
 const { db } = require("../../../../config/db");
 const reviewRepository = require("./property-review.repository");
-const readRepository = require("../../../landing/property/property-read.repository");
-const { buildPropertyDetail } = require("../../../landing/property/property-read.service");
-const { changeStatus } = require("../../../landing/property/property-status.service");
-const mapper = require("../../../landing/property/property.mapper");
-const { PROPERTY_TYPE_TO_DB } = require("../../../landing/property/property.constants");
-const { AppError } = require("../../../landing/property/property.errors");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
+const { buildPropertyDetail } = require("../../../shared/property/services/property-read.service");
+const { changeStatus } = require("../../../shared/property/services/property-status.service");
+const mapper = require("../../../shared/property/mappers/property.mapper");
+const { PROPERTY_TYPE_TO_DB } = require("../../../shared/property/constants/property.constants");
+const { AppError } = require("../../../shared/property/utils/property.errors");
 const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
 const notificationTemplates = require("../../../user/dashboard/user-notifications/user-notifications.templates");
 

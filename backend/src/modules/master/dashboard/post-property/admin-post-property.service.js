@@ -1,5 +1,5 @@
-const propertyService = require("../../../landing/property/property.service");
-const { getPropertyForAdmin } = require("../../../landing/property/property-read.service");
+const propertyService = require("../../../shared/property/services/property.service");
+const { getPropertyForAdmin } = require("../../../shared/property/services/property-read.service");
 
 const toCaller = (admin) => ({ adminId: admin.id, role: "admin" });
 

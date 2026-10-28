@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { uuidParamSchema } = require("../../../landing/property/property.validation");
+const { uuidParamSchema } = require("../../../shared/property/validation/property.validation");
 
 const MAX_PAGE_SIZE = 50;
 

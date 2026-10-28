@@ -1,5 +1,5 @@
 const { db } = require("../../../../config/db");
-const readRepository = require("../../../landing/property/property-read.repository");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
 const { MANAGE_STATUSES } = require("./manage-properties.validation");
 
 const SOURCE_FILTERS = {

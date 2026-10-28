@@ -1,7 +1,7 @@
 const manageRepository = require("./manage-properties.repository");
-const readRepository = require("../../../landing/property/property-read.repository");
-const mapper = require("../../../landing/property/property.mapper");
-const { PROPERTY_TYPE_TO_DB } = require("../../../landing/property/property.constants");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
+const mapper = require("../../../shared/property/mappers/property.mapper");
+const { PROPERTY_TYPE_TO_DB } = require("../../../shared/property/constants/property.constants");
 
 const toListedBy = (row) => ({
   source: row.admin_id ? "admin" : "user",

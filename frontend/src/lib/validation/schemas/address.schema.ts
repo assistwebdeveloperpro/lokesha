@@ -1,6 +1,6 @@
 import Joi from "../joi";
 
-// Mirrors addressSchema in backend/src/modules/landing/property/property.validation.js
+// Mirrors addressSchema in backend/src/modules/shared/property/validation/property.validation.js
 const PIN_CODE_PATTERN = /^\d{6}$/;
 
 type AddressSchemaOptions = { projectNameOptional?: boolean };

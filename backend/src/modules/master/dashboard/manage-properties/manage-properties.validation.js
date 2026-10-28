@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { STATUSES, LISTING_TYPES, PROPERTY_TYPES } = require("../../../landing/property/property.constants");
+const { STATUSES, LISTING_TYPES, PROPERTY_TYPES } = require("../../../shared/property/constants/property.constants");
 
 const MAX_PAGE_SIZE = 50;
 const MANAGE_STATUSES = ["published", "rejected", "closed"];

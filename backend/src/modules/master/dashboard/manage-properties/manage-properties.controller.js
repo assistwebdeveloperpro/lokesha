@@ -1,5 +1,5 @@
 const service = require("./manage-properties.service");
-const { handleError } = require("../../../landing/property/property.controller");
+const { handleError } = require("../../../shared/property/controllers/property.controller");
 
 async function listProperties(req, res) {
   try {

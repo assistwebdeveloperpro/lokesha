@@ -1,5 +1,5 @@
 const { db } = require("../../../../config/db");
-const readRepository = require("../../../landing/property/property-read.repository");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
 
 function applyFilters(query, { status, listingType, propertyType }) {
   query.where("p.status", status);

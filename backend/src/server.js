@@ -14,13 +14,14 @@ const userProfileRoutes = require("./modules/user/dashboard/user-profile/user-pr
 const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-messages/user-saved-messages.routes");
 const userNotificationsRoutes = require("./modules/user/dashboard/user-notifications/user-notifications.routes");
 const adminAuthRoutes =require("./modules/master/auth/admin-auth.routes");
-const propertyRoutes = require("./modules/landing/property/property.routes");
+const userManagePropertiesRoutes = require("./modules/user/dashboard/manage-properties/manage-properties.routes");
+const userPostPropertyRoutes = require("./modules/user/dashboard/post-property/user-post-property.routes");
 const adminPostPropertyRoutes = require("./modules/master/dashboard/post-property/admin-post-property.routes");
 const managePropertiesRoutes = require("./modules/master/dashboard/manage-properties/manage-properties.routes");
 const propertyReviewRoutes = require("./modules/master/dashboard/property-review/property-review.routes");
 const adminNotificationsRoutes = require("./modules/master/dashboard/admin-notifications/admin-notifications.routes");
-const { LIMITS } = require("./modules/landing/property/property.constants");
-const { scheduleDraftCleanup } = require("./modules/landing/property/property-cleanup.service");
+const { LIMITS } = require("./modules/shared/property/constants/property.constants");
+const { scheduleDraftCleanup } = require("./modules/shared/property/services/property-cleanup.service");
 
 const app = express();
 
@@ -46,7 +47,9 @@ app.use("/api/user/profile", userProfileRoutes);
 app.use("/api/user/saved-messages", userSavedMessagesRoutes);
 app.use("/api/user/notifications", userNotificationsRoutes);
 
-app.use("/api/property", propertyRoutes);
+// Manage-properties first so its static /me is never captured by post-property's /:id
+app.use("/api/property", userManagePropertiesRoutes);
+app.use("/api/property", userPostPropertyRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
 app.use("/api/master/post-property", adminPostPropertyRoutes);

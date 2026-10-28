@@ -1,7 +1,7 @@
 const express = require("express");
 const validate = require("../../../../middlewares/validate.middleware");
 const adminAuthMiddleware = require("../../../../middlewares/admin-auth.middleware");
-const { uuidParamSchema } = require("../../../landing/property/property.validation");
+const { uuidParamSchema } = require("../../../shared/property/validation/property.validation");
 const controller = require("./property-review.controller");
 const { reviewListQuerySchema, rejectSchema } = require("./property-review.validation");
 

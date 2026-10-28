@@ -3,17 +3,17 @@ const mockTrx = {};
 jest.mock("../../../../config/db", () => ({ db: { transaction: (callback) => callback(mockTrx) } }));
 jest.mock("./property-review.repository");
 jest.mock("../../../user/dashboard/user-notifications/user-notifications.repository");
-jest.mock("../../../landing/property/property-read.repository");
-jest.mock("../../../landing/property/property-read.service", () => ({ buildPropertyDetail: jest.fn() }));
-jest.mock("../../../landing/property/property-status.service", () => ({
+jest.mock("../../../shared/property/repositories/property-read.repository");
+jest.mock("../../../shared/property/services/property-read.service", () => ({ buildPropertyDetail: jest.fn() }));
+jest.mock("../../../shared/property/services/property-status.service", () => ({
   changeStatus: jest.fn(),
 }));
 
 const reviewRepository = require("./property-review.repository");
 const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
-const readRepository = require("../../../landing/property/property-read.repository");
-const { buildPropertyDetail } = require("../../../landing/property/property-read.service");
-const { changeStatus } = require("../../../landing/property/property-status.service");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
+const { buildPropertyDetail } = require("../../../shared/property/services/property-read.service");
+const { changeStatus } = require("../../../shared/property/services/property-status.service");
 const { listProperties, getProperty, approveProperty, rejectProperty } = require("./property-review.service");
 
 const admin = { id: "admin-1" };

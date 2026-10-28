@@ -34,7 +34,7 @@ const {
   LIMITS: PROPERTY_LIMITS,
   STORAGE: PROPERTY_STORAGE,
   UPLOAD_MIME_TYPES: PROPERTY_MIME_TYPES,
-} = require("../modules/landing/property/property.constants");
+} = require("../modules/shared/property/constants/property.constants");
 const { compressUploadedImage } = require("../utils/image-compress");
 
 const PROPERTY_MAX_FILE_BYTES = {

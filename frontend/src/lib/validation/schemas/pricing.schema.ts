@@ -1,6 +1,6 @@
 import Joi from "../joi";
 
-// Mirrors the pricing rules in backend/src/modules/landing/property/property.validation.js
+// Mirrors the pricing rules in backend/src/modules/shared/property/validation/property.validation.js
 export const MAX_AMOUNT = 99999999999999;
 export const MAX_NOTICE_PERIOD_MONTHS = 60;
 

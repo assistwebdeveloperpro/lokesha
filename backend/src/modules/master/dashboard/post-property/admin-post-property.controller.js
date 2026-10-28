@@ -1,5 +1,5 @@
 const service = require("./admin-post-property.service");
-const { handleError } = require("../../../landing/property/property.controller");
+const { handleError } = require("../../../shared/property/controllers/property.controller");
 
 const respond = (action, successStatus = 200) => async (req, res) => {
   try {

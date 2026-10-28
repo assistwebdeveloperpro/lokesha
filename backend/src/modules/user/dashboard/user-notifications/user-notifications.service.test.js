@@ -1,9 +1,9 @@
 jest.mock("../../../../config/db", () => ({ db: {} }));
 jest.mock("./user-notifications.repository");
-jest.mock("../../../landing/property/property-read.repository");
+jest.mock("../../../shared/property/repositories/property-read.repository");
 
 const repository = require("./user-notifications.repository");
-const readRepository = require("../../../landing/property/property-read.repository");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
 const { listNotifications, getUnreadCount, markAsRead } = require("./user-notifications.service");
 
 const row = (overrides = {}) => ({

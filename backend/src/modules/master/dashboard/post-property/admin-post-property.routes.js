@@ -11,7 +11,7 @@ const {
   assertPropertyExists,
   validateUploadedFile,
 } = require("../../../../middlewares/property.middleware");
-const propertyController = require("../../../landing/property/property.controller");
+const propertyController = require("../../../shared/property/controllers/property.controller");
 const controller = require("./admin-post-property.controller");
 const {
   uuidParamSchema,
@@ -26,7 +26,7 @@ const {
   amenityQuerySchema,
   fileKindQuerySchema,
   fileMetaSchema,
-} = require("../../../landing/property/property.validation");
+} = require("../../../shared/property/validation/property.validation");
 
 const { validateParams, validateQuery } = validate;
 

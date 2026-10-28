@@ -1,6 +1,6 @@
 const fs = require("fs/promises");
-const repository = require("../modules/landing/property/property.repository");
-const editRepository = require("../modules/landing/property/property-edit.repository");
+const repository = require("../modules/shared/property/repositories/property-draft.repository");
+const editRepository = require("../modules/shared/property/repositories/property-edit.repository");
 const { buildErrorResponse } = require("./validate.middleware");
 
 // Runs before multer so a file can never be written into another user's draft folder

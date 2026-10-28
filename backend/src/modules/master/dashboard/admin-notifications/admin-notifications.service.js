@@ -1,8 +1,8 @@
 const repository = require("./admin-notifications.repository");
 const templates = require("./admin-notifications.templates");
-const readRepository = require("../../../landing/property/property-read.repository");
-const { pickMainImage, groupBy } = require("../../../landing/property/property.mapper");
-const { AppError } = require("../../../landing/property/property.errors");
+const readRepository = require("../../../shared/property/repositories/property-read.repository");
+const { pickMainImage, groupBy } = require("../../../shared/property/mappers/property.mapper");
+const { AppError } = require("../../../shared/property/utils/property.errors");
 
 function toNotification(row, images) {
   return {
