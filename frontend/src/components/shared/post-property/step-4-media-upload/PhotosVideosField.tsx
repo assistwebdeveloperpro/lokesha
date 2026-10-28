@@ -264,7 +264,7 @@ export default function PhotosVideosField({
       if (!ACCEPTED_MEDIA_TYPES.includes(file.type)) {
         return {
           valid: [],
-          error: "Only jpg, jpeg, heic, png, and mp4 formats are allowed.",
+          error: "Only image files (jpg, png, webp, gif, avif, tiff, bmp, heic) and mp4 videos are allowed.",
         };
       }
 
@@ -474,8 +474,8 @@ export default function PhotosVideosField({
                 + Add Photos & Videos
               </p>
               <p className="mt-2 max-w-md text-sm font-medium text-slate-600">
-                Upload 50 photos & videos of max size 50 mb in format jpg, jpeg,
-                heic, png & mp4
+                Upload 50 photos & videos of max size 50 mb in format jpg, png,
+                webp, gif, avif, tiff, bmp, heic & mp4
               </p>
               <button
                 type="button"

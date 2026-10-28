@@ -1386,14 +1386,22 @@ export function arePhotosRequired(
 export const MAX_PROPERTY_MEDIA_COUNT = 50;
 export const MAX_PROPERTY_MEDIA_SIZE_BYTES = 50 * 1024 * 1024;
 export const MAX_BROCHURE_SIZE_BYTES = 100 * 1024 * 1024;
-export const ACCEPTED_MEDIA_TYPES = [
+export const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
   "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "image/tiff",
+  "image/bmp",
   "image/heic",
-  "video/mp4",
+  "image/heif",
 ];
-export const ACCEPTED_MEDIA_EXTENSIONS = ".jpg,.jpeg,.heic,.png,.mp4";
+export const ACCEPTED_IMAGE_EXTENSIONS =
+  ".jpg,.jpeg,.png,.webp,.gif,.avif,.tif,.tiff,.bmp,.heic,.heif";
+export const ACCEPTED_MEDIA_TYPES = [...ACCEPTED_IMAGE_TYPES, "video/mp4"];
+export const ACCEPTED_MEDIA_EXTENSIONS = `${ACCEPTED_IMAGE_EXTENSIONS},.mp4`;
 export const ACCEPTED_BROCHURE_TYPES = ["application/pdf"];
 export const ACCEPTED_BROCHURE_EXTENSIONS = ".pdf";
 export const MIN_PHOTOS_FOR_WARNING = 5;

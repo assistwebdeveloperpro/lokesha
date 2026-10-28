@@ -11,7 +11,7 @@ import {
 } from "@/components/master/post-property/postPropertyProjectDetails";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyInput from "../components/PostPropertyInput";
-import type { PropertyTypeId } from "../config/postPropertyForm.shared";
+import { ACCEPTED_IMAGE_EXTENSIONS, type PropertyTypeId } from "../config/postPropertyForm.shared";
 import type { MediaUploader } from "../utils/mediaUploader";
 import { MAX_PARALLEL_UPLOADS, runWithConcurrency } from "../utils/photosVideosValues";
 import { removeStoredFile, uploadItemFile, type UploadPatch } from "../utils/uploadItemFile";
@@ -122,7 +122,7 @@ function FloorPlanRowItem({
     <input
       ref={inputRef}
       type="file"
-      accept=".jpg,.jpeg,.png,.heic"
+      accept={ACCEPTED_IMAGE_EXTENSIONS}
       className="hidden"
       onChange={(event) => {
         const file = event.target.files?.[0];

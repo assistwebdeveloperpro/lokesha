@@ -35,6 +35,7 @@ const {
   STORAGE: PROPERTY_STORAGE,
   UPLOAD_MIME_TYPES: PROPERTY_MIME_TYPES,
 } = require("../modules/landing/property/property.constants");
+const { compressUploadedImage } = require("../utils/image-compress");
 
 const PROPERTY_MAX_FILE_BYTES = {
   media: PROPERTY_LIMITS.maxMediaBytes,
@@ -190,10 +191,17 @@ function createPropertyUploadHandler(resolveDestination, resolveKind) {
 
   // The kind is validated by the route before this runs
   return (req, res, next) => {
-    uploads[resolveKind(req)](req, res, (error) => {
+    uploads[resolveKind(req)](req, res, async (error) => {
       if (error) {
         const status = error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
         return res.status(status).json({ message: error.message || "File upload failed" });
+      }
+
+      try {
+        if (req.file) await compressUploadedImage(req.file);
+      } catch (compressError) {
+        // An uncompressed upload is still valid, so keep the original
+        console.error("Image compression failed:", compressError.message);
       }
       next();
     });

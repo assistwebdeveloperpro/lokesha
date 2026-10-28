@@ -3,6 +3,7 @@
 import { ImagePlus, Loader2, RotateCw, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
+import { ACCEPTED_IMAGE_EXTENSIONS } from "../config/postPropertyForm.shared";
 import {
   createRowId,
   type BrochureImage,
@@ -170,7 +171,7 @@ export default function BrochureImagesField({
         ref={inputRef}
         type="file"
         multiple
-        accept=".jpg,.jpeg,.png,.heic"
+        accept={ACCEPTED_IMAGE_EXTENSIONS}
         className="hidden"
         onChange={(event) => {
           if (event.target.files?.length) {

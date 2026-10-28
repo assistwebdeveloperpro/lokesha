@@ -120,17 +120,25 @@ const CLEANUP = {
   batchSize: 500,
 };
 
+const IMAGE_MIME_TYPES = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/avif": ".avif",
+  "image/tiff": ".tiff",
+  "image/bmp": ".bmp",
+  "image/heic": ".heic",
+  "image/heif": ".heif",
+};
+
 const UPLOAD_MIME_TYPES = {
   media: {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/heic": ".heic",
+    ...IMAGE_MIME_TYPES,
     "video/mp4": ".mp4",
   },
   "floor-plan": {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
+    ...IMAGE_MIME_TYPES,
     "application/pdf": ".pdf",
   },
   brochure: {
