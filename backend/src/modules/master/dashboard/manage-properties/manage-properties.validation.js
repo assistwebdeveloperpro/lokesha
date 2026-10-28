@@ -3,6 +3,7 @@ const { STATUSES, LISTING_TYPES, PROPERTY_TYPES } = require("../../../landing/pr
 
 const MAX_PAGE_SIZE = 50;
 const MANAGE_STATUSES = ["published", "rejected", "closed"];
+const LISTED_BY_ROLES = ["buyer_owner_tenant", "agent", "builder", "lokesha_staff", "admin"];
 
 const manageListQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
@@ -15,6 +16,8 @@ const manageListQuerySchema = Joi.object({
   listingType: Joi.string().valid(...LISTING_TYPES),
   propertyType: Joi.string().valid(...PROPERTY_TYPES),
   source: Joi.string().valid("admin", "user"),
+  projectName: Joi.string().trim().max(150).allow(""),
+  role: Joi.string().valid(...LISTED_BY_ROLES),
 });
 
 module.exports = { manageListQuerySchema, MANAGE_STATUSES };

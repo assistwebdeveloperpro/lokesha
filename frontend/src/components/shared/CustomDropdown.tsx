@@ -48,8 +48,13 @@ export default function CustomDropdown({
   menuClassName,
   accentColor = "sky",
 }: CustomDropdownProps) {
+  const isBoxed = variant === "boxed";
   const focusBorder =
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
+  const focusRing =
+    accentColor === "teal"
+      ? "focus:border-teal-500 focus:ring-teal-500/20"
+      : "focus:border-sky-500 focus:ring-sky-500/20";
   const underlineLabelClasses = prominentLabel
     ? blackText
       ? compactProminentLabel
@@ -84,6 +89,12 @@ export default function CustomDropdown({
       ? "border-red-500 focus:border-red-500"
       : `border-slate-300 ${focusBorder}`
   }`;
+  const boxedFieldClasses = `flex w-full min-h-11 items-center justify-between rounded-xl border bg-white px-3.5 py-2.5 text-left text-sm ${fieldTextColor} shadow-sm outline-none transition ${
+    hasError
+      ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+      : `border-slate-200/90 focus:ring-2 ${focusRing}`
+  }`;
+  const fieldClasses = isBoxed ? boxedFieldClasses : underlineFieldClasses;
 
   const handleSelect = (nextValue: string) => {
     if (!isControlled) {
@@ -161,13 +172,15 @@ export default function CustomDropdown({
   const hasLabel = Boolean(label);
   const accessibleLabel =
     ariaLabel ?? (typeof label === "string" ? label : undefined);
-  const fieldTopPadding = staticLabel
-    ? "pt-2"
-    : prominentLabel
-      ? "pt-7"
-      : hasLabel
-        ? "pt-6"
-        : "pt-2";
+  const fieldTopPadding = isBoxed
+    ? ""
+    : staticLabel
+      ? "pt-2"
+      : prominentLabel
+        ? "pt-7"
+        : hasLabel
+          ? "pt-6"
+          : "pt-2";
 
   return (
     <div className="w-full min-w-0">
@@ -189,15 +202,15 @@ export default function CustomDropdown({
           aria-expanded={isOpen}
           aria-invalid={hasError}
           onClick={() => setIsOpen((open) => !open)}
-          className={`${underlineFieldClasses} ${fieldTopPadding} cursor-pointer pr-6`}
+          className={`${fieldClasses} ${fieldTopPadding} relative cursor-pointer ${isBoxed ? "pr-10" : "pr-6"}`}
         >
           <span className={!selectedValue ? "text-slate-400" : fieldTextColor}>
             {selectedOption?.label ?? selectedOption?.value}
           </span>
           <ChevronDown
-            className={`pointer-events-none absolute right-0 bottom-3 h-4 w-4 text-slate-400 transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
+            className={`pointer-events-none absolute h-4 w-4 text-slate-400 transition-transform ${
+              isBoxed ? "right-3 top-1/2 -translate-y-1/2" : "right-0 bottom-3"
+            } ${isOpen ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>

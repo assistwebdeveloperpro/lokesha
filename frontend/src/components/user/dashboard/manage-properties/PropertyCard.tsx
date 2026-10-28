@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { getAssetUrl } from "@/services/apiClient";
 import type { PropertyListItem } from "@/services/property.service";
+import PropertyListPrice from "./PropertyListPrice";
 import PropertyRejectionNotice from "./PropertyRejectionNotice";
 import {
   STATUS_ACTION_LABELS,
   STATUS_BADGE_CLASSES,
   STATUS_LABELS,
   formatPostedDate,
-  formatPrice,
   getEditHref,
   getHeading,
   getListingLabel,
@@ -89,7 +89,7 @@ export default function PropertyCard({ property, isBusy, onDelete, onStatusActio
           {getHeading(property)}
         </h2>
         <p className="truncate text-sm text-slate-500">{getSubtitle(property)}</p>
-        <p className="mt-2 text-xl font-bold text-navy-blue">{formatPrice(property)}</p>
+        <PropertyListPrice item={property} />
         <p className="text-xs text-slate-400">
           Posted {formatPostedDate(property.createdAt)}
         </p>

@@ -16,12 +16,12 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import type { ListingModalAction } from "@/components/user/dashboard/manage-properties/ListingActionModal";
+import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import {
   STATUS_ACTION_LABELS,
   STATUS_BADGE_CLASSES,
   STATUS_LABELS,
   formatPostedDate,
-  formatPrice,
   getHeading,
   getListingLabel,
   getStatusAction,
@@ -37,6 +37,18 @@ const actionButtonClassName =
 
 const listingActionButtonClassName =
   "inline-flex min-h-11 w-full basis-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
+
+const ROLE_LABELS: Record<string, string> = {
+  buyer_owner_tenant: "Buyer",
+  agent: "Agent",
+  builder: "Builder",
+  lokesha_staff: "Lokesha Staff",
+  admin: "Admin",
+};
+
+function formatListedByRole(role: string) {
+  return ROLE_LABELS[role] ?? role.replaceAll("_", " ");
+}
 
 const LISTING_ACTION_STYLES = {
   close: {
@@ -78,6 +90,7 @@ export default function ManagePropertyCard({
   const showImage = property.mainImage && !hasImageError;
   // Admins edit any listing but only publish and close the ones created by admins
   const isAdminListing = property.listedBy.source === "admin";
+  const listedByRole = formatListedByRole(property.listedBy.role);
   const canChangeListing = isAdminListing && allowListingActions;
   const canPublish = canChangeListing && property.status === "draft";
   const statusAction = canChangeListing ? getStatusAction(property.status) : null;
@@ -121,7 +134,7 @@ export default function ManagePropertyCard({
           {getHeading(property)}
         </h2>
         <p className="truncate text-sm text-slate-500">{getSubtitle(property)}</p>
-        <p className="mt-2 text-xl font-bold text-navy-blue">{formatPrice(property)}</p>
+        <PropertyListPrice item={property} />
         <div className="mt-3 overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/80">
           <div className="flex items-center justify-between gap-2 px-3 py-2.5">
             <span
@@ -133,13 +146,14 @@ export default function ManagePropertyCard({
             </span>
             {showSourceBadge ? (
               <span
-                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${
                   isAdminListing
                     ? "bg-sky-100 text-navy-blue"
                     : "bg-white text-slate-600 ring-1 ring-slate-200/90"
                 }`}
+                title={listedByRole}
               >
-                {isAdminListing ? "Admin" : "User"}
+                {listedByRole}
               </span>
             ) : null}
           </div>

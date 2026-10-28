@@ -12,11 +12,18 @@ import {
   type ManageListQuery,
   type ManageOwner,
 } from "@/services/adminManageProperties.service";
+import type { ListedByRoleFilter } from "./managePropertiesFilterOptions";
 import { ApiError } from "@/services/apiClient";
 import { closeProperty, deleteProperty, submitProperty } from "@/services/property.service";
 import type { ListingModalAction } from "@/components/user/dashboard/manage-properties/ListingActionModal";
 
 export type ListingStatusFilter = ManageListStatus | "all";
+
+export type ManagePropertyFilters = {
+  projectName: string;
+  role: ListedByRoleFilter;
+  status: ListingStatusFilter;
+};
 
 type PropertyViewTarget = Pick<ManageListItem, "id"> & { owner?: ManageOwner };
 
@@ -34,12 +41,19 @@ function getErrorMessage(error: unknown) {
   return error instanceof ApiError ? (error.errors?.[0] ?? error.message) : "Something went wrong. Please try again.";
 }
 
-function toListQuery(page: number, status: ListingStatusFilter, source?: ManageListedBy["source"]): ManageListQuery {
+function toListQuery(
+  page: number,
+  filters: ManagePropertyFilters,
+  source?: ManageListedBy["source"],
+): ManageListQuery {
+  const projectName = filters.projectName.trim();
   return {
     page,
     limit: PAGE_SIZE,
-    ...(status === "all" ? {} : { status }),
+    ...(filters.status === "all" ? {} : { status: filters.status }),
     ...(source ? { source } : {}),
+    ...(projectName ? { projectName } : {}),
+    ...(filters.role ? { role: filters.role } : {}),
   };
 }
 
@@ -51,7 +65,11 @@ export function useManageProperties({
 }: UseManagePropertiesOptions = {}) {
   const router = useRouter();
   const { showToast } = useToast();
-  const [status, setStatus] = useState<ListingStatusFilter>(initialStatus);
+  const [filters, setFilters] = useState<ManagePropertyFilters>({
+    projectName: "",
+    role: "",
+    status: initialStatus,
+  });
   const [reloadToken, setReloadToken] = useState(0);
   const [properties, setProperties] = useState<ManageListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -92,7 +110,7 @@ export function useManageProperties({
     }
 
     let cancelled = false;
-    getManageProperties(toListQuery(1, status, source), token)
+    getManageProperties(toListQuery(1, filters, source), token)
       .then((response) => {
         if (cancelled) return;
         setProperties(response.items);
@@ -115,7 +133,7 @@ export function useManageProperties({
     return () => {
       cancelled = true;
     };
-  }, [status, source, reloadToken, expireSession, router]);
+  }, [filters, source, reloadToken, expireSession, router]);
 
   useEffect(() => {
     if (!focusPropertyId) {
@@ -131,9 +149,22 @@ export function useManageProperties({
   }, [focusPropertyId, isLoading, properties, onFocusPropertyOpened]);
 
   const changeStatus = (next: ListingStatusFilter) => {
-    if (next === status) return;
+    if (next === filters.status) return;
     setIsLoading(true);
-    setStatus(next);
+    setFilters((current) => ({ ...current, status: next }));
+  };
+
+  const applyFilters = (next: ManagePropertyFilters) => {
+    const normalized = { ...next, projectName: next.projectName.trim() };
+    if (
+      normalized.projectName === filters.projectName &&
+      normalized.role === filters.role &&
+      normalized.status === filters.status
+    ) {
+      return;
+    }
+    setIsLoading(true);
+    setFilters(normalized);
   };
 
   const reload = () => {
@@ -147,7 +178,7 @@ export function useManageProperties({
 
     setIsLoadingMore(true);
     try {
-      const response = await getManageProperties(toListQuery(nextPage.current, status, source), token);
+      const response = await getManageProperties(toListQuery(nextPage.current, filters, source), token);
       // A status change meanwhile can shift pages, so duplicates are dropped
       setProperties((current) => {
         const known = new Set(current.map((item) => item.id));
@@ -227,7 +258,8 @@ export function useManageProperties({
   };
 
   return {
-    status,
+    status: filters.status,
+    filters,
     properties,
     total,
     isLoading,
@@ -236,6 +268,7 @@ export function useManageProperties({
     busyId,
     hasMore: properties.length < total,
     changeStatus,
+    applyFilters,
     reload,
     loadMore,
     viewing,

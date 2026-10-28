@@ -11,6 +11,9 @@ export type ManageListQuery = {
   page?: number;
   limit?: number;
   status?: PropertyStatus;
+  source?: "admin" | "user";
+  projectName?: string;
+  role?: string;
 };
 
 export type ManageListResponse = {

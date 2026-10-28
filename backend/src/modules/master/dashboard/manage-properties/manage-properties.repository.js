@@ -7,12 +7,20 @@ const SOURCE_FILTERS = {
   user: (query) => query.whereNotNull("p.user_id"),
 };
 
-function applyFilters(query, { status, listingType, propertyType, source }) {
+function escapeIlikePattern(value) {
+  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+function applyFilters(query, { status, listingType, propertyType, source, projectName, role }) {
   if (status) query.where("p.status", status);
   else if (source !== "admin") query.whereIn("p.status", MANAGE_STATUSES);
   if (listingType) query.where("p.listing_type", listingType);
   if (propertyType) query.where("p.property_type", propertyType);
   if (source) SOURCE_FILTERS[source](query);
+  if (projectName) {
+    query.where("p.project_name", "ilike", `%${escapeIlikePattern(projectName)}%`);
+  }
+  if (role) query.where("p.listed_by", role);
   return query;
 }
 

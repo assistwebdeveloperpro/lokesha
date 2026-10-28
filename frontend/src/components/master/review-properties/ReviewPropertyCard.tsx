@@ -3,12 +3,12 @@
 import { Building2, Check, Eye, Mail, Phone, X } from "lucide-react";
 import { useState } from "react";
 import { getAssetUrl } from "@/services/apiClient";
+import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import type { ReviewListItem } from "@/services/propertyReview.service";
 import {
   STATUS_BADGE_CLASSES,
   STATUS_LABELS,
   formatPostedDate,
-  formatPrice,
   getHeading,
   getListingLabel,
   getSubtitle,
@@ -68,7 +68,7 @@ export default function ReviewPropertyCard({ property, isBusy, onView, onApprove
           {getHeading(property)}
         </h2>
         <p className="truncate text-sm text-slate-500">{getSubtitle(property)}</p>
-        <p className="mt-2 text-xl font-bold text-navy-blue">{formatPrice(property)}</p>
+        <PropertyListPrice item={property} />
         <p className="text-xs text-slate-400">Posted {formatPostedDate(property.createdAt)}</p>
 
         <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">

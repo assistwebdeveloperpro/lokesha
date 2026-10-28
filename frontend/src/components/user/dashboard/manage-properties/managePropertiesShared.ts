@@ -93,9 +93,20 @@ export const STATUS_ACTION_LABELS: Record<StatusAction, string> = {
 
 const priceFormatter = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 });
 
-type PriceFields = Pick<PropertyListItem, "price" | "listingType"> & Partial<Pick<PropertyListItem, "priceMin" | "priceMax">>;
+export type PropertyListPriceFields = Pick<PropertyListItem, "price" | "listingType"> &
+  Partial<Pick<PropertyListItem, "priceMin" | "priceMax">>;
 
-const formatAmount = (amount: number) => `₹${priceFormatter.format(amount)}`;
+type PriceFields = PropertyListPriceFields;
+
+export const formatPriceAmount = (amount: number) => `₹${priceFormatter.format(amount)}`;
+
+const formatAmount = formatPriceAmount;
+
+export function hasPropertyPriceRange(item: PriceFields): boolean {
+  const min = item.priceMin ?? item.price;
+  const max = item.priceMax ?? min;
+  return min != null && max != null && max !== min;
+}
 
 // Shows a min - max range when the sub types of one post are priced differently
 export function formatPrice(item: PriceFields): string {

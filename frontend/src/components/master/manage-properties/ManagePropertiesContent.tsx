@@ -11,6 +11,7 @@ import ListingActionModal from "@/components/user/dashboard/manage-properties/Li
 import { MANAGE_TABS } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
 import ReviewDetailModal from "@/components/master/review-properties/ReviewDetailModal";
 import ManagePropertiesEmptyState from "./ManagePropertiesEmptyState";
+import ManagePropertiesFilterPanel from "./ManagePropertiesFilterPanel";
 import ManagePropertyCard from "./ManagePropertyCard";
 import { useManageProperties, type ListingStatusFilter } from "./useManageProperties";
 
@@ -34,6 +35,7 @@ type ManagePropertiesContentProps = {
   source?: "admin";
   tabs?: { status: ListingStatusFilter; label: string }[];
   initialStatus?: ListingStatusFilter;
+  filterLayout?: "tabs" | "panel";
   showSourceBadge?: boolean;
   showOwnerDetails?: boolean;
   allowListingActions?: boolean;
@@ -49,6 +51,7 @@ export default function ManagePropertiesContent({
   source,
   tabs = MANAGE_TABS,
   initialStatus = "published",
+  filterLayout = "tabs",
   showSourceBadge = true,
   showOwnerDetails = true,
   allowListingActions = true,
@@ -73,7 +76,8 @@ export default function ManagePropertiesContent({
     focusPropertyId,
     onFocusPropertyOpened: clearFocusPropertyParam,
   });
-  const { status, properties, total, isLoading, error, busyId } = manage;
+  const { status, filters, properties, total, isLoading, error, busyId } = manage;
+  const listReplayKey = `${status}-${filters.projectName}-${filters.role}`;
 
   const closePropertyView = () => {
     manage.closeView();
@@ -101,38 +105,46 @@ export default function ManagePropertiesContent({
         </Link>
       </header>
 
-      <div
-        className="mt-5 flex w-full min-w-0 flex-nowrap gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/90 bg-slate-100/90 p-1.5 shadow-inner shadow-slate-200/40 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        role="tablist"
-        aria-label="Property status"
-      >
-        {tabs.map((tab) => {
-          const isSelected = status === tab.status;
-          return (
-            <button
-              key={tab.status}
-              type="button"
-              role="tab"
-              aria-selected={isSelected}
-              onClick={() => manage.changeStatus(tab.status)}
-              className={`min-h-10 shrink-0 cursor-pointer rounded-xl px-4 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                isSelected
-                  ? "bg-white text-navy-blue shadow-sm ring-1 ring-slate-200/90"
-                  : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {filterLayout === "panel" ? (
+        <ManagePropertiesFilterPanel
+          applied={filters}
+          onApply={manage.applyFilters}
+          isLoading={isLoading}
+        />
+      ) : (
+        <div
+          className="mt-5 flex w-full min-w-0 flex-nowrap gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/90 bg-slate-100/90 p-1.5 shadow-inner shadow-slate-200/40 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
+          role="tablist"
+          aria-label="Property status"
+        >
+          {tabs.map((tab) => {
+            const isSelected = status === tab.status;
+            return (
+              <button
+                key={tab.status}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                onClick={() => manage.changeStatus(tab.status)}
+                className={`min-h-10 shrink-0 cursor-pointer rounded-xl px-4 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                  isSelected
+                    ? "bg-white text-navy-blue shadow-sm ring-1 ring-slate-200/90"
+                    : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <section
         className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-4 sm:p-5"
         aria-live="polite"
       >
         {isLoading ? (
-          <PropertyFilterGrid replayKey={`${status}-loading`} variant="skeleton" isBusy>
+          <PropertyFilterGrid replayKey={`${listReplayKey}-loading`} variant="skeleton" isBusy>
             {Array.from({ length: SKELETON_COUNT }, (_, index) => (
               <PropertyCardSkeleton key={index} />
             ))}
@@ -151,12 +163,12 @@ export default function ManagePropertiesContent({
             </button>
           </div>
         ) : properties.length === 0 ? (
-          <PropertyFilterEmpty replayKey={`${status}-empty`}>
+          <PropertyFilterEmpty replayKey={`${listReplayKey}-empty`}>
             <ManagePropertiesEmptyState status={status} scope={source === "admin" ? "admin" : "manage"} />
           </PropertyFilterEmpty>
         ) : (
           <>
-            <PropertyFilterGrid replayKey={`${status}-list`}>
+            <PropertyFilterGrid replayKey={`${listReplayKey}-list`}>
               {properties.map((property) => (
                 <ManagePropertyCard
                   key={property.id}
