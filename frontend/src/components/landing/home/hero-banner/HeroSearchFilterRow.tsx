@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type MouseEvent } from "react";
-import { ChevronDown, MapPin, Sparkles } from "lucide-react";
+import { ChevronDown, MapPin, Sparkles, X } from "lucide-react";
 import { HeroSearchHintsDropdown } from "./HeroSearchHintsDropdown";
 import {
   BAR_CONTROL,
@@ -24,6 +24,9 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
     setTransaction,
     searchText,
     setSearchText,
+    searchTags,
+    addSearchTag,
+    removeSearchTag,
     openDropdown,
     setOpenDropdown,
     propertySelectorLabel,
@@ -138,24 +141,60 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
             className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-600"
             aria-hidden
           />
-          <input
-            type="search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onFocus={() => {
-              setOpenDropdown(null);
-              setSearchHintsOpen(true);
-            }}
-            onBlur={() => setSearchHintsOpen(false)}
-            placeholder="Enter City, Locality or Project Name"
-            aria-expanded={searchHintsOpen}
-            aria-controls="hero-search-hints"
-            className={`${BAR_HEIGHT} w-full border-0 bg-white py-2 pl-10 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:bg-slate-50/50 focus-visible:outline-none ${
+          <div
+            className={`${BAR_HEIGHT} flex w-full items-center gap-1.5 overflow-x-auto bg-white py-2 pl-10 pr-3 scrollbar-none focus-within:bg-slate-50/50 ${
               isPg
                 ? "rounded-tl-lg rounded-tr-lg lg:rounded-tr-none lg:rounded-l-[7px]"
                 : ""
-            } ${FOCUS_RING}`}
-          />
+            }`}
+          >
+            {searchTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 py-1 pl-2.5 pr-1 text-xs font-semibold text-navy-blue"
+              >
+                {tag}
+                <button
+                  type="button"
+                  aria-label={`Remove ${tag}`}
+                  onClick={() => removeSearchTag(tag)}
+                  className={`flex h-4 w-4 cursor-pointer items-center justify-center rounded-full hover:bg-sky-100 ${FOCUS_RING}`}
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
+              </span>
+            ))}
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSearchTag(searchText);
+                } else if (
+                  e.key === "Backspace" &&
+                  !searchText &&
+                  searchTags.length > 0
+                ) {
+                  removeSearchTag(searchTags[searchTags.length - 1]);
+                }
+              }}
+              onFocus={() => {
+                setOpenDropdown(null);
+                setSearchHintsOpen(true);
+              }}
+              onBlur={() => setSearchHintsOpen(false)}
+              placeholder={
+                searchTags.length === 0
+                  ? "Enter City, Locality or Project Name"
+                  : "Add more"
+              }
+              aria-expanded={searchHintsOpen}
+              aria-controls="hero-search-hints"
+              className="h-full min-w-24 flex-1 border-0 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus-visible:outline-none"
+            />
+          </div>
           {searchHintsOpen && (
             <div id="hero-search-hints">
               <HeroSearchHintsDropdown />

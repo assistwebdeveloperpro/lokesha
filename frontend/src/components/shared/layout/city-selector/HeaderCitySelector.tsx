@@ -5,18 +5,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CitySelectorDropdown from "./CitySelectorDropdown";
 import {
   ALL_INDIA_LABEL,
-  CITY_STORAGE_KEY,
   DEFAULT_SELECTED_CITY,
+  readStoredCity,
+  storeCity,
 } from "./citySelector.shared";
 
 type HeaderCitySelectorProps = {
   variant?: "desktop" | "mobile";
 };
-
-function readStoredCity(): string {
-  if (typeof window === "undefined") return DEFAULT_SELECTED_CITY;
-  return window.localStorage.getItem(CITY_STORAGE_KEY) ?? DEFAULT_SELECTED_CITY;
-}
 
 export default function HeaderCitySelector({ variant = "desktop" }: HeaderCitySelectorProps) {
   const [selectedCity, setSelectedCity] = useState(DEFAULT_SELECTED_CITY);
@@ -32,7 +28,7 @@ export default function HeaderCitySelector({ variant = "desktop" }: HeaderCitySe
 
   const persistCity = useCallback((city: string) => {
     setSelectedCity(city);
-    window.localStorage.setItem(CITY_STORAGE_KEY, city);
+    storeCity(city);
   }, []);
 
   const close = useCallback(() => setOpen(false), []);

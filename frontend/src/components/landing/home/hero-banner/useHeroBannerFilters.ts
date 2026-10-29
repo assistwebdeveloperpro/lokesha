@@ -10,6 +10,8 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { ALL_INDIA_LABEL } from "@/components/shared/layout/city-selector/citySelector.shared";
+import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
 import {
   AREA_RANGE,
   CATEGORIES,
@@ -45,7 +47,10 @@ export function useHeroBannerFilters() {
   const transaction = transactionOptions.includes(selectedTransaction)
     ? selectedTransaction
     : "buy";
+  const headerCity = useHeaderCity();
+  const previousHeaderCityRef = useRef<string | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [searchTags, setSearchTags] = useState<string[]>([]);
   const [openDropdown, setOpenDropdown] = useState<SimpleDropdown | null>(
     null,
   );
@@ -114,6 +119,31 @@ export function useHeroBannerFilters() {
           ? "budget"
           : "area",
     );
+  }, []);
+
+  useEffect(() => {
+    const previous = previousHeaderCityRef.current;
+    previousHeaderCityRef.current = headerCity;
+    setSearchTags((prev) => {
+      const withoutPrevious = prev.filter((tag) => tag !== previous);
+      if (headerCity === ALL_INDIA_LABEL || withoutPrevious.includes(headerCity)) {
+        return withoutPrevious;
+      }
+      return [headerCity, ...withoutPrevious];
+    });
+  }, [headerCity]);
+
+  const addSearchTag = useCallback((value: string) => {
+    const tag = value.trim();
+    if (!tag) return;
+    setSearchTags((prev) =>
+      prev.some((t) => t.toLowerCase() === tag.toLowerCase()) ? prev : [...prev, tag],
+    );
+    setSearchText("");
+  }, []);
+
+  const removeSearchTag = useCallback((tag: string) => {
+    setSearchTags((prev) => prev.filter((t) => t !== tag));
   }, []);
 
   const handleCategorySelect = (category: PropertyCategory) => {
@@ -189,6 +219,9 @@ export function useHeroBannerFilters() {
     setTransaction,
     searchText,
     setSearchText,
+    searchTags,
+    addSearchTag,
+    removeSearchTag,
     openDropdown,
     setOpenDropdown,
     expandedSection,

@@ -4,6 +4,18 @@ export const ALL_INDIA_LABEL = "All India";
 
 export const DEFAULT_SELECTED_CITY = "Ahmedabad";
 
+export const CITY_CHANGE_EVENT = "lokesha-city-change";
+
+export function readStoredCity(): string {
+  if (typeof window === "undefined") return DEFAULT_SELECTED_CITY;
+  return window.localStorage.getItem(CITY_STORAGE_KEY) ?? DEFAULT_SELECTED_CITY;
+}
+
+export function storeCity(city: string): void {
+  window.localStorage.setItem(CITY_STORAGE_KEY, city);
+  window.dispatchEvent(new Event(CITY_CHANGE_EVENT));
+}
+
 export type PopularCity = {
   id: string;
   name: string;
