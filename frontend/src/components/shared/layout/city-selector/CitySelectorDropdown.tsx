@@ -17,7 +17,6 @@ import {
   getCityPanelPlacement,
   type CityPanelPlacement,
   type CitySelectorView,
-  type PopularCity,
 } from "./citySelector.shared";
 
 type CitySelectorDropdownProps = {
@@ -30,12 +29,6 @@ type CitySelectorDropdownProps = {
   onMouseEnter?: MouseEventHandler<HTMLDivElement>;
   onMouseLeave?: MouseEventHandler<HTMLDivElement>;
 };
-
-function filterPopularCities(query: string): PopularCity[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return POPULAR_CITIES;
-  return POPULAR_CITIES.filter((city) => city.name.toLowerCase().includes(q));
-}
 
 export default function CitySelectorDropdown({
   selectedCity,
@@ -52,7 +45,8 @@ export default function CitySelectorDropdown({
   const [placement, setPlacement] = useState<CityPanelPlacement | null>(null);
   const isMobile = variant === "mobile";
 
-  const popularMatches = useMemo(() => filterPopularCities(search), [search]);
+  const isSearching = search.trim().length > 0;
+  const showAllCities = view === "all" || isSearching;
   const allMatches = useMemo(() => filterIndianCities(search), [search]);
 
   useLayoutEffect(() => {
@@ -145,11 +139,11 @@ export default function CitySelectorDropdown({
           </div>
 
           <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${isMobile ? "px-3 py-3" : "px-4 py-4"}`}>
-            {view === "popular" ? (
+            {!showAllCities ? (
               <>
                 <h3 className="mb-3 text-sm font-bold text-slate-900">Popular cities</h3>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {popularMatches.map((city) => {
+                  {POPULAR_CITIES.map((city) => {
                     const isSelected = selectedCity === city.name;
                     return (
                       <button
@@ -176,13 +170,12 @@ export default function CitySelectorDropdown({
                     );
                   })}
                 </div>
-                {popularMatches.length === 0 && (
-                  <p className="py-6 text-center text-sm text-slate-500">No cities found</p>
-                )}
               </>
             ) : (
               <>
-                <h3 className="mb-3 text-sm font-bold text-slate-900">All cities</h3>
+                <h3 className="mb-3 text-sm font-bold text-slate-900">
+                  {isSearching ? "Search results" : "All cities"}
+                </h3>
                 <div className={`grid gap-x-6 gap-y-0.5 ${isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3"}`}>
                   {allMatches.map((city) => {
                     const isSelected = selectedCity === city;

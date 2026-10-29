@@ -52,6 +52,13 @@ export type PropertyCategory =
   | "plot"
   | "land";
 
+export type SearchTagKind = "city" | "locality" | "project";
+
+export type SearchTag = {
+  kind: SearchTagKind;
+  label: string;
+};
+
 export type TransactionType = "buy" | "rent" | "lease";
 
 export const TRANSACTION_LABELS: Record<TransactionType, string> = {

@@ -13,6 +13,7 @@ import {
   type SimpleDropdown,
 } from "./heroBanner.shared";
 import { HeroPropertyFilterPanel } from "./HeroPropertyFilterPanel";
+import { searchTagKey } from "./heroSearchTags";
 import type { HeroBannerFilters } from "./useHeroBannerFilters";
 
 type HeroSearchFilterRowProps = HeroBannerFilters;
@@ -23,10 +24,12 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
     transactionOptions,
     setTransaction,
     searchText,
-    setSearchText,
+    handleSearchTextChange,
     searchTags,
+    searchError,
     addSearchTag,
     removeSearchTag,
+    submitSearch,
     openDropdown,
     setOpenDropdown,
     propertySelectorLabel,
@@ -150,13 +153,13 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
           >
             {searchTags.map((tag) => (
               <span
-                key={tag}
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 py-1 pl-2.5 pr-1 text-xs font-semibold text-navy-blue"
+                key={searchTagKey(tag)}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 py-1 pl-2.5 pr-1 text-sm font-medium text-navy-blue"
               >
-                {tag}
+                {tag.label}
                 <button
                   type="button"
-                  aria-label={`Remove ${tag}`}
+                  aria-label={`Remove ${tag.label}`}
                   onClick={() => removeSearchTag(tag)}
                   className={`flex h-4 w-4 cursor-pointer items-center justify-center rounded-full hover:bg-sky-100 ${FOCUS_RING}`}
                 >
@@ -167,7 +170,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
             <input
               type="text"
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => handleSearchTextChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -192,6 +195,8 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               }
               aria-expanded={searchHintsOpen}
               aria-controls="hero-search-hints"
+              aria-invalid={searchError !== null}
+              aria-describedby={searchError ? "hero-search-error" : undefined}
               className="h-full min-w-24 flex-1 border-0 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus-visible:outline-none"
             />
           </div>
@@ -199,6 +204,15 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
             <div id="hero-search-hints">
               <HeroSearchHintsDropdown />
             </div>
+          )}
+          {searchError && !searchHintsOpen && (
+            <p
+              id="hero-search-error"
+              role="alert"
+              className="absolute left-0 top-full z-10 mt-1.5 text-xs font-semibold text-red-600"
+            >
+              {searchError}
+            </p>
           )}
         </div>
 
@@ -246,6 +260,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
 
         <button
           type="button"
+          onClick={submitSearch}
           className={`inline-flex ${BAR_HEIGHT} flex-1 items-center justify-center rounded-br-lg bg-linear-to-r-navy-blue px-6 text-sm font-bold uppercase tracking-wide text-white transition hover:opacity-95 hover:cursor-pointer sm:px-10 lg:flex-none lg:rounded-none lg:rounded-r-[7px] ${FOCUS_RING}`}
         >
           Search

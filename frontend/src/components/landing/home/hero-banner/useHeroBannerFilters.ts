@@ -10,8 +10,14 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { ALL_INDIA_LABEL } from "@/components/shared/layout/city-selector/citySelector.shared";
+import {
+  ALL_INDIA_LABEL,
+  storeCity,
+} from "@/components/shared/layout/city-selector/citySelector.shared";
 import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
+import { buildLandingUrl } from "@/lib/property-search-url/buildLandingUrl";
+import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
+import { SEARCH_ERROR_MESSAGE } from "@/lib/property-search-url/searchUrl.config";
 import {
   AREA_RANGE,
   CATEGORIES,
@@ -25,41 +31,62 @@ import {
   filterSectionsForCategory,
   type FilterSection,
   type PropertyCategory,
+  type SearchTag,
   type SimpleDropdown,
   type TransactionType,
 } from "./heroBanner.shared";
+import { buildHeroSearchCriteria } from "./heroSearchCriteria";
+import {
+  appendSearchTag,
+  createSearchTag,
+  searchTagKey,
+  syncHeaderCityTag,
+} from "./heroSearchTags";
 
 const defaultPropertyTypes = (category: PropertyCategory) =>
-  category === "residential" ? ["Flat/Apartment"] : [];
+  PROPERTY_TYPES[category as keyof typeof PROPERTY_TYPES] ?? [];
 
-export function useHeroBannerFilters() {
+const defaultExpandedSection = (category: PropertyCategory): FilterSection =>
+  category === "residential" || category === "pg-co-living" ? "budget" : "area";
+
+export type HeroBannerInitialSelection = {
+  initialCategory?: PropertyCategory;
+  initialCity?: string;
+  initialTransaction?: TransactionType;
+};
+
+export function useHeroBannerFilters({
+  initialCategory = "residential",
+  initialCity,
+  initialTransaction = "buy",
+}: HeroBannerInitialSelection = {}) {
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
 
   const [activeCategory, setActiveCategory] =
-    useState<PropertyCategory>("residential");
+    useState<PropertyCategory>(initialCategory);
   const transactionOptions =
     activeCategory === "commercial"
       ? COMMERCIAL_TRANSACTION_OPTIONS
       : DEFAULT_TRANSACTION_OPTIONS;
   const [selectedTransaction, setTransaction] =
-    useState<TransactionType>("buy");
+    useState<TransactionType>(initialTransaction);
   const transaction = transactionOptions.includes(selectedTransaction)
     ? selectedTransaction
     : "buy";
   const headerCity = useHeaderCity();
-  const previousHeaderCityRef = useRef<string | null>(null);
   const [searchText, setSearchText] = useState("");
-  const [searchTags, setSearchTags] = useState<string[]>([]);
+  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [openDropdown, setOpenDropdown] = useState<SimpleDropdown | null>(
     null,
   );
   const [expandedSection, setExpandedSection] = useState<FilterSection | null>(
-    "budget",
+    defaultExpandedSection(initialCategory),
   );
 
   const [selectedPropertyTypes, setSelectedPropertyTypes] = useState<string[]>(
-    defaultPropertyTypes("residential"),
+    defaultPropertyTypes(initialCategory),
   );
   const [selectedBedrooms, setSelectedBedrooms] = useState<string[]>([]);
   const [selectedConstruction, setSelectedConstruction] = useState<string[]>(
@@ -92,14 +119,17 @@ export function useHeroBannerFilters() {
     if (activeCategory === "pg-co-living") {
       return "Filters";
     }
-    if (selectedPropertyTypes.length === 0) {
+    if (
+      selectedPropertyTypes.length === 0 ||
+      selectedPropertyTypes.length === propertyTypeOptions.length
+    ) {
       return `All ${categoryPropertyLabel(activeCategory)}`;
     }
     if (selectedPropertyTypes.length === 1) {
       return selectedPropertyTypes[0];
     }
     return `${selectedPropertyTypes.length} types selected`;
-  }, [activeCategory, selectedPropertyTypes]);
+  }, [activeCategory, propertyTypeOptions, selectedPropertyTypes]);
 
   const resetFiltersForCategory = useCallback((category: PropertyCategory) => {
     setSelectedPropertyTypes(defaultPropertyTypes(category));
@@ -112,39 +142,80 @@ export function useHeroBannerFilters() {
     setPgBudgetMax(PG_BUDGET.max);
     setAreaMin(AREA_RANGE.min);
     setAreaMax(AREA_RANGE.max);
-    setExpandedSection(
-      category === "residential"
-        ? "budget"
-        : category === "pg-co-living"
-          ? "budget"
-          : "area",
-    );
+    setExpandedSection(defaultExpandedSection(category));
   }, []);
 
   useEffect(() => {
-    const previous = previousHeaderCityRef.current;
-    previousHeaderCityRef.current = headerCity;
-    setSearchTags((prev) => {
-      const withoutPrevious = prev.filter((tag) => tag !== previous);
-      if (headerCity === ALL_INDIA_LABEL || withoutPrevious.includes(headerCity)) {
-        return withoutPrevious;
-      }
-      return [headerCity, ...withoutPrevious];
+    if (initialCity) storeCity(initialCity);
+  }, [initialCity]);
+
+  useEffect(() => {
+    if (activeCategory === "new-projects") return;
+    const url = buildLandingUrl({
+      category: activeCategory,
+      cityName: headerCity === ALL_INDIA_LABEL ? null : headerCity,
+      transaction: activeCategory === "pg-co-living" ? null : transaction,
     });
+    window.history.replaceState(window.history.state, "", url);
+  }, [activeCategory, headerCity, transaction]);
+
+  useEffect(() => {
+    setSearchTags((prev) =>
+      syncHeaderCityTag(prev, headerCity === ALL_INDIA_LABEL ? null : headerCity),
+    );
   }, [headerCity]);
 
   const addSearchTag = useCallback((value: string) => {
-    const tag = value.trim();
+    const tag = createSearchTag(value);
     if (!tag) return;
-    setSearchTags((prev) =>
-      prev.some((t) => t.toLowerCase() === tag.toLowerCase()) ? prev : [...prev, tag],
-    );
+    setSearchTags((prev) => appendSearchTag(prev, tag));
     setSearchText("");
+    setSearchError(null);
   }, []);
 
-  const removeSearchTag = useCallback((tag: string) => {
-    setSearchTags((prev) => prev.filter((t) => t !== tag));
+  const removeSearchTag = useCallback((tag: SearchTag) => {
+    setSearchTags((prev) =>
+      prev.filter((item) => searchTagKey(item) !== searchTagKey(tag)),
+    );
   }, []);
+
+  const handleSearchTextChange = useCallback((value: string) => {
+    setSearchText(value);
+    setSearchError(null);
+  }, []);
+
+  const submitSearch = () => {
+    const pendingTag = createSearchTag(searchText);
+    const tags = pendingTag ? appendSearchTag(searchTags, pendingTag) : searchTags;
+
+    if (tags.length === 0) {
+      setSearchError(SEARCH_ERROR_MESSAGE);
+      return;
+    }
+
+    const criteria = buildHeroSearchCriteria({
+      category: activeCategory,
+      transaction,
+      searchTags: tags,
+      propertyTypeOptions,
+      selectedPropertyTypes,
+      selectedBedrooms,
+      selectedConstruction,
+      selectedOccupancy,
+      budgetMin,
+      budgetMax,
+      pgBudgetMin,
+      pgBudgetMax,
+      areaMin,
+      areaMax,
+    });
+    if (!criteria) return;
+
+    setSearchTags(tags);
+    setSearchText("");
+    setOpenDropdown(null);
+    router.push(buildSearchUrl(criteria));
+  };
 
   const handleCategorySelect = (category: PropertyCategory) => {
     const meta = CATEGORIES.find((c) => c.id === category);
@@ -218,10 +289,12 @@ export function useHeroBannerFilters() {
     transactionOptions,
     setTransaction,
     searchText,
-    setSearchText,
+    handleSearchTextChange,
     searchTags,
+    searchError,
     addSearchTag,
     removeSearchTag,
+    submitSearch,
     openDropdown,
     setOpenDropdown,
     expandedSection,

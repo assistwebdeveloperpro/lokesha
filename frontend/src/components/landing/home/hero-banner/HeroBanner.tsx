@@ -4,10 +4,13 @@ import { HeroCategoryTabs } from "./HeroCategoryTabs";
 import { HeroSearchFilterRow } from "./HeroSearchFilterRow";
 import { HeroTrustList } from "./HeroTrustList";
 import { HERO_DESCRIPTION } from "./heroBanner.shared";
-import { useHeroBannerFilters } from "./useHeroBannerFilters";
+import {
+  useHeroBannerFilters,
+  type HeroBannerInitialSelection,
+} from "./useHeroBannerFilters";
 
-export default function HeroBanner() {
-  const filters = useHeroBannerFilters();
+export default function HeroBanner(initialSelection: HeroBannerInitialSelection) {
+  const filters = useHeroBannerFilters(initialSelection);
   const { panelRef, activeCategory, heroTitle, handleCategorySelect } = filters;
 
   return (

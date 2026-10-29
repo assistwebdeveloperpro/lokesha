@@ -390,7 +390,7 @@ export default function Header() {
         </div>
 
         {/* Primary bar */}
-        <div className="bg-navy-blue shadow-md shadow-slate-950/10 py-1">
+        <div className="bg-linear-to-b-navy-blue shadow-md shadow-slate-950/10 py-1">
           <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-2 px-2 sm:gap-3 lg:px-4 sm:h-14 lg:h-13">
             {/* Mobile / tablet: hamburger + Home logo */}
             <div className="flex min-w-0 items-center gap-2 sm:gap-4 lg:hidden">
