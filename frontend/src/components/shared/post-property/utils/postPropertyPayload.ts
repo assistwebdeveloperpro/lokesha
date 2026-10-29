@@ -172,10 +172,15 @@ function buildDetails(
   });
 }
 
-function buildPlotDetails({ details }: ListingFormInput): PayloadFields {
+const isPlotOnlyArea = (propertyType: PropertyTypeId) => propertyType === "plot" || propertyType === "land";
+
+function buildPlotDetails({ details }: ListingFormInput, propertyType: PropertyTypeId): PayloadFields {
+  // Plot and land forms capture the plot area in the carpet area fields
+  const plotOnly = isPlotOnlyArea(propertyType);
+
   return compact({
-    plotArea: toNumber(details.plotAreaNumber),
-    plotAreaUnit: details.plotAreaType,
+    plotArea: toNumber(plotOnly ? details.carpetAreaNumber : details.plotAreaNumber),
+    plotAreaUnit: plotOnly ? details.carpetAreaType : details.plotAreaType,
     plotLength: toNumber(details.plotLengthNumber),
     plotLengthUnit: details.plotLengthType,
     plotBreadth: toNumber(details.plotBreadthNumber),
@@ -390,7 +395,7 @@ function buildListing(
       possessionDate: isRent ? undefined : toText(details.possessionDate),
     }),
     details: buildDetails(listing, isRent),
-    plotDetails: buildPlotDetails(listing),
+    plotDetails: buildPlotDetails(listing, propertyType),
     pricing: buildPricing(listing, isRent),
     selections: buildSelections(listing, isRent),
     amenities: {

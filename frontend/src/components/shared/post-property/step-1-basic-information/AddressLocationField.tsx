@@ -87,7 +87,7 @@ export default function AddressLocationField({
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           <PostPropertyInput
             id="addressLine2"
-            label="Address Line 2"
+            label="Address"
             variant="underline"
             prominentLabel
             compactProminentLabel

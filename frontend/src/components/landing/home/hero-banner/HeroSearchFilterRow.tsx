@@ -27,6 +27,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
     openDropdown,
     setOpenDropdown,
     propertySelectorLabel,
+    isPg,
   } = filters;
 
   const [searchHintsOpen, setSearchHintsOpen] = useState(false);
@@ -72,57 +73,61 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
   return (
     <div className="flex flex-col overflow-visible rounded-lg border border-slate-300 bg-white lg:flex-row lg:items-stretch">
       <div className="relative flex min-w-0 flex-1 flex-col overflow-visible lg:flex-row lg:items-stretch">
-        <div
-          className={`relative ${
-            openDropdown === "transaction" ? "z-50" : ""
-          }`}
-        >
-          <button
-            type="button"
-            aria-expanded={openDropdown === "transaction"}
-            aria-haspopup="listbox"
-            onClick={(event) => toggleDropdown(event, "transaction")}
-            className={`${BAR_CONTROL} rounded-tl-lg rounded-tr-lg lg:rounded-none lg:rounded-l-[7px] ${FOCUS_RING}`}
-          >
-            <span className="min-w-0 flex-1 truncate text-left">
-              {TRANSACTION_LABELS[transaction]}
-            </span>
-            <ChevronDown
-              className={chevronClass(openDropdown === "transaction")}
-              aria-hidden
-            />
-          </button>
-          {openDropdown === "transaction" && (
-            <ul
-              role="listbox"
-              className="absolute left-0 top-full z-50 mt-1 min-w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+        {!isPg && (
+          <>
+            <div
+              className={`relative ${
+                openDropdown === "transaction" ? "z-50" : ""
+              }`}
             >
-              {transactionOptions.map((option) => (
-                <li key={option}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={transaction === option}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setTransaction(option);
-                      setOpenDropdown(null);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-sm font-medium focus-visible:outline-none ${
-                      transaction === option
-                        ? MENU_ITEM_ACTIVE
-                        : MENU_ITEM_DEFAULT
-                    }`}
-                  >
-                    {TRANSACTION_LABELS[option]}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+              <button
+                type="button"
+                aria-expanded={openDropdown === "transaction"}
+                aria-haspopup="listbox"
+                onClick={(event) => toggleDropdown(event, "transaction")}
+                className={`${BAR_CONTROL} rounded-tl-lg rounded-tr-lg lg:rounded-none lg:rounded-l-[7px] ${FOCUS_RING}`}
+              >
+                <span className="min-w-0 flex-1 truncate text-left">
+                  {TRANSACTION_LABELS[transaction]}
+                </span>
+                <ChevronDown
+                  className={chevronClass(openDropdown === "transaction")}
+                  aria-hidden
+                />
+              </button>
+              {openDropdown === "transaction" && (
+                <ul
+                  role="listbox"
+                  className="absolute left-0 top-full z-50 mt-1 min-w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                >
+                  {transactionOptions.map((option) => (
+                    <li key={option}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={transaction === option}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setTransaction(option);
+                          setOpenDropdown(null);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-sm font-medium focus-visible:outline-none ${
+                          transaction === option
+                            ? MENU_ITEM_ACTIVE
+                            : MENU_ITEM_DEFAULT
+                        }`}
+                      >
+                        {TRANSACTION_LABELS[option]}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-        {segmentDivider}
+            {segmentDivider}
+          </>
+        )}
 
         <div
           className={`relative flex min-w-0 flex-1 items-stretch ${
@@ -145,7 +150,11 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
             placeholder="Enter City, Locality or Project Name"
             aria-expanded={searchHintsOpen}
             aria-controls="hero-search-hints"
-            className={`${BAR_HEIGHT} w-full border-0 bg-white py-2 pl-10 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:bg-slate-50/50 focus-visible:outline-none ${FOCUS_RING}`}
+            className={`${BAR_HEIGHT} w-full border-0 bg-white py-2 pl-10 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus-visible:bg-slate-50/50 focus-visible:outline-none ${
+              isPg
+                ? "rounded-tl-lg rounded-tr-lg lg:rounded-tr-none lg:rounded-l-[7px]"
+                : ""
+            } ${FOCUS_RING}`}
           />
           {searchHintsOpen && (
             <div id="hero-search-hints">

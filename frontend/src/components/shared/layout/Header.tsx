@@ -16,6 +16,7 @@ import {
   MAIN_NAV_ITEMS,
 } from "./header-data";
 import MobileSidebar from "@/components/shared/layout/MobileSidebar";
+import HeaderCitySelector from "@/components/shared/layout/city-selector/HeaderCitySelector";
 
 function FreeBadge({ className = "" }: { className?: string }) {
   return (
@@ -390,13 +391,13 @@ export default function Header() {
 
         {/* Primary bar */}
         <div className="bg-navy-blue shadow-md shadow-slate-950/10 py-1">
-          <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-3 px-2 lg:px-4 sm:h-14 lg:h-13">
+          <div className="mx-auto flex h-12 max-w-360 items-center justify-between gap-2 px-2 sm:gap-3 lg:px-4 sm:h-14 lg:h-13">
             {/* Mobile / tablet: hamburger + Home logo */}
-            <div className="flex items-center gap-3 lg:hidden">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-4 lg:hidden">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-white transition hover:bg-white/10"
+                className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-white transition hover:bg-white/10"
                 aria-label="Open menu"
                 aria-expanded={sidebarOpen}
                 aria-controls="mobile-sidebar"
@@ -404,28 +405,32 @@ export default function Header() {
                 <Menu className="h-5 w-5" />
               </button>
 
-              <Link href="/" className="flex items-center" aria-label="Lokesha home">
+              <Link href="/" className="flex shrink-0 items-center" aria-label="Lokesha home">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
                   <Home className="h-4 w-4 text-sky-300" aria-hidden />
                 </span>
               </Link>
+              <HeaderCitySelector variant="mobile" />
             </div>
 
-            {/* Desktop: logo */}
-            <Link
-              href="/"
-              className="group hidden items-center gap-2.5 transition-opacity hover:opacity-90 lg:flex"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
-                <Home className="h-4 w-4 text-sky-300" aria-hidden />
-              </span>
-              <span className="font-display text-2xl font-bold tracking-tight text-white">
-                Lokesha
-              </span>
-            </Link>
+            {/* Desktop: logo + city */}
+            <div className="hidden items-center gap-8 lg:flex">
+              <Link
+                href="/"
+                className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
+                  <Home className="h-4 w-4 text-sky-300" aria-hidden />
+                </span>
+                <span className="font-display text-2xl font-bold tracking-tight text-white">
+                  Lokesha
+                </span>
+              </Link>
+              <HeaderCitySelector />
+            </div>
 
             {/* Right actions */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex shrink-0 items-center gap-3 sm:gap-4">
               <div className="hidden lg:block">
                 <DesktopUserMenu
                   isLoggedIn={isLoggedIn}

@@ -129,16 +129,18 @@ function mapAddress(payload: PropertyPayload, description: string): AddressLocat
   };
 }
 
-function mapDetails(listing: PropertyListingPayload): PropertyDetailsValues {
+function mapDetails(listing: PropertyListingPayload, propertyType: PropertyTypeId): PropertyDetailsValues {
   const details: PayloadFields = listing.details ?? {};
   const plot: PayloadFields = listing.plotDetails ?? {};
+  // Plot and land forms capture the plot area in the carpet area fields
+  const plotOnly = propertyType === "plot" || propertyType === "land";
   const selections = listing.selections ?? {};
   const construction = listing.construction ?? {};
 
   return {
     ...INITIAL_PROPERTY_DETAILS,
-    carpetAreaNumber: text(details.carpetArea),
-    carpetAreaType: text(details.carpetAreaUnit) as PropertyDetailsValues["carpetAreaType"],
+    carpetAreaNumber: text(plotOnly ? plot.plotArea : details.carpetArea),
+    carpetAreaType: text(plotOnly ? plot.plotAreaUnit : details.carpetAreaUnit) as PropertyDetailsValues["carpetAreaType"],
     superBuildUpNumber: text(details.superBuiltUpArea),
     superBuildUpType: text(details.superBuiltUpAreaUnit) as PropertyDetailsValues["superBuildUpType"],
     propertyTransaction: text(details.propertyTransaction) as PropertyDetailsValues["propertyTransaction"],
@@ -181,8 +183,8 @@ function mapDetails(listing: PropertyListingPayload): PropertyDetailsValues {
     pgRules: selections.pgRule ?? [],
     entryTill: toEntryLabel(details.entryTill),
     foods: selections.food ?? [],
-    plotAreaNumber: text(plot.plotArea),
-    plotAreaType: text(plot.plotAreaUnit) as PropertyDetailsValues["plotAreaType"],
+    plotAreaNumber: plotOnly ? "" : text(plot.plotArea),
+    plotAreaType: (plotOnly ? "" : text(plot.plotAreaUnit)) as PropertyDetailsValues["plotAreaType"],
     terraceAreaNumber: text(details.terraceArea),
     terraceAreaType: text(details.terraceAreaUnit) as PropertyDetailsValues["terraceAreaType"],
     penthouseType: labelOf(PENTHOUSE_TYPE_OPTIONS, details.penthouseType),
@@ -477,7 +479,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
   const tabs: SubTypeFormsSnapshot = isMulti
     ? {
         activeId: listing.propertySubType,
-        details: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapDetails(item)])),
+        details: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapDetails(item, propertyType)])),
         areaMax: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapAreaMax(item)])),
         amenities: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapAmenities(item)])),
         pricing: Object.fromEntries(payload.listings.map((item) => [item.propertySubType, mapPricing(item)])),
@@ -499,7 +501,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
       // PG listings have no sub type picker
       propertySubTypes: payload.listings.map((item) => (propertyType === "pg-co-living" ? "" : item.propertySubType)),
       addressLocation: mapAddress(payload, listing.description),
-      propertyDetails: mapDetails(listing),
+      propertyDetails: mapDetails(listing, propertyType),
       amenities: mapAmenities(listing),
       pricingOthers: mapPricing(listing),
       photosVideos: photos,

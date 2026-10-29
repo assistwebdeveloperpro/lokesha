@@ -305,8 +305,8 @@ describe("buildPropertyPayload plots and land", () => {
           subType: "agriculture-land",
           details: {
             ...INITIAL_PROPERTY_DETAILS,
-            plotAreaNumber: "2",
-            plotAreaType: "acres",
+            carpetAreaNumber: "2",
+            carpetAreaType: "acres",
             plotLengthNumber: "100",
             plotLengthType: "sq-m",
             roadWidth: "12",

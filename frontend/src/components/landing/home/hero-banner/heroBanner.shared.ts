@@ -168,13 +168,13 @@ export const OCCUPANCY_OPTIONS = ["Single", "Double", "Triple", "Triple+"] as co
 
 export const TRUST_ITEMS = [
   "Personal Property Manager",
-  "Zero Brokerage",
+  "Easy Property Discovery",
   "Verified Property Listing",
 ] as const;
 
-export const RESIDENTIAL_BUDGET = { min: 500_000, max: 50_000_000_00 };
+export const RESIDENTIAL_BUDGET = { min: 500_000, max: 100_000_000 };
 export const DEFAULT_BUDGET = RESIDENTIAL_BUDGET;
-export const PG_BUDGET = { min: 1_000, max: 20_000 };
+export const PG_BUDGET = { min: 1_000, max: 100_000 };
 export const AREA_RANGE = { min: 100, max: 50_000 };
 
 export function formatBudget(value: number, isPg: boolean): string {
