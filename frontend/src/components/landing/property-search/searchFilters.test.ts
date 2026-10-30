@@ -17,7 +17,10 @@ const criteria: PropertySearchCriteria = {
   bedrooms: [3],
   propertyTypes: ["penthouse"],
   constructionStatuses: ["ready-to-move"],
+  saleTypes: [],
   occupancies: [],
+  genders: [],
+  postedBy: [],
   budgetMin: undefined,
   budgetMax: 30_000_000,
   page: 1,
@@ -102,7 +105,7 @@ describe("category specific chips and headings", () => {
     );
   });
 
-  it("labels pg occupancy and uses pg budget formatting", () => {
+  it("labels pg occupancy, gender and uses pg budget formatting", () => {
     const pg: PropertySearchCriteria = {
       ...criteria,
       transaction: "property-for-rent",
@@ -111,11 +114,13 @@ describe("category specific chips and headings", () => {
       propertyTypes: [],
       constructionStatuses: [],
       occupancies: ["triple-plus"],
+      genders: ["female"],
       budgetMin: 5_000,
       budgetMax: undefined,
     };
     const labels = getActiveFilterChips(pg).map((chip) => chip.label);
     expect(labels).toContain("Triple+");
+    expect(labels).toContain("Female");
     expect(labels).toContain("₹5,000 - ₹1,00,000");
     expect(buildSearchHeading(pg)).toBe(
       "PG/Co-living in Shyam Swastik, Bopal, Ahmedabad",

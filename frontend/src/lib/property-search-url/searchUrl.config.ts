@@ -30,6 +30,20 @@ export const isSearchableCombination = (
   category: CategorySlug,
 ) => CATEGORY_TRANSACTIONS[category].includes(transaction);
 
+// Single-segment, keyword-style paths used instead of /{transaction}/{category}.
+export const KEYWORD_SEARCH_PATHS = {
+  "pg-for-rent": { transaction: "property-for-rent", category: "pg-co-living" },
+  "plots-for-sale": { transaction: "property-for-sale", category: "plot" },
+  "plots-for-rent": { transaction: "property-for-rent", category: "plot" },
+  "land-for-sale": { transaction: "property-for-sale", category: "land" },
+  "land-for-rent": { transaction: "property-for-rent", category: "land" },
+} as const satisfies Record<
+  string,
+  { transaction: TransactionSlug; category: CategorySlug }
+>;
+
+export type KeywordSearchSlug = keyof typeof KEYWORD_SEARCH_PATHS;
+
 // These categories keep an empty `bedroom=` in the url.
 export const CATEGORIES_WITH_BEDROOM_PARAM: readonly CategorySlug[] = [
   "residential-real-estate",
@@ -39,15 +53,18 @@ export const CATEGORIES_WITH_BEDROOM_PARAM: readonly CategorySlug[] = [
 export const SEARCH_PARAM_KEYS = [
   "bedroom",
   "proptype",
-  "Locality",
-  "cityName",
-  "projectSocity",
-  "BudgetMin",
-  "BudgetMax",
-  "constructionStatus",
+  "locality",
+  "city-name",
+  "project-socity",
+  "min-price",
+  "max-price",
+  "construction-status",
   "occupancy",
-  "areaMin",
-  "areaMax",
+  "gender",
+  "posted-by",
+  "area-min",
+  "area-max",
+  "property-transaction",
   "page",
 ] as const;
 
@@ -56,7 +73,7 @@ export type SearchParamKey = (typeof SEARCH_PARAM_KEYS)[number];
 // Lowercase alias -> key; matching is case-insensitive.
 export const SEARCH_PARAM_ALIASES: Record<string, SearchParamKey> = {
   propertytype: "proptype",
-  project: "projectSocity",
+  project: "project-socity",
 };
 
 export const SEARCH_ERROR_MESSAGE = "Please enter a valid location or project";

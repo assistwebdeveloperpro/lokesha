@@ -13,7 +13,10 @@ const base: PropertySearchCriteria = {
   projects: [],
   bedrooms: [],
   constructionStatuses: [],
+  saleTypes: [],
   occupancies: [],
+  genders: [],
+  postedBy: [],
   page: 1,
 };
 
@@ -22,7 +25,7 @@ const PATH = "/property-for-sale/residential-real-estate";
 describe("buildSearchUrl (spec url-path-design.md)", () => {
   it("search without any search item beyond the city", () => {
     expect(buildSearchUrl({ ...base, cityName: "Ahmedabad" })).toBe(
-      `${PATH}?bedroom=&${TYPES_PARAM}&cityName=Ahmedabad`,
+      `${PATH}?bedroom=&${TYPES_PARAM}&city-name=Ahmedabad`,
     );
   });
 
@@ -30,14 +33,14 @@ describe("buildSearchUrl (spec url-path-design.md)", () => {
     expect(
       buildSearchUrl({ ...base, cityName: "Ahmedabad", projects: ["Shyam Swastik"] }),
     ).toBe(
-      `${PATH}?bedroom=&${TYPES_PARAM}&cityName=Ahmedabad&projectSocity=shyam-swastik`,
+      `${PATH}?bedroom=&${TYPES_PARAM}&city-name=Ahmedabad&project-socity=shyam-swastik`,
     );
   });
 
   it("locality only", () => {
     expect(
       buildSearchUrl({ ...base, cityName: "Ahmedabad", localities: ["Bopal"] }),
-    ).toBe(`${PATH}?bedroom=&${TYPES_PARAM}&Locality=Bopal&cityName=Ahmedabad`);
+    ).toBe(`${PATH}?bedroom=&${TYPES_PARAM}&locality=Bopal&city-name=Ahmedabad`);
   });
 
   it("project and locality", () => {
@@ -49,14 +52,14 @@ describe("buildSearchUrl (spec url-path-design.md)", () => {
         projects: ["Shyam Swastik"],
       }),
     ).toBe(
-      `${PATH}?bedroom=&${TYPES_PARAM}&Locality=Hathijan&cityName=Ahmedabad&projectSocity=shyam-swastik`,
+      `${PATH}?bedroom=&${TYPES_PARAM}&locality=Hathijan&city-name=Ahmedabad&project-socity=shyam-swastik`,
     );
   });
 
   it("bhk filter", () => {
     expect(
       buildSearchUrl({ ...base, cityName: "Gandhinagar", bedrooms: [3] }),
-    ).toBe(`${PATH}?bedroom=3&${TYPES_PARAM}&cityName=Gandhinagar`);
+    ).toBe(`${PATH}?bedroom=3&${TYPES_PARAM}&city-name=Gandhinagar`);
   });
 
   it("budget", () => {
@@ -69,7 +72,7 @@ describe("buildSearchUrl (spec url-path-design.md)", () => {
         budgetMax: 30_000_000,
       }),
     ).toBe(
-      `${PATH}?bedroom=3&${TYPES_PARAM}&cityName=Gandhinagar&BudgetMin=5-Lacs&BudgetMax=3-Crores`,
+      `${PATH}?bedroom=3&${TYPES_PARAM}&city-name=Gandhinagar&min-price=500000&max-price=30000000`,
     );
   });
 
@@ -83,7 +86,7 @@ describe("buildSearchUrl (spec url-path-design.md)", () => {
         budgetMax: 30_000_000,
       }),
     ).toBe(
-      `${PATH}?bedroom=&proptype=Flat-Apartment,Penthouse&cityName=Gandhinagar&BudgetMin=5-Lacs&BudgetMax=3-Crores`,
+      `${PATH}?bedroom=&proptype=Flat-Apartment,Penthouse&city-name=Gandhinagar&min-price=500000&max-price=30000000`,
     );
   });
 });
@@ -100,7 +103,7 @@ describe("buildSearchUrl extras", () => {
         propertyTypes: [],
         cityName: "Pune",
       }),
-    ).toBe("/property-for-sale/plot?cityName=Pune");
+    ).toBe("/plots-for-sale?city-name=Pune");
   });
 
   it("hyphenates multi-word cities and sorts bedrooms", () => {
@@ -111,7 +114,7 @@ describe("buildSearchUrl extras", () => {
         cityName: "Navi Mumbai",
         bedrooms: [4, 2, 2],
       }),
-    ).toBe(`${PATH}?bedroom=2,4&cityName=Navi-Mumbai`);
+    ).toBe(`${PATH}?bedroom=2,4&city-name=Navi-Mumbai`);
   });
 
   it("builds commercial lease with area", () => {
@@ -126,11 +129,11 @@ describe("buildSearchUrl extras", () => {
         areaMax: 5000,
       }),
     ).toBe(
-      "/property-for-lease/commercial-real-estate?proptype=Shop,Co-working-Space-Business-Centre&cityName=Pune&areaMin=500&areaMax=5000",
+      "/property-for-lease/commercial-real-estate?proptype=Shop,Co-working-Space-Business-Centre&city-name=Pune&area-min=500&area-max=5000",
     );
   });
 
-  it("builds pg search with occupancy and budget", () => {
+  it("builds pg search with occupancy, gender and budget", () => {
     expect(
       buildSearchUrl({
         ...base,
@@ -139,11 +142,12 @@ describe("buildSearchUrl extras", () => {
         propertyTypes: [],
         cityName: "Pune",
         occupancies: ["single", "triple-plus"],
+        genders: ["female", "both"],
         budgetMin: 5_000,
         budgetMax: 100_000,
       }),
     ).toBe(
-      "/property-for-rent/pg-co-living?cityName=Pune&BudgetMin=5000&BudgetMax=1-Lacs&occupancy=single,triple-plus",
+      "/pg-for-rent?city-name=Pune&min-price=5000&max-price=100000&occupancy=single,triple-plus&gender=female,both",
     );
   });
 
@@ -157,7 +161,7 @@ describe("buildSearchUrl extras", () => {
         page: 3,
       }),
     ).toBe(
-      "/property-for-rent/residential-real-estate?bedroom=&cityName=Pune&page=3",
+      "/property-for-rent/residential-real-estate?bedroom=&city-name=Pune&page=3",
     );
   });
 });

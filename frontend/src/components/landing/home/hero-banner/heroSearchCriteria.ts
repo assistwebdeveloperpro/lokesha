@@ -9,8 +9,10 @@ import {
   AREA_RANGE,
   CONSTRUCTION_OPTIONS,
   DEFAULT_BUDGET,
+  GENDER_OPTIONS,
   OCCUPANCY_OPTIONS,
   PG_BUDGET,
+  SALE_TYPE_OPTIONS,
   filterSectionsForCategory,
   type PropertyCategory,
   type SearchTag,
@@ -31,7 +33,9 @@ export type HeroSearchInput = {
   selectedPropertyTypes: string[];
   selectedBedrooms: string[];
   selectedConstruction: string[];
+  selectedSaleTypes: string[];
   selectedOccupancy: string[];
+  selectedGender: string[];
   budgetMin: number;
   budgetMax: number;
   pgBudgetMin: number;
@@ -103,9 +107,16 @@ export function buildHeroSearchCriteria(
     constructionStatuses: sections.includes("construction")
       ? selectedInOrder(CONSTRUCTION_OPTIONS, input.selectedConstruction).map(slugify)
       : [],
+    saleTypes: sections.includes("saleType")
+      ? selectedInOrder(SALE_TYPE_OPTIONS, input.selectedSaleTypes).map(slugify)
+      : [],
     occupancies: sections.includes("occupancy")
       ? selectedInOrder(OCCUPANCY_OPTIONS, input.selectedOccupancy).map(slugify)
       : [],
+    genders: sections.includes("gender")
+      ? selectedInOrder(GENDER_OPTIONS, input.selectedGender).map(slugify)
+      : [],
+    postedBy: [],
     budgetMin: budget.min,
     budgetMax: budget.max,
     areaMin: area.min,

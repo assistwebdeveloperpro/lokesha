@@ -1,6 +1,6 @@
 import { toUrlSegment } from "./slug";
 
-export const PROPERTY_DETAILS_BASE = "/propertyDetails";
+export const PROPERTY_DETAILS_BASE = "/property-details";
 
 const UUID_PATTERN =
   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";

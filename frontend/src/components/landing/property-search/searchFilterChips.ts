@@ -4,7 +4,10 @@ import {
   AREA_BOUNDS,
   BEDROOM_FILTER_OPTIONS,
   CONSTRUCTION_FILTER_OPTIONS,
+  GENDER_FILTER_OPTIONS,
   OCCUPANCY_FILTER_OPTIONS,
+  POSTED_BY_FILTER_OPTIONS,
+  SALE_TYPE_FILTER_OPTIONS,
   findOptionLabel,
   getCategoryFilters,
   includesValue,
@@ -85,11 +88,32 @@ export function getActiveFilterChips(
       },
     });
   }
+  for (const saleType of criteria.saleTypes ?? []) {
+    chips.push({
+      id: `saleType:${saleType}`,
+      label: findOptionLabel(SALE_TYPE_FILTER_OPTIONS, saleType),
+      clearPatch: { saleTypes: without(criteria.saleTypes, saleType) },
+    });
+  }
+  for (const role of criteria.postedBy ?? []) {
+    chips.push({
+      id: `postedBy:${role}`,
+      label: findOptionLabel(POSTED_BY_FILTER_OPTIONS, role),
+      clearPatch: { postedBy: without(criteria.postedBy, role) },
+    });
+  }
   for (const occupancy of criteria.occupancies) {
     chips.push({
       id: `occupancy:${occupancy}`,
       label: findOptionLabel(OCCUPANCY_FILTER_OPTIONS, occupancy),
       clearPatch: { occupancies: without(criteria.occupancies, occupancy) },
+    });
+  }
+  for (const gender of criteria.genders) {
+    chips.push({
+      id: `gender:${gender}`,
+      label: findOptionLabel(GENDER_FILTER_OPTIONS, gender),
+      clearPatch: { genders: without(criteria.genders, gender) },
     });
   }
   if (criteria.budgetMin !== undefined || criteria.budgetMax !== undefined) {
@@ -122,7 +146,10 @@ export const CLEAR_ALL_PATCH: Partial<PropertySearchCriteria> = {
   bedrooms: [],
   propertyTypes: [],
   constructionStatuses: [],
+  saleTypes: [],
   occupancies: [],
+  genders: [],
+  postedBy: [],
   budgetMin: undefined,
   budgetMax: undefined,
   areaMin: undefined,

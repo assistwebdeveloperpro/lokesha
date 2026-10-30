@@ -6,9 +6,11 @@ import {
   BEDROOM_OPTIONS,
   CONSTRUCTION_OPTIONS,
   DEFAULT_BUDGET,
+  GENDER_OPTIONS,
   OCCUPANCY_OPTIONS,
   PG_BUDGET,
   PROPERTY_TYPES,
+  SALE_TYPE_OPTIONS,
   filterSectionsForCategory,
   type FilterSection,
 } from "../home/hero-banner/heroBanner.shared";
@@ -49,7 +51,17 @@ export const BEDROOM_FILTER_OPTIONS: FilterOption<number>[] =
 
 export const CONSTRUCTION_FILTER_OPTIONS = toOptions(CONSTRUCTION_OPTIONS);
 
+export const SALE_TYPE_FILTER_OPTIONS = toOptions(SALE_TYPE_OPTIONS);
+
 export const OCCUPANCY_FILTER_OPTIONS = toOptions(OCCUPANCY_OPTIONS);
+
+export const GENDER_FILTER_OPTIONS = toOptions(GENDER_OPTIONS);
+
+export const POSTED_BY_FILTER_OPTIONS: FilterOption[] = [
+  { value: "buyer_owner_tenant", label: "Owner" },
+  { value: "agent", label: "Agent" },
+  { value: "builder", label: "Builder" },
+];
 
 export function getCategoryFilters(category: CategorySlug): CategoryFilters {
   const categoryId = CATEGORY_ID_BY_SLUG[category];

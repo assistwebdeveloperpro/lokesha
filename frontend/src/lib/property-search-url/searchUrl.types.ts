@@ -19,7 +19,10 @@ export type PropertySearchCriteria = {
   bedrooms: number[];
   propertyTypes: string[];
   constructionStatuses: string[];
+  saleTypes: string[];
   occupancies: string[];
+  genders: string[];
+  postedBy: string[];
   budgetMin?: number;
   budgetMax?: number;
   areaMin?: number;

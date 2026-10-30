@@ -74,8 +74,10 @@ export type FilterSection =
   | "bedroom"
   | "budget"
   | "construction"
+  | "saleType"
   | "area"
-  | "occupancy";
+  | "occupancy"
+  | "gender";
 
 export type SimpleDropdown = "transaction" | "property-panel";
 
@@ -171,7 +173,11 @@ export const CONSTRUCTION_OPTIONS = [
   "Pre Launch",
 ] as const;
 
+export const SALE_TYPE_OPTIONS = ["New", "Resale"] as const;
+
 export const OCCUPANCY_OPTIONS = ["Single", "Double", "Triple", "Triple+"] as const;
+
+export const GENDER_OPTIONS = ["Male", "Female", "Both"] as const;
 
 export const TRUST_ITEMS = [
   "Personal Property Manager",
@@ -220,11 +226,13 @@ export function filterSectionsForCategory(
 ): FilterSection[] {
   switch (category) {
     case "residential":
-      return ["bedroom", "budget", "construction"];
+      return ["bedroom", "budget", "saleType"];
     case "pg-co-living":
-      return ["budget", "occupancy"];
+      return ["budget", "occupancy", "gender"];
     case "commercial":
+      return ["budget", "area", "saleType"];
     case "plot":
+      return ["budget", "area", "saleType"];
     case "land":
       return ["budget", "area"];
     default:
@@ -240,10 +248,14 @@ export function filterSectionLabel(section: FilterSection): string {
       return "Budget";
     case "construction":
       return "Construction Status";
+    case "saleType":
+      return "Sale Type";
     case "area":
       return "Area (sq ft)";
     case "occupancy":
       return "Occupancy";
+    case "gender":
+      return "Gender";
   }
 }
 
@@ -251,7 +263,9 @@ export type FilterSelectionState = {
   isPg: boolean;
   selectedBedrooms: string[];
   selectedConstruction: string[];
+  selectedSaleTypes: string[];
   selectedOccupancy: string[];
+  selectedGender: string[];
   budgetMin: number;
   budgetMax: number;
   pgBudgetMin: number;
@@ -269,8 +283,12 @@ export function filterSectionHasSelection(
       return state.selectedBedrooms.length > 0;
     case "construction":
       return state.selectedConstruction.length > 0;
+    case "saleType":
+      return state.selectedSaleTypes.length > 0;
     case "occupancy":
       return state.selectedOccupancy.length > 0;
+    case "gender":
+      return state.selectedGender.length > 0;
     case "budget":
       if (state.isPg) {
         return (

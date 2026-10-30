@@ -1,14 +1,17 @@
-import { formatBudgetParam } from "./budgetParam";
+import { formatPostedByParam } from "./postedByParam";
 import {
   CATEGORIES_WITH_BEDROOM_PARAM,
+  KEYWORD_SEARCH_PATHS,
   SEARCH_PARAM_KEYS,
+  type KeywordSearchSlug,
   type SearchParamKey,
 } from "./searchUrl.config";
+import { normalizeSearchCriteria } from "./normalizeSearchCriteria";
 import type { PropertySearchCriteria } from "./searchUrl.types";
 import { slugify, toUrlSegment } from "./slug";
 
-const joinSegments = (segments: string[]) =>
-  segments.map(encodeURIComponent).join(",");
+const joinSegments = (segments: string[] | undefined) =>
+  (segments ?? []).map(encodeURIComponent).join(",");
 
 const formatOptional = (
   value: number | undefined,
@@ -24,21 +27,24 @@ function collectParamValues(
   return {
     bedroom: bedrooms.join(","),
     proptype: joinSegments(criteria.propertyTypes),
-    Locality: joinSegments(criteria.localities.map(toUrlSegment)),
-    cityName: cityName ? toUrlSegment(cityName) : undefined,
-    projectSocity: joinSegments(criteria.projects.map(slugify)),
-    BudgetMin: formatOptional(budgetMin, formatBudgetParam),
-    BudgetMax: formatOptional(budgetMax, formatBudgetParam),
-    constructionStatus: joinSegments(criteria.constructionStatuses),
+    locality: joinSegments(criteria.localities.map(toUrlSegment)),
+    "city-name": cityName ? toUrlSegment(cityName) : undefined,
+    "project-socity": joinSegments(criteria.projects.map(slugify)),
+    "min-price": formatOptional(budgetMin, String),
+    "max-price": formatOptional(budgetMax, String),
+    "construction-status": joinSegments(criteria.constructionStatuses),
     occupancy: joinSegments(criteria.occupancies),
-    areaMin: formatOptional(areaMin, String),
-    areaMax: formatOptional(areaMax, String),
+    gender: joinSegments(criteria.genders),
+    "posted-by": joinSegments(criteria.postedBy.map(formatPostedByParam)),
+    "area-min": formatOptional(areaMin, String),
+    "area-max": formatOptional(areaMax, String),
+    "property-transaction": joinSegments(criteria.saleTypes),
     page: criteria.page > 1 ? String(criteria.page) : undefined,
   };
 }
 
 export function buildSearchQuery(criteria: PropertySearchCriteria): string {
-  const values = collectParamValues(criteria);
+  const values = collectParamValues(normalizeSearchCriteria(criteria));
   const keepEmptyBedroom = CATEGORIES_WITH_BEDROOM_PARAM.includes(
     criteria.category,
   );
@@ -50,8 +56,22 @@ export function buildSearchQuery(criteria: PropertySearchCriteria): string {
     .join("&");
 }
 
+export function buildSearchPath({
+  transaction,
+  category,
+}: Pick<PropertySearchCriteria, "transaction" | "category">): string {
+  const keywordSlug = (
+    Object.keys(KEYWORD_SEARCH_PATHS) as KeywordSearchSlug[]
+  ).find(
+    (slug) =>
+      KEYWORD_SEARCH_PATHS[slug].transaction === transaction &&
+      KEYWORD_SEARCH_PATHS[slug].category === category,
+  );
+  return keywordSlug ? `/${keywordSlug}` : `/${transaction}/${category}`;
+}
+
 export function buildSearchUrl(criteria: PropertySearchCriteria): string {
-  const path = `/${criteria.transaction}/${criteria.category}`;
+  const path = buildSearchPath(criteria);
   const query = buildSearchQuery(criteria);
   return query ? `${path}?${query}` : path;
 }

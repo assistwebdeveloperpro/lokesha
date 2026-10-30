@@ -1,4 +1,4 @@
-import { buildSearchQuery, buildSearchUrl } from "./buildSearchUrl";
+import { buildSearchPath, buildSearchQuery, buildSearchUrl } from "./buildSearchUrl";
 import { parseSearchUrl } from "./parseSearchUrl";
 import type { SearchParamRecord } from "./searchUrl.types";
 
@@ -6,6 +6,8 @@ type CanonicalSearchUrlInput = {
   transaction: string;
   category: string;
   searchParams: SearchParamRecord;
+  // Requested path; defaults to the legacy /{transaction}/{category} form.
+  pathname?: string;
 };
 
 const toEntries = (record: Record<string, string>) =>
@@ -27,9 +29,9 @@ export function getCanonicalSearchRedirect(
   const criteria = parseSearchUrl(input);
   if (!criteria) return null;
 
-  const samePath =
-    input.transaction === criteria.transaction &&
-    input.category === criteria.category;
+  const requestedPath =
+    input.pathname ?? `/${input.transaction}/${input.category}`;
+  const samePath = requestedPath === buildSearchPath(criteria);
   const canonicalParams = normalizeParams(
     Object.fromEntries(new URLSearchParams(buildSearchQuery(criteria))),
   );

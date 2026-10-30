@@ -4,9 +4,11 @@ import {
   type SearchRouteProps,
 } from "@/components/landing/property-search/PropertySearchResultsPage";
 
+const ROUTE = { transaction: "property-for-lease" } as const;
+
 export const generateMetadata = (props: SearchRouteProps) =>
-  generateSearchMetadata("property-for-lease", props);
+  generateSearchMetadata(ROUTE, props);
 
 export default function PropertyForLeasePage(props: SearchRouteProps) {
-  return <PropertySearchResultsPage transaction="property-for-lease" {...props} />;
+  return <PropertySearchResultsPage route={ROUTE} {...props} />;
 }

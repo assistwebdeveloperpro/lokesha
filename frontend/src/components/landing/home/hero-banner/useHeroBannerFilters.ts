@@ -37,8 +37,11 @@ import {
 } from "./heroBanner.shared";
 import { buildHeroSearchCriteria } from "./heroSearchCriteria";
 import {
+  getSearchSuggestions,
+  resolveSearchTag,
+} from "./heroSearchSuggestions";
+import {
   appendSearchTag,
-  createSearchTag,
   searchTagKey,
   syncHeaderCityTag,
 } from "./heroSearchTags";
@@ -89,10 +92,10 @@ export function useHeroBannerFilters({
     defaultPropertyTypes(initialCategory),
   );
   const [selectedBedrooms, setSelectedBedrooms] = useState<string[]>([]);
-  const [selectedConstruction, setSelectedConstruction] = useState<string[]>(
-    [],
-  );
+  const [selectedConstruction, setSelectedConstruction] = useState<string[]>([]);
+  const [selectedSaleTypes, setSelectedSaleTypes] = useState<string[]>([]);
   const [selectedOccupancy, setSelectedOccupancy] = useState<string[]>([]);
+  const [selectedGender, setSelectedGender] = useState<string[]>([]);
 
   const [budgetMin, setBudgetMin] = useState(DEFAULT_BUDGET.min);
   const [budgetMax, setBudgetMax] = useState(DEFAULT_BUDGET.max);
@@ -135,7 +138,9 @@ export function useHeroBannerFilters({
     setSelectedPropertyTypes(defaultPropertyTypes(category));
     setSelectedBedrooms([]);
     setSelectedConstruction([]);
+    setSelectedSaleTypes([]);
     setSelectedOccupancy([]);
+    setSelectedGender([]);
     setBudgetMin(DEFAULT_BUDGET.min);
     setBudgetMax(DEFAULT_BUDGET.max);
     setPgBudgetMin(PG_BUDGET.min);
@@ -165,13 +170,31 @@ export function useHeroBannerFilters({
     );
   }, [headerCity]);
 
-  const addSearchTag = useCallback((value: string) => {
-    const tag = createSearchTag(value);
-    if (!tag) return;
+  const selectedCity =
+    searchTags.find((tag) => tag.kind === "city")?.label ?? null;
+
+  const searchSuggestions = useMemo(
+    () => getSearchSuggestions(searchText, selectedCity),
+    [searchText, selectedCity],
+  );
+
+  const addSearchTag = useCallback((tag: SearchTag) => {
     setSearchTags((prev) => appendSearchTag(prev, tag));
     setSearchText("");
     setSearchError(null);
   }, []);
+
+  const rejectSearchText = useCallback(() => {
+    setSearchText("");
+    setSearchError(SEARCH_ERROR_MESSAGE);
+  }, []);
+
+  const addTypedSearchTag = useCallback(() => {
+    if (!searchText.trim()) return;
+    const tag = resolveSearchTag(searchText, selectedCity);
+    if (tag) addSearchTag(tag);
+    else rejectSearchText();
+  }, [addSearchTag, rejectSearchText, searchText, selectedCity]);
 
   const removeSearchTag = useCallback((tag: SearchTag) => {
     setSearchTags((prev) =>
@@ -185,7 +208,11 @@ export function useHeroBannerFilters({
   }, []);
 
   const submitSearch = () => {
-    const pendingTag = createSearchTag(searchText);
+    const pendingTag = resolveSearchTag(searchText, selectedCity);
+    if (searchText.trim() && !pendingTag) {
+      rejectSearchText();
+      return;
+    }
     const tags = pendingTag ? appendSearchTag(searchTags, pendingTag) : searchTags;
 
     if (tags.length === 0) {
@@ -201,7 +228,9 @@ export function useHeroBannerFilters({
       selectedPropertyTypes,
       selectedBedrooms,
       selectedConstruction,
+      selectedSaleTypes,
       selectedOccupancy,
+      selectedGender,
       budgetMin,
       budgetMax,
       pgBudgetMin,
@@ -273,7 +302,9 @@ export function useHeroBannerFilters({
     isPg,
     selectedBedrooms,
     selectedConstruction,
+    selectedSaleTypes,
     selectedOccupancy,
+    selectedGender,
     budgetMin,
     budgetMax,
     pgBudgetMin,
@@ -292,7 +323,9 @@ export function useHeroBannerFilters({
     handleSearchTextChange,
     searchTags,
     searchError,
+    searchSuggestions,
     addSearchTag,
+    addTypedSearchTag,
     removeSearchTag,
     submitSearch,
     openDropdown,
@@ -304,8 +337,12 @@ export function useHeroBannerFilters({
     setSelectedBedrooms,
     selectedConstruction,
     setSelectedConstruction,
+    selectedSaleTypes,
+    setSelectedSaleTypes,
     selectedOccupancy,
     setSelectedOccupancy,
+    selectedGender,
+    setSelectedGender,
     budgetMin,
     setBudgetMin,
     budgetMax,

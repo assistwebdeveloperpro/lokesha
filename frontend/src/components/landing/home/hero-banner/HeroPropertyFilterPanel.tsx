@@ -9,11 +9,13 @@ import {
   CHIP_DEFAULT,
   CHIP_SELECTED,
   CONSTRUCTION_OPTIONS,
+  SALE_TYPE_OPTIONS,
   DEFAULT_BUDGET,
   FILTER_SECTION_DEFAULT,
   FILTER_SECTION_EXPANDED,
   FILTER_SECTION_SELECTED,
   FOCUS_RING,
+  GENDER_OPTIONS,
   OCCUPANCY_OPTIONS,
   PG_BUDGET,
   formatArea,
@@ -38,8 +40,12 @@ type HeroPropertyFilterPanelProps = Pick<
   | "setSelectedBedrooms"
   | "selectedConstruction"
   | "setSelectedConstruction"
+  | "selectedSaleTypes"
+  | "setSelectedSaleTypes"
   | "selectedOccupancy"
   | "setSelectedOccupancy"
+  | "selectedGender"
+  | "setSelectedGender"
   | "toggleFromList"
   | "isPg"
   | "budgetMin"
@@ -73,8 +79,12 @@ export function HeroPropertyFilterPanel({
   setSelectedBedrooms,
   selectedConstruction,
   setSelectedConstruction,
+  selectedSaleTypes,
+  setSelectedSaleTypes,
   selectedOccupancy,
   setSelectedOccupancy,
+  selectedGender,
+  setSelectedGender,
   toggleFromList,
   isPg,
   budgetMin,
@@ -158,6 +168,19 @@ export function HeroPropertyFilterPanel({
         </ChipRow>
       )}
 
+      {expandedSection === "saleType" && (
+        <ChipRow className={CHIP_ROW_CLASS}>
+          {SALE_TYPE_OPTIONS.map((saleType) => (
+            <ToggleChip
+              key={saleType}
+              label={saleType}
+              selected={selectedSaleTypes.includes(saleType)}
+              onClick={() => toggleFromList(saleType, setSelectedSaleTypes)}
+            />
+          ))}
+        </ChipRow>
+      )}
+
       {expandedSection === "construction" && (
         <ChipRow className={CHIP_ROW_CLASS}>
           {CONSTRUCTION_OPTIONS.map((status) => (
@@ -184,6 +207,19 @@ export function HeroPropertyFilterPanel({
             />
           ))}
         </div>
+      )}
+
+      {expandedSection === "gender" && (
+        <ChipRow className={CHIP_ROW_CLASS}>
+          {GENDER_OPTIONS.map((option) => (
+            <ToggleChip
+              key={option}
+              label={option}
+              selected={selectedGender.includes(option)}
+              onClick={() => toggleFromList(option, setSelectedGender)}
+            />
+          ))}
+        </ChipRow>
       )}
 
       {expandedSection === "budget" && (

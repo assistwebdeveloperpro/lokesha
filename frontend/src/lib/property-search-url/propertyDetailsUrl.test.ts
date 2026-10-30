@@ -26,7 +26,7 @@ const DESCRIPTOR = "4-BHK-5500-Sq-ft-Penthouse-FOR-Sale-South-Bopal-in-Ahmedabad
 describe("buildPropertyDetailsUrl", () => {
   it("builds the spec style url", () => {
     expect(buildPropertyDetailsUrl(source)).toBe(
-      `/propertyDetails/${DESCRIPTOR}&id=${ID}`,
+      `/property-details/${DESCRIPTOR}&id=${ID}`,
     );
   });
 

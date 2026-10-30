@@ -9,6 +9,7 @@ import {
   storeCity,
 } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
+import { normalizeSearchCriteria } from "@/lib/property-search-url/normalizeSearchCriteria";
 import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
 
 export type CriteriaUpdateMode = "push" | "replace";
@@ -29,7 +30,11 @@ export function useSearchResultsFilters(criteria: PropertySearchCriteria) {
       patch: Partial<PropertySearchCriteria>,
       mode: CriteriaUpdateMode = "push",
     ) => {
-      const next = { ...criteriaRef.current, page: 1, ...patch };
+      const next = normalizeSearchCriteria({
+        ...criteriaRef.current,
+        page: 1,
+        ...patch,
+      });
       const url = buildSearchUrl(next);
       if (mode === "replace") router.replace(url, { scroll: false });
       else router.push(url, { scroll: false });

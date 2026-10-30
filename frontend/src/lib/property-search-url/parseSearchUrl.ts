@@ -1,4 +1,4 @@
-import { parseBudgetParam } from "./budgetParam";
+import { parsePostedByParam } from "./postedByParam";
 import {
   CATEGORY_SLUGS,
   SEARCH_PARAM_ALIASES,
@@ -63,9 +63,9 @@ function orderRange(min?: number, max?: number) {
     : { min, max };
 }
 
-function parseArea(value: string | undefined): number | undefined {
-  const area = Number.parseInt(value ?? "", 10);
-  return area > 0 ? area : undefined;
+function parsePositiveInt(value: string | undefined): number | undefined {
+  const number = Number.parseInt(value ?? "", 10);
+  return number > 0 ? number : undefined;
 }
 
 const matchSlug = <T extends string>(options: readonly T[], value: string) =>
@@ -93,24 +93,30 @@ export function parseSearchUrl({
   }
 
   const params = readParams(searchParams);
-  const cityName = fromUrlSegment(params.cityName ?? "");
+  const cityName = fromUrlSegment(params["city-name"] ?? "");
   const page = Number.parseInt(params.page ?? "", 10);
   const budget = orderRange(
-    params.BudgetMin ? parseBudgetParam(params.BudgetMin) : undefined,
-    params.BudgetMax ? parseBudgetParam(params.BudgetMax) : undefined,
+    parsePositiveInt(params["min-price"]),
+    parsePositiveInt(params["max-price"]),
   );
-  const area = orderRange(parseArea(params.areaMin), parseArea(params.areaMax));
+  const area = orderRange(
+    parsePositiveInt(params["area-min"]),
+    parsePositiveInt(params["area-max"]),
+  );
 
   return {
     transaction: transactionSlug,
     category: categorySlug,
     cityName: cityName || undefined,
-    localities: splitList(params.Locality).map(fromUrlSegment),
-    projects: splitList(params.projectSocity).map(fromUrlSegment),
+    localities: splitList(params.locality).map(fromUrlSegment),
+    projects: splitList(params["project-socity"]).map(fromUrlSegment),
     bedrooms: parseBedrooms(params.bedroom),
     propertyTypes: splitList(params.proptype),
-    constructionStatuses: splitList(params.constructionStatus),
+    constructionStatuses: splitList(params["construction-status"]),
+    saleTypes: splitList(params["property-transaction"]),
     occupancies: splitList(params.occupancy),
+    genders: splitList(params.gender),
+    postedBy: parsePostedByParam(params["posted-by"]),
     budgetMin: budget.min,
     budgetMax: budget.max,
     areaMin: area.min,

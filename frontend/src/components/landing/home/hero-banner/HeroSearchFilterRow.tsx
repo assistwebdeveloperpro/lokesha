@@ -27,7 +27,9 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
     handleSearchTextChange,
     searchTags,
     searchError,
+    searchSuggestions,
     addSearchTag,
+    addTypedSearchTag,
     removeSearchTag,
     submitSearch,
     openDropdown,
@@ -174,7 +176,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  addSearchTag(searchText);
+                  addTypedSearchTag();
                 } else if (
                   e.key === "Backspace" &&
                   !searchText &&
@@ -190,7 +192,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               onBlur={() => setSearchHintsOpen(false)}
               placeholder={
                 searchTags.length === 0
-                  ? "Enter City, Locality or Project Name"
+                  ? "Enter City, Locality, Project Name"
                   : "Add more"
               }
               aria-expanded={searchHintsOpen}
@@ -200,16 +202,20 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               className="h-full min-w-24 flex-1 border-0 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus-visible:outline-none"
             />
           </div>
-          {searchHintsOpen && (
+          {searchHintsOpen && !searchError && (
             <div id="hero-search-hints">
-              <HeroSearchHintsDropdown />
+              <HeroSearchHintsDropdown
+                searchText={searchText}
+                suggestions={searchSuggestions}
+                onSelect={addSearchTag}
+              />
             </div>
           )}
-          {searchError && !searchHintsOpen && (
+          {searchError && (
             <p
               id="hero-search-error"
               role="alert"
-              className="absolute left-0 top-full z-10 mt-1.5 text-xs font-semibold text-red-600"
+              className="absolute left-0 top-full z-10 mt-1.5 text-xs font-medium text-red-500"
             >
               {searchError}
             </p>

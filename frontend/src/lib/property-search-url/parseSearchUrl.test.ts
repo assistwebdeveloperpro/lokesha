@@ -30,7 +30,10 @@ describe("parseSearchUrl", () => {
       bedrooms: [],
       propertyTypes: [],
       constructionStatuses: [],
+      saleTypes: [],
       occupancies: [],
+      genders: [],
+      postedBy: [],
       budgetMin: undefined,
       budgetMax: undefined,
       areaMin: undefined,
@@ -63,15 +66,21 @@ describe("parseSearchUrl", () => {
     }
   });
 
-  it("parses area and occupancy, swapping an inverted area range", () => {
+  it("parses area, occupancy and gender, swapping an inverted area range", () => {
     expect(
       parseSearchUrl({
         transaction: "property-for-rent",
         category: "pg-co-living",
-        searchParams: { occupancy: "single,triple-plus", areaMin: "900", areaMax: "100" },
+        searchParams: {
+          occupancy: "single,triple-plus",
+          gender: "male,both",
+          "area-min": "900",
+          "area-max": "100",
+        },
       }),
     ).toMatchObject({
       occupancies: ["single", "triple-plus"],
+      genders: ["male", "both"],
       areaMin: 100,
       areaMax: 900,
     });
@@ -81,11 +90,11 @@ describe("parseSearchUrl", () => {
     const criteria = parse({
       bedroom: "",
       proptype: "Multistorey-Apartment,Penthouse",
-      Locality: "Hathijan",
-      cityName: "Ahmedabad",
-      projectSocity: "shyam-swastik",
-      BudgetMin: "5-Lacs",
-      BudgetMax: "3-Crores",
+      locality: "Hathijan",
+      "city-name": "Ahmedabad",
+      "project-socity": "shyam-swastik",
+      "min-price": "500000",
+      "max-price": "30000000",
     });
 
     expect(criteria).toMatchObject({
@@ -99,11 +108,11 @@ describe("parseSearchUrl", () => {
   });
 
   it("restores multi-word cities", () => {
-    expect(parse({ cityName: "Navi-Mumbai" })?.cityName).toBe("Navi Mumbai");
+    expect(parse({ "city-name": "Navi-Mumbai" })?.cityName).toBe("Navi Mumbai");
   });
 
   it("swaps an inverted budget range", () => {
-    expect(parse({ budgetMin: "3-Crores", budgetMax: "5-Lacs" })).toMatchObject({
+    expect(parse({ "min-price": "30000000", "max-price": "500000" })).toMatchObject({
       budgetMin: 500_000,
       budgetMax: 30_000_000,
     });
@@ -120,6 +129,16 @@ describe("parseSearchUrl", () => {
     expect(parse({ locality: ["Bopal", "Thaltej"], utm: "x" })?.localities).toEqual([
       "Bopal",
       "Thaltej",
+    ]);
+  });
+
+  it("parses PostedBy roles and owner alias", () => {
+    expect(parse({ "posted-by": "agent,builder" })?.postedBy).toEqual([
+      "agent",
+      "builder",
+    ]);
+    expect(parse({ "posted-by": "owner" })?.postedBy).toEqual([
+      "buyer_owner_tenant",
     ]);
   });
 
@@ -143,7 +162,10 @@ describe("parseSearchUrl", () => {
       bedrooms: [2, 3],
       propertyTypes: ["flat-apartment"],
       constructionStatuses: ["ready-to-move"],
+      saleTypes: [],
       occupancies: [],
+      genders: [],
+      postedBy: ["agent", "builder"],
       budgetMin: 1_000_000,
       budgetMax: 15_000_000,
       areaMin: 500,
