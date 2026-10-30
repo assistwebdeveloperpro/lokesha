@@ -203,8 +203,12 @@ export function formatBudget(value: number, isPg: boolean): string {
   return `₹${(value / 100_000).toFixed(2)} Lac`;
 }
 
+export function formatAreaNumber(value: number): string {
+  return value.toLocaleString("en-IN");
+}
+
 export function formatArea(value: number): string {
-  return `${value.toLocaleString("en-IN")} sq ft`;
+  return `${formatAreaNumber(value)} sq ft`;
 }
 
 export function categoryPropertyLabel(category: PropertyCategory): string {

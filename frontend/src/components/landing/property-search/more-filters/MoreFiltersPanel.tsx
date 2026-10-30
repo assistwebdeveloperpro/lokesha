@@ -8,7 +8,7 @@ import { FilterToggleChip } from "../search-filter-bar/SearchFilterDropdown";
 import {
   FOCUS_RING,
   SCROLLBAR_NAVY_BLUE,
-  formatArea,
+  formatAreaNumber,
 } from "../../home/hero-banner/heroBanner.shared";
 import { AREA_BOUNDS } from "../searchFilterOptions";
 import { AREA_FILTER_STEPS } from "../search-filter-bar/areaOptions";
@@ -267,19 +267,21 @@ function BlockRenderer({
 }) {
   if (block.type === "area") {
     return (
-      <RangeBoundFilterPanel
-        title=""
-        bounds={AREA_BOUNDS}
-        valueMin={draft.areaMin}
-        valueMax={draft.areaMax}
-        steps={AREA_FILTER_STEPS}
-        formatValue={formatArea}
-        minFieldLabel="Minimum area"
-        maxFieldLabel="Maximum area"
-        onCommit={(areaMin, areaMax) =>
-          onChange({ ...draft, areaMin, areaMax })
-        }
-      />
+      <div className="w-full max-w-md">
+        <RangeBoundFilterPanel
+          title=""
+          bounds={AREA_BOUNDS}
+          valueMin={draft.areaMin}
+          valueMax={draft.areaMax}
+          steps={AREA_FILTER_STEPS}
+          formatValue={formatAreaNumber}
+          minFieldLabel="Minimum area"
+          maxFieldLabel="Maximum area"
+          onCommit={(areaMin, areaMax) =>
+            onChange({ ...draft, areaMin, areaMax })
+          }
+        />
+      </div>
     );
   }
 
