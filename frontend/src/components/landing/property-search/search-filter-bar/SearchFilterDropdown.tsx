@@ -77,6 +77,9 @@ type FilterDropdownProps = {
   label: string;
   active?: boolean;
   panelClassName?: string;
+  panelMaxWidth?: number;
+  leadingBadge?: number;
+  onOpen?: () => void;
   onClear?: () => void;
   children: ReactNode;
   footer?: ReactNode;
@@ -87,6 +90,9 @@ export function SearchFilterDropdown({
   label,
   active = false,
   panelClassName = "",
+  panelMaxWidth = 448,
+  leadingBadge,
+  onOpen,
   onClear,
   children,
   footer,
@@ -100,7 +106,7 @@ export function SearchFilterDropdown({
     const trigger = triggerRef.current;
     if (!trigger) return;
     const rect = trigger.getBoundingClientRect();
-    const maxWidth = Math.min(window.innerWidth - 16, 448);
+    const maxWidth = Math.min(window.innerWidth - 16, panelMaxWidth);
     const left = Math.min(rect.left, window.innerWidth - maxWidth - 8);
     setPanelStyle({
       position: "fixed",
@@ -109,7 +115,7 @@ export function SearchFilterDropdown({
       width: maxWidth,
       zIndex: 60,
     });
-  }, []);
+  }, [panelMaxWidth]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -153,13 +159,21 @@ export function SearchFilterDropdown({
           ref={triggerRef}
           type="button"
           aria-expanded={isOpen}
-          onClick={() => setOpen(!isOpen)}
-          className={`inline-flex h-9 max-w-[12rem] cursor-pointer items-center gap-1.5 rounded-md border border-slate-300 px-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 ${FOCUS_RING} ${
+          onClick={() => {
+            if (!isOpen) onOpen?.();
+            setOpen(!isOpen);
+          }}
+          className={`inline-flex h-9 max-w-[14rem] cursor-pointer items-center gap-1.5 rounded-md border border-slate-300 px-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 ${FOCUS_RING} ${
             isOpen || active
               ? "bg-slate-100"
               : "bg-white hover:bg-slate-50"
           }`}
         >
+          {leadingBadge !== undefined ? (
+            <span className="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-bold text-slate-900">
+              {leadingBadge}
+            </span>
+          ) : null}
           <span className="truncate">{label}</span>
           {onClear ? (
             <span
@@ -237,20 +251,31 @@ export function FilterToggleChip({
   label,
   selected,
   onToggle,
+  tone = "default",
 }: {
   label: string;
   selected: boolean;
   onToggle: () => void;
+  tone?: "default" | "light";
 }) {
+  const unselectedClass =
+    tone === "light"
+      ? "border-slate-300 bg-transparent text-slate-800 font-medium hover:border-slate-400"
+      : "border-slate-300 bg-white text-slate-700 font-semibold hover:border-sky-200 hover:bg-slate-50";
+  const selectedClass =
+    "border-navy-blue bg-navy-blue text-white font-semibold";
+
+  const radiusClass = tone === "light" ? "rounded-md" : "rounded-full";
+  const sizeClass =
+    tone === "light" ? "px-3 py-1.5" : "px-2.5 py-1";
+
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onToggle}
-      className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 text-sm font-semibold transition ${FOCUS_RING} ${
-        selected
-          ? "border-navy-blue bg-navy-blue text-white"
-          : "border-slate-300 bg-white text-slate-700 hover:border-sky-200 hover:bg-slate-50"
+      className={`inline-flex cursor-pointer items-center gap-1.5 border text-sm transition ${radiusClass} ${sizeClass} ${FOCUS_RING} ${
+        selected ? selectedClass : unselectedClass
       }`}
     >
       {selected ? (

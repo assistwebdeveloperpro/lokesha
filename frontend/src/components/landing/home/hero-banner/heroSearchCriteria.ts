@@ -1,3 +1,4 @@
+import { EMPTY_MORE_FILTERS } from "@/lib/property-search-url/moreFilters.types";
 import { LANDING_CATEGORY_SLUGS } from "@/lib/property-search-url/landingUrl.config";
 import { isSearchableCombination } from "@/lib/property-search-url/searchUrl.config";
 import type {
@@ -121,6 +122,7 @@ export function buildHeroSearchCriteria(
     budgetMax: budget.max,
     areaMin: area.min,
     areaMax: area.max,
+    more: { ...EMPTY_MORE_FILTERS },
     page: 1,
   };
 }

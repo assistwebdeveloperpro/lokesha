@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EMPTY_MORE_FILTERS } from "@/lib/property-search-url/moreFilters.types";
 import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
 import { getActiveFilterChips } from "./searchFilterChips";
 import {
@@ -21,6 +22,7 @@ const criteria: PropertySearchCriteria = {
   occupancies: [],
   genders: [],
   postedBy: [],
+  more: { ...EMPTY_MORE_FILTERS },
   budgetMin: undefined,
   budgetMax: 30_000_000,
   page: 1,

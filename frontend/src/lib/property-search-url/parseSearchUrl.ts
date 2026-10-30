@@ -1,3 +1,4 @@
+import { parseMoreFiltersFromParams } from "./moreFiltersParam";
 import { parsePostedByParam } from "./postedByParam";
 import {
   CATEGORY_SLUGS,
@@ -36,6 +37,17 @@ const splitList = (value: string | undefined) =>
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+
+function flattenSearchParams(
+  searchParams: SearchParamRecord,
+): Record<string, string | undefined> {
+  const flat: Record<string, string | undefined> = {};
+  for (const [rawKey, rawValue] of Object.entries(searchParams)) {
+    const value = Array.isArray(rawValue) ? rawValue.join(",") : rawValue;
+    if (value) flat[rawKey.toLowerCase()] = value;
+  }
+  return flat;
+}
 
 function readParams(searchParams: SearchParamRecord): ParamMap {
   const params: ParamMap = {};
@@ -93,6 +105,7 @@ export function parseSearchUrl({
   }
 
   const params = readParams(searchParams);
+  const flatParams = flattenSearchParams(searchParams);
   const cityName = fromUrlSegment(params["city-name"] ?? "");
   const page = Number.parseInt(params.page ?? "", 10);
   const budget = orderRange(
@@ -121,6 +134,7 @@ export function parseSearchUrl({
     budgetMax: budget.max,
     areaMin: area.min,
     areaMax: area.max,
+    more: parseMoreFiltersFromParams(flatParams),
     page: page >= 1 ? page : 1,
   };
 }

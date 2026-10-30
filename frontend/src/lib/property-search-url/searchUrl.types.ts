@@ -2,6 +2,7 @@ import type {
   LANDING_CATEGORY_SLUGS,
   LandingCategory,
 } from "./landingUrl.config";
+import type { PropertySearchMoreFilters } from "./moreFilters.types";
 
 export type TransactionSlug =
   | "property-for-sale"
@@ -27,6 +28,7 @@ export type PropertySearchCriteria = {
   budgetMax?: number;
   areaMin?: number;
   areaMax?: number;
+  more: PropertySearchMoreFilters;
   page: number;
 };
 

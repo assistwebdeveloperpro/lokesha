@@ -1,0 +1,70 @@
+import { slugify } from "@/lib/property-search-url/slug";
+
+const AMENITY_LABELS = [
+  "Lift",
+  "CCTV",
+  "GYM",
+  "Garden/Park",
+  "Kids Play Area",
+  "Sports Club",
+  "Cricket Pitch",
+  "Basket Ball court",
+  "Skating",
+  "Swimming Pool",
+  "Intercom",
+  "Gated Community",
+  "Security",
+  "Club House",
+  "Community Hall",
+  "Regular Water Supply",
+  "Generator",
+  "Indoor Games",
+  "Power Backup",
+  "Pet Allowed",
+  "No Vehicle Zone",
+  "Gazebo",
+  "Reserved Parking",
+  "Piped Gas",
+  "Vaastu Compliant",
+  "Mini Theatre",
+  "Solar Roof",
+  "Wifi",
+  "House Keeping",
+  "Fire Safety",
+  "WheelChair Access",
+] as const;
+
+const FURNISHING_LABELS = [
+  "Dining Table",
+  "TV",
+  "SOFA",
+  "Washing Machine",
+  "Microwave/Oven",
+  "Stove",
+  "Gas Cylinder",
+  "Fridge",
+  "Water Purifier",
+  "Gas Pipeline",
+  "AC",
+  "Beds",
+  "Geyser",
+  "Electric Fittings",
+  "Fan",
+  "Wifi",
+  "Wardrobes",
+  "Work Station",
+  "Chairs",
+  "Tables",
+  "Reception Area",
+  "Conference Room",
+  "Waiting Area",
+  "Director Cabin",
+  "Cupboard",
+  "Partition",
+] as const;
+
+const toOptions = (labels: readonly string[]) =>
+  labels.map((label) => ({ value: slugify(label), label }));
+
+export const FALLBACK_AMENITY_OPTIONS = toOptions(AMENITY_LABELS);
+export const FALLBACK_FURNISHING_OPTIONS = toOptions(FURNISHING_LABELS);

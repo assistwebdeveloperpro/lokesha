@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { MoreFiltersPanel } from "../more-filters/MoreFiltersPanel";
+import { MoreFiltersTrigger } from "../more-filters/MoreFiltersTrigger";
+import { useMoreFiltersBar } from "../more-filters/useMoreFiltersBar";
 import { ALL_INDIA_LABEL } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
 import { CATEGORY_ID_BY_SLUG } from "@/lib/property-search-url/searchUrl.config";
@@ -90,6 +93,7 @@ function propertyTypeBarLabel(
 }
 
 export function SearchFilterBar({ criteria, onChange }: SearchFilterBarProps) {
+  const moreFilters = useMoreFiltersBar(criteria, onChange);
   const headerCity = useHeaderCity();
   const categoryId = CATEGORY_ID_BY_SLUG[criteria.category];
   const { sections, propertyTypeOptions, budgetBounds, isPg } =
@@ -128,10 +132,8 @@ export function SearchFilterBar({ criteria, onChange }: SearchFilterBarProps) {
 
   return (
     <SearchFilterBarProvider>
-      <div
-        aria-label="Search filters"
-        className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
-      >
+      <>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
         {propertyTypeOptions.length > 0 ? (
           <SearchFilterDropdown
             id="property-type"
@@ -474,22 +476,27 @@ export function SearchFilterBar({ criteria, onChange }: SearchFilterBarProps) {
           </SearchFilterDropdown>
         ) : null}
 
-        <SearchFilterDropdown
-          id="more-filters"
-          label="More Filters"
-          panelClassName="sm:min-w-[16rem]"
-        >
-          <div className="flex items-center gap-2">
-            <SearchFilterPanelTitle>More Filters</SearchFilterPanelTitle>
-            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-bold text-slate-900">
-              0
-            </span>
-          </div>
-          <p className="mt-2 text-sm text-slate-500">
-            Additional filters will appear here soon.
-          </p>
-        </SearchFilterDropdown>
-      </div>
+        <MoreFiltersTrigger
+          open={moreFilters.open}
+          count={moreFilters.selectionCount}
+          onToggle={moreFilters.toggleOpen}
+          onClear={
+            moreFilters.selectionCount > 0 && !moreFilters.open
+              ? moreFilters.clearApplied
+              : undefined
+          }
+        />
+        </div>
+        {moreFilters.open ? (
+          <MoreFiltersPanel
+            criteria={criteria}
+            draft={moreFilters.draft}
+            onChange={moreFilters.updateDraft}
+            onApply={moreFilters.close}
+            onClose={moreFilters.close}
+          />
+        ) : null}
+      </>
     </SearchFilterBarProvider>
   );
 }

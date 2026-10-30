@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildSearchUrl } from "./buildSearchUrl";
+import { EMPTY_MORE_FILTERS } from "./moreFilters.types";
 import type { PropertySearchCriteria } from "./searchUrl.types";
 
 const TYPES = ["Flat-Apartment", "Penthouse", "Studio-Apartment"];
@@ -17,6 +18,7 @@ const base: PropertySearchCriteria = {
   occupancies: [],
   genders: [],
   postedBy: [],
+  more: { ...EMPTY_MORE_FILTERS },
   page: 1,
 };
 

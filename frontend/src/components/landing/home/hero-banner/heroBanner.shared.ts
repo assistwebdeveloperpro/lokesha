@@ -9,6 +9,9 @@ export const TAB_LIST_CLASS =
 export const FOCUS_RING =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400";
 
+export const SCROLLBAR_NAVY_BLUE =
+  "scrollbar-navy-blue [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-[#12192b] [&::-webkit-scrollbar-track]:bg-[#e8eef5]";
+
 export const CHIP_SELECTED =
   "border-navy-blue bg-sky-50 text-navy-blue shadow-sm ring-1 ring-sky-100";
 

@@ -65,8 +65,31 @@ body {
   color: var(--color-navy-blue);
 }
 
+.scrollbar-navy-blue {
+  @apply [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-[#e8eef5] [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-[#12192b];
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .scrollbar-navy-blue {
+    scrollbar-width: thin;
+    scrollbar-color: #12192b #e8eef5;
+  }
+}
+
 .border-navy-blue {
   border-color: var(--color-navy-blue);
+}
+
+.border-l-navy-blue {
+  border-left-color: var(--color-navy-blue);
+}
+
+.border-r-navy-blue {
+  border-right-color: var(--color-navy-blue);
+}
+
+.border-t-navy-blue {
+  border-top-color: var(--color-navy-blue);
 }
 
 .border-b-navy-blue {

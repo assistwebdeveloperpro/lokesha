@@ -1,3 +1,4 @@
+import { EMPTY_MORE_FILTERS } from "./moreFilters.types";
 import type { PropertySearchCriteria } from "./searchUrl.types";
 
 export function normalizeSearchCriteria(
@@ -14,5 +15,6 @@ export function normalizeSearchCriteria(
     occupancies: criteria.occupancies ?? [],
     genders: criteria.genders ?? [],
     postedBy: criteria.postedBy ?? [],
+    more: { ...EMPTY_MORE_FILTERS, ...criteria.more },
   };
 }

@@ -2,7 +2,10 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
-import { FOCUS_RING } from "../../home/hero-banner/heroBanner.shared";
+import {
+  FOCUS_RING,
+  SCROLLBAR_NAVY_BLUE,
+} from "../../home/hero-banner/heroBanner.shared";
 import type { RangeBounds } from "../searchFilterOptions";
 import {
   SearchFilterDoneButton,
@@ -203,7 +206,7 @@ function RangeBoundSelect({
           id={listId}
           role="listbox"
           aria-label={label}
-          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+          className={`${SCROLLBAR_NAVY_BLUE} absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg`}
         >
           {options.map((option) => {
             const isSelected = option === selected;

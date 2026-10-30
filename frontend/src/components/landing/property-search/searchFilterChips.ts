@@ -1,3 +1,4 @@
+import { EMPTY_MORE_FILTERS } from "@/lib/property-search-url/moreFilters.types";
 import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
 import { formatArea, formatBudget } from "../home/hero-banner/heroBanner.shared";
 import {
@@ -154,4 +155,5 @@ export const CLEAR_ALL_PATCH: Partial<PropertySearchCriteria> = {
   budgetMax: undefined,
   areaMin: undefined,
   areaMax: undefined,
+  more: { ...EMPTY_MORE_FILTERS },
 };

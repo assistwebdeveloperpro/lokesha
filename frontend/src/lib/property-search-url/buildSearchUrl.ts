@@ -1,3 +1,7 @@
+import {
+  MORE_FILTER_PARAM_KEYS,
+  formatMoreFiltersToParams,
+} from "./moreFiltersParam";
 import { formatPostedByParam } from "./postedByParam";
 import {
   CATEGORIES_WITH_BEDROOM_PARAM,
@@ -20,38 +24,45 @@ const formatOptional = (
 
 function collectParamValues(
   criteria: PropertySearchCriteria,
-): Record<SearchParamKey, string | undefined> {
-  const { cityName, budgetMin, budgetMax, areaMin, areaMax } = criteria;
-  const bedrooms = [...new Set(criteria.bedrooms)].sort((a, b) => a - b);
+): Record<string, string | undefined> {
+  const normalized = normalizeSearchCriteria(criteria);
+  const { cityName, budgetMin, budgetMax, areaMin, areaMax } = normalized;
+  const bedrooms = [...new Set(normalized.bedrooms)].sort((a, b) => a - b);
 
   return {
     bedroom: bedrooms.join(","),
-    proptype: joinSegments(criteria.propertyTypes),
-    locality: joinSegments(criteria.localities.map(toUrlSegment)),
+    proptype: joinSegments(normalized.propertyTypes),
+    locality: joinSegments(normalized.localities.map(toUrlSegment)),
     "city-name": cityName ? toUrlSegment(cityName) : undefined,
-    "project-socity": joinSegments(criteria.projects.map(slugify)),
+    "project-socity": joinSegments(normalized.projects.map(slugify)),
     "min-price": formatOptional(budgetMin, String),
     "max-price": formatOptional(budgetMax, String),
-    "construction-status": joinSegments(criteria.constructionStatuses),
-    occupancy: joinSegments(criteria.occupancies),
-    gender: joinSegments(criteria.genders),
-    "posted-by": joinSegments(criteria.postedBy.map(formatPostedByParam)),
+    "construction-status": joinSegments(normalized.constructionStatuses),
+    occupancy: joinSegments(normalized.occupancies),
+    gender: joinSegments(normalized.genders),
+    "posted-by": joinSegments(normalized.postedBy.map(formatPostedByParam)),
     "area-min": formatOptional(areaMin, String),
     "area-max": formatOptional(areaMax, String),
-    "property-transaction": joinSegments(criteria.saleTypes),
-    page: criteria.page > 1 ? String(criteria.page) : undefined,
+    "property-transaction": joinSegments(normalized.saleTypes),
+    page: normalized.page > 1 ? String(normalized.page) : undefined,
+    ...formatMoreFiltersToParams(normalized.more),
   };
 }
 
 export function buildSearchQuery(criteria: PropertySearchCriteria): string {
-  const values = collectParamValues(normalizeSearchCriteria(criteria));
+  const values = collectParamValues(criteria);
   const keepEmptyBedroom = CATEGORIES_WITH_BEDROOM_PARAM.includes(
     criteria.category,
   );
+  const orderedKeys = [
+    ...SEARCH_PARAM_KEYS,
+    ...MORE_FILTER_PARAM_KEYS.filter((key) => values[key]),
+  ];
 
-  return SEARCH_PARAM_KEYS.filter(
-    (key) => values[key] || (key === "bedroom" && keepEmptyBedroom),
-  )
+  return orderedKeys
+    .filter(
+      (key) => values[key] || (key === "bedroom" && keepEmptyBedroom),
+    )
     .map((key) => `${key}=${values[key] ?? ""}`)
     .join("&");
 }

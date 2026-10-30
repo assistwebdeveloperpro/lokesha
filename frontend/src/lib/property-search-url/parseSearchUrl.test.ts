@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSearchUrl } from "./buildSearchUrl";
 import { parseSearchUrl } from "./parseSearchUrl";
+import { EMPTY_MORE_FILTERS } from "./moreFilters.types";
 import type { PropertySearchCriteria } from "./searchUrl.types";
 
 const parse = (searchParams: Record<string, string | string[] | undefined>) =>
@@ -38,6 +39,7 @@ describe("parseSearchUrl", () => {
       budgetMax: undefined,
       areaMin: undefined,
       areaMax: undefined,
+      more: { ...EMPTY_MORE_FILTERS },
       page: 1,
     });
   });
@@ -132,6 +134,24 @@ describe("parseSearchUrl", () => {
     ]);
   });
 
+  it("parses more filter params with hyphenated keys", () => {
+    expect(
+      parse({
+        "posted-since": "7d",
+        amenity: "lift,gym",
+        "has-rera": "1",
+        "corner-plot": "true",
+      }),
+    ).toMatchObject({
+      more: {
+        postedSince: "7d",
+        amenities: ["lift", "gym"],
+        hasRera: true,
+        cornerPlot: true,
+      },
+    });
+  });
+
   it("parses PostedBy roles and owner alias", () => {
     expect(parse({ "posted-by": "agent,builder" })?.postedBy).toEqual([
       "agent",
@@ -170,6 +190,7 @@ describe("parseSearchUrl", () => {
       budgetMax: 15_000_000,
       areaMin: 500,
       areaMax: 3000,
+      more: { ...EMPTY_MORE_FILTERS },
       page: 2,
     };
     const url = new URL(buildSearchUrl(criteria), "http://localhost");
