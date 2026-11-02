@@ -11,7 +11,7 @@ const ID = "4d423837-3130-4331-8239-0a1b2c3d4e5f";
 
 const source: PropertyDetailsSource = {
   id: ID,
-  bedrooms: 4,
+  bedrooms: [4],
   carpetArea: 5500,
   carpetAreaUnit: "sq-ft",
   propertySubType: "penthouse",
@@ -21,7 +21,7 @@ const source: PropertyDetailsSource = {
   city: "Ahmedabad",
 };
 
-const DESCRIPTOR = "4-BHK-5500-Sq-ft-Penthouse-FOR-Sale-South-Bopal-in-Ahmedabad";
+const DESCRIPTOR = "4-BHK-5500-Sq-ft-Penthouse-for-Sale-South-Bopal-in-Ahmedabad";
 
 describe("buildPropertyDetailsUrl", () => {
   it("builds the spec style url", () => {
@@ -30,17 +30,23 @@ describe("buildPropertyDetailsUrl", () => {
     );
   });
 
+  it("joins multiple bedroom counts in ascending order", () => {
+    expect(
+      buildPropertyDetailsSlug({ ...source, bedrooms: [5, 4] }),
+    ).toBe(`4-5-BHK-5500-Sq-ft-Penthouse-for-Sale-South-Bopal-in-Ahmedabad&id=${ID}`);
+  });
+
   it("skips missing parts and maps rent-lease to rent", () => {
     expect(
       buildPropertyDetailsSlug({
         ...source,
-        bedrooms: null,
+        bedrooms: [],
         carpetArea: null,
         propertySubType: null,
         listingType: "rent-lease",
         city: null,
       }),
-    ).toBe(`Residential-FOR-Rent-South-Bopal&id=${ID}`);
+    ).toBe(`Residential-for-Rent-South-Bopal&id=${ID}`);
   });
 });
 

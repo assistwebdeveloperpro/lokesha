@@ -343,7 +343,11 @@ function DesktopUserMenu({
   );
 }
 
-export default function Header() {
+type HeaderProps = {
+  compact?: boolean;
+};
+
+export default function Header({ compact = false }: HeaderProps) {
   const { isLoggedIn, userName, displayInitial, logout } = useAuth();
   const { showToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -367,27 +371,29 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full">
-        <div className="bg-white text-navy-blue ">
-          <div className="mx-auto flex h-8 max-w-360 items-center justify-end gap-4 px-3 text-xs sm:h-9 sm:gap-6 sm:px-4 sm:text-sm lg:px-6">
-            <Link
-              href={`mailto:${HEADER_CONTACT.email}`}
-              target="_blank"
-              className="inline-flex items-center gap-1.5 transition hover:text-navy-blue/80"
-            >
-              <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
-              <span className="truncate">{HEADER_CONTACT.email}</span>
-            </Link>
-            <Link
-              href={`tel:${HEADER_CONTACT.phoneHref}`}
-              target="_blank"
-              className="inline-flex shrink-0 items-center gap-1.5 transition hover:text-navy-blue/80"
-            >
-              <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
-              {HEADER_CONTACT.phoneDisplay}
-            </Link>
+      <header className="sticky top-0 z-50 w-full bg-white">
+        {!compact && (
+          <div className="bg-white text-navy-blue ">
+            <div className="mx-auto flex h-8 max-w-360 items-center justify-end gap-4 px-3 text-xs sm:h-9 sm:gap-6 sm:px-4 sm:text-sm lg:px-6">
+              <Link
+                href={`mailto:${HEADER_CONTACT.email}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 transition hover:text-navy-blue/80"
+              >
+                <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                <span className="truncate">{HEADER_CONTACT.email}</span>
+              </Link>
+              <Link
+                href={`tel:${HEADER_CONTACT.phoneHref}`}
+                target="_blank"
+                className="inline-flex shrink-0 items-center gap-1.5 transition hover:text-navy-blue/80"
+              >
+                <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                {HEADER_CONTACT.phoneDisplay}
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Primary bar */}
         <div className="bg-linear-to-b-navy-blue shadow-md shadow-slate-950/10 py-1">
@@ -445,25 +451,26 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Secondary nav - desktop only */}
-        <nav
-          className="hidden border-b border-slate-200 bg-white lg:block"
-          aria-label="Main navigation"
-        >
-          <div className="mx-auto flex h-11 max-w-360 items-center gap-6 px-6">
-            {MAIN_NAV_ITEMS.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="inline-flex items-center gap-1 rounded-md px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-sky-700"
-              >
-                {item.label}
-                {item.badge && <NewBadge />}
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" aria-hidden />
-              </Link>
-            ))}
-          </div>
-        </nav>
+        {!compact && (
+          <nav
+            className="hidden border-b border-slate-200 bg-white lg:block"
+            aria-label="Main navigation"
+          >
+            <div className="mx-auto flex h-11 max-w-360 items-center gap-6 px-6">
+              {MAIN_NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="inline-flex items-center gap-1 rounded-md px-3 py-2 font-medium text-slate-700 transition hover:bg-slate-50 hover:text-sky-700"
+                >
+                  {item.label}
+                  {item.badge && <NewBadge />}
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-400" aria-hidden />
+                </Link>
+              ))}
+            </div>
+          </nav>
+        )}
       </header>
 
       <MobileSidebar

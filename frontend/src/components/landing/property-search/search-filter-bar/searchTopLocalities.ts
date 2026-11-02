@@ -13,9 +13,13 @@ function resolveCityKey(cityName: string): string | undefined {
   );
 }
 
-export function getTopLocalities(cityName?: string): string[] {
+export function getCityLocalities(cityName?: string): string[] {
   if (!cityName) return [];
   const key = resolveCityKey(cityName);
   if (!key) return [];
-  return (CITY_LOCALITIES[key] ?? []).slice(0, TOP_LOCALITY_LIMIT);
+  return CITY_LOCALITIES[key] ?? [];
+}
+
+export function getTopLocalities(cityName?: string): string[] {
+  return getCityLocalities(cityName).slice(0, TOP_LOCALITY_LIMIT);
 }

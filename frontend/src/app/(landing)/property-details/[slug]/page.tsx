@@ -1,36 +1,48 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SearchPagePlaceholder } from "@/components/landing/property-search/SearchPagePlaceholder";
-import { parsePropertyDetailsSlug } from "@/lib/property-search-url/propertyDetailsUrl";
+import Header from "@/components/shared/layout/Header";
+import { PropertyDetailsPageContent } from "@/components/landing/property-details/PropertyDetailsPageContent";
+import { getMockPropertyDetails } from "@/components/landing/property-details/mockPropertyDetails";
+import {
+  buildPropertyDetailsTitle,
+  parsePropertyDetailsSlug,
+} from "@/lib/property-search-url/propertyDetailsUrl";
 
 type PropertyDetailsPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-async function readHeading(params: PropertyDetailsPageProps["params"]) {
-  const { slug } = await params;
-  const parsed = parsePropertyDetailsSlug(slug);
-  if (!parsed) return null;
-  return parsed.descriptor.replace(/-/g, " ") || "Property Details";
-}
-
 export async function generateMetadata({
   params,
 }: PropertyDetailsPageProps): Promise<Metadata> {
-  const heading = await readHeading(params);
-  return heading ? { title: `${heading} | Lokesha` } : {};
+  const { slug } = await params;
+  const parsed = parsePropertyDetailsSlug(slug);
+  if (!parsed) return {};
+
+  const details = getMockPropertyDetails(parsed.id);
+  const title =
+    details?.pageTitle ??
+    buildPropertyDetailsTitle(parsed.descriptor) ??
+    parsed.descriptor.replace(/-/g, " ") ??
+    "Property Details";
+
+  return { title: `${title} | Lokesha` };
 }
 
 export default async function PropertyDetailsPage({
   params,
 }: PropertyDetailsPageProps) {
-  const heading = await readHeading(params);
-  if (!heading) notFound();
+  const { slug } = await params;
+  const parsed = parsePropertyDetailsSlug(slug);
+  if (!parsed) notFound();
+
+  const details = getMockPropertyDetails(parsed.id);
+  if (!details) notFound();
 
   return (
-    <SearchPagePlaceholder
-      heading={heading}
-      description="Full details of the selected property will be shown here."
-    />
+    <div className="flex min-h-screen w-full shrink-0 flex-col bg-white font-sans">
+      <Header compact />
+      <PropertyDetailsPageContent details={details} />
+    </div>
   );
 }

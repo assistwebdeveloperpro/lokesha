@@ -5,6 +5,8 @@ import {
   CATEGORIES,
   CATEGORY_TAB_DEFAULT,
   FILTER_TAB_ACTIVE,
+  FILTER_TAB_ACTIVE_FIRST,
+  FILTER_TAB_ACTIVE_LAST,
   FOCUS_RING,
   TAB_LIST_CLASS,
   type PropertyCategory,
@@ -27,6 +29,15 @@ export function HeroCategoryTabs({
     >
       {CATEGORIES.map((category, index) => {
         const isActive = activeCategory === category.id;
+        const isFirst = index === 0;
+        const isLast = index === CATEGORIES.length - 1;
+        const tabClass = isActive
+          ? isFirst
+            ? FILTER_TAB_ACTIVE_FIRST
+            : isLast
+              ? FILTER_TAB_ACTIVE_LAST
+              : FILTER_TAB_ACTIVE
+          : CATEGORY_TAB_DEFAULT;
         return (
           <Fragment key={category.id}>
             <button
@@ -38,7 +49,7 @@ export function HeroCategoryTabs({
                 index < CATEGORIES.length - 1
                   ? "border-r border-slate-200"
                   : ""
-              } ${isActive ? FILTER_TAB_ACTIVE : CATEGORY_TAB_DEFAULT}`}
+              } ${tabClass}`}
             >
               {category.id === "new-projects" ? (
                 <span className="pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2">

@@ -28,6 +28,7 @@ import {
   PG_BUDGET,
   PROPERTY_TYPES,
   categoryPropertyLabel,
+  defaultPropertyTypes,
   filterSectionsForCategory,
   type FilterSection,
   type PropertyCategory,
@@ -45,9 +46,6 @@ import {
   searchTagKey,
   syncHeaderCityTag,
 } from "./heroSearchTags";
-
-const defaultPropertyTypes = (category: PropertyCategory) =>
-  PROPERTY_TYPES[category as keyof typeof PROPERTY_TYPES] ?? [];
 
 const defaultExpandedSection = (category: PropertyCategory): FilterSection =>
   category === "residential" || category === "pg-co-living" ? "budget" : "area";

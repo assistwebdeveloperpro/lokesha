@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
 import {
   AREA_RANGE,
+  defaultPropertyTypes,
   PG_BUDGET,
   PROPERTY_TYPES,
   RESIDENTIAL_BUDGET,
@@ -14,8 +15,7 @@ import {
 
 const city: SearchTag = { kind: "city", label: "Ahmedabad" };
 
-const ALL_RESIDENTIAL_TYPES =
-  "proptype=Flat-Apartment,Bungalow-Villa,Studio-Apartment,Weekend-Homes,Farm-House,Penthouse,Duplex";
+const DEFAULT_RESIDENTIAL_TYPES = "proptype=Flat-Apartment,Bungalow-Villa";
 const ALL_COMMERCIAL_TYPES =
   "proptype=Shop,Office,Showroom,Cold-Storage,Industrial-Shed,Guest-House,Hotel-Resort,Warehouse-Godown,Co-working-Space-Business-Centre";
 const ALL_LAND_TYPES =
@@ -26,7 +26,7 @@ const input: HeroSearchInput = {
   transaction: "buy",
   searchTags: [city],
   propertyTypeOptions: PROPERTY_TYPES.residential,
-  selectedPropertyTypes: PROPERTY_TYPES.residential,
+  selectedPropertyTypes: defaultPropertyTypes("residential"),
   selectedBedrooms: [],
   selectedConstruction: [],
   selectedSaleTypes: [],
@@ -48,7 +48,7 @@ const urlFor = (overrides: Partial<HeroSearchInput>) => {
 describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
   it("search without any search item beyond the default city", () => {
     expect(urlFor({})).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${ALL_RESIDENTIAL_TYPES}&city-name=Ahmedabad`,
+      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&city-name=Ahmedabad`,
     );
   });
 
@@ -58,7 +58,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         searchTags: [city, { kind: "project", label: "Shyam Swastik" }],
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${ALL_RESIDENTIAL_TYPES}&city-name=Ahmedabad&project-socity=shyam-swastik`,
+      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&city-name=Ahmedabad&project-socity=shyam-swastik`,
     );
   });
 
@@ -66,7 +66,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
     expect(
       urlFor({ searchTags: [city, { kind: "locality", label: "Bopal" }] }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${ALL_RESIDENTIAL_TYPES}&locality=Bopal&city-name=Ahmedabad`,
+      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&locality=Bopal&city-name=Ahmedabad`,
     );
   });
 
@@ -80,7 +80,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         ],
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${ALL_RESIDENTIAL_TYPES}&locality=Hathijan&city-name=Ahmedabad&project-socity=shyam-swastik`,
+      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&locality=Hathijan&city-name=Ahmedabad&project-socity=shyam-swastik`,
     );
   });
 
@@ -91,7 +91,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         selectedBedrooms: ["+3BHK"],
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=3&${ALL_RESIDENTIAL_TYPES}&city-name=Gandhinagar`,
+      `/property-for-sale/residential-real-estate?bedroom=3&${DEFAULT_RESIDENTIAL_TYPES}&city-name=Gandhinagar`,
     );
   });
 
@@ -104,7 +104,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         budgetMax: 30_000_000,
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=3&${ALL_RESIDENTIAL_TYPES}&city-name=Gandhinagar&max-price=30000000`,
+      `/property-for-sale/residential-real-estate?bedroom=3&${DEFAULT_RESIDENTIAL_TYPES}&city-name=Gandhinagar&max-price=30000000`,
     );
   });
 
@@ -131,7 +131,7 @@ describe("buildHeroSearchCriteria extras", () => {
 
   it("uses the rent route", () => {
     expect(urlFor({ transaction: "rent" })).toBe(
-      `/property-for-rent/residential-real-estate?bedroom=&${ALL_RESIDENTIAL_TYPES}&city-name=Ahmedabad`,
+      `/property-for-rent/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&city-name=Ahmedabad`,
     );
   });
 
@@ -244,5 +244,29 @@ describe("buildHeroSearchCriteria extras", () => {
   it("returns null for unsupported combinations and categories", () => {
     expect(urlFor({ transaction: "lease" })).toBeNull();
     expect(urlFor({ category: "new-projects" })).toBeNull();
+  });
+});
+
+describe("defaultPropertyTypes", () => {
+  it("selects a subset for residential, commercial, and land", () => {
+    expect(defaultPropertyTypes("residential")).toEqual([
+      "Flat/Apartment",
+      "Bungalow/Villa",
+    ]);
+    expect(defaultPropertyTypes("commercial")).toEqual([
+      "Shop",
+      "Office",
+      "Showroom",
+    ]);
+    expect(defaultPropertyTypes("land")).toEqual([
+      "Commercial Land",
+      "Residential Land",
+    ]);
+  });
+
+  it("selects every plot type and none for categories without chips", () => {
+    expect(defaultPropertyTypes("plot")).toEqual(PROPERTY_TYPES.plot);
+    expect(defaultPropertyTypes("pg-co-living")).toEqual([]);
+    expect(defaultPropertyTypes("new-projects")).toEqual([]);
   });
 });

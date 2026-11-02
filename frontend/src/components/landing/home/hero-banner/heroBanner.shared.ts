@@ -24,7 +24,11 @@ export const MENU_ITEM_DEFAULT =
   "text-slate-700 hover:bg-slate-50 hover:text-navy-blue";
 
 export const FILTER_TAB_ACTIVE =
-  "-mb-px border-b-2 border-b-navy-blue text-navy-blue";
+  "-mb-px border-b-2 border-b-navy-blue text-navy-blue bg-sky-100 font-semibold hover:bg-sky-100";
+
+export const FILTER_TAB_ACTIVE_FIRST = `${FILTER_TAB_ACTIVE} rounded-tl-2xl`;
+
+export const FILTER_TAB_ACTIVE_LAST = `${FILTER_TAB_ACTIVE} rounded-tr-2xl`;
 
 export const FILTER_TAB_DEFAULT =
   "-mb-px border-b-2 border-b-transparent text-slate-700 hover:text-navy-blue";
@@ -123,10 +127,12 @@ export const CATEGORIES: {
   },
 ];
 
-export const PROPERTY_TYPES: Record<
-  Exclude<PropertyCategory, "new-projects" | "pg-co-living">,
-  string[]
-> = {
+type SearchablePropertyCategory = Exclude<
+  PropertyCategory,
+  "new-projects" | "pg-co-living"
+>;
+
+export const PROPERTY_TYPES: Record<SearchablePropertyCategory, string[]> = {
   residential: [
     "Flat/Apartment",
     "Bungalow/Villa",
@@ -156,6 +162,23 @@ export const PROPERTY_TYPES: Record<
     "Industrial Land",
   ],
 };
+
+const DEFAULT_PROPERTY_TYPE_SET: Record<
+  SearchablePropertyCategory,
+  readonly string[]
+> = {
+  residential: ["Flat/Apartment", "Bungalow/Villa"],
+  commercial: ["Shop", "Office", "Showroom"],
+  plot: PROPERTY_TYPES.plot,
+  land: ["Residential Land", "Commercial Land"],
+};
+
+export function defaultPropertyTypes(category: PropertyCategory): string[] {
+  const options = PROPERTY_TYPES[category as SearchablePropertyCategory];
+  if (!options) return [];
+  const selected = DEFAULT_PROPERTY_TYPE_SET[category as SearchablePropertyCategory];
+  return options.filter((type) => selected.includes(type));
+}
 
 export const BEDROOM_OPTIONS = [
   "+1BHK",

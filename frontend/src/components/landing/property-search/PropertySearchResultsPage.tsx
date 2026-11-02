@@ -69,8 +69,8 @@ export async function PropertySearchResultsPage({
   if (canonicalUrl) redirect(canonicalUrl);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-white font-sans">
-      <Header />
+    <div className="flex min-h-screen w-full shrink-0 flex-col bg-white font-sans">
+      <Header compact />
       <PropertySearchResultsContent criteria={criteria} />
     </div>
   );
