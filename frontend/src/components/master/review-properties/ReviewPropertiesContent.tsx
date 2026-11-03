@@ -43,7 +43,7 @@ export default function ReviewPropertiesContent() {
   });
 
   return (
-    <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
+    <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header>
         <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">Review Properties</h1>
         {!isLoading && !error ? (
@@ -54,7 +54,7 @@ export default function ReviewPropertiesContent() {
       </header>
 
       <section
-        className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-4 sm:p-5"
+        className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-2 sm:p-5"
         aria-live="polite"
       >
         {isLoading ? (

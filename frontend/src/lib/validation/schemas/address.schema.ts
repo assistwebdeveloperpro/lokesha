@@ -17,7 +17,16 @@ export function createAddressLocationSchema({
       "string.max": "Project name must be at most 255 characters long",
     });
 
+  const unitField = (label: string) =>
+    Joi.string()
+      .trim()
+      .max(50)
+      .allow("")
+      .messages({ "string.max": `${label} must be at most 50 characters long` });
+
   return Joi.object({
+    blockNo: unitField("Block No."),
+    flatNumber: unitField("Flat / House / Shop number"),
     projectName: projectNameOptional ? projectName.allow("") : projectName.required(),
     locality: Joi.string().trim().max(255).required().messages({
       "string.empty": "Please enter locality",

@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import PostPropertyInput from "../components/PostPropertyInput";
 import PostPropertyRequiredAsterisk from "../components/PostPropertyRequiredAsterisk";
 import {
+  getCityOptions,
+  getLocalityOptions,
   getStateOptions,
   type IndianState,
 } from "@/data/indianStatesCities";
@@ -10,6 +12,8 @@ import type {
   AddressLocationFieldErrors,
   AddressLocationValues,
 } from "../config/postPropertyForm.shared";
+
+const DROPDOWN_PLACEHOLDER_CLASS = "font-medium text-slate-700";
 
 export default function AddressLocationField({
   values,
@@ -32,6 +36,41 @@ export default function AddressLocationField({
     [],
   );
 
+  const cityOptions = useMemo(() => {
+    const options = values.state
+      ? getCityOptions(values.state).filter((option) => option.value)
+      : [];
+    const withSelected =
+      values.city && !options.some((o) => o.value === values.city)
+        ? [...options, { value: values.city, label: values.city }]
+        : options;
+    return [{ value: "", label: "Select City" }, ...withSelected];
+  }, [values.state, values.city]);
+
+  const localityOptions = useMemo(() => {
+    const options = getLocalityOptions(values.state, values.city);
+    const withSelected =
+      values.locality && !options.some((o) => o.value === values.locality)
+        ? [...options, { value: values.locality, label: values.locality }]
+        : options;
+    return [{ value: "", label: "Select Locality*" }, ...withSelected];
+  }, [values.state, values.city, values.locality]);
+
+  const handleStateChange = (state: IndianState | "") => {
+    if (state === values.state) return;
+    onChange("state", state);
+    onChange("city", "");
+    onChange("locality", "");
+  };
+
+  const handleCityChange = (city: string) => {
+    onChange("city", city);
+    const isLocalityInCity = getLocalityOptions(values.state, city).some(
+      (option) => option.value === values.locality,
+    );
+    if (!isLocalityInCity) onChange("locality", "");
+  };
+
   return (
     <PostPropertyFieldSection
       title="Address / Location"
@@ -46,6 +85,7 @@ export default function AddressLocationField({
               variant="underline"
               prominentLabel
               compactProminentLabel
+              error={errors.blockNo}
               value={values.blockNo}
               onChange={(value) => onChange("blockNo", value)}
             />
@@ -55,6 +95,7 @@ export default function AddressLocationField({
               variant="underline"
               prominentLabel
               compactProminentLabel
+              error={errors.flatNumber}
               value={values.flatNumber}
               onChange={(value) => onChange("flatNumber", value)}
             />
@@ -73,14 +114,48 @@ export default function AddressLocationField({
             onChange={(value) => onChange("projectName", value)}
           />
           <PostPropertyInput
-            id="locality"
-            label="Locality*"
+            id="state"
+            ariaLabel="State"
+            placeholderClassName={DROPDOWN_PLACEHOLDER_CLASS}
             variant="underline"
             prominentLabel
             compactProminentLabel
+            options={stateOptions}
+            value={values.state}
+            onChange={(value) => handleStateChange(value as IndianState | "")}
+            dropdownMenuClassName="absolute left-0 z-20 mt-1 max-h-60 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
+          />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <PostPropertyInput
+            id="city"
+            ariaLabel="City"
+            placeholderClassName={DROPDOWN_PLACEHOLDER_CLASS}
+            variant="underline"
+            prominentLabel
+            compactProminentLabel
+            searchable
+            searchPlaceholder="Search city"
+            options={cityOptions}
+            value={values.city}
+            onChange={handleCityChange}
+            dropdownMenuClassName="z-20 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white pb-1 shadow-lg shadow-slate-900/10"
+          />
+          <PostPropertyInput
+            id="locality"
+            ariaLabel="Locality"
+            placeholderClassName={DROPDOWN_PLACEHOLDER_CLASS}
+            variant="underline"
+            prominentLabel
+            compactProminentLabel
+            searchable
+            searchPlaceholder="Search locality"
+            options={localityOptions}
             value={values.locality}
             error={errors.locality}
             onChange={(value) => onChange("locality", value)}
+            dropdownMenuClassName="z-20 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white pb-1 shadow-lg shadow-slate-900/10"
           />
         </div>
 
@@ -119,28 +194,7 @@ export default function AddressLocationField({
               onChange("pinCode", value.replace(/\D/g, "").slice(0, 6))
             }
           />
-          <PostPropertyInput
-            id="city"
-            label="City"
-            variant="underline"
-            prominentLabel
-            compactProminentLabel
-            value={values.city}
-            onChange={(value) => onChange("city", value)}
-          />
         </div>
-
-        <PostPropertyInput
-          id="state"
-          ariaLabel="State"
-          variant="underline"
-          prominentLabel
-          compactProminentLabel
-          options={stateOptions}
-          value={values.state}
-          onChange={(value) => onChange("state", value as IndianState | "")}
-          dropdownMenuClassName="absolute left-0 z-20 mt-1 max-h-60 w-full min-w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
-        />
 
         <div>
           <label

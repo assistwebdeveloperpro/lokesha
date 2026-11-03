@@ -1,3 +1,5 @@
+import { CITY_LOCALITIES } from "./indianCityLocalities";
+
 export const DEFAULT_STATE = "Gujarat";
 
 export const INDIAN_STATES = [
@@ -171,6 +173,19 @@ export function getCityOptions(state: IndianState) {
     { value: "", label: "Select city" },
     ...STATE_CITIES[state].map((city) => ({ value: city, label: city })),
   ];
+}
+
+export function getLocalityOptions(state: IndianState | "", city: string) {
+  const localities = city
+    ? (CITY_LOCALITIES[city] ?? [])
+    : state
+      ? STATE_CITIES[state].flatMap((stateCity) => CITY_LOCALITIES[stateCity] ?? [])
+      : [];
+
+  return [...new Set(localities)].map((locality) => ({
+    value: locality,
+    label: locality,
+  }));
 }
 
 export function getDefaultCityForState(state: IndianState) {

@@ -273,10 +273,14 @@ export default function AmenitiesField({
               <PostPropertyInput
                 id="openSides"
                 label="No. of open sides"
-                placeholder="No. of open sides"
+                placeholder="e.g. 1 to 4"
                 variant="underline"
                 staticLabel
                 type="number"
+                inputMode="numeric"
+                min="1"
+                max="4"
+                error={errors.openSides}
                 value={values.openSides}
                 onChange={(nextValue) => onChange("openSides", nextValue)}
               />

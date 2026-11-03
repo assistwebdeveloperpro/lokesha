@@ -100,7 +100,7 @@ export default function ManagePropertiesContent({
   });
 
   return (
-    <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
+    <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">{title}</h1>

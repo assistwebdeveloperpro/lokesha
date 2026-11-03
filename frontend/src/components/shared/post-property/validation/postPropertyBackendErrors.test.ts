@@ -18,7 +18,7 @@ describe("mapBackendField", () => {
     ["listings.0.selections.tenantPreference", 2, "details", "tenantPreferences"],
     ["listings.0.details.furnishingStatus", 3, "amenities", "status"],
     ["listings.0.details.carParkingCount", 3, "amenities", "carParking"],
-    ["listings.0.details.openSides", 3, undefined, undefined],
+    ["listings.0.details.openSides", 3, "amenities", "openSides"],
     ["listings.0.facing", 3, "amenities", "facing"],
     ["listings.0.amenities.amenities", 3, "amenities", "amenities"],
     ["listings.0.files.media.1", 4, "photos", undefined],
@@ -60,8 +60,8 @@ describe("resolveBackendErrors", () => {
     expect(result.step).toBe(1);
     expect(result.firstMessage).toBe("Pin code must be 6 digits");
     expect(result.addressLocationErrors).toEqual({ pinCode: "Pin code must be 6 digits" });
-    expect(result.propertyDetailsErrors).toEqual({ bedrooms: "This field must be less than or equal to 10" });
-    expect(result.pricingOthersErrors).toEqual({ expectedPrice: "This field is required" });
+    expect(result.propertyDetailsErrors).toEqual({ bedrooms: "Bedrooms must be less than or equal to 10" });
+    expect(result.pricingOthersErrors).toEqual({ expectedPrice: "Expected price is required" });
     expect(result.photosError).toBe("File was not found in this draft");
   });
 

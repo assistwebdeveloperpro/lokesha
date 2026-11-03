@@ -135,7 +135,7 @@ const SALE = {
   includesCarParking: flag,
   includesClubMembership: flag,
   includesPlc: flag,
-  reraNumber: text(50),
+  reraNumber: Joi.string().trim().empty(ABSENT),
   benefitsRemarks: text(2000),
 };
 

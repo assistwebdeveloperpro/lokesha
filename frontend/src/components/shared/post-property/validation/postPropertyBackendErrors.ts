@@ -26,7 +26,7 @@ const STEP_AMENITIES = 3;
 const STEP_PHOTOS = 4;
 const STEP_PRICING = 5;
 
-const ADDRESS_FIELDS = ["projectName", "locality", "pinCode"];
+const ADDRESS_FIELDS = ["blockNo", "flatNumber", "projectName", "locality", "pinCode"];
 
 // Backend detail fields that belong to the amenities step, with the form field they show on
 const AMENITY_STEP_DETAILS: Record<string, string | undefined> = {
@@ -38,7 +38,7 @@ const AMENITY_STEP_DETAILS: Record<string, string | undefined> = {
   hasCafeteria: undefined,
   isCornerShop: undefined,
   clubMembership: undefined,
-  openSides: undefined,
+  openSides: "openSides",
 };
 
 // Backend detail field -> form field of the property details step
@@ -162,9 +162,16 @@ export function mapBackendField(path: string): { target: Target; listingIndex: n
   return { target: { step: STEP_BASIC }, listingIndex: null };
 }
 
-// The backend names the field with its path in quotes; people only need the problem
-const toReadableMessage = (message: string) => {
-  const readable = message.replace(/^"[^"]*" /, "This field ");
+// "listings.0.details.carpetArea" -> "Carpet area"
+const toFieldLabel = (path: string) => {
+  const name = path.split(".").filter((part) => !/^\d+$/.test(part)).pop() ?? "";
+  const words = name.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1) || "This field";
+};
+
+// The backend quotes the field path in its message; swap it for the field name
+const toReadableMessage = (path: string, message: string) => {
+  const readable = message.replace(/^"[^"]*" /, `${toFieldLabel(path)} `);
   return readable.charAt(0).toUpperCase() + readable.slice(1);
 };
 
@@ -191,7 +198,7 @@ export function resolveBackendErrors(
 
   for (const [path, rawMessage] of Object.entries(fields)) {
     const { target, listingIndex } = mapBackendField(path);
-    const message = toReadableMessage(rawMessage);
+    const message = toReadableMessage(path, rawMessage);
 
     if (result.step === null || target.step < result.step) {
       result.step = target.step;

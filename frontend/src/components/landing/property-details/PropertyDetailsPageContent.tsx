@@ -17,6 +17,7 @@ import { PropertyDetailsSimilarListings } from "./PropertyDetailsSimilarListings
 import { PropertyDetailsSummaryCard } from "./PropertyDetailsSummaryCard";
 import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
 import { propertyDetailsContactLabel } from "./propertyDetailsContactLabel";
+import { propertyDetailsHeroPriceLabel } from "./propertyDetailsPriceLabel";
 import type { PropertyDetailsView } from "./propertyDetails.types";
 
 const PAGE_CONTAINER = "mx-auto w-full max-w-360 px-2 sm:px-4 lg:px-6";
@@ -92,7 +93,10 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
             />
 
             <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
-              <PropertyListPrice item={listing} className="mt-0! text-xl sm:text-2xl" />
+              <p className="text-xs font-medium text-slate-500 sm:text-sm">
+                {propertyDetailsHeroPriceLabel(listing)}
+              </p>
+              <PropertyListPrice item={listing} className="mt-0.5! text-xl sm:text-2xl" />
               {isProject ? (
                 <div className="mt-3">
                   <PropertyDetailsHighlightCards

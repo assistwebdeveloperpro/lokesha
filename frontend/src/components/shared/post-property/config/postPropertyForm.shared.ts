@@ -359,7 +359,12 @@ export type AddressLocationValues = {
 
 export type AddressLocationFieldErrors = Partial<
   Record<
-    "projectName" | "locality" | "pinCode" | "propertyDescription",
+    | "blockNo"
+    | "flatNumber"
+    | "projectName"
+    | "locality"
+    | "pinCode"
+    | "propertyDescription",
     string
   >
 >;
@@ -1162,10 +1167,33 @@ export const EMPTY_AMENITIES_EXTRA = {
 
 export type AmenitiesFieldErrors = Partial<
   Record<
-    "status" | "furnishing" | "amenities" | "carParking" | "washrooms" | "facing",
+    | "status"
+    | "furnishing"
+    | "amenities"
+    | "carParking"
+    | "washrooms"
+    | "facing"
+    | "openSides",
     string
   >
 >;
+
+const OPEN_SIDES_MIN = 1;
+const OPEN_SIDES_MAX = 4;
+
+function validateOpenSidesValue(raw: string): string | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const value = Number(trimmed);
+  if (!Number.isInteger(value) || value < OPEN_SIDES_MIN || value > OPEN_SIDES_MAX) {
+    return `Open sides must be between ${OPEN_SIDES_MIN} and ${OPEN_SIDES_MAX}`;
+  }
+
+  return undefined;
+}
 
 export function validateAmenities(
   values: AmenitiesValues,
@@ -1183,6 +1211,11 @@ export function validateAmenities(
     delete errors.status;
     delete errors.furnishing;
     delete errors.amenities;
+  }
+
+  const openSidesError = validateOpenSidesValue(values.openSides);
+  if (openSidesError) {
+    errors.openSides = openSidesError;
   }
 
   return errors;

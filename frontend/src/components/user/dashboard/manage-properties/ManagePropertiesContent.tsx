@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { ChevronDown, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import PropertyFilterGrid, { PropertyFilterEmpty } from "@/components/shared/ui/PropertyFilterGrid";
 import DeletePropertyModal from "./DeletePropertyModal";
@@ -19,7 +19,7 @@ export default function ManagePropertiesContent() {
   const { status, properties, total, isLoading, error, busyId } = manager;
 
   return (
-    <div className="w-full px-4 py-0 sm:px-6 lg:px-6">
+    <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">Manage Properties</h1>
@@ -65,7 +65,7 @@ export default function ManagePropertiesContent() {
       </div>
 
       <section
-        className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-4 sm:p-5"
+        className="mt-6 rounded-2xl border border-slate-200/70 bg-slate-100/60 p-2 sm:p-5"
         aria-live="polite"
       >
         {isLoading ? (
@@ -105,14 +105,28 @@ export default function ManagePropertiesContent() {
               ))}
             </PropertyFilterGrid>
             {manager.hasMore ? (
-              <div className="mt-6 flex justify-center">
+              <div className="mt-8 flex justify-center border-t border-slate-200/80 pt-7">
                 <button
                   type="button"
                   disabled={manager.isLoadingMore}
                   onClick={manager.loadMore}
-                  className="min-h-10 cursor-pointer rounded-xl border border-navy-blue px-6 text-sm font-semibold text-navy-blue transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-busy={manager.isLoadingMore}
+                  className="group inline-flex min-h-11 min-w-[220px] cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-white px-8 text-sm font-semibold text-navy-blue shadow-sm ring-1 ring-slate-200/90 transition duration-200 hover:shadow-md hover:ring-navy-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white disabled:hover:shadow-sm disabled:hover:ring-slate-200/90"
                 >
-                  {manager.isLoadingMore ? "Loading..." : "Load more"}
+                  {manager.isLoadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      Loading more...
+                    </>
+                  ) : (
+                    <>
+                      Load more properties
+                      <ChevronDown
+                        className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5"
+                        aria-hidden
+                      />
+                    </>
+                  )}
                 </button>
               </div>
             ) : null}

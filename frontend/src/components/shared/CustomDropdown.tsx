@@ -26,9 +26,14 @@ type CustomDropdownProps = {
   mutedText?: boolean;
   menuClassName?: string;
   accentColor?: "sky" | "teal";
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  searchMinChars?: number;
+  placeholderClassName?: string;
 };
 
 const staticLabelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
+const DEFAULT_SEARCH_MIN_CHARS = 3;
 
 export default function CustomDropdown({
   id,
@@ -47,7 +52,11 @@ export default function CustomDropdown({
   mutedText = false,
   menuClassName,
   accentColor = "sky",
-}: CustomDropdownProps) {
+  searchable = false,
+  searchPlaceholder = "Search",
+  searchMinChars = DEFAULT_SEARCH_MIN_CHARS,
+  placeholderClassName = "text-slate-400",
+}:CustomDropdownProps) {
   const isBoxed = variant === "boxed";
   const focusBorder =
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
@@ -70,6 +79,7 @@ export default function CustomDropdown({
   );
   const [isOpen, setIsOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<CSSProperties | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
@@ -77,6 +87,16 @@ export default function CustomDropdown({
   const selectedValue = isControlled ? value : internalValue;
   const selectedOption =
     options.find((option) => option.value === selectedValue) ?? options[0];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleOptions =
+    searchable && normalizedQuery.length >= searchMinChars
+      ? options.filter(
+          (option) =>
+            option.value !== "" &&
+            option.label.toLowerCase().includes(normalizedQuery),
+        )
+      : options;
 
   const fieldTextColor = blackText
     ? "text-black font-medium"
@@ -103,6 +123,10 @@ export default function CustomDropdown({
     onChange?.(nextValue);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (!isOpen) setSearchQuery("");
+  }, [isOpen]);
 
   useLayoutEffect(() => {
     if (!isOpen) return;
@@ -204,7 +228,7 @@ export default function CustomDropdown({
           onClick={() => setIsOpen((open) => !open)}
           className={`${fieldClasses} ${fieldTopPadding} relative cursor-pointer ${isBoxed ? "pr-10" : "pr-6"}`}
         >
-          <span className={!selectedValue ? "text-slate-400" : fieldTextColor}>
+          <span className={!selectedValue ? placeholderClassName : fieldTextColor}>
             {selectedOption?.label ?? selectedOption?.value}
           </span>
           <ChevronDown
@@ -233,7 +257,29 @@ export default function CustomDropdown({
                 "z-50 max-h-48 overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10"
               }
             >
-              {options.map((option) => {
+              {searchable ? (
+                <li role="presentation" className="sticky top-0 z-10 bg-white px-2 pb-1 pt-1">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    placeholder={searchPlaceholder}
+                    aria-label={searchPlaceholder}
+                    autoComplete="off"
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 focus:border-sky-500"
+                  />
+                </li>
+              ) : null}
+              {visibleOptions.length === 0 ? (
+                <li
+                  role="presentation"
+                  className="px-3 py-2.5 text-sm text-slate-400"
+                >
+                  No results found
+                </li>
+              ) : null}
+              {visibleOptions.map((option) => {
                 const isSelected = option.value === selectedValue;
                 return (
                   <li key={option.value} role="presentation">

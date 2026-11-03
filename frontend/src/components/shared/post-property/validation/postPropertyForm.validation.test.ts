@@ -169,4 +169,24 @@ describe("validateAmenities", () => {
 
     expect(errors.carParking).toBeDefined();
   });
+
+  it("rejects open sides above 4", () => {
+    const errors = validateAmenities(
+      { ...INITIAL_AMENITIES, openSides: "5" },
+      "plot",
+      { listingType: "sale", subType: "residential-plot" },
+    );
+
+    expect(errors.openSides).toBe("Open sides must be between 1 and 4");
+  });
+
+  it("accepts open sides from 1 to 4", () => {
+    const errors = validateAmenities(
+      { ...INITIAL_AMENITIES, openSides: "3", facing: "East" },
+      "plot",
+      { listingType: "sale", subType: "residential-plot" },
+    );
+
+    expect(errors.openSides).toBeUndefined();
+  });
 });

@@ -26,6 +26,9 @@ type FloatingInputProps = {
   min?: string;
   max?: string;
   readOnly?: boolean;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  placeholderClassName?: string;
 };
 
 const staticLabelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
@@ -56,6 +59,9 @@ export default function FloatingInput({
   min,
   max,
   readOnly = false,
+  searchable = false,
+  searchPlaceholder,
+  placeholderClassName,
 }: FloatingInputProps) {
   const focusBorder =
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
@@ -117,6 +123,9 @@ export default function FloatingInput({
           mutedText={mutedText}
           menuClassName={dropdownMenuClassName}
           accentColor={accentColor}
+          searchable={searchable}
+          searchPlaceholder={searchPlaceholder}
+          placeholderClassName={placeholderClassName}
         />
         {error && (
           <p className="mt-1 text-xs text-red-500" role="alert">
