@@ -188,7 +188,8 @@ function toPropertyDetail(data) {
     payload: {
       listingType: property.listing_type,
       propertyType,
-      ...(isBuilderListing && POSTING_AS_ROLES.includes(data.role) && { postingAs: "builder" }),
+      ...(POSTING_AS_ROLES.includes(data.role) &&
+        (property.posted_as || isBuilderListing) && { postingAs: property.posted_as ?? "builder" }),
       address: f.fromRow(property, f.ADDRESS),
       ...(isBuilderListing && { project: toProjectPayload(data.project) }),
       listings: [listing],

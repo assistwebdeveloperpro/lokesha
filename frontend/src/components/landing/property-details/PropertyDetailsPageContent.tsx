@@ -16,6 +16,7 @@ import { PropertyDetailsSection } from "./PropertyDetailsSection";
 import { PropertyDetailsSimilarListings } from "./PropertyDetailsSimilarListings";
 import { PropertyDetailsSummaryCard } from "./PropertyDetailsSummaryCard";
 import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
+import { formatPropertyConfigurationLabel } from "./propertyDetailsConfigurationLabel";
 import { propertyDetailsContactLabel } from "./propertyDetailsContactLabel";
 import { propertyDetailsHeroPriceLabel } from "./propertyDetailsPriceLabel";
 import type { PropertyDetailsView } from "./propertyDetails.types";
@@ -28,17 +29,13 @@ type PropertyDetailsPageContentProps = {
   details: PropertyDetailsView;
 };
 
-function bedroomConfigLabel(bedrooms: number[]): string {
-  if (bedrooms.length === 0) return "Flat/Apartment";
-  const unique = [...new Set(bedrooms)].sort((a, b) => a - b).join(", ");
-  return `${unique} BHK Flat/Apartment`;
-}
-
 export function PropertyDetailsPageContent({ details }: PropertyDetailsPageContentProps) {
   const { listing } = details;
   const areaLabel = formatSearchListingArea(listing);
-  const bhkLabel = bedroomConfigLabel(listing.bedrooms);
   const isProject = details.kind === "project";
+  const bhkLabel = isProject
+    ? formatPropertyConfigurationLabel(details.bhkConfigurations)
+    : "";
   const contactLabel = propertyDetailsContactLabel(details.poster.postedBy);
   const contactName = propertyContactDisplayName(
     details.poster.postedBy,
@@ -138,7 +135,7 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
 
           {!isProject && details.furnishingItems.length > 0 ? (
             <PropertyDetailsSection title={`${listing.title} - Furnishing Details`}>
-              <PropertyDetailsAmenityGrid items={details.furnishingItems} variant="furnishing" />
+              <PropertyDetailsAmenityGrid items={details.furnishingItems} />
             </PropertyDetailsSection>
           ) : null}
 

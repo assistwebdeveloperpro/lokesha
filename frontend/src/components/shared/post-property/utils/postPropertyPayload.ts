@@ -1,4 +1,5 @@
 import type { ProjectDetailsValues } from "@/components/master/post-property/postPropertyProjectDetails";
+import type { PostingAsId } from "../config/postingAs";
 import type {
   PayloadFields,
   PropertyListingPayload,
@@ -40,7 +41,7 @@ export type PropertyPayloadInput = {
   listings: ListingFormInput[];
   // Present for builder posts; project wide files go with the first listing
   builderProject?: ProjectDetailsValues;
-  postingAsBuilder?: boolean;
+  postingAs?: PostingAsId;
 };
 
 const DEFAULT_PG_SUB_TYPE = "pg";
@@ -412,12 +413,12 @@ function buildListing(
 
 // The request body of POST /property/drafts/:id/complete and PUT /property/:id
 export function buildPropertyPayload(input: PropertyPayloadInput): PropertyPayload {
-  const { listingType, propertyType, address, builderProject, postingAsBuilder } = input;
+  const { listingType, propertyType, address, builderProject, postingAs } = input;
 
   return {
     listingType,
     propertyType,
-    ...(postingAsBuilder && { postingAs: "builder" as const }),
+    ...(postingAs && { postingAs }),
     address: compact({
       projectName: toText(address.projectName),
       blockNo: toText(address.blockNo),

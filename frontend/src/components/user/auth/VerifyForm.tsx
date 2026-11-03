@@ -10,6 +10,7 @@ import {
   authOtpDigitClassName,
 } from "@/components/shared/auth/authForm.styles";
 import AuthFormHeading from "@/components/shared/auth/AuthFormHeading";
+import { consumePostLoginRedirect } from "@/lib/postLoginRedirect";
 import { verifyOtp } from "@/services/auth.service";
 import { getDefaultUserDashboardRoute } from "@/components/user/dashboard/layout/user-dashboard-nav";
 import { setSession } from "@/services/session";
@@ -106,7 +107,7 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
       });
       setSession(token, role);
       showToast("OTP verified successfully.");
-      router.push(getDefaultUserDashboardRoute(role));
+      router.push(consumePostLoginRedirect() ?? getDefaultUserDashboardRoute(role));
     } catch {
       setOtpError(true);
       showToast("OTP is not verified. Please try again.", "error");

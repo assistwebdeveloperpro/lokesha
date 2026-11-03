@@ -720,7 +720,7 @@ export function usePostPropertyForm() {
       propertyType,
       address: addressLocation,
       builderProject: showBuilderFields ? projectDetails : undefined,
-      postingAsBuilder: isStaff && postingAs === "builder",
+      postingAs: isStaff && postingAs ? postingAs : undefined,
       listings: isMultiSubType
         ? subForms.tabs.map((tab) => ({
             subType: tab.id,

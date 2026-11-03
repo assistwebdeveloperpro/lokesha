@@ -3,8 +3,13 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { normalizeSearchCriteria } from "@/lib/property-search-url/normalizeSearchCriteria";
 import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
+import { toSearchApiQuery, type SearchSort } from "@/lib/property-search-url/toSearchApiQuery";
 import { SCROLLBAR_NAVY_BLUE } from "../home/hero-banner/heroBanner.shared";
-import { getMockPublicSearchListResponse } from "./property-list/mockPublicSearchListings";
+import {
+  PropertySearchEmptyState,
+  PropertySearchListError,
+  PropertySearchListSkeleton,
+} from "./property-list/PropertySearchListStatus";
 import { PropertySearchListBreadcrumbs } from "./property-list/PropertySearchListBreadcrumbs";
 import { PropertySearchListSeoSection } from "./property-list/PropertySearchListSeoSection";
 import { PropertySearchListStickySort } from "./property-list/PropertySearchListStickySort";
@@ -13,9 +18,11 @@ import { PropertySearchListingsSection } from "./property-list/PropertySearchLis
 import { PropertySearchResultsSidebar } from "./property-list/PropertySearchResultsSidebar";
 import { PropertySearchSortDropdown } from "./property-list/PropertySearchSortDropdown";
 import { SearchFilterBar } from "./search-filter-bar/SearchFilterBar";
+import { usePropertySearchResults } from "./usePropertySearchResults";
 import { useSearchResultsFilters } from "./useSearchResultsFilters";
 import { useSiteHeaderOffset } from "./useSiteHeaderOffset";
 
+const DEFAULT_PAGE_SIZE = 30;
 const RESULTS_CONTAINER = "mx-auto w-full max-w-360 px-2 sm:px-4 lg:px-6";
 const RESULTS_GRID =
   "lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-x-8 xl:grid-cols-[minmax(0,1fr)_20rem]";
@@ -32,7 +39,20 @@ export function PropertySearchResultsContent({
   const filterRef = useRef<HTMLDivElement>(null);
   const [filterHeight, setFilterHeight] = useState(0);
   const headerBottomPx = useSiteHeaderOffset();
-  const { items, total, page, pageSize } = getMockPublicSearchListResponse(criteria.page);
+  const [sort, setSort] = useState<SearchSort>("recent");
+  const { data, error, isLoading, retry } = usePropertySearchResults(
+    toSearchApiQuery(criteria, sort),
+  );
+  const items = data?.items ?? [];
+  const otherLocalities = data?.otherLocalities ?? [];
+  const total = data?.total ?? 0;
+  const page = data?.page ?? criteria.page;
+  const pageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
+
+  const handleSortChange = (nextSort: SearchSort) => {
+    setSort(nextSort);
+    if (criteria.page > 1) updateCriteria({ page: 1 });
+  };
 
   useLayoutEffect(() => {
     const node = filterRef.current;
@@ -92,7 +112,7 @@ export function PropertySearchResultsContent({
             page={page}
             pageSize={pageSize}
           />
-          <PropertySearchListStickySort />
+          <PropertySearchListStickySort value={sort} onChange={handleSortChange} />
         </div>
       </div>
 
@@ -102,22 +122,34 @@ export function PropertySearchResultsContent({
           <div className="hidden lg:block" aria-hidden />
 
           <div className="mb-4 lg:hidden">
-            <PropertySearchSortDropdown />
+            <PropertySearchSortDropdown value={sort} onChange={handleSortChange} />
           </div>
 
-          <PropertySearchListingsSection
-            listings={items}
-            criteria={criteria}
-            total={total}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={(nextPage) => {
-              updateCriteria({ page: nextPage });
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            onPickLocality={(locality) => updateCriteria({ localities: [locality] })}
-            onClearLocalities={() => updateCriteria({ localities: [] })}
-          />
+          <div className="min-w-0" aria-busy={isLoading}>
+            {error ? (
+              <PropertySearchListError message={error} onRetry={retry} />
+            ) : !data ? (
+              <PropertySearchListSkeleton />
+            ) : items.length === 0 ? (
+              <PropertySearchEmptyState criteria={criteria} otherLocalities={otherLocalities} />
+            ) : (
+              <div className={isLoading ? "opacity-60 transition-opacity" : undefined}>
+                <PropertySearchListingsSection
+                  listings={items}
+                  criteria={criteria}
+                  total={total}
+                  page={page}
+                  pageSize={pageSize}
+                  onPageChange={(nextPage) => {
+                    updateCriteria({ page: nextPage });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onPickLocality={(locality) => updateCriteria({ localities: [locality] })}
+                  onClearLocalities={() => updateCriteria({ localities: [] })}
+                />
+              </div>
+            )}
+          </div>
           <PropertySearchResultsSidebar criteria={criteria} />
         </div>
       </div>

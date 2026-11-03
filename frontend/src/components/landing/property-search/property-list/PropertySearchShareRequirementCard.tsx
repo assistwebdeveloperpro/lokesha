@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronDown, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
 import {
@@ -15,18 +16,36 @@ import {
   LANDING_CATEGORY_SLUGS,
   type LandingCategory,
 } from "@/lib/property-search-url/landingUrl.config";
-import { CATEGORY_TRANSACTIONS } from "@/lib/property-search-url/searchUrl.config";
+import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
+import {
+  CATEGORY_ID_BY_SLUG,
+  CATEGORY_TRANSACTIONS,
+} from "@/lib/property-search-url/searchUrl.config";
 import type {
   CategorySlug,
   PropertySearchCriteria,
   TransactionSlug,
 } from "@/lib/property-search-url/searchUrl.types";
+import type { PropertyTypeId } from "@/components/shared/post-property/config/postPropertyForm.shared";
+import { ApiError } from "@/services/apiClient";
+import {
+  submitPropertyRequirement,
+  type PropertyRequirementPayload,
+} from "@/services/propertySearch.service";
+import { clearSession, getToken } from "@/services/session";
 import {
   getCategoryFilters,
   includesValue,
   type FilterOption,
 } from "../searchFilterOptions";
+import { urlPropertyTypeToSubTypeId } from "../more-filters/moreFilterContext";
 import { getCityLocalities } from "../search-filter-bar/searchTopLocalities";
+import {
+  clearRequirementDraft,
+  loadRequirementDraft,
+  saveRequirementDraft,
+  type RequirementDraft,
+} from "./requirementDraft";
 
 const TRANSACTION_LABEL: Record<TransactionSlug, string> = {
   "property-for-sale": "Buy",
@@ -64,6 +83,26 @@ function matchedSubtypeValues(selected: string[], category: CategorySlug): strin
   return getCategoryFilters(category)
     .propertyTypeOptions.filter((option) => includesValue(selected, option.value))
     .map((option) => option.value);
+}
+
+const SUBMIT_FAILED_MESSAGE = "Unable to submit your requirement. Please try again.";
+const LOGIN_REQUIRED_MESSAGE = "Please login to share your requirement.";
+
+function toRequirementPayload(draft: RequirementDraft): PropertyRequirementPayload {
+  const propertyType = CATEGORY_ID_BY_SLUG[draft.category];
+
+  return {
+    listingType: draft.transaction === "property-for-sale" ? "sale" : "rent-lease",
+    propertyType,
+    city: draft.city,
+    localities: draft.localities,
+    subTypes: draft.subtypes.map(
+      (value) =>
+        urlPropertyTypeToSubTypeId(propertyType as PropertyTypeId, value) ??
+        value.toLowerCase(),
+    ),
+    requirement: draft.description.trim(),
+  };
 }
 
 function nextTransaction(
@@ -379,6 +418,7 @@ function MapWash() {
 export function PropertySearchShareRequirementCard({
   criteria,
 }: PropertySearchShareRequirementCardProps) {
+  const router = useRouter();
   const headerCity = useHeaderCity();
   const { showToast } = useToast();
   const cityFromSearch = canonicalCity(
@@ -406,8 +446,20 @@ export function PropertySearchShareRequirementCard({
   const [description, setDescription] = useState("");
   const [localityError, setLocalityError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    const draft = loadRequirementDraft(window.location.href);
+    if (draft) {
+      setTransaction(draft.transaction);
+      setCategory(draft.category);
+      setCity(draft.city);
+      setLocalities(draft.localities);
+      setSubtypes(draft.subtypes);
+      setDescription(draft.description);
+      return;
+    }
+
     const current = snapshotRef.current;
     setTransaction(current.criteria.transaction);
     setCategory(current.criteria.category);
@@ -448,16 +500,46 @@ export function PropertySearchShareRequirementCard({
     setSubtypes([]);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const redirectToLogin = (draft: RequirementDraft) => {
+    saveRequirementDraft(draft, window.location.href);
+    setPostLoginRedirect(`${window.location.pathname}${window.location.search}`);
+    showToast(LOGIN_REQUIRED_MESSAGE, "error");
+    router.push("/login");
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const missingLocality = localities.length === 0;
     const missingDescription = description.trim().length === 0;
     setLocalityError(missingLocality);
     setDescriptionError(missingDescription);
-    if (missingLocality || missingDescription) return;
+    if (missingLocality || missingDescription || isSubmitting) return;
 
-    showToast("Your requirement has been submitted.");
-    setDescription("");
+    const draft: RequirementDraft = { transaction, category, city, localities, subtypes, description };
+    const token = getToken();
+    if (!token) {
+      redirectToLogin(draft);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { message } = await submitPropertyRequirement(toRequirementPayload(draft), token);
+      showToast(message);
+      clearRequirementDraft();
+      setDescription("");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearSession();
+        redirectToLogin(draft);
+        return;
+      }
+      const message =
+        error instanceof ApiError ? (error.errors?.[0] ?? error.message) : SUBMIT_FAILED_MESSAGE;
+      showToast(message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -557,9 +639,10 @@ export function PropertySearchShareRequirementCard({
 
         <button
           type="submit"
-          className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+          disabled={isSubmitting}
+          className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Submit Requirements
+          {isSubmitting ? "Submitting..." : "Submit Requirements"}
         </button>
       </form>
     </section>

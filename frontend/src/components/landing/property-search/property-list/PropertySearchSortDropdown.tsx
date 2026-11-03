@@ -9,22 +9,26 @@ import {
   type CSSProperties,
 } from "react";
 import { createPortal } from "react-dom";
+import type { SearchSort } from "@/lib/property-search-url/toSearchApiQuery";
 import { FOCUS_RING } from "../../home/hero-banner/heroBanner.shared";
 
-const SORT_OPTIONS = [
+const SORT_OPTIONS: { value: SearchSort; label: string }[] = [
   { value: "recent", label: "Most Recent" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
-] as const;
-
-type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+];
 
 type PropertySearchSortDropdownProps = {
+  value: SearchSort;
+  onChange: (value: SearchSort) => void;
   className?: string;
 };
 
-export function PropertySearchSortDropdown({ className = "" }: PropertySearchSortDropdownProps) {
-  const [value, setValue] = useState<SortValue>("recent");
+export function PropertySearchSortDropdown({
+  value,
+  onChange,
+  className = "",
+}: PropertySearchSortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -88,7 +92,7 @@ export function PropertySearchSortDropdown({ className = "" }: PropertySearchSor
             role="option"
             aria-selected={selected}
             onClick={() => {
-              setValue(option.value);
+              onChange(option.value);
               setIsOpen(false);
             }}
             className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition hover:bg-slate-50 ${FOCUS_RING} ${

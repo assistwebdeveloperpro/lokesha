@@ -1,3 +1,4 @@
+import type { PublicAmenityItem } from "@/services/propertySearch.service";
 import type {
   PublicSearchListing,
   PublicSearchPostedBy,
@@ -49,7 +50,7 @@ export type PropertyDetailsBase = {
   headlineSubtitle: string;
   address: string;
   description: string;
-  amenities: string[];
+  amenities: PublicAmenityItem[];
   similarListings: PublicSearchListing[];
   poster: PropertyDetailsPoster;
 };
@@ -67,7 +68,7 @@ export type PropertyDetailsProjectView = PropertyDetailsBase & {
 
 export type PropertyDetailsUnitView = PropertyDetailsBase & {
   kind: "unit";
-  furnishingItems: string[];
+  furnishingItems: PublicAmenityItem[];
   propertyDetailRows: PropertyDetailsSpecRow[];
   pricingRows: PropertyDetailsSpecRow[];
 };

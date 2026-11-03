@@ -76,8 +76,9 @@ describe("buildPropertyPayload address and header", () => {
     expect(payload).not.toHaveProperty("postingAs");
   });
 
-  it("marks builder posts made by staff", () => {
-    expect(build({ postingAsBuilder: true }).postingAs).toBe("builder");
+  it("sends the posting as value chosen by staff", () => {
+    expect(build({ postingAs: "builder" }).postingAs).toBe("builder");
+    expect(build({ postingAs: "agent" }).postingAs).toBe("agent");
   });
 });
 

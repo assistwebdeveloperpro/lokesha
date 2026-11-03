@@ -126,7 +126,7 @@ function toInput(detail: PropertyDetailResponse): PropertyPayloadInput {
     listingType: form.listingType,
     propertyType: form.propertyType,
     address: form.addressLocation,
-    postingAsBuilder: postingAs === "builder",
+    postingAs: postingAs || undefined,
     builderProject: detail.payload.project ? form.projectDetails : undefined,
     listings: [
       {
@@ -411,7 +411,7 @@ describe("mapDetailToForm builder", () => {
     listingType: "sale",
     propertyType: "residential",
     address,
-    postingAsBuilder: true,
+    postingAs: "builder",
     builderProject: project,
     listings: [
       listing("flat-apartment", {

@@ -95,7 +95,7 @@ export default function ManagePropertiesContent() {
           <>
             <PropertyFilterGrid replayKey={`${status}-list`}>
               {properties.map((property) => (
-                <PropertyCard
+                <PropertyCard 
                   key={property.id}
                   property={property}
                   isBusy={busyId === property.id}

@@ -153,7 +153,7 @@ export type PropertyListingPayload = {
 export type PropertyPayload = {
   listingType: string;
   propertyType: string;
-  postingAs?: "builder";
+  postingAs?: "buyer_owner_tenant" | "agent" | "builder";
   address: PayloadFields;
   project?: PropertyProjectPayload;
   listings: PropertyListingPayload[];

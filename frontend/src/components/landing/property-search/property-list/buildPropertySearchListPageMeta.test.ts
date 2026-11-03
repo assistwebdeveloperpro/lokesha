@@ -4,9 +4,9 @@ import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl
 import {
   buildResultsCountLine,
   buildSearchListBreadcrumbs,
+  buildSearchListSeoDescription,
   buildShowingRange,
 } from "./buildPropertySearchListPageMeta";
-import { MOCK_PUBLIC_SEARCH_LISTINGS } from "./mockPublicSearchListings";
 
 const criteria: PropertySearchCriteria = {
   transaction: "property-for-sale",
@@ -40,7 +40,7 @@ describe("buildPropertySearchListPageMeta", () => {
     expect(buildShowingRange(1, 30, 1746)).toBe("Showing 1 - 30 of 1,746");
   });
 
-  it("uses mock listings for SEO without throwing", () => {
-    expect(MOCK_PUBLIC_SEARCH_LISTINGS).toHaveLength(5);
+  it("builds the SEO description for a page without listings", () => {
+    expect(buildSearchListSeoDescription(criteria, 0, [])).toEqual(expect.any(String));
   });
 });

@@ -71,7 +71,7 @@ function buildEnvelopeSchema(isBuilderPost) {
   return Joi.object({
     listingType: Joi.string().valid(...c.LISTING_TYPES).required(),
     propertyType: Joi.string().valid(...c.PROPERTY_TYPES).required(),
-    postingAs: Joi.string().valid("builder"),
+    postingAs: Joi.string().valid(...c.POSTING_AS_VALUES),
     address: Joi.object(f.ADDRESS).required(),
     project: isBuilderPost ? projectSchema.required() : Joi.forbidden().messages({
       "any.unknown": "Project details are only allowed for builder listings",

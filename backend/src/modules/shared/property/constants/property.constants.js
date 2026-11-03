@@ -164,6 +164,7 @@ const STATUS_TRANSITIONS = {
 
 
 const POSTING_AS_ROLES = ["lokesha_staff", "admin"];
+const POSTING_AS_VALUES = ["buyer_owner_tenant", "agent", "builder"];
 
 const ADMIN_STATUS_TRANSITIONS = {
   draft: ["published"],
@@ -354,6 +355,7 @@ module.exports = {
   STATUS_TRANSITIONS,
   ADMIN_STATUS_TRANSITIONS,
   POSTING_AS_ROLES,
+  POSTING_AS_VALUES,
   RULES,
   getRule,
   isBuilderAllowed,

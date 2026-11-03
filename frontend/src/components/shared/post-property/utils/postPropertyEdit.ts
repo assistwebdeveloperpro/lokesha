@@ -493,7 +493,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
     : EMPTY_SUB_TYPE_FORMS_SNAPSHOT;
 
   return {
-    postingAs: payload.postingAs === "builder" || payload.project ? "builder" : "",
+    postingAs: payload.postingAs ?? (payload.project ? "builder" : ""),
     tabs,
     form: {
       listingType: payload.listingType as ListingTypeId,

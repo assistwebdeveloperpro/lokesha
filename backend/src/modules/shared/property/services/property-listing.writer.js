@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const writeRepository = require("../repositories/property-write.repository");
 const { toRow, toSnakeCase, PROJECT } = require("../validation/property-payload.fields");
 const derive = require("../utils/property-derive.util");
-const { OPTION_GROUPS, PROPERTY_TYPE_TO_DB, getRule } = require("../constants/property.constants");
+const { OPTION_GROUPS, PROPERTY_TYPE_TO_DB, POSTING_AS_ROLES, getRule } = require("../constants/property.constants");
 const { toOwnerColumns } = require("../utils/property-actor.util");
 
 const AMENITY_KIND_BY_PAYLOAD_KEY = { amenities: "amenity", furnishing: "furnishing" };
@@ -117,6 +117,7 @@ function buildPropertyRow({ id, user, value, listing, rule, subTypeRow, projectI
     id,
     ...toOwnerColumns(user),
     listed_by: user.role,
+    posted_as: POSTING_AS_ROLES.includes(user.role) ? value.postingAs ?? null : null,
     listing_type: value.listingType,
     property_type: PROPERTY_TYPE_TO_DB[value.propertyType],
     property_sub_type_id: subTypeRow.id,
