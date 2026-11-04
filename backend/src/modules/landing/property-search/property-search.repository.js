@@ -10,12 +10,40 @@ const ORDER_BY = {
   "price-desc": `max(${PRICE_MAX_SQL}) desc nulls last`,
 };
 
+const FLOORED_CARD_COLUMNS = {
+  carpetArea: "t.carpet_area",
+  areaUnit: "t.carpet_area_unit",
+  totalFloors: "t.total_floors",
+  floorNumber: "t.floor_number",
+  furnishingStatus: "t.furnishing_status",
+  ageOfConstruction: "t.age_of_construction",
+};
+
+const LAND_CARD_COLUMNS = {
+  propertyTransaction: "t.property_transaction",
+  roadFacing: "t.road_facing",
+  openSides: "t.open_sides",
+  cornerPlot: "t.corner_plot",
+  boundaryWallMade: "t.boundary_wall_made",
+  anyConstruction: "t.any_construction",
+};
+
 const CARD_TYPE_COLUMNS = {
-  residential: { bedrooms: "t.bedrooms", carpetArea: "t.carpet_area", areaUnit: "t.carpet_area_unit", totalFloors: "t.total_floors" },
-  pg: { bedrooms: "t.bedrooms", carpetArea: "t.carpet_area", areaUnit: "t.carpet_area_unit", totalFloors: "t.total_floors" },
-  commercial: { carpetArea: "t.carpet_area", areaUnit: "t.carpet_area_unit", totalFloors: "t.total_floors" },
-  plot: {},
-  land: {},
+  residential: { ...FLOORED_CARD_COLUMNS, bedrooms: "t.bedrooms", propertyTransaction: "t.property_transaction" },
+  pg: {
+    ...FLOORED_CARD_COLUMNS,
+    bedrooms: "t.bedrooms",
+    pgGender: "t.pg_gender",
+    foodChargeType: "t.food_charge_type",
+  },
+  commercial: {
+    ...FLOORED_CARD_COLUMNS,
+    propertyTransaction: "t.property_transaction",
+    washrooms: "t.washrooms",
+    carParkingCount: "t.car_parking_count",
+  },
+  plot: LAND_CARD_COLUMNS,
+  land: LAND_CARD_COLUMNS,
 };
 
 const firstOfGroup = (column, alias) => db.raw(`(array_agg(${column} order by p.listing_number))[1] as ${alias}`);
@@ -69,8 +97,21 @@ function selectCards(query, dbType) {
       firstOfGroup("bp.total_units", "total_units"),
       firstOfGroup("bp.launch_date", "launch_date"),
       firstOfGroup("coalesce(bp.rera_link, '')", "rera_link"),
-      firstOfGroup(typeColumns.areaUnit ?? "'sq-ft'", "area_unit"),
+      firstOfGroup(typeColumns.areaUnit ?? "'sq-ft'::text", "area_unit"),
       firstOfGroup(typeColumns.totalFloors ?? "null::smallint", "total_floors"),
+      firstOfGroup(typeColumns.floorNumber ?? "null::smallint", "floor_number"),
+      firstOfGroup(typeColumns.furnishingStatus ?? "null::text", "furnishing_status"),
+      firstOfGroup(typeColumns.ageOfConstruction ?? "null::text", "age_of_construction"),
+      firstOfGroup(typeColumns.propertyTransaction ?? "null::text", "property_transaction"),
+      firstOfGroup(typeColumns.washrooms ?? "null::smallint", "washrooms"),
+      firstOfGroup(typeColumns.carParkingCount ?? "null::smallint", "car_parking_count"),
+      firstOfGroup(typeColumns.pgGender ?? "null::text", "pg_gender"),
+      firstOfGroup(typeColumns.foodChargeType ?? "null::text", "food_charge_type"),
+      firstOfGroup(typeColumns.roadFacing ?? "null::text", "road_facing"),
+      firstOfGroup(typeColumns.openSides ?? "null::smallint", "open_sides"),
+      firstOfGroup(typeColumns.cornerPlot ?? "null::boolean", "corner_plot"),
+      firstOfGroup(typeColumns.boundaryWallMade ?? "null::boolean", "boundary_wall_made"),
+      firstOfGroup(typeColumns.anyConstruction ?? "null::boolean", "any_construction"),
       db.raw("array_agg(p.id order by p.listing_number) as member_ids"),
       db.raw(`min(${PRICE_MIN_SQL}) as price_min`),
       db.raw(`max(${PRICE_MAX_SQL}) as price_max`),

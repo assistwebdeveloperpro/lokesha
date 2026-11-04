@@ -40,6 +40,15 @@ function toCamelRow(row, hidden = HIDDEN_COLUMNS) {
 const formatDate = (value) =>
   value ? new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null;
 
+const formatPossession = (value) =>
+  value ? new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric" }).replace(" ", "'") : null;
+
+const SQFT_UNIT = "sq-ft";
+
+// Only a single sale unit has one price and one size to divide
+const toPricePerSqft = ({ isBuilder, listingType, price, area, unit }) =>
+  !isBuilder && listingType === "sale" && unit === SQFT_UNIT && price && area ? Math.round(price / area) : null;
+
 const uniqueSorted = (values) => [...new Set(values.filter((value) => Number.isFinite(value)))].sort((a, b) => a - b);
 
 const minOrNull = (values) => (values.length ? Math.min(...values) : null);
@@ -61,6 +70,8 @@ function toListing(row, extras) {
   const areas = variantAreas.filter((area) => area !== null);
   const priceMin = toNumberOrNull(row.price_min);
   const isBuilder = Boolean(row.builder_project_id);
+  const carpetAreaMin = toNumberOrNull(row.area_min) ?? minOrNull(areas);
+  const carpetAreaUnit = row.area_unit ?? SQFT_UNIT;
 
   return {
     id: row.id,
@@ -72,18 +83,39 @@ function toListing(row, extras) {
     price: priceMin,
     priceMin,
     priceMax: toNumberOrNull(row.price_max),
-    carpetAreaMin: toNumberOrNull(row.area_min) ?? minOrNull(areas),
+    pricePerSqft: toPricePerSqft({
+      isBuilder,
+      listingType: row.listing_type,
+      price: priceMin,
+      area: carpetAreaMin,
+      unit: carpetAreaUnit,
+    }),
+    carpetAreaMin,
     carpetAreaMax: toNumberOrNull(row.area_max) ?? maxOrNull(areas),
-    carpetAreaUnit: row.area_unit ?? "sq-ft",
+    carpetAreaUnit,
     bedrooms,
     propertySubType: row.sub_type_slug,
     propertyType: FORM_TYPE_BY_DB_TYPE[row.property_type],
     locality: row.locality,
     city: row.city,
     constructionStatus: CONSTRUCTION_LABELS[row.construction_status] ?? null,
-    launchOrPossessionLabel: formatDate(row.possession_date ?? row.launch_date),
+    launchDate: formatDate(row.launch_date),
+    possessionDate: formatPossession(row.possession_date),
     totalUnits: row.total_units ?? null,
     totalFloors: row.total_floors ?? null,
+    floorNumber: row.floor_number ?? null,
+    furnishingStatus: row.furnishing_status ?? null,
+    ageOfConstruction: row.age_of_construction ?? null,
+    propertyTransaction: row.property_transaction ?? null,
+    washrooms: row.washrooms ?? null,
+    carParkingCount: row.car_parking_count ?? null,
+    pgGender: row.pg_gender ?? null,
+    foodChargeType: row.food_charge_type ?? null,
+    roadFacing: row.road_facing ?? null,
+    openSides: row.open_sides ?? null,
+    cornerPlot: row.corner_plot ?? null,
+    boundaryWallMade: row.boundary_wall_made ?? null,
+    anyConstruction: row.any_construction ?? null,
     postedBy: POSTED_BY_LABEL[row.posted_by],
     reraRegistered: Boolean(row.rera_link) || extras.reraRows.some(inGroup),
     builderName: isBuilder ? row.developer_name ?? row.project_name : null,

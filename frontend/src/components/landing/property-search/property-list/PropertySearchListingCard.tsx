@@ -1,14 +1,15 @@
 "use client";
 
-import { BadgeCheck, BedDouble, Building2, Heart, Maximize2, Share2 } from "lucide-react";
+import { BadgeCheck, Building2, Heart, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { PropertyContactSuccessModal } from "@/components/landing/property-contact/PropertyContactSuccessModal";
 import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
 import { propertyDetailsContactLabel } from "@/components/landing/property-details/propertyDetailsContactLabel";
-import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import { buildPropertyDetailsUrl } from "@/lib/property-search-url/propertyDetailsUrl";
+import { buildSearchListingFacts, formatSearchListingPrice } from "./buildSearchListingFacts";
 import { formatSearchListingArea } from "./formatSearchListingArea";
+import { getSearchListingMetricIcon } from "./searchListingMetricIcon";
 import type { PublicSearchListing } from "./publicSearchListing.types";
 
 type PropertySearchListingCardProps = {
@@ -23,6 +24,25 @@ function bedroomLabel(bedrooms: number[]) {
   if (bedrooms.length === 0) return null;
   const unique = [...new Set(bedrooms)].sort((a, b) => a - b);
   return `${unique.join(", ")} BHK`;
+}
+
+type SearchListingMetricChipProps = {
+  label: string;
+  value: string;
+};
+
+function SearchListingMetricChip({ label, value }: SearchListingMetricChipProps) {
+  const Icon = getSearchListingMetricIcon(label);
+
+  return (
+    <li className="flex min-w-0 flex-col gap-0.5 rounded-lg border border-slate-200 bg-slate-100/20 px-2.5 py-1.5">
+      <span className="text-[11px] font-medium leading-tight text-slate-500 sm:text-xs">{label}</span>
+      <span className="inline-flex min-w-0 items-center gap-1 text-xs font-semibold leading-snug text-slate-800 sm:text-sm">
+        <Icon className="h-3.5 w-3.5 shrink-0 text-sky-600" aria-hidden />
+        <span className="truncate tabular-nums">{value}</span>
+      </span>
+    </li>
+  );
 }
 
 export function PropertySearchListingCard({
@@ -46,6 +66,8 @@ export function PropertySearchListingCard({
   const showImage = listing.imageUrl && !hasImageError;
   const areaLabel = formatSearchListingArea(listing);
   const bhk = bedroomLabel(listing.bedrooms);
+  const facts = buildSearchListingFacts(listing);
+  const priceValue = formatSearchListingPrice(listing);
 
   const contactName = propertyContactDisplayName(listing.postedBy, listing.builderName);
 
@@ -113,35 +135,15 @@ export function PropertySearchListingCard({
             ) : null}
           </div>
 
-          <PropertyListPrice
-            item={{
-              price: listing.price,
-              priceMin: listing.priceMin,
-              priceMax: listing.priceMax,
-              listingType: listing.listingType,
-            }}
-            className="mt-2! text-base! font-bold! sm:text-lg! md:text-lg! lg:text-lg!"
-          />
-
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {bhk ? (
-              <li className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 sm:text-sm">
-                <BedDouble className="h-3.5 w-3.5 text-sky-600" aria-hidden />
-                {bhk}
-              </li>
+          <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <SearchListingMetricChip label="Price" value={priceValue} />
+            {bhk ? <SearchListingMetricChip label="Configuration" value={bhk} /> : null}
+            {listing.carpetAreaMin !== null ? (
+              <SearchListingMetricChip label="Area" value={areaLabel} />
             ) : null}
-            <li className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 sm:text-sm">
-              <Maximize2 className="h-3.5 w-3.5 text-sky-600" aria-hidden />
-              {areaLabel}
-            </li>
-            <li className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 sm:text-sm">
-              <span className="text-slate-500">
-                {listing.constructionStatus === "Ready to Move" ? "Status" : "Launch"}
-              </span>
-              <span className="truncate">
-                {listing.launchOrPossessionLabel ?? listing.constructionStatus ?? "—"}
-              </span>
-            </li>
+            {facts.map(({ label, value }) => (
+              <SearchListingMetricChip key={`${label}-${value}`} label={label} value={value} />
+            ))}
           </ul>
 
           <div className="mt-auto w-full min-w-0 pt-4">

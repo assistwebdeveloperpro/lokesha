@@ -37,7 +37,9 @@ export function PropertySearchResultsContent({
   const criteria = normalizeSearchCriteria(rawCriteria);
   const { updateCriteria } = useSearchResultsFilters(criteria);
   const filterRef = useRef<HTMLDivElement>(null);
+  const summaryBarRef = useRef<HTMLDivElement>(null);
   const [filterHeight, setFilterHeight] = useState(0);
+  const [summaryBarHeight, setSummaryBarHeight] = useState(0);
   const headerBottomPx = useSiteHeaderOffset();
   const [sort, setSort] = useState<SearchSort>("recent");
   const { data, error, isLoading, retry } = usePropertySearchResults(
@@ -55,21 +57,26 @@ export function PropertySearchResultsContent({
   };
 
   useLayoutEffect(() => {
-    const node = filterRef.current;
-    if (!node) return;
+    const filterNode = filterRef.current;
+    const summaryNode = summaryBarRef.current;
+    if (!filterNode && !summaryNode) return;
 
-    const measure = () => setFilterHeight(node.offsetHeight);
+    const measure = () => {
+      if (filterNode) setFilterHeight(filterNode.offsetHeight);
+      if (summaryNode) setSummaryBarHeight(summaryNode.offsetHeight);
+    };
     measure();
 
     const observer = new ResizeObserver(measure);
-    observer.observe(node);
+    if (filterNode) observer.observe(filterNode);
+    if (summaryNode) observer.observe(summaryNode);
     window.addEventListener("resize", measure);
 
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [criteria]);
+  }, [criteria, total, page, pageSize, sort]);
 
   const filterTopPx = headerBottomPx > 0 ? headerBottomPx : undefined;
   const filterMaxHeightPx =
@@ -77,6 +84,8 @@ export function PropertySearchResultsContent({
       ? `calc(100dvh - ${headerBottomPx}px - 0.75rem)`
       : "calc(100dvh - 4rem - 0.75rem)";
   const contentStickyTopPx = filterHeight > 0 ? headerBottomPx + filterHeight : 0;
+  const sidebarStickyTopPx =
+    contentStickyTopPx > 0 ? contentStickyTopPx + summaryBarHeight : undefined;
 
   return (
     <div className="flex w-full flex-col pb-8">
@@ -102,6 +111,7 @@ export function PropertySearchResultsContent({
       </div>
 
       <div
+        ref={summaryBarRef}
         className="sticky z-30 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-sm"
         style={{ top: contentStickyTopPx > 0 ? contentStickyTopPx : undefined }}
       >
@@ -117,7 +127,7 @@ export function PropertySearchResultsContent({
       </div>
 
       <div className="border-t border-slate-100 bg-linear-to-b from-slate-50/90 to-white pb-10 pt-4">
-        <div className={`${RESULTS_CONTAINER} ${RESULTS_GRID}`}>
+        <div className={`${RESULTS_CONTAINER} ${RESULTS_GRID} lg:items-stretch`}>
           <PropertySearchListSeoSection criteria={criteria} total={total} listings={items} />
           <div className="hidden lg:block" aria-hidden />
 
@@ -150,7 +160,10 @@ export function PropertySearchResultsContent({
               </div>
             )}
           </div>
-          <PropertySearchResultsSidebar criteria={criteria} />
+          <PropertySearchResultsSidebar
+            criteria={criteria}
+            stickyTopPx={sidebarStickyTopPx}
+          />
         </div>
       </div>
     </div>

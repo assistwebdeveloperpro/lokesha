@@ -1,8 +1,4 @@
-import { SearchX, TriangleAlert } from "lucide-react";
-import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
-import { PropertySearchListingCard } from "./PropertySearchListingCard";
-import type { PublicSearchListing } from "./publicSearchListing.types";
-import { resolveSearchEmptyState } from "./searchEmptyState";
+import { TriangleAlert } from "lucide-react";
 
 const SKELETON_COUNT = 4;
 
@@ -98,37 +94,4 @@ export function PropertySearchListError({ message, onRetry }: PropertySearchList
   );
 }
 
-type PropertySearchEmptyStateProps = {
-  criteria: PropertySearchCriteria;
-  otherLocalities: PublicSearchListing[];
-};
-
-export function PropertySearchEmptyState({
-  criteria,
-  otherLocalities,
-}: PropertySearchEmptyStateProps) {
-  const { message, suggestionsTitle } = resolveSearchEmptyState(criteria, otherLocalities);
-
-  return (
-    <div className="space-y-6">
-      <div className={MESSAGE_BOX}>
-        <SearchX className="h-8 w-8 text-slate-400" aria-hidden />
-        <p className="text-sm font-medium text-slate-700">{message}</p>
-      </div>
-      {suggestionsTitle ? (
-        <section aria-label={suggestionsTitle}>
-          <h2 className="mb-3 font-display text-lg font-bold tracking-tight text-slate-900">
-            {suggestionsTitle}
-          </h2>
-          <ul className="space-y-4 sm:space-y-5">
-            {otherLocalities.map((listing) => (
-              <li key={listing.id}>
-                <PropertySearchListingCard listing={listing} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-    </div>
-  );
-}
+export { PropertySearchEmptyState } from "./PropertySearchEmptyState";

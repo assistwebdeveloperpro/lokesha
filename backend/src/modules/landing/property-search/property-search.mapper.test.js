@@ -55,6 +55,78 @@ describe("toListing card", () => {
   });
 });
 
+describe("toListing facts", () => {
+  const unitRow = {
+    ...baseRow,
+    listing_type: "sale",
+    property_type: "residential",
+    posted_by: "buyer_owner_tenant",
+    price_min: "7100000",
+    price_max: "7100000",
+    area_min: "1000",
+    area_unit: "sq-ft",
+    total_floors: 12,
+    floor_number: 7,
+    furnishing_status: "furnished",
+    age_of_construction: "gt-5",
+    property_transaction: "resale",
+  };
+
+  it("maps the unit details of a single property", () => {
+    const card = toListing(unitRow, extras);
+
+    expect(card).toMatchObject({
+      pricePerSqft: 7100,
+      totalFloors: 12,
+      floorNumber: 7,
+      furnishingStatus: "furnished",
+      ageOfConstruction: "gt-5",
+      propertyTransaction: "resale",
+    });
+  });
+
+  it("leaves missing unit details empty", () => {
+    const card = toListing({ ...baseRow, listing_type: "sale", posted_by: "agent" }, extras);
+
+    expect(card).toMatchObject({
+      pricePerSqft: null,
+      floorNumber: null,
+      furnishingStatus: null,
+      ageOfConstruction: null,
+      propertyTransaction: null,
+      launchDate: null,
+      possessionDate: null,
+    });
+  });
+
+  it.each([
+    ["rent", { listing_type: "rent-lease" }],
+    ["a non sq ft area", { area_unit: "sq-yd" }],
+    ["a builder project", { builder_project_id: "b1" }],
+    ["no area", { area_min: null }],
+  ])("has no price per sq ft for %s", (_, override) => {
+    expect(toListing({ ...unitRow, ...override }, extras).pricePerSqft).toBeNull();
+  });
+
+  it("keeps launch and possession dates apart for builder projects", () => {
+    const card = toListing(
+      {
+        ...unitRow,
+        builder_project_id: "b1",
+        posted_by: "builder",
+        launch_date: "2026-01-29T12:00:00Z",
+        possession_date: "2034-12-15T12:00:00Z",
+        total_units: 838,
+      },
+      extras
+    );
+
+    expect(card.launchDate).toBe("Jan 29, 2026");
+    expect(card.possessionDate).toBe("Dec'2034");
+    expect(card.totalUnits).toBe(838);
+  });
+});
+
 describe("toPropertyDetails amenities", () => {
   const details = {
     property: { id: "p1", listing_number: 7 },

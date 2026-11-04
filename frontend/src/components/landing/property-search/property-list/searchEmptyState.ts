@@ -18,6 +18,7 @@ export function resolveSearchEmptyState(
 
   return {
     message: `No properties found for your search in ${city}.`,
-    suggestionsTitle: otherLocalities.length > 0 ? `Properties in other localities of ${city}` : null,
+    suggestionsTitle:
+      otherLocalities.length > 0 ? `Properties in other localities of ${city}` : null,
   };
 }

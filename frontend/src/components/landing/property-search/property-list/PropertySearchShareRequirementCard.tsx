@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, ClipboardList, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
@@ -374,44 +374,96 @@ function RequirementSubtypeField({
   );
 }
 
-function MapWash() {
+function ShareRequirementHeaderArt() {
   return (
-    <svg
-      aria-hidden
-      className="pointer-events-none absolute inset-0 h-full w-full text-slate-200"
-      viewBox="0 0 320 480"
-      preserveAspectRatio="xMidYMid slice"
-      fill="none"
-    >
-      <path
-        d="M-24 78c48-22 86 28 142 10s78-46 148-12 70 18 90-20"
-        stroke="currentColor"
-        strokeWidth="11"
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgb(148 163 184 / 0.45) 1px, transparent 1px)",
+          backgroundSize: "14px 14px",
+        }}
       />
-      <path
-        d="M-16 168c62 24 96-36 158-10s72 40 132 12 62-24 86 10"
-        stroke="currentColor"
-        strokeWidth="8"
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-sky-200/50 blur-2xl"
       />
-      <path
-        d="M28 16c12 58 46 78 22 136s-36 68 8 124 18 78-14 136"
-        stroke="currentColor"
-        strokeWidth="6"
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-6 -left-6 h-28 w-28 rounded-full bg-navy-blue/10 blur-2xl"
       />
-      <path
-        d="M188-8c-10 48 24 82 8 138s-32 70 4 116 14 86-16 140"
-        stroke="currentColor"
-        strokeWidth="5"
-      />
-      <path
-        d="M268 24c18 52-12 84 10 132s6 70-16 118"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <circle cx="96" cy="124" r="3" fill="currentColor" />
-      <circle cx="176" cy="214" r="3" fill="currentColor" />
-      <circle cx="236" cy="156" r="2.5" fill="currentColor" />
-    </svg>
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        viewBox="0 0 320 112"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+      >
+        <path
+          d="M0 72h320M0 48h320M0 96h320"
+          stroke="#cbd5e1"
+          strokeWidth="1"
+          strokeDasharray="4 6"
+          opacity="0.55"
+        />
+        <path
+          d="M64 0v112M160 0v112M256 0v112"
+          stroke="#cbd5e1"
+          strokeWidth="1"
+          strokeDasharray="4 6"
+          opacity="0.4"
+        />
+        <path
+          d="M-20 58c52-18 88 22 142 8s90-38 158-6 72 14 98-12"
+          stroke="#94a3b8"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          opacity="0.55"
+        />
+        <path
+          d="M12 86c48 10 92-14 148 4s78 22 148-8"
+          stroke="#94a3b8"
+          strokeWidth="2"
+          strokeLinecap="round"
+          opacity="0.45"
+        />
+        <rect x="24" y="62" width="28" height="38" rx="4" fill="#e2e8f0" opacity="0.9" />
+        <rect x="58" y="72" width="22" height="28" rx="3" fill="#cbd5e1" opacity="0.85" />
+        <rect x="228" y="58" width="32" height="42" rx="4" fill="#e2e8f0" opacity="0.9" />
+        <rect x="266" y="68" width="24" height="32" rx="3" fill="#cbd5e1" opacity="0.85" />
+        <circle cx="92" cy="44" r="5" fill="#12192b" opacity="0.12" />
+        <circle cx="92" cy="44" r="2.5" fill="#12192b" opacity="0.35" />
+        <circle cx="228" cy="36" r="5" fill="#0ea5e9" opacity="0.15" />
+        <circle cx="228" cy="36" r="2.5" fill="#0284c7" opacity="0.45" />
+      </svg>
+    </>
+  );
+}
+
+function ShareRequirementHeader() {
+  return (
+    <div className="relative h-28 overflow-hidden border-b border-slate-200/80 bg-linear-to-br from-sky-100/80 via-sky-50 to-slate-100">
+      <ShareRequirementHeaderArt />
+      <div className="relative z-10 flex h-full items-center justify-center">
+        <div className="relative">
+          <span
+            aria-hidden
+            className="absolute inset-0 -m-1 rounded-2xl bg-navy-blue/15 blur-md"
+          />
+          <span
+            aria-hidden
+            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm ring-2 ring-white"
+          >
+            <Search className="h-2.5 w-2.5" strokeWidth={2.5} />
+          </span>
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-md ring-1 ring-slate-200/90">
+            <ClipboardList className="h-7 w-7 text-navy-blue" strokeWidth={1.75} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -543,14 +595,15 @@ export function PropertySearchShareRequirementCard({
   };
 
   return (
-    <section className="relative rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl" aria-hidden>
-        <MapWash />
-      </div>
-      <form className="relative space-y-3 p-4" onSubmit={handleSubmit}>
-        <h3 className="text-center font-display text-lg font-bold tracking-tight text-slate-900">
-          Share Your Requirements
-        </h3>
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <ShareRequirementHeader />
+      <form className="space-y-3 p-4" onSubmit={handleSubmit}>
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Share your requirements</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            Describe what you need and we will help you find matching properties.
+          </p>
+        </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div className={dropdownCell}>
@@ -640,9 +693,9 @@ export function PropertySearchShareRequirementCard({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-lg bg-linear-to-r-navy-blue text-sm font-semibold text-white transition hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? "Submitting..." : "Submit Requirements"}
+          {isSubmitting ? "Submitting..." : "Submit requirements"}
         </button>
       </form>
     </section>
