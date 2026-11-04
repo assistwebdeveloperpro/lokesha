@@ -154,6 +154,7 @@ export type PropertyPayload = {
   listingType: string;
   propertyType: string;
   postingAs?: "buyer_owner_tenant" | "agent" | "builder";
+  ownerContact?: PayloadFields;
   address: PayloadFields;
   project?: PropertyProjectPayload;
   listings: PropertyListingPayload[];

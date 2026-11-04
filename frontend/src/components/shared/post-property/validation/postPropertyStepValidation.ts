@@ -2,10 +2,12 @@ import type { BuilderFieldErrors } from "../builder/builderValidation";
 import {
   hasAddressLocationErrors,
   hasAmenitiesErrors,
+  hasOwnerContactErrors,
   hasPricingOthersErrors,
   hasPropertyDetailsErrors,
   type AddressLocationFieldErrors,
   type AmenitiesFieldErrors,
+  type OwnerContactFieldErrors,
   type PricingOthersFieldErrors,
   type PropertyDetailsFieldErrors,
 } from "../config/postPropertyForm.shared";
@@ -19,6 +21,7 @@ export type TabStepErrors = {
 
 type StepErrors = {
   address: AddressLocationFieldErrors;
+  ownerContact?: OwnerContactFieldErrors;
   details: PropertyDetailsFieldErrors;
   amenities: AmenitiesFieldErrors;
   pricing: PricingOthersFieldErrors;
@@ -31,6 +34,7 @@ type StepErrors = {
 // Step number of the earliest step that still has an error, or null when all pass
 export function resolveFirstInvalidStep({
   address,
+  ownerContact = {},
   details,
   amenities,
   pricing,
@@ -38,7 +42,7 @@ export function resolveFirstInvalidStep({
   builder,
   tabs,
 }: StepErrors): number | null {
-  if (hasAddressLocationErrors(address)) {
+  if (hasOwnerContactErrors(ownerContact) || hasAddressLocationErrors(address)) {
     return 1;
   }
   if (hasPropertyDetailsErrors(details) || tabs?.details || builder.projectType || builder.bhkAreas || builder.availableSizes) {

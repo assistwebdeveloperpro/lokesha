@@ -15,6 +15,7 @@ export type PublicSearchListing = {
   carpetAreaUnit: string;
   bedrooms: number[];
   propertySubType: string;
+  propertySubTypes: string[];
   propertyType: string;
   locality: string;
   city: string;

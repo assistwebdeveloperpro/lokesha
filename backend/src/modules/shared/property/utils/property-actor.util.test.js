@@ -1,4 +1,4 @@
-const { isAdminCaller, toOwner, toStatusActor, toOwnerColumns } = require("./property-actor.util");
+const { isAdminCaller, canManageOwnerContact, toOwner, toStatusActor, toOwnerColumns } = require("./property-actor.util");
 
 const USER = { id: "user-1", role: "agent" };
 const ADMIN = { adminId: "admin-1", role: "admin" };
@@ -13,6 +13,16 @@ describe("property actor", () => {
     expect(toOwner(USER)).toEqual({ userId: "user-1", listedBy: "agent" });
     expect(toOwnerColumns(USER)).toEqual({ user_id: "user-1" });
     expect(toStatusActor(USER)).toEqual({ userId: "user-1" });
+  });
+
+  it.each([
+    ["lokesha_staff", true],
+    ["admin", true],
+    ["buyer_owner_tenant", false],
+    ["agent", false],
+    ["builder", false],
+  ])("lets %s manage the owner contact: %s", (role, expected) => {
+    expect(canManageOwnerContact({ id: "user-1", role })).toBe(expected);
   });
 
   it("scopes an admin to admin rows listed by admin and skipping review", () => {

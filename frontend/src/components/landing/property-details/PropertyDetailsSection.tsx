@@ -16,10 +16,11 @@ export function PropertyDetailsSection({
   return (
     <section
       id={id}
-      className={`overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ${className}`.trim()}
+      className={`overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm shadow-slate-900/5 ${className}`.trim()}
     >
-      <div className="border-b border-slate-200 bg-sky-50/90 px-4 py-3 text-start sm:px-5">
-        <h2 className="font-display text-base font-bold tracking-tight text-navy-blue sm:text-lg">
+      <div className="flex items-center gap-3 border-b border-slate-200 bg-sky-50/90 px-4 py-3 text-start sm:px-5">
+        <span className="h-5 w-1 shrink-0 rounded-full bg-navy-blue" aria-hidden />
+        <h2 className="font-display text-base font-bold tracking-tight text-navy-deep sm:text-lg">
           {title}
         </h2>
       </div>

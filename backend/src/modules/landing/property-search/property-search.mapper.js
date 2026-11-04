@@ -95,6 +95,7 @@ function toListing(row, extras) {
     carpetAreaUnit,
     bedrooms,
     propertySubType: row.sub_type_slug,
+    propertySubTypes: row.sub_type_slugs?.length ? row.sub_type_slugs : [row.sub_type_slug],
     propertyType: FORM_TYPE_BY_DB_TYPE[row.property_type],
     locality: row.locality,
     city: row.city,

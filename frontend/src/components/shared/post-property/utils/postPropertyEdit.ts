@@ -47,6 +47,7 @@ import {
   TERRACE_ENTRY_OPTIONS,
   createEmptyPhotosVideosValues,
   type AddressLocationValues,
+  type OwnerContactValues,
   type AmenitiesValues,
   type ListingTypeId,
   type PhotosVideosValues,
@@ -126,6 +127,18 @@ function mapAddress(payload: PropertyPayload, description: string): AddressLocat
     city: text(address.city),
     state: (text(address.state) || DEFAULT_STATE) as AddressLocationValues["state"],
     propertyDescription: description,
+  };
+}
+
+function mapOwnerContact(payload: PropertyPayload): OwnerContactValues {
+  const contact = payload.ownerContact ?? {};
+
+  return {
+    fullName: text(contact.fullName),
+    mobileNumber: text(contact.mobileNumber),
+    alternateMobileNumber: text(contact.alternateMobileNumber),
+    email: text(contact.email),
+    whatsappNumber: text(contact.whatsappNumber),
   };
 }
 
@@ -501,6 +514,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
       // PG listings have no sub type picker
       propertySubTypes: payload.listings.map((item) => (propertyType === "pg-co-living" ? "" : item.propertySubType)),
       addressLocation: mapAddress(payload, listing.description),
+      ownerContact: mapOwnerContact(payload),
       propertyDetails: mapDetails(listing, propertyType),
       amenities: mapAmenities(listing),
       pricingOthers: mapPricing(listing),

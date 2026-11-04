@@ -13,6 +13,7 @@ import {
   isRentListing,
   showsFurnishingField,
   type AddressLocationValues,
+  type OwnerContactValues,
   type AmenitiesValues,
   type ListingTypeId,
   type PhotosVideosValues,
@@ -38,6 +39,7 @@ export type PropertyPayloadInput = {
   listingType: ListingTypeId;
   propertyType: PropertyTypeId;
   address: AddressLocationValues;
+  ownerContact?: OwnerContactValues;
   listings: ListingFormInput[];
   // Present for builder posts; project wide files go with the first listing
   builderProject?: ProjectDetailsValues;
@@ -413,12 +415,21 @@ function buildListing(
 
 // The request body of POST /property/drafts/:id/complete and PUT /property/:id
 export function buildPropertyPayload(input: PropertyPayloadInput): PropertyPayload {
-  const { listingType, propertyType, address, builderProject, postingAs } = input;
+  const { listingType, propertyType, address, builderProject, postingAs, ownerContact } = input;
 
   return {
     listingType,
     propertyType,
     ...(postingAs && { postingAs }),
+    ...(ownerContact && {
+      ownerContact: compact({
+        fullName: toText(ownerContact.fullName),
+        mobileNumber: toText(ownerContact.mobileNumber),
+        alternateMobileNumber: toText(ownerContact.alternateMobileNumber),
+        email: toText(ownerContact.email),
+        whatsappNumber: toText(ownerContact.whatsappNumber),
+      }),
+    }),
     address: compact({
       projectName: toText(address.projectName),
       blockNo: toText(address.blockNo),

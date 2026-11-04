@@ -41,7 +41,7 @@ function SearchListingMetricChip({ label, value }: SearchListingMetricChipProps)
         <Icon className="h-3.5 w-3.5 shrink-0 text-sky-600" aria-hidden />
         <span className="truncate tabular-nums">{value}</span>
       </span>
-    </li>
+    </li> 
   );
 }
 

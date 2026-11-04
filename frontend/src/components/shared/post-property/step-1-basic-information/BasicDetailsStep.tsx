@@ -2,6 +2,7 @@ import PostPropertyStepCard from "../components/PostPropertyStepCard";
 import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
 import AddressLocationField from "./AddressLocationField";
 import ListingTypeField from "./ListingTypeField";
+import OwnerContactField from "./OwnerContactField";
 import PropertyTypeField from "./PropertyTypeField";
 
 export default function BasicDetailsStep({ form }: { form: PostPropertyForm }) {
@@ -36,6 +37,14 @@ export default function BasicDetailsStep({ form }: { form: PostPropertyForm }) {
         onSubTypesChange={showBuilderFields ? handlers.changeSubTypes : undefined}
         hiddenIds={showBuilderFields ? ["pg-co-living"] : undefined}
       />
+
+      {derived.showOwnerContact ? (
+        <OwnerContactField
+          values={draft.ownerContact}
+          onChange={handlers.changeOwnerContact}
+          errors={draft.ownerContactErrors}
+        />
+      ) : null}
 
       <AddressLocationField
         values={draft.addressLocation}

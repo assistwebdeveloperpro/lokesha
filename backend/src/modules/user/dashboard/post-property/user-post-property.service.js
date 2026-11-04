@@ -2,6 +2,7 @@ const propertyService = require("../../../shared/property/services/property.serv
 const postPropertyRepository = require("./user-post-property.repository");
 const { buildPropertyDetail } = require("../../../shared/property/services/property-read.service");
 const { AppError } = require("../../../shared/property/utils/property.errors");
+const { canManageOwnerContact } = require("../../../shared/property/utils/property-actor.util");
 
 async function getMyProperty(user, propertyId) {
   const property = await postPropertyRepository.findOwnedProperty(propertyId, user.id);
@@ -9,7 +10,7 @@ async function getMyProperty(user, propertyId) {
     throw new AppError("Property not found", 404);
   }
 
-  return buildPropertyDetail(property, user.role);
+  return buildPropertyDetail(property, user.role, { includeOwnerContact: canManageOwnerContact(user) });
 }
 
 module.exports = {

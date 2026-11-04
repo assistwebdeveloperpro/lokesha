@@ -268,6 +268,31 @@ describe("toPropertyDetail", () => {
     });
   });
 
+  it("maps the owner contact when it was loaded for the viewer", () => {
+    const data = {
+      ...baseData,
+      ownerContact: {
+        id: "oc1",
+        property_id: "p1",
+        full_name: "Ramesh Patel",
+        mobile_number: "9876543210",
+        alternate_mobile_number: null,
+        email: "ramesh@example.com",
+        whatsapp_number: null,
+      },
+    };
+
+    expect(toPropertyDetail(data).payload.ownerContact).toEqual({
+      fullName: "Ramesh Patel",
+      mobileNumber: "9876543210",
+      email: "ramesh@example.com",
+    });
+  });
+
+  it("leaves the owner contact out when it was not loaded", () => {
+    expect(toPropertyDetail(baseData).payload).not.toHaveProperty("ownerContact");
+  });
+
   it("does not set postingAs for builder role users", () => {
     const data = { ...baseData, role: "builder", property: { ...baseProperty, builder_project_id: "bp1" }, project: { project_name: "X", highlights: [], faqs: [] } };
 

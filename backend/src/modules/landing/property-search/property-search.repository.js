@@ -113,6 +113,7 @@ function selectCards(query, dbType) {
       firstOfGroup(typeColumns.boundaryWallMade ?? "null::boolean", "boundary_wall_made"),
       firstOfGroup(typeColumns.anyConstruction ?? "null::boolean", "any_construction"),
       db.raw("array_agg(p.id order by p.listing_number) as member_ids"),
+      db.raw("array_agg(distinct st.slug order by st.slug) as sub_type_slugs"),
       db.raw(`min(${PRICE_MIN_SQL}) as price_min`),
       db.raw(`max(${PRICE_MAX_SQL}) as price_max`),
       db.raw(`min(${areaSql}) as area_min`),

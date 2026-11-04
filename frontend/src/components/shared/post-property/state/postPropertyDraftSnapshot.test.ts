@@ -9,7 +9,7 @@ import {
   type DraftSnapshotInput,
 } from "./postPropertyDraftSnapshot";
 import { createInitialDraft, postPropertyReducer } from "./postPropertyFormReducer";
-import { INITIAL_ADDRESS_LOCATION, INITIAL_PROPERTY_DETAILS } from "./postPropertyInitialValues";
+import { INITIAL_ADDRESS_LOCATION, INITIAL_OWNER_CONTACT, INITIAL_PROPERTY_DETAILS } from "./postPropertyInitialValues";
 
 function buildInput(overrides: Partial<DraftSnapshotInput> = {}): DraftSnapshotInput {
   const initial = createInitialDraft();
@@ -20,6 +20,7 @@ function buildInput(overrides: Partial<DraftSnapshotInput> = {}): DraftSnapshotI
       propertyType: initial.propertyType,
       propertySubTypes: initial.propertySubTypes,
       addressLocation: { ...INITIAL_ADDRESS_LOCATION, locality: "Vesu", projectName: "Sky Towers" },
+      ownerContact: initial.ownerContact,
       propertyDetails: { ...INITIAL_PROPERTY_DETAILS, bedrooms: "3" },
       amenities: initial.amenities,
       pricingOthers: initial.pricingOthers,
@@ -124,6 +125,22 @@ describe("hydrateFormState", () => {
     expect(restored?.form.propertyDetails.bedrooms).toBe("3");
     expect(restored?.form.propertySubTypes).toEqual(["flat-apartment"]);
     expect(restored?.postingAs).toBe("builder");
+  });
+
+  it("restores the owner contact that was saved", () => {
+    const input = buildInput();
+    input.form.ownerContact = { ...INITIAL_OWNER_CONTACT, fullName: "Ramesh Patel", mobileNumber: "9876543210" };
+
+    const restored = hydrateFormState(throughJson(createDraftFormData(input)));
+
+    expect(restored?.form.ownerContact).toEqual(input.form.ownerContact);
+  });
+
+  it("gives drafts saved without an owner contact an empty one", () => {
+    const saved = throughJson(createDraftFormData(buildInput()));
+    delete (saved.form as Record<string, unknown>).ownerContact;
+
+    expect(hydrateFormState(saved)?.form.ownerContact).toEqual(INITIAL_OWNER_CONTACT);
   });
 
   it("returns null for another version or a missing form", () => {

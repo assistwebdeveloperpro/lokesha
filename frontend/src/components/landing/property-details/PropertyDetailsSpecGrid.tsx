@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import type { PropertyDetailsSpecRow } from "./propertyDetails.types";
 
 type PropertyDetailsSpecGridProps = {
@@ -19,7 +20,14 @@ export function PropertyDetailsSpecGrid({ rows, columns = 2 }: PropertyDetailsSp
           className="border-b border-slate-100 py-3 last:border-b-0 sm:px-1 sm:py-3.5"
         >
           <dt className="text-xs font-medium text-slate-500 sm:text-sm">{row.label}</dt>
-          <dd className="mt-0.5 text-sm font-semibold text-slate-900 sm:text-base">{row.value}</dd>
+          <dd
+            className={cn(
+              "mt-0.5 font-semibold text-slate-900",
+              row.label === "ReraId" ? "text-small" : "text-sm sm:text-base",
+            )}
+          >
+            {row.value}
+          </dd>
         </div>
       ))}
     </dl>

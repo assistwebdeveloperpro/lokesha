@@ -98,6 +98,13 @@ async function insertRentDetails(trx, row) {
   await trx("property_rent_details").insert(row);
 }
 
+async function upsertOwnerContact(trx, row) {
+  await trx("property_owner_contacts")
+    .insert(row)
+    .onConflict("property_id")
+    .merge({ ...row, updated_at: trx.fn.now() });
+}
+
 async function insertBuilderListingDetails(trx, row) {
   await trx("builder_listing_details").insert(row);
 }
@@ -176,6 +183,7 @@ module.exports = {
   insertPlotDetails,
   insertSaleDetails,
   insertRentDetails,
+  upsertOwnerContact,
   insertBuilderListingDetails,
   insertSelections,
   insertAmenities,

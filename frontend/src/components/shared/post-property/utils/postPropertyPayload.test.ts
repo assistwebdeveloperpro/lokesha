@@ -11,6 +11,7 @@ import {
 import {
   INITIAL_ADDRESS_LOCATION,
   INITIAL_AMENITIES,
+  INITIAL_OWNER_CONTACT,
   INITIAL_PRICING_OTHERS,
   INITIAL_PROPERTY_DETAILS,
 } from "../state/postPropertyInitialValues";
@@ -74,6 +75,27 @@ describe("buildPropertyPayload address and header", () => {
     expect(payload.listings[0].description).toBe("A bright flat");
     expect(payload).not.toHaveProperty("project");
     expect(payload).not.toHaveProperty("postingAs");
+  });
+
+  it("sends the trimmed owner contact and leaves empty fields out", () => {
+    const payload = build({
+      ownerContact: {
+        ...INITIAL_OWNER_CONTACT,
+        fullName: " Ramesh Patel ",
+        mobileNumber: "9876543210",
+        email: " ramesh@example.com ",
+      },
+    });
+
+    expect(payload.ownerContact).toEqual({
+      fullName: "Ramesh Patel",
+      mobileNumber: "9876543210",
+      email: "ramesh@example.com",
+    });
+  });
+
+  it("leaves the owner contact out for listings that are not posted by staff", () => {
+    expect(build()).not.toHaveProperty("ownerContact");
   });
 
   it("sends the posting as value chosen by staff", () => {

@@ -11,7 +11,7 @@ import {
   type PostPropertyAction,
   type PostPropertyDraft,
 } from "./postPropertyFormReducer";
-import { INITIAL_PROPERTY_DETAILS } from "./postPropertyInitialValues";
+import { INITIAL_OWNER_CONTACT, INITIAL_PROPERTY_DETAILS } from "./postPropertyInitialValues";
 
 const reduce = (state: PostPropertyDraft, ...actions: PostPropertyAction[]) =>
   actions.reduce(postPropertyReducer, state);
@@ -247,6 +247,40 @@ describe("existingMediaRemoved", () => {
     expect(draft.existingMedia.map((item) => item.id)).toEqual(["b"]);
     expect(draft.removedMediaIds).toEqual(["a"]);
     expect(draft.photosError).toBe("");
+  });
+});
+
+describe("ownerContactChanged", () => {
+  it("starts with an empty owner contact", () => {
+    const draft = createInitialDraft();
+
+    expect(draft.ownerContact).toEqual(INITIAL_OWNER_CONTACT);
+    expect(draft.ownerContactErrors).toEqual({});
+  });
+
+  it("sets the field and clears only its own error", () => {
+    const draft = reduce(
+      createInitialDraft(),
+      {
+        type: "errorsReplaced",
+        errors: { ownerContactErrors: { fullName: "Required", mobileNumber: "Required" } },
+      },
+      { type: "ownerContactChanged", field: "mobileNumber", value: "9876543210" },
+    );
+
+    expect(draft.ownerContact.mobileNumber).toBe("9876543210");
+    expect(draft.ownerContact.fullName).toBe("");
+    expect(draft.ownerContactErrors).toEqual({ fullName: "Required" });
+  });
+
+  it("keeps the owner contact when the property type changes", () => {
+    const draft = reduce(
+      createInitialDraft(),
+      { type: "ownerContactChanged", field: "fullName", value: "Ramesh Patel" },
+      { type: "propertyTypeChanged", propertyType: "commercial" },
+    );
+
+    expect(draft.ownerContact.fullName).toBe("Ramesh Patel");
   });
 });
 

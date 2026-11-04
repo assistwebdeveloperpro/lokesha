@@ -1,11 +1,12 @@
 import type {
   AddressLocationFieldErrors,
   AmenitiesFieldErrors,
+  OwnerContactFieldErrors,
   PricingOthersFieldErrors,
   PropertyDetailsFieldErrors,
 } from "../config/postPropertyForm.shared";
 
-type Section = "address" | "details" | "amenities" | "pricing" | "photos";
+type Section = "address" | "ownerContact" | "details" | "amenities" | "pricing" | "photos";
 
 type Target = { step: number; section?: Section; field?: string };
 
@@ -14,6 +15,7 @@ export type BackendFormErrors = {
   step: number | null;
   firstMessage: string;
   addressLocationErrors: AddressLocationFieldErrors;
+  ownerContactErrors: OwnerContactFieldErrors;
   propertyDetailsErrors: PropertyDetailsFieldErrors;
   amenitiesErrors: AmenitiesFieldErrors;
   pricingOthersErrors: PricingOthersFieldErrors;
@@ -27,6 +29,7 @@ const STEP_PHOTOS = 4;
 const STEP_PRICING = 5;
 
 const ADDRESS_FIELDS = ["blockNo", "flatNumber", "projectName", "locality", "pinCode"];
+const OWNER_CONTACT_FIELDS = ["fullName", "mobileNumber", "alternateMobileNumber", "email", "whatsappNumber"];
 
 // Backend detail fields that belong to the amenities step, with the form field they show on
 const AMENITY_STEP_DETAILS: Record<string, string | undefined> = {
@@ -145,6 +148,15 @@ export function mapBackendField(path: string): { target: Target; listingIndex: n
   }
 
   const [root, field] = path.split(".");
+  if (root === "ownerContact") {
+    return {
+      target: {
+        step: STEP_BASIC,
+        ...(OWNER_CONTACT_FIELDS.includes(field) && { section: "ownerContact" as const, field }),
+      },
+      listingIndex: null,
+    };
+  }
   if (root === "address") {
     return {
       target: {
@@ -184,6 +196,7 @@ export function resolveBackendErrors(
     step: null,
     firstMessage: "",
     addressLocationErrors: {},
+    ownerContactErrors: {},
     propertyDetailsErrors: {},
     amenitiesErrors: {},
     pricingOthersErrors: {},
@@ -191,6 +204,7 @@ export function resolveBackendErrors(
   };
   const targets = {
     address: result.addressLocationErrors as Record<string, string>,
+    ownerContact: result.ownerContactErrors as Record<string, string>,
     details: result.propertyDetailsErrors as Record<string, string>,
     amenities: result.amenitiesErrors as Record<string, string>,
     pricing: result.pricingOthersErrors as Record<string, string>,

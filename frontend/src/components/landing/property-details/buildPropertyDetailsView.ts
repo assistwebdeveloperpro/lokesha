@@ -1,6 +1,16 @@
+import { buildSearchListingFacts } from "@/components/landing/property-search/property-list/buildSearchListingFacts";
 import { formatSearchListingArea } from "@/components/landing/property-search/property-list/formatSearchListingArea";
 import type { PublicSearchListing } from "@/components/landing/property-search/property-list/publicSearchListing.types";
-import { SUB_TYPES_BY_PROPERTY_TYPE, type PropertyTypeId } from "@/components/shared/post-property/config/postPropertyForm.shared";
+import { getMergedBuilderConfig } from "@/components/shared/post-property/builder/builderConfig";
+import {
+  getBuilderDetailsConfig,
+  getBuilderSaleFormConfig,
+} from "@/components/shared/post-property/config/postPropertySaleConfig";
+import {
+  SUB_TYPES_BY_PROPERTY_TYPE,
+  TENANT_PREFERENCE_OPTIONS,
+  type PropertyTypeId,
+} from "@/components/shared/post-property/config/postPropertyForm.shared";
 import { formatPriceAmount } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
 import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
 import { LANDING_CATEGORY_SLUGS, type LandingCategory } from "@/lib/property-search-url/landingUrl.config";
@@ -8,7 +18,11 @@ import { EMPTY_MORE_FILTERS } from "@/lib/property-search-url/moreFilters.types"
 import { CATEGORY_TRANSACTIONS } from "@/lib/property-search-url/searchUrl.config";
 import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
 import { toUrlSegment } from "@/lib/property-search-url/slug";
-import type { PublicPropertyDetails, PublicPropertyVariant } from "@/services/propertySearch.service";
+import type {
+  PublicPropertyAttributes,
+  PublicPropertyDetails,
+  PublicPropertyVariant,
+} from "@/services/propertySearch.service";
 import { formatPropertyConfigurationLabel } from "./propertyDetailsConfigurationLabel";
 import type {
   PropertyDetailsBase,
@@ -22,12 +36,25 @@ import type {
 const EMPTY_VALUE = "—";
 const PRICE_ON_REQUEST = "Price on request";
 
+const PROJECT_TYPE_LABELS: Record<string, string> = {
+  "new-launch": "New Launch",
+  "under-construction": "Under Construction",
+  ready: "Ready to Move",
+  completed: "Completed",
+};
+
 const AGE_LABELS: Record<string, string> = {
   "lt-1": "Less than 1 year",
   "1-to-2": "1 to 2 years",
   "2-to-3": "2 to 3 years",
   "3-to-5": "3 to 5 years",
   "gt-5": "More than 5 years",
+};
+
+const PG_GENDER_LABELS: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  both: "Both",
 };
 
 type Rows = [label: string, value: string | null][];
@@ -54,8 +81,112 @@ const formatAmount = (value: unknown) => {
   return amount === null ? null : formatPriceAmount(amount);
 };
 
+const AVG_PRICE_UNITS: Record<string, string> = {
+  "sq-yd": "SqYd",
+  "sq-ft": "SqFt",
+  "sq-m": "SqM",
+  "sq-km": "SqKm",
+};
+
+// "sq-yd" / "sq yd" -> "SqYd"
+function formatAvgPriceUnit(unit: unknown): string | null {
+  if (typeof unit !== "string") return null;
+  const slug = unit.trim().toLowerCase().replace(/[\s._]+/g, "-").replace(/-+/g, "-");
+  return AVG_PRICE_UNITS[slug] ?? null;
+}
+
+export function formatProjectAvgPrice(amount: unknown, unit: unknown): string | null {
+  const price = toNumber(amount);
+  if (price === null || price <= 0) return null;
+
+  const unitLabel = formatAvgPriceUnit(unit);
+  return unitLabel ? `${formatPriceAmount(price)} / ${unitLabel}` : formatPriceAmount(price);
+}
+
 const toRows = (rows: Rows): PropertyDetailsSpecRow[] =>
   rows.flatMap(([label, value]) => (value ? [{ label, value }] : []));
+
+const isPgListing = (listing: PublicSearchListing) => listing.propertyType === "pg-co-living";
+
+const usesSearchListingDetailRows = (listing: PublicSearchListing) =>
+  listing.propertyType === "plot" || listing.propertyType === "land";
+
+const FLOORS_ALLOWED_LABEL = "Floor Allowed for Construction";
+
+function floorsAllowedRow(attributes: PublicPropertyAttributes): PropertyDetailsSpecRow | null {
+  const floors = toNumber(attributes.floorsAllowed);
+  return floors === null ? null : { label: FLOORS_ALLOWED_LABEL, value: String(floors) };
+}
+
+function buildSearchListingDetailRows(
+  listing: PublicSearchListing,
+  attributes: PublicPropertyAttributes,
+): PropertyDetailsSpecRow[] {
+  const rows: PropertyDetailsSpecRow[] = [];
+
+  if (listing.carpetAreaMin !== null) {
+    rows.push({ label: "Area", value: formatSearchListingArea(listing) });
+  }
+
+  rows.push(...buildSearchListingFacts(listing).map(({ label, value }) => ({ label, value })));
+
+  const floorsAllowed = floorsAllowedRow(attributes);
+  if (floorsAllowed) rows.push(floorsAllowed);
+
+  return rows;
+}
+
+const formatPgGender = (value: unknown): string | null => {
+  if (typeof value !== "string" || !value.trim()) return null;
+  return PG_GENDER_LABELS[value.toLowerCase()] ?? humanize(value);
+};
+
+const formatTenantPreferences = (keys: string[] | undefined): string | null => {
+  if (!keys?.length) return null;
+
+  const labels = keys.flatMap((key) => {
+    const label = TENANT_PREFERENCE_OPTIONS.find((option) => option.id === key)?.label;
+    return label ? [label] : humanize(key) ? [humanize(key)!] : [];
+  });
+
+  return labels.length ? labels.join(", ") : null;
+};
+
+const formatPgOperationSince = (value: unknown): string | null => {
+  const year = toNumber(value);
+  return year === null ? null : String(year);
+};
+
+const projectSubTypes = (listing: PublicSearchListing) =>
+  listing.propertySubTypes?.length ? listing.propertySubTypes : [listing.propertySubType];
+
+const showsProjectStatus = (listing: PublicSearchListing) => {
+  const propertyType = listing.propertyType as PropertyTypeId;
+  return getMergedBuilderConfig(propertyType, projectSubTypes(listing)).showProjectType;
+};
+
+const showsTotalFloors = (listing: PublicSearchListing) =>
+  projectSubTypes(listing).some((subType) => {
+    const propertyType = listing.propertyType as PropertyTypeId;
+    const config =
+      getBuilderDetailsConfig(propertyType, subType) ??
+      getBuilderSaleFormConfig(propertyType, subType)?.details;
+    return Boolean(config?.totalFloors);
+  });
+
+const formatProjectType = (value: string | null | undefined) =>
+  value ? (PROJECT_TYPE_LABELS[value] ?? humanize(value)) : null;
+
+const formatProjectArea = (
+  projectAreaAcres: string | number | null | undefined,
+  listing: PublicSearchListing,
+) => {
+  const acres = toNumber(projectAreaAcres);
+  if (acres !== null && acres > 0) {
+    return `${acres.toLocaleString("en-IN")} Acres`;
+  }
+  return formatSearchListingArea(listing);
+};
 
 const bedroomSummary = (bedrooms: number[]) => (bedrooms.length ? bedrooms.join(", ") : EMPTY_VALUE);
 
@@ -167,7 +298,6 @@ function buildFloorPlans(dto: PublicPropertyDetails): PropertyDetailsFloorPlan[]
 function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectView {
   const { listing } = dto;
   const project = dto.project;
-  const area = formatSearchListingArea(listing);
   const subType = subTypeLabel(listing.propertyType, listing.propertySubType);
   const bhkConfigurations = dto.variants?.length
     ? [...new Set(dto.variants.map((variant) => variant.label ?? `${variant.bhk} BHK ${subType}`))]
@@ -176,8 +306,35 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
   const possessionLabel = isReady ? "Immediate" : (formatDate(dto.possessionDate) ?? EMPTY_VALUE);
   const launchDate = formatDate(project?.launchDate) ?? EMPTY_VALUE;
   const reraNumber = typeof dto.pricing.reraNumber === "string" ? dto.pricing.reraNumber : null;
+  const avgPrice = formatProjectAvgPrice(dto.builderListing?.avgPrice, dto.builderListing?.areaUnit);
   const developerName = project?.developerName ?? listing.builderName ?? dto.poster.name;
   const stats = project?.developerStats;
+  const plotFloorsAllowed = usesSearchListingDetailRows(listing) ? floorsAllowedRow(dto.attributes) : null;
+  const overviewRows: PropertyDetailsSpecRow[] = [
+    { label: "Avg. Price", value: avgPrice ?? EMPTY_VALUE },
+    {
+      label: "Configuration",
+      value: formatPropertyConfigurationLabel(bhkConfigurations) || EMPTY_VALUE,
+    },
+    ...(showsProjectStatus(listing)
+      ? [{ label: "Project Status", value: formatProjectType(project?.projectType) ?? EMPTY_VALUE }]
+      : []),
+    { label: "Date of Launch", value: launchDate },
+    { label: "Date of Possession", value: possessionLabel },
+    { label: "Total Units", value: project?.totalUnits ? String(project.totalUnits) : EMPTY_VALUE },
+    { label: "Total Tower", value: project?.totalBlocks ? String(project.totalBlocks) : EMPTY_VALUE },
+    ...(showsTotalFloors(listing)
+      ? [
+          {
+            label: "No. of Floors",
+            value: listing.totalFloors !== null ? String(listing.totalFloors) : EMPTY_VALUE,
+          },
+        ]
+      : []),
+    { label: "Project Area", value: formatProjectArea(project?.projectAreaAcres, listing) },
+    { label: "ReraId", value: reraNumber ?? "Not Available" },
+    ...(plotFloorsAllowed ? [plotFloorsAllowed] : []),
+  ];
 
   return {
     ...buildBase(
@@ -190,19 +347,8 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
     launchDate,
     possessionLabel,
     reraNumber,
-    overviewRows: [
-      { label: "Area", value: area },
-      {
-        label: "Configuration",
-        value: formatPropertyConfigurationLabel(bhkConfigurations) || EMPTY_VALUE,
-      },
-      { label: "Date of Launch", value: launchDate },
-      { label: "Date of Possession", value: possessionLabel },
-      { label: "Total Units", value: project?.totalUnits ? String(project.totalUnits) : EMPTY_VALUE },
-      { label: "Total Blocks", value: project?.totalBlocks ? String(project.totalBlocks) : EMPTY_VALUE },
-      { label: "ReraId", value: reraNumber ?? "Not Available" },
-      { label: "Available Sizes", value: area },
-    ],
+    overviewRows,
+    pricingRows: buildPricingRows(dto),
     floorPlans: buildFloorPlans(dto),
     bhkConfigurations,
     developer: {
@@ -215,67 +361,95 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
   };
 }
 
-function areaWithRate(area: unknown, unit: unknown, price: number | null): string | null {
+function formatArea(area: unknown, unit: unknown): string | null {
   const value = toNumber(area);
   if (value === null) return null;
 
   const unitLabel = (typeof unit === "string" ? unit : "sq-ft").replace(/-/g, " ");
-  const rate = price !== null && value > 0 ? ` | ${formatPriceAmount(Math.round(price / value))}/${unitLabel}` : "";
-  return `${value.toLocaleString("en-IN")} ${unitLabel}${rate}`;
+  return `${value.toLocaleString("en-IN")} ${unitLabel}`;
 }
 
-const yesNo = (value: unknown) => (value === true ? "Yes" : value === false ? "No" : null);
+function areaWithRate(area: unknown, unit: unknown, price: number | null): string | null {
+  const areaLabel = formatArea(area, unit);
+  if (!areaLabel) return null;
 
-function buildUnitRows(dto: PublicPropertyDetails): Pick<PropertyDetailsUnitView, "propertyDetailRows" | "pricingRows"> {
+  const value = toNumber(area);
+  const unitLabel = (typeof unit === "string" ? unit : "sq-ft").replace(/-/g, " ");
+  const rate = price !== null && value !== null && value > 0 ? ` | ${formatPriceAmount(Math.round(price / value))}/${unitLabel}` : "";
+  return `${areaLabel}${rate}`;
+}
+
+function buildPricingRows(dto: PublicPropertyDetails): PropertyDetailsSpecRow[] {
   const { attributes: a, pricing: p, listing } = dto;
   const isSale = listing.listingType === "sale";
+  const parking = toNumber(a.carParkingCount);
+  const parkingRow: Rows = isPgListing(listing)
+    ? []
+    : [["Car Parking", parking === null ? null : String(parking)]];
+  const rows: Rows = isSale
+    ? [
+        ["Booking Amount", formatAmount(p.bookingAmount)],
+        ["Maintenance Charges", formatAmount(p.maintenanceCharges)],
+        ...parkingRow,
+      ]
+    : [
+        ["Monthly Rent", formatAmount(p.monthlyRent)],
+        ["Security Deposit", formatAmount(p.depositAmount)],
+        ["Maintenance Charges", formatAmount(p.maintenanceCharges)],
+        ...parkingRow,
+      ];
+
+  return toRows(rows);
+}
+
+function buildUnitRows(dto: PublicPropertyDetails): Pick<PropertyDetailsUnitView, "propertyDetailRows" | "pricingRows"> {
+  const { attributes: a, listing, selections } = dto;
+
+  if (usesSearchListingDetailRows(listing)) {
+    return {
+      propertyDetailRows: buildSearchListingDetailRows(listing, a),
+      pricingRows: buildPricingRows(dto),
+    };
+  }
+
   const price = listing.price;
   const floor = toNumber(a.floorNumber);
   const totalFloors = toNumber(a.totalFloors);
   const transaction = typeof a.propertyTransaction === "string" ? a.propertyTransaction : null;
+  const pgListing = isPgListing(listing);
+
+  const pgOrUnitDetailRows: Rows = pgListing
+    ? [
+        ["PG Operation Since", formatPgOperationSince(a.operatingSinceYear)],
+        ["Tenant Preference", formatTenantPreferences(selections.tenantPreference)],
+        ["Gender", formatPgGender(a.pgGender ?? listing.pgGender)],
+      ]
+    : [
+        ["Balconies", toNumber(a.balconies)?.toString() ?? null],
+        ["Facing", humanize(dto.facing)],
+      ];
 
   const propertyDetailRows = toRows([
     ["Property Transaction", transaction ? `${humanize(transaction)} Property` : null],
     ["Furnishing Status", humanize(a.furnishingStatus as string | null)],
     ["Bedrooms", toNumber(a.bedrooms)?.toString() ?? null],
     ["Bathrooms", toNumber(a.bathrooms)?.toString() ?? null],
-    ["Super Built-up Area", areaWithRate(a.superBuiltUpArea, a.superBuiltUpAreaUnit, price)],
-    ["Carpet Area", areaWithRate(a.carpetArea, a.carpetAreaUnit, price)],
+    ["Super Built-up Area", formatArea(a.superBuiltUpArea, a.superBuiltUpAreaUnit)],
+    ["Carpet Area", formatArea(a.carpetArea, a.carpetAreaUnit)],
     ["Plot Area", areaWithRate(a.plotArea, a.plotAreaUnit, price)],
     ["Property Age", AGE_LABELS[a.ageOfConstruction as string] ?? null],
     ["Floor Number", floor === null ? null : totalFloors === null ? String(floor) : `${floor} out of ${totalFloors}`],
-    ["Balconies", toNumber(a.balconies)?.toString() ?? null],
-    ["Facing", humanize(dto.facing)],
+    ...pgOrUnitDetailRows,
     ["Available From", formatDate(dto.availableFrom)],
   ]);
 
-  const parking = toNumber(a.carParkingCount);
-  const pricingRows = toRows(
-    isSale
-      ? [
-          ["Expected Price", formatAmount(p.expectedPrice)],
-          ["Booking Amount", formatAmount(p.bookingAmount)],
-          ["Maintenance Charges", formatAmount(p.maintenanceCharges)],
-          ["Price Negotiable", yesNo(p.priceNegotiable)],
-          ["Car Parking", parking === null ? null : String(parking)],
-        ]
-      : [
-          ["Monthly Rent", formatAmount(p.monthlyRent)],
-          ["Security Deposit", formatAmount(p.depositAmount)],
-          ["Maintenance Charges", formatAmount(p.maintenanceCharges)],
-          ["Price Negotiable", yesNo(p.priceNegotiable)],
-          ["Car Parking", parking === null ? null : String(parking)],
-        ],
-  );
-
-  return { propertyDetailRows, pricingRows };
+  return { propertyDetailRows, pricingRows: buildPricingRows(dto) };
 }
 
 function buildUnitView(dto: PublicPropertyDetails): PropertyDetailsUnitView {
   const { listing } = dto;
   const subType = subTypeLabel(listing.propertyType, listing.propertySubType);
   const bhk = listing.bedrooms.length ? `${bedroomSummary(listing.bedrooms)} BHK ` : "";
-  const priceLabel = listing.price !== null ? formatPriceAmount(listing.price) : PRICE_ON_REQUEST;
 
   return {
     ...buildBase(
@@ -284,7 +458,7 @@ function buildUnitView(dto: PublicPropertyDetails): PropertyDetailsUnitView {
       `${bhk}${subType} for ${transactionLabel(listing)} in ${listing.title}, ${listing.locality}, ${listing.city}`,
     ),
     kind: "unit",
-    headlineTitle: `${priceLabel} | ${listing.title}`,
+    headlineTitle: listing.title,
     furnishingItems: dto.furnishingItems,
     ...buildUnitRows(dto),
   };

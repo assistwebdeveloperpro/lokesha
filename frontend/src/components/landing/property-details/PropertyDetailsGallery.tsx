@@ -66,7 +66,7 @@ export function PropertyDetailsGallery({
   const heroExtraCount = Math.max(0, safeImages.length - HERO_THUMB_SLOTS);
 
   const galleryBody = (
-    <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+    <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-slate-100 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/5">
       <div
         className={`relative w-full ${
           isHero ? "aspect-4/3 sm:aspect-16/10" : "aspect-16/10 sm:aspect-21/9 lg:aspect-5/2"

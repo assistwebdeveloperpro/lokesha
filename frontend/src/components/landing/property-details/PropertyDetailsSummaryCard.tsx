@@ -13,9 +13,9 @@ type PropertyDetailsSummaryCardProps = {
 
 export function PropertyDetailsSummaryCard({ title, groups }: PropertyDetailsSummaryCardProps) {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 bg-sky-50/90 px-4 py-3 text-center">
-        <h2 className="font-display text-base font-bold tracking-tight text-navy-blue sm:text-lg">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-md shadow-slate-900/8 ring-1 ring-slate-900/5">
+      <div className="border-b border-slate-100 bg-sky-50/90 px-4 py-3 text-center sm:px-5">
+        <h2 className="font-display text-base font-bold tracking-tight text-navy-deep sm:text-lg">
           {title}
         </h2>
       </div>
@@ -26,7 +26,7 @@ export function PropertyDetailsSummaryCard({ title, groups }: PropertyDetailsSum
             className={index > 0 ? "mt-4 border-t border-slate-200 pt-4" : undefined}
           >
             {group.title ? (
-              <h3 className="mb-1 text-center font-display text-sm font-bold tracking-tight text-navy-blue sm:text-base">
+              <h3 className="mb-1 text-center font-display text-sm font-bold tracking-tight text-navy-deep sm:text-base">
                 {group.title}
               </h3>
             ) : null}

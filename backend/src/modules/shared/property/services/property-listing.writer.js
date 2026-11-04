@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const writeRepository = require("../repositories/property-write.repository");
-const { toRow, toSnakeCase, PROJECT } = require("../validation/property-payload.fields");
+const { toRow, toSnakeCase, PROJECT, OWNER_CONTACT } = require("../validation/property-payload.fields");
 const derive = require("../utils/property-derive.util");
 const { OPTION_GROUPS, PROPERTY_TYPE_TO_DB, POSTING_AS_ROLES, getRule } = require("../constants/property.constants");
 const { toOwnerColumns } = require("../utils/property-actor.util");
@@ -20,7 +20,8 @@ const NULLABLE_PROPERTY_COLUMNS = [
   "construction_status",
   "possession_date",
 ];
-const NULLABLE_PROJECT_COLUMNS = Object.keys(PROJECT).map(toSnakeCase);
+const NULLABLE_OWNER_CONTACT_COLUMNS = Object.keys(OWNER_CONTACT).map(toSnakeCase);
+const NULLABLE_PROJECT_COLUMNS =Object.keys(PROJECT).map(toSnakeCase);
 
 const nullColumns = (columns) => Object.fromEntries(columns.map((column) => [column, null]));
 const hasKeys = (object) => Boolean(object) && Object.keys(object).length > 0;
@@ -220,6 +221,14 @@ async function insertListingDetails(trx, { value, lookups }, listing, propertyId
     await writeRepository.insertSaleDetails(trx, pricingRow);
   } else {
     await writeRepository.insertRentDetails(trx, pricingRow);
+  }
+
+  if (value.ownerContact) {
+    await writeRepository.upsertOwnerContact(trx, {
+      ...nullColumns(NULLABLE_OWNER_CONTACT_COLUMNS),
+      ...toRow(value.ownerContact),
+      property_id: propertyId,
+    });
   }
 
   await writeRepository.insertSelections(

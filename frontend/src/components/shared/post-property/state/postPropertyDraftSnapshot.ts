@@ -25,6 +25,7 @@ import type { PostPropertyDraft } from "./postPropertyFormReducer";
 import {
   INITIAL_ADDRESS_LOCATION,
   INITIAL_AMENITIES,
+  INITIAL_OWNER_CONTACT,
   INITIAL_PRICING_OTHERS,
   INITIAL_PROPERTY_DETAILS,
 } from "./postPropertyInitialValues";
@@ -39,6 +40,7 @@ export type SerializableFormState = Pick<
   | "propertyType"
   | "propertySubTypes"
   | "addressLocation"
+  | "ownerContact"
   | "propertyDetails"
   | "amenities"
   | "pricingOthers"
@@ -159,6 +161,7 @@ export function hydrateFormState(formData: DraftFormData): RestoredDraft | null 
       propertyType,
       propertySubTypes,
       addressLocation: mergeValues(INITIAL_ADDRESS_LOCATION, saved.addressLocation),
+      ownerContact: mergeValues(INITIAL_OWNER_CONTACT, saved.ownerContact),
       propertyDetails: mergeValues(INITIAL_PROPERTY_DETAILS, saved.propertyDetails),
       amenities: mergeValues(INITIAL_AMENITIES, saved.amenities),
       pricingOthers: mergeValues(INITIAL_PRICING_OTHERS, saved.pricingOthers),

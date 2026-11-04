@@ -67,7 +67,9 @@ describe("getProperty", () => {
 
     const result = await getProperty("p1");
 
-    expect(buildPropertyDetail).toHaveBeenCalledWith(expect.objectContaining({ id: "p1" }), "lokesha_staff");
+    expect(buildPropertyDetail).toHaveBeenCalledWith(expect.objectContaining({ id: "p1" }), "lokesha_staff", {
+      includeOwnerContact: true,
+    });
     expect(result).toMatchObject({ property: { id: "p1" }, owner: { name: "Asha" } });
   });
 

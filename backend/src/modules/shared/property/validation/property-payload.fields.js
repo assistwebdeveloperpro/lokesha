@@ -250,6 +250,19 @@ const ADDRESS = {
   state: text(100).required(),
 };
 
+const mobile = () =>
+  Joi.string().trim().pattern(/^[0-9]{10}$/).empty(ABSENT).messages({
+    "string.pattern.base": "Mobile number must be 10 digits",
+  });
+
+const OWNER_CONTACT = {
+  fullName: text(150).required(),
+  mobileNumber: mobile().required(),
+  alternateMobileNumber: mobile(),
+  email: Joi.string().trim().email().max(150).empty(ABSENT),
+  whatsappNumber: mobile(),
+};
+
 const toSnakeCase = (key) => key.replace(/[A-Z0-9]+/g, (match) => `_${match.toLowerCase()}`);
 
 // Validated camelCase object to a column map; undefined keys fall back to column defaults
@@ -314,6 +327,7 @@ module.exports = {
   VARIANT_CHARGES,
   PROJECT,
   ADDRESS,
+  OWNER_CONTACT,
   text,
   oneOf,
   date,

@@ -4,6 +4,7 @@ import {
   EMPTY_PROPERTY_DETAILS_EXTRA,
   type AddressLocationValues,
   type AmenitiesValues,
+  type OwnerContactValues,
   type PricingOthersValues,
   type PropertyDetailsValues,
 } from "../config/postPropertyForm.shared";
@@ -19,6 +20,14 @@ export const INITIAL_ADDRESS_LOCATION: AddressLocationValues = {
   city: "",
   state: DEFAULT_STATE,
   propertyDescription: "",
+};
+
+export const INITIAL_OWNER_CONTACT: OwnerContactValues = {
+  fullName: "",
+  mobileNumber: "",
+  alternateMobileNumber: "",
+  email: "",
+  whatsappNumber: "",
 };
 
 export const INITIAL_PROPERTY_DETAILS: PropertyDetailsValues = {

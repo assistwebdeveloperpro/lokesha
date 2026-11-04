@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Expand, ImageOff, X } from "lucide-react";
+import { useCallback, useEffect, useId, useState } from "react";
 import type { FloorPlanViewType, PropertyDetailsFloorPlan } from "./propertyDetails.types";
 
 type PropertyDetailsFloorPlansProps = {
@@ -13,6 +14,12 @@ type FloorPlanGroup = {
   label: string;
   tabLabel: string;
   plansByType: Partial<Record<FloorPlanViewType, PropertyDetailsFloorPlan>>;
+};
+
+type FloorPlanPreview = {
+  title: string;
+  src: string;
+  alt: string;
 };
 
 const PLAN_TYPE_TABS: { id: FloorPlanViewType; label: string }[] = [
@@ -50,49 +57,136 @@ function tabClass(active: boolean) {
   }`;
 }
 
+function FloorPlanPreviewDialog({
+  preview,
+  onClose,
+}: {
+  preview: FloorPlanPreview;
+  onClose: () => void;
+}) {
+  const headingId = useId();
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
+      <button
+        type="button"
+        aria-label="Close floor plan"
+        className="absolute inset-0 cursor-pointer bg-slate-900/60 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20"
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-sky-50/80 px-4 py-3 sm:px-5">
+          <h3 id={headingId} className="font-display text-base font-bold text-navy-deep sm:text-lg">
+            {preview.title}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:text-navy-blue"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+        <div className="flex min-h-0 flex-1 items-center justify-center bg-[#f3f6fa] p-4 sm:p-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={preview.src} alt={preview.alt} className="max-h-[72vh] w-full object-contain" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FloorPlanColumnCard({
   projectName,
   group,
   planType,
+  onOpen,
 }: {
   projectName: string;
   group: FloorPlanGroup;
   planType: FloorPlanViewType;
+  onOpen: (preview: FloorPlanPreview) => void;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const plan = group.plansByType[planType];
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [plan?.imageUrl]);
   const summary = plan ?? group.plansByType["2d"] ?? group.plansByType["3d"];
+  const imageUrl = plan?.imageUrl && !imageFailed ? plan.imageUrl : null;
+  const alt = `${projectName} ${group.tabLabel} ${planType.toUpperCase()} floor plan`;
 
   return (
-    <article className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4">
-        <h3 className="text-sm font-bold text-navy-blue sm:text-base">{group.tabLabel}</h3>
-        {summary ? (
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <div>
-              <p className="text-[11px] text-slate-500">{summary.areaType}</p>
-              <p className="text-xs font-semibold text-navy-blue">{summary.areaLabel}</p>
-            </div>
-            <div>
-              <p className="text-[11px] text-slate-500">Price</p>
-              <p className="text-xs font-semibold text-navy-blue">{summary.priceLabel}</p>
-            </div>
-          </div>
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm shadow-slate-900/5">
+      <div className="flex items-center gap-2.5 border-b border-slate-100 bg-sky-50/80 px-4 py-3">
+        <span className="h-5 w-1 shrink-0 rounded-full bg-navy-blue" aria-hidden />
+        <h3 className="min-w-0 truncate font-display text-base font-bold text-navy-deep">{group.tabLabel}</h3>
+      </div>
+
+      <button
+        type="button"
+        disabled={!imageUrl}
+        onClick={() => imageUrl && onOpen({ title: `${group.tabLabel} floor plan`, src: imageUrl, alt })}
+        className="relative flex flex-1 bg-[#f3f6fa] p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 enabled:cursor-pointer disabled:cursor-default sm:p-4"
+        aria-label={imageUrl ? `Enlarge ${group.tabLabel} floor plan` : undefined}
+      >
+        <span className="flex min-h-56 w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-4 shadow-[inset_0_0_0_6px_#f8fafc] sm:min-h-64">
+          {imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt={alt}
+              onError={() => setImageFailed(true)}
+              className="max-h-52 w-full object-contain sm:max-h-60"
+            />
+          ) : (
+            <span className="flex flex-col items-center gap-2 px-4 text-center text-sm text-slate-400">
+              <ImageOff className="h-6 w-6" aria-hidden />
+              {planType.toUpperCase()} plan is not available
+            </span>
+          )}
+        </span>
+        {imageUrl ? (
+          <span className="absolute right-6 bottom-6 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-navy-blue shadow-sm">
+            <Expand className="h-4 w-4" aria-hidden />
+          </span>
         ) : null}
-      </div>
-      <div className="flex h-52 w-full items-center justify-center bg-slate-50 sm:h-64">
-        {plan?.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={plan.imageUrl}
-            alt={`${projectName} ${group.tabLabel} ${planType.toUpperCase()} floor plan`}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <p className="px-3 text-center text-sm text-slate-400">
-            {planType.toUpperCase()} floor plan not available
-          </p>
-        )}
-      </div>
+      </button>
+
+      {summary ? (
+        <dl className="grid grid-cols-2 border-t border-slate-100">
+          <div className="px-4 py-3.5">
+            <dt className="text-xs text-slate-500">{summary.areaType}</dt>
+            <dd className="mt-1 font-display text-sm font-bold text-navy-blue sm:text-base">{summary.areaLabel}</dd>
+          </div>
+          <div className="border-l border-slate-100 px-4 py-3.5">
+            <dt className="text-xs text-slate-500">Price</dt>
+            <dd className="mt-1 font-display text-sm font-bold text-navy-blue sm:text-base">{summary.priceLabel}</dd>
+          </div>
+        </dl>
+      ) : null}
     </article>
   );
 }
@@ -104,10 +198,10 @@ export function PropertyDetailsFloorPlans({
 }: PropertyDetailsFloorPlansProps) {
   const groups = groupFloorPlans(plans, configurations);
   const [planType, setPlanType] = useState<FloorPlanViewType>("2d");
+  const [preview, setPreview] = useState<FloorPlanPreview | null>(null);
+  const closePreview = useCallback(() => setPreview(null), []);
 
   if (groups.length === 0) return null;
-
-  const [featured, ...rest] = groups;
 
   return (
     <div>
@@ -130,20 +224,19 @@ export function PropertyDetailsFloorPlans({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
-        <FloorPlanColumnCard projectName={projectName} group={featured} planType={planType} />
-        <div className="space-y-4">
-          {rest.map((group) => (
-            <FloorPlanColumnCard
-              key={group.label}
-              projectName={projectName}
-              group={group}
-              planType={planType}
-            />
-          ))}
-        </div>
-        <div className="hidden lg:block" aria-hidden />
+      <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {groups.map((group) => (
+          <FloorPlanColumnCard
+            key={group.label}
+            projectName={projectName}
+            group={group}
+            planType={planType}
+            onOpen={setPreview}
+          />
+        ))}
       </div>
+
+      {preview ? <FloorPlanPreviewDialog preview={preview} onClose={closePreview} /> : null}
     </div>
   );
 }

@@ -10,7 +10,7 @@ const { changeStatus, markEdited } = require("./property-status.service");
 const { validateCompletePayload } = require("../validation/property-payload.validation");
 const { AppError, validationError } = require("../utils/property.errors");
 const { LIMITS, PROPERTY_TYPE_TO_DB, getRule } = require("../constants/property.constants");
-const { isAdminCaller, toStatusActor } = require("../utils/property-actor.util");
+const { isAdminCaller, canManageOwnerContact, toStatusActor } = require("../utils/property-actor.util");
 
 const MAX_FLOOR_PLANS = 20;
 const SUBMITTABLE_STATUSES = ["draft", "rejected", "closed"];
@@ -58,7 +58,10 @@ async function updateProperty(user, propertyId, { payload }) {
   }
   const members = [existing, ...((await readRepository.findGroupSiblings(existing)) ?? [])];
 
-  const { value, fields } = validateCompletePayload(payload, { isBuilderPost: Boolean(existing.builder_project_id) });
+  const { value, fields } = validateCompletePayload(payload, {
+    isBuilderPost: Boolean(existing.builder_project_id),
+    hasOwnerContact: canManageOwnerContact(user),
+  });
   if (!value) {
     throw validationError(fields);
   }

@@ -35,7 +35,7 @@ export function PropertyDetailsSimilarListings({
           return (
             <article
               key={listing.id}
-              className="w-[calc((100%-0.75rem)/1.5)] shrink-0 snap-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm sm:w-[calc((100%-0.75rem)/2)] lg:w-[calc((100%-2.25rem)/4)]"
+              className="w-[calc((100%-0.75rem)/1.5)] shrink-0 snap-start overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-sky-200/80 hover:shadow-md sm:w-[calc((100%-0.75rem)/2)] lg:w-[calc((100%-2.25rem)/4)]"
             >
               <Link href={href} className="block cursor-pointer">
                 <div className="relative aspect-16/10 bg-slate-100">

@@ -19,6 +19,8 @@ import {
   type AmenitiesFieldErrors,
   type AmenitiesValues,
   type ListingTypeId,
+  type OwnerContactFieldErrors,
+  type OwnerContactValues,
   type PhotosVideosValues,
   type PricingOthersFieldErrors,
   type PricingOthersValues,
@@ -37,6 +39,7 @@ import {
 import {
   INITIAL_ADDRESS_LOCATION,
   INITIAL_AMENITIES,
+  INITIAL_OWNER_CONTACT,
   INITIAL_PRICING_OTHERS,
   INITIAL_PROPERTY_DETAILS,
 } from "./postPropertyInitialValues";
@@ -47,6 +50,8 @@ export type PostPropertyDraft = {
   propertySubTypes: string[];
   addressLocation: AddressLocationValues;
   addressLocationErrors: AddressLocationFieldErrors;
+  ownerContact: OwnerContactValues;
+  ownerContactErrors: OwnerContactFieldErrors;
   propertyDetails: PropertyDetailsValues;
   propertyDetailsErrors: PropertyDetailsFieldErrors;
   amenities: AmenitiesValues;
@@ -67,6 +72,7 @@ export type PostPropertyDraft = {
 export type DraftErrors = Pick<
   PostPropertyDraft,
   | "addressLocationErrors"
+  | "ownerContactErrors"
   | "propertyDetailsErrors"
   | "amenitiesErrors"
   | "pricingOthersErrors"
@@ -84,6 +90,11 @@ export type PostPropertyAction =
       type: "addressChanged";
       field: keyof AddressLocationValues;
       value: AddressLocationValues[keyof AddressLocationValues];
+    }
+  | {
+      type: "ownerContactChanged";
+      field: keyof OwnerContactValues;
+      value: string;
     }
   | {
       type: "detailsChanged";
@@ -140,6 +151,8 @@ export function createInitialDraft(): PostPropertyDraft {
     propertySubTypes: [RESIDENTIAL_SUB_TYPES[0].id],
     addressLocation: INITIAL_ADDRESS_LOCATION,
     addressLocationErrors: {},
+    ownerContact: INITIAL_OWNER_CONTACT,
+    ownerContactErrors: {},
     propertyDetails: INITIAL_PROPERTY_DETAILS,
     propertyDetailsErrors: {},
     amenities: INITIAL_AMENITIES,
@@ -336,6 +349,17 @@ export function postPropertyReducer(
           action.field,
         ),
       };
+
+    case "ownerContactChanged": {
+      const ownerContactErrors = { ...state.ownerContactErrors };
+      delete ownerContactErrors[action.field];
+
+      return {
+        ...state,
+        ownerContact: setField(state.ownerContact, action.field, action.value),
+        ownerContactErrors,
+      };
+    }
 
     case "detailsChanged":
       return {

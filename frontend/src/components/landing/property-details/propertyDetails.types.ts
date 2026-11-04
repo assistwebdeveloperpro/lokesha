@@ -61,6 +61,7 @@ export type PropertyDetailsProjectView = PropertyDetailsBase & {
   possessionLabel: string;
   reraNumber: string | null;
   overviewRows: PropertyDetailsSpecRow[];
+  pricingRows: PropertyDetailsSpecRow[];
   floorPlans: PropertyDetailsFloorPlan[];
   bhkConfigurations: string[];
   developer: PropertyDetailsDeveloper;

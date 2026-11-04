@@ -18,15 +18,15 @@ export function PropertyDetailsDeveloperCard({ developer }: PropertyDetailsDevel
           <div className="mt-3 grid grid-cols-3 gap-2 sm:max-w-md">
             <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-center">
               <p className="text-lg font-bold text-navy-blue">{developer.totalProjects}</p>
-              <p className="text-[11px] font-medium text-slate-500">Total Projects</p>
+              <p className="text-xs font-medium text-slate-500">Total Projects</p>
             </div>
             <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-center">
               <p className="text-lg font-bold text-navy-blue">{developer.ongoingProjects}</p>
-              <p className="text-[11px] font-medium text-slate-500">Ongoing</p>
+              <p className="text-xs font-medium text-slate-500">Ongoing</p>
             </div>
             <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-center">
               <p className="text-lg font-bold text-navy-blue">{developer.completedProjects}</p>
-              <p className="text-[11px] font-medium text-slate-500">Completed</p>
+              <p className="text-xs font-medium text-slate-500">Completed</p>
             </div>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-slate-600">{developer.description}</p>

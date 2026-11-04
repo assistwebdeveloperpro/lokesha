@@ -34,6 +34,7 @@ function buildRestored(): RestoredDraft {
       propertyType: initial.propertyType,
       propertySubTypes: initial.propertySubTypes,
       addressLocation: initial.addressLocation,
+      ownerContact: initial.ownerContact,
       propertyDetails: initial.propertyDetails,
       amenities: initial.amenities,
       pricingOthers: initial.pricingOthers,

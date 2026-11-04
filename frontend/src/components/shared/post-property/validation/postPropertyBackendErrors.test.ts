@@ -8,6 +8,12 @@ describe("mapBackendField", () => {
     ["address.locality", 1, "address", "locality"],
     ["address.pinCode", 1, "address", "pinCode"],
     ["address.state", 1, undefined, undefined],
+    ["ownerContact", 1, undefined, undefined],
+    ["ownerContact.fullName", 1, "ownerContact", "fullName"],
+    ["ownerContact.mobileNumber", 1, "ownerContact", "mobileNumber"],
+    ["ownerContact.alternateMobileNumber", 1, "ownerContact", "alternateMobileNumber"],
+    ["ownerContact.email", 1, "ownerContact", "email"],
+    ["ownerContact.whatsappNumber", 1, "ownerContact", "whatsappNumber"],
     ["listings.0.description", 1, "address", "propertyDescription"],
     ["listings.0.details.bedrooms", 2, "details", "bedrooms"],
     ["listings.0.details.balconies", 2, "details", "balcony"],
@@ -63,6 +69,20 @@ describe("resolveBackendErrors", () => {
     expect(result.propertyDetailsErrors).toEqual({ bedrooms: "Bedrooms must be less than or equal to 10" });
     expect(result.pricingOthersErrors).toEqual({ expectedPrice: "Expected price is required" });
     expect(result.photosError).toBe("File was not found in this draft");
+  });
+
+  it("puts owner contact messages on the owner contact fields of step 1", () => {
+    const result = resolveBackendErrors(
+      {
+        "ownerContact.mobileNumber": "Mobile number must be 10 digits",
+        "listings.0.details.bedrooms": "Required",
+      },
+      single,
+    );
+
+    expect(result.step).toBe(1);
+    expect(result.ownerContactErrors).toEqual({ mobileNumber: "Mobile number must be 10 digits" });
+    expect(result.addressLocationErrors).toEqual({});
   });
 
   it("keeps the first message of a field", () => {

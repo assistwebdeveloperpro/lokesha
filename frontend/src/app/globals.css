@@ -9,6 +9,7 @@
   --color-lokesha-emerald: #10b981;
   --color-navy-sidebar: #12192b;
   --color-navy-blue: var(--color-navy-sidebar);
+  --color-navy-deep: #0c1019;
   --color-navy-sidebar-active: #1e2a46;
   --color-navy-sidebar-active-ring: rgba(148, 163, 184, 0.22);
 }
@@ -37,6 +38,11 @@ body {
   letter-spacing: -0.025em;
 }
 
+.text-small {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
 .profile-description {
   font-size: 0.8125rem;
   line-height: 1.5;
@@ -63,6 +69,9 @@ body {
 }
 .text-navy-blue {
   color: var(--color-navy-blue);
+}
+.text-navy-deep {
+  color: var(--color-navy-deep);
 }
 
 .scrollbar-navy-blue {

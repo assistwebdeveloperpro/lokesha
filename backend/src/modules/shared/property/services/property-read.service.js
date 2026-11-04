@@ -20,7 +20,7 @@ async function listAmenityOptions(query) {
 }
 
 // ownerRole decides how the listing was posted, so it is the owner's role, not the viewer's
-async function buildSingleDetail(property, ownerRole) {
+async function buildSingleDetail(property, ownerRole, includeOwnerContact) {
   const propertyId = property.id;
   const rule = getRule(DB_TYPE_TO_FORM_TYPE[property.property_type], property.sub_type_slug);
   const isSale = property.listing_type === "sale";
@@ -39,6 +39,7 @@ async function buildSingleDetail(property, ownerRole) {
     floorPlans,
     project,
     rejectionReason,
+    ownerContact,
   ] = await Promise.all([
     readRepository.findTypeRow(rule.typeTable, propertyId),
     rule.plotDetails ? readRepository.findPlotDetails(propertyId) : null,
@@ -52,6 +53,7 @@ async function buildSingleDetail(property, ownerRole) {
     readRepository.findFloorPlans(propertyId),
     isBuilderListing ? readRepository.findProject(property.builder_project_id) : null,
     property.status === "rejected" ? readRepository.findLastRejectionReason(propertyId) : null,
+    includeOwnerContact ? readRepository.findOwnerContact(propertyId) : null,
   ]);
 
   return mapper.toPropertyDetail({
@@ -70,14 +72,16 @@ async function buildSingleDetail(property, ownerRole) {
     floorPlans,
     project,
     rejectionReason,
+    ownerContact,
   });
 }
 
 // A post with several sub types opens as one property: a listing and its own files per sub type
-async function buildPropertyDetail(property, ownerRole) {
+// includeOwnerContact is only true for Lokesha staff and admin viewers
+async function buildPropertyDetail(property, ownerRole, { includeOwnerContact = false } = {}) {
   const siblings = (await readRepository.findGroupSiblings(property)) ?? [];
   const members = [property, ...siblings].sort((a, b) => Number(a.listing_number) - Number(b.listing_number));
-  const details = await Promise.all(members.map((member) => buildSingleDetail(member, ownerRole)));
+  const details = await Promise.all(members.map((member) => buildSingleDetail(member, ownerRole, includeOwnerContact)));
   const opened = details.find((detail) => detail.property.id === property.id);
 
   return {
@@ -96,7 +100,7 @@ async function getPropertyForAdmin(propertyId) {
     throw new AppError("Property not found", 404);
   }
 
-  const detail = await buildPropertyDetail(property, property.listed_by);
+  const detail = await buildPropertyDetail(property, property.listed_by, { includeOwnerContact: true });
   return { ...detail, source: property.admin_id ? "admin" : "user" };
 }
 

@@ -16,6 +16,7 @@ import {
 import {
   INITIAL_ADDRESS_LOCATION,
   INITIAL_AMENITIES,
+  INITIAL_OWNER_CONTACT,
   INITIAL_PRICING_OTHERS,
   INITIAL_PROPERTY_DETAILS,
 } from "../state/postPropertyInitialValues";
@@ -513,6 +514,31 @@ describe("mapDetailToForm builder", () => {
       ["6+ BHK", "Flat/Apartment"],
       ["4 BHK", "Duplex"],
     ]);
+  });
+});
+
+describe("mapDetailToForm owner contact", () => {
+  const input: PropertyPayloadInput = {
+    listingType: "sale",
+    propertyType: "residential",
+    address: { ...INITIAL_ADDRESS_LOCATION, locality: "Vesu", pinCode: "395007", state: "Gujarat" },
+    listings: [listing("flat-apartment", { pricing: sale })],
+  };
+
+  it("loads the saved owner contact into the form", () => {
+    const detail = toDetail(input);
+    detail.payload.ownerContact = { fullName: "Ramesh Patel", mobileNumber: "9876543210", email: "ramesh@example.com" };
+
+    expect(mapDetailToForm(detail).form.ownerContact).toEqual({
+      ...INITIAL_OWNER_CONTACT,
+      fullName: "Ramesh Patel",
+      mobileNumber: "9876543210",
+      email: "ramesh@example.com",
+    });
+  });
+
+  it("starts empty when the server sent no owner contact", () => {
+    expect(mapDetailToForm(toDetail(input)).form.ownerContact).toEqual(INITIAL_OWNER_CONTACT);
   });
 });
 

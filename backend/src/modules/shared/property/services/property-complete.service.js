@@ -8,7 +8,7 @@ const { changeStatus } = require("./property-status.service");
 const { validateCompletePayload } = require("../validation/property-payload.validation");
 const { AppError, validationError } = require("../utils/property.errors");
 const { POSTING_AS_ROLES, getRule } = require("../constants/property.constants");
-const { isAdminCaller, toOwner, toStatusActor } = require("../utils/property-actor.util");
+const { isAdminCaller, canManageOwnerContact, toOwner, toStatusActor } = require("../utils/property-actor.util");
 
 function isBuilderPost(user, payload) {
   return user.role === "builder" || (POSTING_AS_ROLES.includes(user.role) && payload?.postingAs === "builder");
@@ -118,7 +118,10 @@ async function completeDraft(user, draftId, { payload, submit }) {
     throw new AppError("Draft not found", 404);
   }
 
-  const { value, fields } = validateCompletePayload(payload, { isBuilderPost: isBuilderPost(user, payload) });
+  const { value, fields } = validateCompletePayload(payload, {
+    isBuilderPost: isBuilderPost(user, payload),
+    hasOwnerContact: canManageOwnerContact(user),
+  });
   if (!value) {
     throw validationError(fields);
   }

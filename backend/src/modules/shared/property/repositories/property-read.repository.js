@@ -130,6 +130,10 @@ async function findSaleDetails(propertyId) {
   return db("property_sale_details").where({ property_id: propertyId }).first();
 }
 
+async function findOwnerContact(propertyId) {
+  return db("property_owner_contacts").where({ property_id: propertyId }).first();
+}
+
 async function findRentDetails(propertyId) {
   return db("property_rent_details").where({ property_id: propertyId }).first();
 }
@@ -214,6 +218,7 @@ module.exports = {
   findTypeRow,
   findPlotDetails,
   findSaleDetails,
+  findOwnerContact,
   findRentDetails,
   findBuilderListingDetails,
   findSpecifications,

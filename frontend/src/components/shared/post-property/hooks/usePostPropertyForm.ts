@@ -35,15 +35,18 @@ import {
   hasFailedMedia,
   hasUploadingMedia,
   hasAmenitiesErrors,
+  hasOwnerContactErrors,
   hasPropertyDetailsErrors,
   isRentListing,
   validateAddressLocation,
   validateAmenities,
+  validateOwnerContact,
   validatePricingOthers,
   validatePropertyDetails,
   type AddressLocationValues,
   type AmenitiesValues,
   type ListingTypeId,
+  type OwnerContactValues,
   type PhotosVideosValues,
   type PricingOthersValues,
   type PropertyDetailsValues,
@@ -119,6 +122,7 @@ export function usePostPropertyForm() {
     propertyType,
     propertySubTypes,
     addressLocation,
+    ownerContact,
     propertyDetails,
     amenities,
     photosVideos,
@@ -131,6 +135,7 @@ export function usePostPropertyForm() {
   const isRent = isRentListing(listingType);
   // Staff and admins both choose who they are posting the listing as
   const isStaff = isAuthReady && (isAdmin || role === "lokesha_staff");
+  const showOwnerContact = isStaff;
   const showBuilderFields =
     isAuthReady && (role === "builder" || (isStaff && postingAs === "builder"));
   const isBuilderPost = showBuilderFields || Boolean(editDetail?.payload.project);
@@ -229,6 +234,7 @@ export function usePostPropertyForm() {
         propertyType,
         propertySubTypes,
         addressLocation,
+        ownerContact,
         propertyDetails,
         amenities,
         pricingOthers,
@@ -509,6 +515,9 @@ export function usePostPropertyForm() {
     value: AddressLocationValues[K],
   ) => dispatch({ type: "addressChanged", field, value });
 
+  const handleOwnerContactChange = (field: keyof OwnerContactValues, value: string) =>
+    dispatch({ type: "ownerContactChanged", field, value });
+
   const handleDetailsChange = <K extends keyof PropertyDetailsValues>(
     field: K,
     value: PropertyDetailsValues[K],
@@ -543,9 +552,10 @@ export function usePostPropertyForm() {
 
   const handleBasicDetailsNext = () => {
     const errors = validateAddressLocation(addressLocation, addressValidationOptions);
-    replaceErrors({ addressLocationErrors: errors });
+    const ownerContactErrors = showOwnerContact ? validateOwnerContact(ownerContact) : {};
+    replaceErrors({ addressLocationErrors: errors, ownerContactErrors });
 
-    if (hasAddressLocationErrors(errors)) {
+    if (hasAddressLocationErrors(errors) || hasOwnerContactErrors(ownerContactErrors)) {
       requestInvalidFieldFocus();
       return;
     }
@@ -665,6 +675,7 @@ export function usePostPropertyForm() {
   // Returns the earliest step with an error, or null when the whole form is valid
   const validateWholeForm = (): number | null => {
     const address = validateAddressLocation(addressLocation, addressValidationOptions);
+    const ownerContactErrors = showOwnerContact ? validateOwnerContact(ownerContact) : {};
     const details = isMultiSubType ? {} : validateSingleDetails();
     const builder: BuilderFieldErrors = showBuilderFields
       ? {
@@ -696,6 +707,7 @@ export function usePostPropertyForm() {
 
     replaceErrors({
       addressLocationErrors: address,
+      ownerContactErrors,
       propertyDetailsErrors: details,
       amenitiesErrors,
       pricingOthersErrors: pricing,
@@ -705,6 +717,7 @@ export function usePostPropertyForm() {
 
     return resolveFirstInvalidStep({
       address,
+      ownerContact: ownerContactErrors,
       details,
       amenities: amenitiesErrors,
       pricing,
@@ -719,6 +732,7 @@ export function usePostPropertyForm() {
       listingType,
       propertyType,
       address: addressLocation,
+      ownerContact: showOwnerContact ? ownerContact : undefined,
       builderProject: showBuilderFields ? projectDetails : undefined,
       postingAs: isStaff && postingAs ? postingAs : undefined,
       listings: isMultiSubType
@@ -754,6 +768,7 @@ export function usePostPropertyForm() {
       if (backendErrors.step !== null) {
         replaceErrors({
           addressLocationErrors: backendErrors.addressLocationErrors,
+          ownerContactErrors: backendErrors.ownerContactErrors,
           propertyDetailsErrors: backendErrors.propertyDetailsErrors,
           amenitiesErrors: backendErrors.amenitiesErrors,
           pricingOthersErrors: backendErrors.pricingOthersErrors,
@@ -878,6 +893,7 @@ export function usePostPropertyForm() {
       propertySubType,
       isRent,
       showBuilderFields,
+      showOwnerContact,
       optionalAmenities,
       builderConfig,
       addressValidationOptions,
@@ -895,6 +911,7 @@ export function usePostPropertyForm() {
       changeSubType: handleSubTypeChange,
       changeSubTypes: handleSubTypesChange,
       changeAddress: handleAddressChange,
+      changeOwnerContact: handleOwnerContactChange,
       changeDetails: handleDetailsChange,
       changeAmenities: handleAmenitiesChange,
       changePricing: handlePricingChange,

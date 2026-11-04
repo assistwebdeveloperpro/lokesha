@@ -25,6 +25,7 @@ import type { StaticImageData } from "next/image";
 import type { IndianState } from "@/data/indianStatesCities";
 import { validateWithSchema } from "@/lib/validation/joi";
 import { createAddressLocationSchema } from "@/lib/validation/schemas/address.schema";
+import { createOwnerContactSchema } from "@/lib/validation/schemas/ownerContact.schema";
 import {
   MAX_NOTICE_PERIOD_MONTHS,
   isValidAmount,
@@ -384,6 +385,26 @@ export function validateAddressLocation(
 export function hasAddressLocationErrors(
   errors: AddressLocationFieldErrors,
 ): boolean {
+  return Object.keys(errors).length > 0;
+}
+
+export type OwnerContactValues = {
+  fullName: string;
+  mobileNumber: string;
+  alternateMobileNumber: string;
+  email: string;
+  whatsappNumber: string;
+};
+
+export type OwnerContactFieldErrors = Partial<Record<keyof OwnerContactValues, string>>;
+
+export function validateOwnerContact(values: OwnerContactValues): OwnerContactFieldErrors {
+  const { errors } = validateWithSchema(createOwnerContactSchema(), values);
+
+  return errors as OwnerContactFieldErrors;
+}
+
+export function hasOwnerContactErrors(errors: OwnerContactFieldErrors): boolean {
   return Object.keys(errors).length > 0;
 }
 

@@ -175,4 +175,55 @@ describe("completeDraft", () => {
       details: { fields: { project: expect.any(String) } },
     });
   });
+
+  describe("owner contact", () => {
+    const ownerContact = { fullName: "Ramesh Patel", mobileNumber: "9876543210", email: "ramesh@example.com" };
+    const staff = { id: "staff-1", role: "lokesha_staff" };
+    const admin = { adminId: "admin-1", role: "admin" };
+
+    it.each([
+      ["lokesha_staff", staff],
+      ["admin", admin],
+    ])("saves the owner contact for %s", async (_role, caller) => {
+      await completeDraft(caller, DRAFT_ID, { payload: { ...buildPayload(), ownerContact }, submit: false });
+
+      const propertyId = writeRepository.insertProperty.mock.calls[0][1].id;
+
+      expect(writeRepository.upsertOwnerContact).toHaveBeenCalledWith(
+        mockTrx,
+        expect.objectContaining({
+          property_id: propertyId,
+          full_name: "Ramesh Patel",
+          mobile_number: "9876543210",
+          email: "ramesh@example.com",
+          alternate_mobile_number: null,
+          whatsapp_number: null,
+        })
+      );
+    });
+
+    it.each([["staff", staff], ["admin", admin]])("requires the owner contact for %s", async (_role, caller) => {
+      await expect(completeDraft(caller, DRAFT_ID, { payload: buildPayload() })).rejects.toMatchObject({
+        statusCode: 400,
+        details: { fields: { ownerContact: expect.any(String) } },
+      });
+      expect(db.transaction).not.toHaveBeenCalled();
+    });
+
+    it("rejects an owner contact sent by a normal user", async () => {
+      await expect(
+        completeDraft(user, DRAFT_ID, { payload: { ...buildPayload(), ownerContact } })
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        details: { fields: { ownerContact: expect.any(String) } },
+      });
+      expect(writeRepository.upsertOwnerContact).not.toHaveBeenCalled();
+    });
+
+    it("does not save an owner contact for a normal user listing", async () => {
+      await completeDraft(user, DRAFT_ID, { payload: buildPayload(), submit: false });
+
+      expect(writeRepository.upsertOwnerContact).not.toHaveBeenCalled();
+    });
+  });
 });

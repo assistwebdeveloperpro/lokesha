@@ -18,6 +18,7 @@ describe("resolveFirstInvalidStep", () => {
 
   it.each([
     ["address", { address: { locality: "Required" } }, 1],
+    ["owner contact", { ownerContact: { mobileNumber: "Required" } }, 1],
     ["details", { details: { bedrooms: "Required" } }, 2],
     ["project type", { builder: { projectType: "Required" } }, 2],
     ["amenities", { amenities: { facing: "Required" } }, 3],

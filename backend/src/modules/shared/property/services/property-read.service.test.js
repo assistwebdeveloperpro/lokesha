@@ -2,7 +2,46 @@ jest.mock("../../../../config/db", () => ({ db: {} }));
 jest.mock("../repositories/property-read.repository");
 
 const readRepository = require("../repositories/property-read.repository");
-const { listAmenityOptions } = require("./property-read.service");
+const { listAmenityOptions, buildPropertyDetail } = require("./property-read.service");
+
+describe("buildPropertyDetail owner contact", () => {
+  const property = {
+    id: "p1",
+    listing_number: "100001",
+    listing_type: "sale",
+    property_type: "residential",
+    sub_type_slug: "flat-apartment",
+    status: "draft",
+    title: "Flat",
+    description: "Nice flat",
+  };
+  const ownerContact = { full_name: "Ramesh Patel", mobile_number: "9876543210" };
+
+  beforeEach(() => {
+    readRepository.findGroupSiblings.mockResolvedValue([]);
+    readRepository.findTypeRow.mockResolvedValue({});
+    readRepository.findSaleDetails.mockResolvedValue({});
+    readRepository.findSelections.mockResolvedValue([]);
+    readRepository.findAmenities.mockResolvedValue([]);
+    readRepository.findMedia.mockResolvedValue([]);
+    readRepository.findFloorPlans.mockResolvedValue([]);
+    readRepository.findOwnerContact.mockResolvedValue(ownerContact);
+  });
+
+  it("includes the owner contact for staff and admin viewers", async () => {
+    const detail = await buildPropertyDetail(property, "lokesha_staff", { includeOwnerContact: true });
+
+    expect(readRepository.findOwnerContact).toHaveBeenCalledWith("p1");
+    expect(detail.payload.ownerContact).toEqual({ fullName: "Ramesh Patel", mobileNumber: "9876543210" });
+  });
+
+  it("never reads the owner contact for other viewers", async () => {
+    const detail = await buildPropertyDetail(property, "agent");
+
+    expect(readRepository.findOwnerContact).not.toHaveBeenCalled();
+    expect(detail.payload).not.toHaveProperty("ownerContact");
+  });
+});
 
 describe("listAmenityOptions", () => {
   const query = { listingType: "sale", propertyType: "commercial", subType: "shop" };

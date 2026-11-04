@@ -6,6 +6,7 @@ const baseRow = {
   listing_type: "rent-lease",
   property_type: "pg",
   sub_type_slug: "pg",
+  sub_type_slugs: ["pg"],
   sub_type_name: "PG",
   title: "Sai PG",
   locality: "Vastrapur",

@@ -38,7 +38,7 @@ async function getProperty(propertyId) {
     throw new AppError("Property not found", 404);
   }
 
-  const detail = await buildPropertyDetail(property, property.owner_role);
+  const detail = await buildPropertyDetail(property, property.owner_role, { includeOwnerContact: true });
   return { ...detail, owner: toOwner(property) };
 }
 

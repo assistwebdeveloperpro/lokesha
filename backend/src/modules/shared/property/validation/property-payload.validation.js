@@ -67,11 +67,16 @@ const builderBlockSchema = Joi.object({
   ),
 }).default({ listing: {}, specifications: [] });
 
-function buildEnvelopeSchema(isBuilderPost) {
+function buildEnvelopeSchema(isBuilderPost, hasOwnerContact) {
   return Joi.object({
     listingType: Joi.string().valid(...c.LISTING_TYPES).required(),
     propertyType: Joi.string().valid(...c.PROPERTY_TYPES).required(),
     postingAs: Joi.string().valid(...c.POSTING_AS_VALUES),
+    ownerContact: hasOwnerContact
+      ? Joi.object(f.OWNER_CONTACT).required()
+      : Joi.forbidden().messages({
+          "any.unknown": "Owner contact is only allowed for Lokesha staff and admin listings",
+        }),
     address: Joi.object(f.ADDRESS).required(),
     project: isBuilderPost ? projectSchema.required() : Joi.forbidden().messages({
       "any.unknown": "Project details are only allowed for builder listings",
@@ -205,9 +210,9 @@ function crossCheckListing(listing, { listingType, builder }, prefix, fields) {
 }
 
 // Returns the cleaned payload and a { path: message } map of every problem found
-function validateCompletePayload(payload, { isBuilderPost }) {
+function validateCompletePayload(payload, { isBuilderPost, hasOwnerContact = false }) {
   const fields = {};
-  const { error, value } = buildEnvelopeSchema(isBuilderPost).validate(payload, {
+  const { error, value } = buildEnvelopeSchema(isBuilderPost, hasOwnerContact).validate(payload, {
     abortEarly: false,
     stripUnknown: true,
   });

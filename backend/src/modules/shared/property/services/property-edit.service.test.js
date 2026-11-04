@@ -96,6 +96,44 @@ describe("updateProperty", () => {
     );
   });
 
+  describe("owner contact", () => {
+    const ownerContact = { fullName: "Ramesh Patel", mobileNumber: "9876543210" };
+    const staff = { id: "staff-1", role: "lokesha_staff" };
+    const admin = { adminId: "admin-1", role: "admin" };
+
+    it.each([["staff", staff], ["admin", admin]])("replaces the owner contact for %s", async (_role, caller) => {
+      await service.updateProperty(caller, PROPERTY_ID, { payload: { ...buildPayload(), ownerContact } });
+
+      expect(writeRepository.upsertOwnerContact).toHaveBeenCalledWith(
+        mockTrx,
+        expect.objectContaining({ property_id: PROPERTY_ID, full_name: "Ramesh Patel", mobile_number: "9876543210" })
+      );
+    });
+
+    it("clears optional owner contact fields that were removed", async () => {
+      await service.updateProperty(staff, PROPERTY_ID, { payload: { ...buildPayload(), ownerContact } });
+
+      expect(writeRepository.upsertOwnerContact).toHaveBeenCalledWith(
+        mockTrx,
+        expect.objectContaining({ alternate_mobile_number: null, email: null, whatsapp_number: null })
+      );
+    });
+
+    it("requires the owner contact for staff", async () => {
+      await expect(service.updateProperty(staff, PROPERTY_ID, { payload: buildPayload() })).rejects.toMatchObject({
+        statusCode: 400,
+        details: { fields: { ownerContact: expect.any(String) } },
+      });
+    });
+
+    it("rejects an owner contact sent by a normal user", async () => {
+      await expect(
+        service.updateProperty(user, PROPERTY_ID, { payload: { ...buildPayload(), ownerContact } })
+      ).rejects.toMatchObject({ statusCode: 400, details: { fields: { ownerContact: expect.any(String) } } });
+      expect(writeRepository.upsertOwnerContact).not.toHaveBeenCalled();
+    });
+  });
+
   describe("with several sub types", () => {
     const SIBLING_ID = "9a1c7e44-2b6d-4f0a-8c13-5d7e9f0a1b22";
     const builder = { id: "user-1", role: "builder" };

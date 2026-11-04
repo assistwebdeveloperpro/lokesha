@@ -27,6 +27,11 @@ export type PublicPropertyFloorPlan = {
   planType: "2d" | "3d";
 };
 
+export type PublicBuilderListing = {
+  avgPrice: string | number | null;
+  areaUnit: string | null;
+};
+
 export type PublicPropertyProject = {
   projectName: string;
   projectType: string | null;
@@ -34,6 +39,7 @@ export type PublicPropertyProject = {
   launchDate: string | null;
   totalUnits: number | null;
   totalBlocks: number | null;
+  projectAreaAcres: string | number | null;
   reraLink: string | null;
   developerStats: {
     totalProjects: number;
@@ -70,6 +76,7 @@ export type PublicPropertyDetails = {
   brochure: string | null;
   poster: { name: string; postedBy: PublicSearchListing["postedBy"] };
   project?: PublicPropertyProject;
+  builderListing?: PublicBuilderListing | null;
   variants?: PublicPropertyVariant[];
   similar: PublicSearchListing[];
 };

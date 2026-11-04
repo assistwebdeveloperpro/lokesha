@@ -1,8 +1,6 @@
 "use client";
 
 import { MapPin } from "lucide-react";
-import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
-import { formatSearchListingArea } from "@/components/landing/property-search/property-list/formatSearchListingArea";
 import { PropertyDetailsAboutTabs } from "./PropertyDetailsAboutTabs";
 import { PropertyDetailsAmenityGrid } from "./PropertyDetailsAmenityGrid";
 import { PropertyDetailsBreadcrumbs } from "./PropertyDetailsBreadcrumbs";
@@ -10,20 +8,21 @@ import { PropertyDetailsDeveloperCard } from "./PropertyDetailsDeveloperCard";
 import { PropertyDetailsFloorPlans } from "./PropertyDetailsFloorPlans";
 import { PropertyDetailsGallery } from "./PropertyDetailsGallery";
 import { PropertyDetailsHeaderActions } from "./PropertyDetailsHeaderActions";
-import { PropertyDetailsHighlightCards } from "./PropertyDetailsHighlightCards";
 import { PropertyDetailsMapPlaceholder } from "./PropertyDetailsMapPlaceholder";
 import { PropertyDetailsSection } from "./PropertyDetailsSection";
 import { PropertyDetailsSimilarListings } from "./PropertyDetailsSimilarListings";
 import { PropertyDetailsSummaryCard } from "./PropertyDetailsSummaryCard";
 import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
-import { formatPropertyConfigurationLabel } from "./propertyDetailsConfigurationLabel";
 import { propertyDetailsContactLabel } from "./propertyDetailsContactLabel";
-import { propertyDetailsHeroPriceLabel } from "./propertyDetailsPriceLabel";
+import { PropertyDetailsHeroPriceSection } from "./PropertyDetailsHeroPriceSection";
 import type { PropertyDetailsView } from "./propertyDetails.types";
 
 const PAGE_CONTAINER = "mx-auto w-full max-w-360 px-2 sm:px-4 lg:px-6";
 const HERO_GRID =
   "grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 lg:gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]";
+
+const withoutPriceNegotiable = <T extends { label: string }>(rows: T[]) =>
+  rows.filter((row) => row.label.toLowerCase() !== "price negotiable");
 
 type PropertyDetailsPageContentProps = {
   details: PropertyDetailsView;
@@ -31,11 +30,8 @@ type PropertyDetailsPageContentProps = {
 
 export function PropertyDetailsPageContent({ details }: PropertyDetailsPageContentProps) {
   const { listing } = details;
-  const areaLabel = formatSearchListingArea(listing);
   const isProject = details.kind === "project";
-  const bhkLabel = isProject
-    ? formatPropertyConfigurationLabel(details.bhkConfigurations)
-    : "";
+  const usesAboutSection = listing.propertyType === "plot" || listing.propertyType === "land";
   const contactLabel = propertyDetailsContactLabel(details.poster.postedBy);
   const contactName = propertyContactDisplayName(
     details.poster.postedBy,
@@ -43,8 +39,12 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
   );
   const summaryTitle = isProject ? "Project Details" : "Property Details";
   const summaryGroups = isProject
-    ? [{ rows: details.overviewRows }]
-    : [{ rows: [...details.propertyDetailRows, ...details.pricingRows] }];
+    ? [{ rows: withoutPriceNegotiable([...details.overviewRows, ...details.pricingRows]) }]
+    : [
+        {
+          rows: withoutPriceNegotiable([...details.propertyDetailRows, ...details.pricingRows]),
+        },
+      ];
 
   return (
     <div className="bg-slate-50/60 pb-10">
@@ -89,20 +89,7 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
               showBrochure={listing.hasBrochure}
             />
 
-            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
-              <p className="text-xs font-medium text-slate-500 sm:text-sm">
-                {propertyDetailsHeroPriceLabel(listing)}
-              </p>
-              <PropertyListPrice item={listing} className="mt-0.5! text-xl sm:text-2xl" />
-              {isProject ? (
-                <div className="mt-3">
-                  <PropertyDetailsHighlightCards
-                    bhkLabel={bhkLabel}
-                    possessionLabel={details.possessionLabel}
-                  />
-                </div>
-              ) : null}
-            </div>
+            <PropertyDetailsHeroPriceSection listing={listing} />
           </div>
 
           <PropertyDetailsSummaryCard title={summaryTitle} groups={summaryGroups} />
@@ -110,7 +97,7 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
 
         <div className="mt-6 space-y-6 lg:mt-8">
           {isProject ? (
-            <PropertyDetailsSection title={`About ${listing.title}`}>
+            <PropertyDetailsSection title="About">
               <PropertyDetailsAboutTabs
                 title={listing.title}
                 address={details.address}
@@ -118,14 +105,10 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
               />
             </PropertyDetailsSection>
           ) : (
-            <PropertyDetailsSection title="Description">
+            <PropertyDetailsSection title={usesAboutSection ? "About" : "Description"}>
               <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
                 {details.description}
               </p>
-              <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50/80 p-3 text-sm text-slate-600">
-                <span className="font-semibold text-slate-800">Posted by:</span>{" "}
-                {details.poster.name}
-              </div>
             </PropertyDetailsSection>
           )}
 
@@ -154,12 +137,6 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
           ) : null}
 
           {isProject ? <PropertyDetailsDeveloperCard developer={details.developer} /> : null}
-
-          {!isProject ? (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 sm:text-sm">
-              Carpet / built-up summary: {areaLabel}
-            </div>
-          ) : null}
         </div>
 
         <PropertyDetailsSimilarListings
