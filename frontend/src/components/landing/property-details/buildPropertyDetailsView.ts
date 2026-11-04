@@ -81,6 +81,12 @@ const formatAmount = (value: unknown) => {
   return amount === null ? null : formatPriceAmount(amount);
 };
 
+const formatCarParkingValue = (count: number | null): string | null => {
+  if (count === null) return null;
+  if (count === 0) return "No car parking";
+  return String(count);
+};
+
 const AVG_PRICE_UNITS: Record<string, string> = {
   "sq-yd": "SqYd",
   "sq-ft": "SqFt",
@@ -254,6 +260,7 @@ function buildBase(dto: PublicPropertyDetails, currentLabel: string, pageTitle: 
     pageTitle,
     headlineTitle: listing.title,
     headlineSubtitle: listing.subtitle,
+    aboutSectionTitle: `About The ${listing.title}`,
     address: dto.address,
     description: dto.description,
     amenities: dto.amenities,
@@ -385,7 +392,7 @@ function buildPricingRows(dto: PublicPropertyDetails): PropertyDetailsSpecRow[] 
   const parking = toNumber(a.carParkingCount);
   const parkingRow: Rows = isPgListing(listing)
     ? []
-    : [["Car Parking", parking === null ? null : String(parking)]];
+    : [["Car Parking", formatCarParkingValue(parking)]];
   const rows: Rows = isSale
     ? [
         ["Booking Amount", formatAmount(p.bookingAmount)],

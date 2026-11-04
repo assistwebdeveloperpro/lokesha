@@ -2,7 +2,8 @@ import BhkCarParkingField from "../builder/BhkCarParkingField";
 import { getBuilderConfig } from "../builder/builderConfig";
 import {
   BuilderAmenityExtras,
-  BuilderHighlightBlocks,
+  PrimeLocationHighlightsBlock,
+  ProjectHighlightsBlock,
 } from "../builder/BuilderFormBlocks";
 import PostPropertyStepCard from "../components/PostPropertyStepCard";
 import SubTypeDetailsTabs from "../step-2-property-details/SubTypeDetailsTabs";
@@ -59,7 +60,8 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
             sections={{ only: amenitySections.common }}
           />
         ) : null}
-        <BuilderHighlightBlocks form={form} />
+        <ProjectHighlightsBlock form={form} />
+        <PrimeLocationHighlightsBlock form={form} />
         {amenitySections.perSubType.length > 0 || parkingPerSubType ? (
           <SubTypeDetailsTabs
             tabs={subForms.tabs}
@@ -148,9 +150,15 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
               hideClubMembership={builderConfig.hideClubMembership}
             />
           )}
-          {isMultiSubType ? null : <BuilderHighlightBlocks form={form} />}
         </>
       ) : null}
+
+      {showBuilderFields && isMultiSubType ? null : (
+        <>
+          <ProjectHighlightsBlock form={form} />
+          <PrimeLocationHighlightsBlock form={form} />
+        </>
+      )}
     </PostPropertyStepCard>
   );
 }

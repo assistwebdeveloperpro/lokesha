@@ -84,7 +84,14 @@ async function updateProperty(user, propertyId, { payload }) {
     const [{ builder_project_id: projectId }] = group;
 
     if (value.project) {
-      await writer.replaceProject(trx, projectId, value.project);
+      const effectiveProjectId = projectId ?? (await writer.insertProject(trx, user, value.project));
+      if (!projectId) {
+        await Promise.all(
+          group.map((member) => editRepository.updateProperty(trx, member.id, { builder_project_id: effectiveProjectId }))
+        );
+      } else {
+        await writer.replaceProject(trx, effectiveProjectId, value.project);
+      }
     }
 
     let status;

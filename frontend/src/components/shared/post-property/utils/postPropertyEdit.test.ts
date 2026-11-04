@@ -122,13 +122,16 @@ function toDetail(
 // The same input the form hook builds from the loaded values
 function toInput(detail: PropertyDetailResponse): PropertyPayloadInput {
   const { form, postingAs } = mapDetailToForm(detail);
+  const [listing] = detail.payload.listings;
+  const isBuilder = Boolean(listing.builder ?? listing.variants?.length);
 
   return {
     listingType: form.listingType,
     propertyType: form.propertyType,
     address: form.addressLocation,
     postingAs: postingAs || undefined,
-    builderProject: detail.payload.project ? form.projectDetails : undefined,
+    builderProject: isBuilder ? form.projectDetails : undefined,
+    locationHighlights: isBuilder ? undefined : form.projectDetails,
     listings: [
       {
         subType: form.propertySubTypes[0],
@@ -136,7 +139,7 @@ function toInput(detail: PropertyDetailResponse): PropertyPayloadInput {
         amenities: form.amenities,
         pricing: form.pricingOthers,
         photos: form.photosVideos,
-        project: detail.payload.project ? form.projectDetails : undefined,
+        project: isBuilder ? form.projectDetails : undefined,
       },
     ],
   };

@@ -87,8 +87,8 @@ const SELECTION_FIELDS: Record<string, string | undefined> = {
 
 const PROJECT_FIELD_STEPS: Record<string, number> = {
   projectName: STEP_BASIC,
-  highlights: STEP_BASIC,
-  primeLocations: STEP_BASIC,
+  highlights: STEP_AMENITIES,
+  primeLocations: STEP_AMENITIES,
   faqs: STEP_PRICING,
   videoLink: STEP_PRICING,
   virtualTourLink: STEP_PRICING,

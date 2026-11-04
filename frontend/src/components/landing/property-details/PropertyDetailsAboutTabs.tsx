@@ -9,12 +9,15 @@ type PropertyDetailsAboutTabsProps = {
   description: string;
 };
 
+const ADDRESS_UNAVAILABLE = "Not available";
+
 export function PropertyDetailsAboutTabs({
   title,
   address,
   description,
 }: PropertyDetailsAboutTabsProps) {
   const [tab, setTab] = useState<"description" | "address">("description");
+  const addressLabel = address.trim() ? address : ADDRESS_UNAVAILABLE;
 
   return (
     <div>
@@ -50,7 +53,7 @@ export function PropertyDetailsAboutTabs({
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" aria-hidden />
           <div>
             <p className="text-sm font-semibold text-slate-900">{title}</p>
-            <p className="mt-1 text-sm text-slate-600">{address}</p>
+            <p className="mt-1 text-sm text-slate-600">{addressLabel}</p>
           </div>
         </div>
       )}

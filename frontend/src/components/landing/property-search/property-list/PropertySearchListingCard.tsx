@@ -69,7 +69,7 @@ export function PropertySearchListingCard({
   const facts = buildSearchListingFacts(listing);
   const priceValue = formatSearchListingPrice(listing);
 
-  const contactName = propertyContactDisplayName(listing.postedBy, listing.builderName);
+  const contactName = propertyContactDisplayName(listing.postedBy, listing.listerName);
 
   return (
     <>
@@ -154,7 +154,7 @@ export function PropertySearchListingCard({
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-slate-800">
-                  {listing.builderName ?? "Private listing"}
+                  {listing.listerName ?? "Private listing"}
                 </p>
                 <p className="text-xs text-slate-500">
                   {listing.locality}, {listing.city}

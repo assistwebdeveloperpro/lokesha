@@ -101,25 +101,26 @@ export function BuilderMediaBlocks({ form }: BuilderFormBlocksProps) {
   );
 }
 
-export function BuilderHighlightBlocks({ form }: BuilderFormBlocksProps) {
-  const { draft, derived, handlers } = form;
-
-  if (!derived.showBuilderFields) {
-    return null;
-  }
+export function ProjectHighlightsBlock({ form }: BuilderFormBlocksProps) {
+  const { draft, handlers } = form;
 
   return (
-    <>
-      <ProjectHighlightsField
-        values={draft.projectDetails}
-        onChange={handlers.changeProjectDetails}
-      />
-      <PrimeLocationHighlightsField
-        projectName={draft.addressLocation.projectName}
-        values={draft.projectDetails}
-        onChange={handlers.changeProjectDetails}
-      />
-    </>
+    <ProjectHighlightsField
+      values={draft.projectDetails}
+      onChange={handlers.changeProjectDetails}
+    />
+  );
+}
+
+export function PrimeLocationHighlightsBlock({ form }: BuilderFormBlocksProps) {
+  const { draft, handlers } = form;
+
+  return (
+    <PrimeLocationHighlightsField
+      projectName={draft.addressLocation.projectName}
+      values={draft.projectDetails}
+      onChange={handlers.changeProjectDetails}
+    />
   );
 }
 

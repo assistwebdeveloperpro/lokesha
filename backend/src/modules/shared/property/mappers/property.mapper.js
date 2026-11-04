@@ -147,7 +147,7 @@ function toPropertyDetail(data) {
   const rule = getRule(propertyType, property.sub_type_slug);
   const media = data.media.map(toMediaDto);
   const floorPlans = data.floorPlans.map(toFloorPlanDto);
-  const isBuilderListing = Boolean(data.project);
+  const isBuilderListing = Boolean(data.builderListing);
   const isSale = property.listing_type === "sale";
 
   const listing = {
@@ -192,7 +192,7 @@ function toPropertyDetail(data) {
         (property.posted_as || isBuilderListing) && { postingAs: property.posted_as ?? "builder" }),
       ...(data.ownerContact && { ownerContact: f.fromRow(data.ownerContact, f.OWNER_CONTACT) }),
       address: f.fromRow(property, f.ADDRESS),
-      ...(isBuilderListing && { project: toProjectPayload(data.project) }),
+      ...(data.project && { project: toProjectPayload(data.project) }),
       listings: [listing],
     },
     media,

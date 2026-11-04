@@ -77,6 +77,22 @@ describe("buildPropertyPayload address and header", () => {
     expect(payload).not.toHaveProperty("postingAs");
   });
 
+  it("sends project and prime location highlights for non-builder listings", () => {
+    const projectDetails = createInitialProjectDetails();
+    projectDetails.projectHighlights = [{ id: "h1", text: " Near metro " }];
+    projectDetails.primeLocationHighlights = [
+      { id: "p1", place: " Airport ", distance: " 5 km " },
+    ];
+
+    const payload = build({ locationHighlights: projectDetails });
+
+    expect(payload.project).toEqual({
+      projectName: "Sky Towers",
+      highlights: [{ text: "Near metro" }],
+      primeLocations: [{ text: "Airport", distance: "5 km" }],
+    });
+  });
+
   it("sends the trimmed owner contact and leaves empty fields out", () => {
     const payload = build({
       ownerContact: {

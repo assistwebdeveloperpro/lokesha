@@ -41,8 +41,7 @@ const filesSchema = Joi.object({
   }),
 }).default({ media: [], floorPlans: [] });
 
-const projectSchema = Joi.object({
-  ...f.PROJECT,
+const projectHighlightFields = {
   highlights: listOf(Joi.object({ text: text(255).required() }), MAX_PROJECT_ITEMS),
   primeLocations: listOf(
     Joi.object({ text: text(255).required(), distance: text(50) }),
@@ -52,6 +51,16 @@ const projectSchema = Joi.object({
     Joi.object({ question: text(300).required(), answer: text(5000).required() }),
     MAX_PROJECT_ITEMS
   ),
+};
+
+const locationProjectSchema = Joi.object({
+  projectName: text(150).required(),
+  ...projectHighlightFields,
+}).unknown(false);
+
+const projectSchema = Joi.object({
+  ...f.PROJECT,
+  ...projectHighlightFields,
 });
 
 const builderBlockSchema = Joi.object({
@@ -78,9 +87,11 @@ function buildEnvelopeSchema(isBuilderPost, hasOwnerContact) {
           "any.unknown": "Owner contact is only allowed for Lokesha staff and admin listings",
         }),
     address: Joi.object(f.ADDRESS).required(),
-    project: isBuilderPost ? projectSchema.required() : Joi.forbidden().messages({
-      "any.unknown": "Project details are only allowed for builder listings",
-    }),
+    project: isBuilderPost
+      ? projectSchema.required()
+      : locationProjectSchema.optional().messages({
+          "object.unknown": "Project details are only allowed for builder listings",
+        }),
     listings: Joi.array()
       .items(Joi.object().unknown(true))
       .min(1)
@@ -227,6 +238,13 @@ function validateCompletePayload(payload, { isBuilderPost, hasOwnerContact = fal
   if (isBuilderPost && !c.isBuilderAllowed(propertyType, listingType)) {
     fields.listingType = "Builder listings are only available for sale of non PG properties";
     return { value: null, fields };
+  }
+
+  if (!isBuilderPost && value.project) {
+    const { highlights = [], primeLocations = [], faqs = [] } = value.project;
+    if (!highlights.length && !primeLocations.length && !faqs.length) {
+      fields.project = "Project details are only allowed for builder listings";
+    }
   }
 
   const seenSubTypes = new Set();

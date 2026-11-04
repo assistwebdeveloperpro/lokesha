@@ -15,6 +15,19 @@ import type {
 
 const DROPDOWN_PLACEHOLDER_CLASS = "font-medium text-slate-700";
 
+function requiredDropdownPlaceholder(label: string) {
+  return {
+    value: "",
+    label: (
+      <>
+        {label}
+        <PostPropertyRequiredAsterisk />
+      </>
+    ),
+    menuHidden: true,
+  };
+}
+
 export default function AddressLocationField({
   values,
   onChange,
@@ -44,7 +57,7 @@ export default function AddressLocationField({
       values.city && !options.some((o) => o.value === values.city)
         ? [...options, { value: values.city, label: values.city }]
         : options;
-    return [{ value: "", label: "Select City" }, ...withSelected];
+    return [requiredDropdownPlaceholder("City"), ...withSelected];
   }, [values.state, values.city]);
 
   const localityOptions = useMemo(() => {
@@ -53,7 +66,7 @@ export default function AddressLocationField({
       values.locality && !options.some((o) => o.value === values.locality)
         ? [...options, { value: values.locality, label: values.locality }]
         : options;
-    return [{ value: "", label: "Select Locality*" }, ...withSelected];
+    return [requiredDropdownPlaceholder("Locality"), ...withSelected];
   }, [values.state, values.city, values.locality]);
 
   const handleStateChange = (state: IndianState | "") => {

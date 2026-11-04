@@ -113,7 +113,7 @@ export function usePostPropertyForm() {
   // A posted property keeps the way it was posted; only a new one lets staff choose
   // A project marks a builder listing even when its owner is a builder user, not staff
   const postingAs: PostingAsId | "" = editDetail
-    ? editDetail.payload.postingAs === "builder" || editDetail.payload.project
+    ? editDetail.payload.postingAs === "builder"
       ? "builder"
       : ""
     : selectedPostingAs;
@@ -138,7 +138,8 @@ export function usePostPropertyForm() {
   const showOwnerContact = isStaff;
   const showBuilderFields =
     isAuthReady && (role === "builder" || (isStaff && postingAs === "builder"));
-  const isBuilderPost = showBuilderFields || Boolean(editDetail?.payload.project);
+  const isBuilderPost =
+    showBuilderFields || Boolean(editDetail?.payload.listings?.[0]?.builder ?? editDetail?.payload.listings?.[0]?.variants?.length);
   const optionalAmenities = resolveOptionalAmenities({
     role,
     isStaff,
@@ -734,6 +735,7 @@ export function usePostPropertyForm() {
       address: addressLocation,
       ownerContact: showOwnerContact ? ownerContact : undefined,
       builderProject: showBuilderFields ? projectDetails : undefined,
+      locationHighlights: showBuilderFields ? undefined : projectDetails,
       postingAs: isStaff && postingAs ? postingAs : undefined,
       listings: isMultiSubType
         ? subForms.tabs.map((tab) => ({

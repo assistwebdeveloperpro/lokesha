@@ -336,6 +336,35 @@ function mapSpecifications(
 const subTypeLabelOf = (propertyType: PropertyTypeId, subType: string) =>
   SUB_TYPES_BY_PROPERTY_TYPE[propertyType]?.find((option) => option.id === subType)?.label ?? "";
 
+function mapProjectHighlights(project: PropertyPayload["project"]): ProjectDetailsValues["projectHighlights"] {
+  const initial = createInitialProjectDetails();
+  if (!project?.highlights?.length) {
+    return initial.projectHighlights;
+  }
+
+  return project.highlights.map((item) => ({
+    id: createRowId(),
+    text: item.text,
+  }));
+}
+
+function mapPrimeLocationHighlights(project: PropertyPayload["project"]): ProjectDetailsValues["primeLocationHighlights"] {
+  const initial = createInitialProjectDetails();
+  if (!project?.primeLocations?.length) {
+    return initial.primeLocationHighlights;
+  }
+
+  return project.primeLocations.map((item) => ({
+    id: createRowId(),
+    place: item.text,
+    distance: text(item.distance),
+  }));
+}
+
+function isFullBuilderPayload(listing: PropertyListingPayload) {
+  return Boolean(listing.builder ?? listing.variants?.length);
+}
+
 // The first listing leads: project wide values are read from it, the unit sizes from every listing
 function mapProject(
   payload: PropertyPayload,
@@ -483,7 +512,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
   const { payload } = detail;
   const [listing] = payload.listings;
   const propertyType = payload.propertyType as PropertyTypeId;
-  const isBuilder = Boolean(payload.project);
+  const isBuilder = isFullBuilderPayload(listing);
   const listingFiles = getListingFiles(detail);
   const { photos, brochureImages } = mapPhotos(listingFiles[0].media, isBuilder);
   const isMulti = payload.listings.length > 1;
@@ -506,7 +535,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
     : EMPTY_SUB_TYPE_FORMS_SNAPSHOT;
 
   return {
-    postingAs: payload.postingAs ?? (payload.project ? "builder" : ""),
+    postingAs: payload.postingAs ?? (isBuilder ? "builder" : ""),
     tabs,
     form: {
       listingType: payload.listingType as ListingTypeId,
@@ -521,7 +550,11 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
       photosVideos: photos,
       projectDetails: isBuilder
         ? mapProject(payload, payload.listings, propertyType, listingFiles[0].floorPlans, brochureImages)
-        : createInitialProjectDetails(),
+        : {
+            ...createInitialProjectDetails(),
+            projectHighlights: mapProjectHighlights(payload.project),
+            primeLocationHighlights: mapPrimeLocationHighlights(payload.project),
+          },
     },
   };
 }

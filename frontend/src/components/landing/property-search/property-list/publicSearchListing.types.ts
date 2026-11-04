@@ -39,6 +39,7 @@ export type PublicSearchListing = {
   anyConstruction: boolean | null;
   pricePerSqft: number | null;
   postedBy: PublicSearchPostedBy;
+  listerName: string | null;
   reraRegistered: boolean;
   builderName: string | null;
   hasBrochure: boolean;

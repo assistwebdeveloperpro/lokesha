@@ -298,4 +298,31 @@ describe("toPropertyDetail", () => {
 
     expect(toPropertyDetail(data).payload).not.toHaveProperty("postingAs");
   });
+
+  it("maps location highlights without treating the listing as builder", () => {
+    const data = {
+      ...baseData,
+      property: { ...baseProperty, builder_project_id: "bp1" },
+      project: {
+        project_name: "Sky Towers",
+        highlights: [{ kind: "prime-location", text: "Airport", distance: "5 km" }],
+        faqs: [],
+      },
+      builderListing: null,
+      variants: [],
+      specifications: [],
+    };
+
+    const { payload } = toPropertyDetail(data);
+    const [listing] = payload.listings;
+
+    expect(payload.project).toEqual({
+      projectName: "Sky Towers",
+      highlights: [],
+      primeLocations: [{ text: "Airport", distance: "5 km" }],
+      faqs: [],
+    });
+    expect(listing).not.toHaveProperty("builder");
+    expect(listing).not.toHaveProperty("variants");
+  });
 });

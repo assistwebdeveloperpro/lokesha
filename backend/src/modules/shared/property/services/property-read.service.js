@@ -24,7 +24,7 @@ async function buildSingleDetail(property, ownerRole, includeOwnerContact) {
   const propertyId = property.id;
   const rule = getRule(DB_TYPE_TO_FORM_TYPE[property.property_type], property.sub_type_slug);
   const isSale = property.listing_type === "sale";
-  const isBuilderListing = Boolean(property.builder_project_id);
+  const sharedProjectId = property.builder_project_id;
 
   const [
     typeRow,
@@ -44,14 +44,14 @@ async function buildSingleDetail(property, ownerRole, includeOwnerContact) {
     readRepository.findTypeRow(rule.typeTable, propertyId),
     rule.plotDetails ? readRepository.findPlotDetails(propertyId) : null,
     isSale ? readRepository.findSaleDetails(propertyId) : readRepository.findRentDetails(propertyId),
-    isBuilderListing ? readRepository.findBuilderListingDetails(propertyId) : null,
-    isBuilderListing ? readRepository.findSpecifications(propertyId) : [],
+    readRepository.findBuilderListingDetails(propertyId),
+    readRepository.findSpecifications(propertyId),
     readRepository.findSelections(propertyId),
     readRepository.findAmenities(propertyId),
-    isBuilderListing ? readRepository.findVariants(propertyId, rule.typeTable) : [],
+    readRepository.findVariants(propertyId, rule.typeTable),
     readRepository.findMedia(propertyId),
     readRepository.findFloorPlans(propertyId),
-    isBuilderListing ? readRepository.findProject(property.builder_project_id) : null,
+    sharedProjectId ? readRepository.findProject(sharedProjectId) : null,
     property.status === "rejected" ? readRepository.findLastRejectionReason(propertyId) : null,
     includeOwnerContact ? readRepository.findOwnerContact(propertyId) : null,
   ]);

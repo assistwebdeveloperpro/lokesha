@@ -53,7 +53,9 @@ function baseQuery(dbType) {
     .join(`${c.TYPE_TABLES[dbType]} as t`, "t.property_id", "p.id")
     .join("property_sub_types as st", "st.id", "p.property_sub_type_id")
     .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
-    .leftJoin("builder_listing_details as bld", "bld.property_id", "p.id");
+    .leftJoin("builder_listing_details as bld", "bld.property_id", "p.id")
+    .leftJoin("property_owner_contacts as poc", "poc.property_id", "p.id")
+    .leftJoin("users as u", "u.id", "p.user_id");
 }
 
 function filteredQuery(filters, { excludeLocalities = [], excludeIds = [] } = {}) {
@@ -91,6 +93,9 @@ function selectCards(query, dbType) {
       firstOfGroup("st.slug", "sub_type_slug"),
       firstOfGroup("st.name", "sub_type_name"),
       firstOfGroup(c.POSTED_BY_SQL, "posted_by"),
+      firstOfGroup("p.listed_by", "listed_by"),
+      firstOfGroup("poc.full_name", "owner_contact_name"),
+      firstOfGroup("u.name", "poster_name"),
       firstOfGroup("p.builder_project_id", "builder_project_id"),
       firstOfGroup("bp.project_name", "project_name"),
       firstOfGroup("bp.developer_name", "developer_name"),

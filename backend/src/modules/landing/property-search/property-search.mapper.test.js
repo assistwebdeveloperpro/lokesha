@@ -26,6 +26,25 @@ describe("toListing posted by", () => {
     expect(toListing({ ...baseRow, posted_by: postedBy }, extras).postedBy).toBe(label);
   });
 
+  it("shows owner contact for staff listings and poster name for user listings", () => {
+    expect(
+      toListing(
+        { ...baseRow, listed_by: "lokesha_staff", owner_contact_name: "  Raj Patel  ", poster_name: "Staff User" },
+        extras
+      ).listerName
+    ).toBe("Raj Patel");
+    expect(
+      toListing({ ...baseRow, listed_by: "admin", owner_contact_name: null, poster_name: "Admin User" }, extras)
+        .listerName
+    ).toBeNull();
+    expect(
+      toListing(
+        { ...baseRow, listed_by: "agent", posted_by: "agent", owner_contact_name: null, poster_name: "Asha Shah" },
+        extras
+      ).listerName
+    ).toBe("Asha Shah");
+  });
+
   it("maps pg to the form property type", () => {
     expect(toListing({ ...baseRow, posted_by: "agent" }, extras).propertyType).toBe("pg-co-living");
   });

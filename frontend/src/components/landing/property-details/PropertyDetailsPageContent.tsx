@@ -31,7 +31,6 @@ type PropertyDetailsPageContentProps = {
 export function PropertyDetailsPageContent({ details }: PropertyDetailsPageContentProps) {
   const { listing } = details;
   const isProject = details.kind === "project";
-  const usesAboutSection = listing.propertyType === "plot" || listing.propertyType === "land";
   const contactLabel = propertyDetailsContactLabel(details.poster.postedBy);
   const contactName = propertyContactDisplayName(
     details.poster.postedBy,
@@ -96,21 +95,13 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
         </div>
 
         <div className="mt-6 space-y-6 lg:mt-8">
-          {isProject ? (
-            <PropertyDetailsSection title="About">
-              <PropertyDetailsAboutTabs
-                title={listing.title}
-                address={details.address}
-                description={details.description}
-              />
-            </PropertyDetailsSection>
-          ) : (
-            <PropertyDetailsSection title={usesAboutSection ? "About" : "Description"}>
-              <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
-                {details.description}
-              </p>
-            </PropertyDetailsSection>
-          )}
+          <PropertyDetailsSection title={details.aboutSectionTitle}>
+            <PropertyDetailsAboutTabs
+              title={listing.title}
+              address={details.address}
+              description={details.description}
+            />
+          </PropertyDetailsSection>
 
           <PropertyDetailsSection title={`${listing.title} - Amenities Details`}>
             <PropertyDetailsAmenityGrid items={details.amenities} />

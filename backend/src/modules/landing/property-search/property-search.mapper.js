@@ -12,6 +12,7 @@ const CONSTRUCTION_LABELS = {
 };
 const DEFAULT_POSTER_NAME = "Lokesha";
 const BROCHURE_CATEGORY = "brochure";
+const STAFF_LISTED_BY = new Set(["lokesha_staff", "admin"]);
 const HIDDEN_COLUMNS = new Set([
   "property_id",
   "variant_id",
@@ -53,6 +54,16 @@ const uniqueSorted = (values) => [...new Set(values.filter((value) => Number.isF
 
 const minOrNull = (values) => (values.length ? Math.min(...values) : null);
 const maxOrNull = (values) => (values.length ? Math.max(...values) : null);
+
+const trimOrNull = (value) => {
+  const trimmed = value?.trim();
+  return trimmed || null;
+};
+
+const toListerName = (row) =>
+  STAFF_LISTED_BY.has(row.listed_by)
+    ? trimOrNull(row.owner_contact_name)
+    : trimOrNull(row.poster_name);
 
 function buildSubtitle(row, bedrooms) {
   const configuration = bedrooms.length ? `${bedrooms.join(", ")} BHK ` : "";
@@ -118,6 +129,7 @@ function toListing(row, extras) {
     boundaryWallMade: row.boundary_wall_made ?? null,
     anyConstruction: row.any_construction ?? null,
     postedBy: POSTED_BY_LABEL[row.posted_by],
+    listerName: toListerName(row),
     reraRegistered: Boolean(row.rera_link) || extras.reraRows.some(inGroup),
     builderName: isBuilder ? row.developer_name ?? row.project_name : null,
     hasBrochure: media.some(({ category }) => category === BROCHURE_CATEGORY),

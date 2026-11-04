@@ -1,12 +1,20 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 
 export type DropdownOption = {
   value: string;
-  label: string;
+  label: ReactNode;
+  menuHidden?: boolean;
 };
 
 type CustomDropdownProps = {
@@ -94,6 +102,7 @@ export default function CustomDropdown({
       ? options.filter(
           (option) =>
             option.value !== "" &&
+            typeof option.label === "string" &&
             option.label.toLowerCase().includes(normalizedQuery),
         )
       : options;
@@ -279,7 +288,9 @@ export default function CustomDropdown({
                   No results found
                 </li>
               ) : null}
-              {visibleOptions.map((option) => {
+              {visibleOptions
+                .filter((option) => !option.menuHidden)
+                .map((option) => {
                 const isSelected = option.value === selectedValue;
                 return (
                   <li key={option.value} role="presentation">

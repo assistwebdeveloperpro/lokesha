@@ -48,6 +48,7 @@ export type PropertyDetailsBase = {
   pageTitle: string;
   headlineTitle: string;
   headlineSubtitle: string;
+  aboutSectionTitle: string;
   address: string;
   description: string;
   amenities: PublicAmenityItem[];

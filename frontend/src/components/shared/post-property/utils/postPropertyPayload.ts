@@ -43,6 +43,8 @@ export type PropertyPayloadInput = {
   listings: ListingFormInput[];
   // Present for builder posts; project wide files go with the first listing
   builderProject?: ProjectDetailsValues;
+  // Prime location rows for owner, agent and staff non-builder posts
+  locationHighlights?: ProjectDetailsValues;
   postingAs?: PostingAsId;
 };
 
@@ -342,6 +344,29 @@ function buildBuilderBlock(project: ProjectDetailsValues): NonNullable<PropertyL
   };
 }
 
+function buildSharedProjectHighlightsProject(
+  project: ProjectDetailsValues,
+  address: AddressLocationValues,
+): PropertyProjectPayload | undefined {
+  const highlights = project.projectHighlights.flatMap((row) =>
+    toText(row.text) ? [{ text: row.text.trim() }] : [],
+  );
+  const primeLocations = project.primeLocationHighlights.flatMap((row) =>
+    toText(row.place)
+      ? [{ text: row.place.trim(), ...(toText(row.distance) && { distance: row.distance.trim() }) }]
+      : [],
+  );
+  if (highlights.length === 0 && primeLocations.length === 0) {
+    return undefined;
+  }
+
+  return {
+    projectName: toText(address.projectName) ?? toText(address.locality) ?? "",
+    ...(highlights.length > 0 && { highlights }),
+    ...(primeLocations.length > 0 && { primeLocations }),
+  };
+}
+
 function buildProject(project: ProjectDetailsValues, address: AddressLocationValues): PropertyProjectPayload {
   return {
     ...compact({
@@ -415,7 +440,12 @@ function buildListing(
 
 // The request body of POST /property/drafts/:id/complete and PUT /property/:id
 export function buildPropertyPayload(input: PropertyPayloadInput): PropertyPayload {
-  const { listingType, propertyType, address, builderProject, postingAs, ownerContact } = input;
+  const { listingType, propertyType, address, builderProject, locationHighlights, postingAs, ownerContact } =
+    input;
+  const locationProject =
+    !builderProject && locationHighlights
+      ? buildSharedProjectHighlightsProject(locationHighlights, address)
+      : undefined;
 
   return {
     listingType,
@@ -441,7 +471,9 @@ export function buildPropertyPayload(input: PropertyPayloadInput): PropertyPaylo
       city: toText(address.city),
       state: address.state,
     }),
-    ...(builderProject && { project: buildProject(builderProject, address) }),
+    ...(builderProject
+      ? { project: buildProject(builderProject, address) }
+      : locationProject && { project: locationProject }),
     listings: input.listings.map((listing, index) => buildListing(input, listing, index)),
   };
 }

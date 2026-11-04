@@ -55,6 +55,28 @@ describe("validateCompletePayload", () => {
     expect(value.listings[0].selections).toEqual({});
   });
 
+  it("accepts prime location highlights on non-builder listings", () => {
+    const body = payload("residential", "flat-apartment", "sale");
+    body.project = {
+      projectName: "Sky Towers",
+      primeLocations: [{ text: "Airport", distance: "5 km" }],
+    };
+
+    const { fields, value } = validateCompletePayload(body, { isBuilderPost: false });
+
+    expect(fields).toEqual({});
+    expect(value.project.primeLocations).toEqual([{ text: "Airport", distance: "5 km" }]);
+  });
+
+  it("rejects empty project blocks on non-builder listings", () => {
+    const body = payload("residential", "flat-apartment", "sale");
+    body.project = { projectName: "Sky Towers" };
+
+    const { fields } = validateCompletePayload(body, { isBuilderPost: false });
+
+    expect(fields.project).toBe("Project details are only allowed for builder listings");
+  });
+
   it("reports missing required fields by path", () => {
     const body = payload("residential", "flat-apartment", "sale");
     body.address = { locality: "Vesu" };
@@ -195,15 +217,15 @@ describe("validateCompletePayload", () => {
     expect(Object.keys(fields)).toContain("address.pinCode");
   });
 
-  it("allows only one listing and no project for normal posts", () => {
+  it("allows only one listing and rejects builder project fields for normal posts", () => {
     const body = payload("residential", "flat-apartment", "sale");
     body.listings.push(validListing("residential", "duplex", "sale"));
-    body.project = project;
+    body.project = { ...project, projectType: "new-launch" };
 
     const { fields } = validateCompletePayload(body, { isBuilderPost: false });
 
     expect(Object.keys(fields)).toContain("listings");
-    expect(Object.keys(fields)).toContain("project");
+    expect(Object.keys(fields)).toContain("project.projectType");
   });
 });
 
