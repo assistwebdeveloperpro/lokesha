@@ -77,6 +77,19 @@ describe("validateCompletePayload", () => {
     expect(fields.project).toBe("Project details are only allowed for builder listings");
   });
 
+  it("allows project FAQs on non-builder listings", () => {
+    const body = payload("residential", "flat-apartment", "sale");
+    body.project = {
+      projectName: "Sky Towers",
+      faqs: [{ question: "Is parking included?", answer: "Yes." }],
+    };
+
+    const { fields, value } = validateCompletePayload(body, { isBuilderPost: false });
+
+    expect(fields).toEqual({});
+    expect(value.project.faqs).toEqual([{ question: "Is parking included?", answer: "Yes." }]);
+  });
+
   it("reports missing required fields by path", () => {
     const body = payload("residential", "flat-apartment", "sale");
     body.address = { locality: "Vesu" };

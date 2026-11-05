@@ -17,7 +17,8 @@ const BUILDER_EXCLUDED_CATEGORY_IDS: PhotoCategoryId[] = [
 ];
 
 export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers, mediaUploader, getMediaUploader } = form;
+  const { draft, derived, layout, subForms, handlers, mediaUploader, getMediaUploader, isViewMode } = form;
+  const mediaReadOnly = { readOnly: isViewMode };
   const { showBuilderFields, isMultiSubType, activeTabId, builderConfig } = derived;
   const { propertyType, listingType, existingMedia } = draft;
 
@@ -47,6 +48,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
           existingMedia={existingMedia}
           onRemoveExisting={handlers.removeExistingMedia}
           uploader={mediaUploader}
+          {...mediaReadOnly}
         />
       );
     }
@@ -69,6 +71,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
             existingMedia={existingMedia.filter(({ category }) => isProjectCategory(category))}
             onRemoveExisting={handlers.removeExistingMedia}
             uploader={mediaUploader}
+            {...mediaReadOnly}
           />
           <PhotosVideosField
             key={`${propertyType}-brochure`}
@@ -79,6 +82,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
             values={subForms.getPhotos(subForms.firstTabId)}
             onChange={(next) => subForms.changePhotos(subForms.firstTabId, next)}
             uploader={mediaUploader}
+            {...mediaReadOnly}
           />
           <BuilderMediaBlocks form={form} />
           <SubTypeDetailsTabs
@@ -115,6 +119,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
               }
               onRemoveExisting={handlers.removeExistingMedia}
               uploader={getMediaUploader(activeTabId)}
+              {...mediaReadOnly}
             />
           </SubTypeDetailsTabs>
         </>
@@ -135,6 +140,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
         existingMedia={existingMedia}
         onRemoveExisting={handlers.removeExistingMedia}
         uploader={mediaUploader}
+        {...mediaReadOnly}
       />
     );
   };
@@ -143,7 +149,7 @@ export default function PhotosVideosStep({ form }: { form: PostPropertyForm }) {
     <PostPropertyStepCard
       title="Add Photos & Videos"
       description="Step 4 of 5 - Upload photos to attract more buyers"
-      actionLabel="Continue"
+      actionLabel={isViewMode ? "Next step" : "Continue"}
       onAction={handlers.submitPhotos}
       onBack={handlers.goBack}
     >

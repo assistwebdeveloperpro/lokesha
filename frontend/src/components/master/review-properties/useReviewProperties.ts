@@ -33,7 +33,6 @@ export function useReviewProperties() {
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<ReviewListItem | null>(null);
-  const [viewing, setViewing] = useState<ReviewListItem | null>(null);
   const nextPage = useRef(2);
 
   const expireSession = useCallback(() => {
@@ -160,7 +159,6 @@ export function useReviewProperties() {
     error,
     busyId,
     rejecting,
-    viewing,
     hasMore: properties.length < total,
     reload,
     loadMore,
@@ -168,7 +166,5 @@ export function useReviewProperties() {
     requestReject: setRejecting,
     cancelReject: () => setRejecting(null),
     confirmReject,
-    viewProperty: setViewing,
-    closeView: () => setViewing(null),
   };
 }

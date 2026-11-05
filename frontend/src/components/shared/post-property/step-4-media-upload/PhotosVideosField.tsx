@@ -91,8 +91,8 @@ function MediaThumbnail({
 }: {
   media: PropertyMediaFile;
   index: number;
-  onRemove: () => void;
-  onRetry: () => void;
+  onRemove?: () => void;
+  onRetry?: () => void;
 }) {
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -122,11 +122,10 @@ function MediaThumbnail({
           className="h-full w-full object-cover"
         />
       )}
-      <UploadStatusOverlay media={media} onRetry={onRetry} />
-      <MediaRemoveButton
-        label={`Remove media ${index + 1}`}
-        onRemove={onRemove}
-      />
+      {onRetry ? <UploadStatusOverlay media={media} onRetry={onRetry} /> : null}
+      {onRemove ? (
+        <MediaRemoveButton label={`Remove media ${index + 1}`} onRemove={onRemove} />
+      ) : null}
     </div>
   );
 }
@@ -161,6 +160,7 @@ export default function PhotosVideosField({
   description = "Select a room or area, then add photos and videos to help buyers explore your property",
   parts = "all",
   uploader,
+  readOnly = false,
 }: {
   // "photos" or "brochure" renders only that half, so the brochure can sit above sub type tabs
   parts?: "all" | "photos" | "brochure";
@@ -181,6 +181,7 @@ export default function PhotosVideosField({
   existingMedia?: PropertyMedia[];
   onRemoveExisting?: (mediaId: string) => void;
   existingBrochureName?: string | null;
+  readOnly?: boolean;
 }) {
   const categories = onlyCategoryIds
     ? onlyCategoryIds.map(
@@ -433,13 +434,13 @@ export default function PhotosVideosField({
               ) : null}
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                <AddMoreTile onClick={openMediaPicker} />
+                {!readOnly ? <AddMoreTile onClick={openMediaPicker} /> : null}
                 {categoryExistingMedia.map((media, index) => (
                   <ExistingMediaThumbnail
                     key={media.id}
                     media={media}
                     index={index}
-                    onRemove={() => onRemoveExisting?.(media.id)}
+                    onRemove={readOnly ? undefined : () => onRemoveExisting?.(media.id)}
                   />
                 ))}
                 {categoryMedia.map((media, index) => (
@@ -447,12 +448,18 @@ export default function PhotosVideosField({
                     key={media.id}
                     media={media}
                     index={index}
-                    onRemove={() => handleRemoveMedia(media.id)}
-                    onRetry={() => retryUpload(media.id)}
+                    onRemove={
+                      readOnly ? undefined : () => handleRemoveMedia(media.id)
+                    }
+                    onRetry={readOnly ? undefined : () => retryUpload(media.id)}
                   />
                 ))}
               </div>
             </div>
+          ) : readOnly ? (
+            <p className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-6 text-center text-sm text-slate-500">
+              No photos or videos in this category.
+            </p>
           ) : (
             <div
               className={`flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-10 text-center transition sm:py-14 ${

@@ -1,3 +1,4 @@
+import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
 import type { PropertySubTypeOption } from "../config/postPropertyForm.shared";
 import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 
@@ -16,6 +17,7 @@ export default function PropertySubTypeField({
   values?: string[];
   onChangeMany?: (values: string[]) => void;
 }) {
+  const readOnly = usePostPropertyReadOnly();
   const isMulti = Boolean(onChangeMany && values);
 
   // At least one sub type always stays selected
@@ -55,6 +57,7 @@ export default function PropertySubTypeField({
             <button
               key={option.id}
               type="button"
+              disabled={readOnly}
               onClick={() => select(option.id)}
               aria-pressed={isSelected}
               className={`group flex min-h-24 w-full min-w-0 flex-col items-center justify-center gap-2 rounded-xl border px-3 py-4 text-center sm:min-h-26 md:min-h-18 md:flex-row md:items-center md:justify-start md:gap-2.5 md:px-4 md:py-4 md:text-left ${postPropertyTileClass(isSelected)}`}

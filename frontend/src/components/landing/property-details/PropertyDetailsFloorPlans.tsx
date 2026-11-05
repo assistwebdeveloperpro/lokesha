@@ -32,6 +32,13 @@ function configTabLabel(label: string): string {
   return match ? `${match[1]} BHK` : label;
 }
 
+export function hasPropertyDetailsFloorPlans(
+  plans: PropertyDetailsFloorPlan[],
+  configurations: string[],
+): boolean {
+  return groupFloorPlans(plans, configurations).length > 0;
+}
+
 function groupFloorPlans(
   plans: PropertyDetailsFloorPlan[],
   configurations: string[],

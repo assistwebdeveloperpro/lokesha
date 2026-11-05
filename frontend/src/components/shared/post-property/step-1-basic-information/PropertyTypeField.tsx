@@ -3,6 +3,7 @@ import {
   SUB_TYPES_BY_PROPERTY_TYPE,
   type PropertyTypeId,
 } from "../config/postPropertyForm.shared";
+import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 import PropertySubTypeField from "./PropertySubTypeField";
@@ -24,6 +25,7 @@ export default function PropertyTypeField({
   subTypes?: string[];
   onSubTypesChange?: (values: string[]) => void;
 }) {
+  const readOnly = usePostPropertyReadOnly();
   const subTypeOptions = SUB_TYPES_BY_PROPERTY_TYPE[value];
   const selectedPropertyType = PROPERTY_TYPES.find((type) => type.id === value);
 
@@ -42,6 +44,7 @@ export default function PropertyTypeField({
             <button
               key={type.id}
               type="button"
+              disabled={readOnly}
               onClick={() => onChange(type.id)}
               aria-pressed={isSelected}
               className={`flex min-h-32 w-full flex-col items-center justify-center gap-2.5 rounded-xl border px-3 py-5 text-center sm:min-h-34 sm:gap-3 sm:px-4 sm:py-6 ${postPropertyTileClass(isSelected)}`}

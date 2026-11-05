@@ -39,6 +39,16 @@ export type PropertyDetailsPoster = {
   postedBy: PublicSearchPostedBy;
 };
 
+export type PropertyDetailsNearbyPlace = {
+  place: string;
+  distance: string | null;
+};
+
+export type PropertyDetailsFaq = {
+  question: string;
+  answer: string;
+};
+
 export type PropertyDetailsBase = {
   id: string;
   displayPropertyId: string;
@@ -52,6 +62,8 @@ export type PropertyDetailsBase = {
   address: string;
   description: string;
   amenities: PublicAmenityItem[];
+  nearbyPlaces: PropertyDetailsNearbyPlace[];
+  faqs: PropertyDetailsFaq[];
   similarListings: PublicSearchListing[];
   poster: PropertyDetailsPoster;
 };
@@ -65,6 +77,7 @@ export type PropertyDetailsProjectView = PropertyDetailsBase & {
   pricingRows: PropertyDetailsSpecRow[];
   floorPlans: PropertyDetailsFloorPlan[];
   bhkConfigurations: string[];
+  projectUsps: string[];
   developer: PropertyDetailsDeveloper;
 };
 

@@ -10,7 +10,6 @@ import {
   type ManageListedBy,
   type ManageListItem,
   type ManageListQuery,
-  type ManageOwner,
 } from "@/services/adminManageProperties.service";
 import type { ListedByRoleFilter } from "./managePropertiesFilterOptions";
 import { ApiError } from "@/services/apiClient";
@@ -24,8 +23,6 @@ export type ManagePropertyFilters = {
   role: ListedByRoleFilter;
   status: ListingStatusFilter;
 };
-
-type PropertyViewTarget = Pick<ManageListItem, "id"> & { owner?: ManageOwner };
 
 type UseManagePropertiesOptions = {
   source?: ManageListedBy["source"];
@@ -76,8 +73,6 @@ export function useManageProperties({ source, initialStatus = "published" }: Use
     property: ManageListItem;
     action: ListingModalAction;
   } | null>(null);
-  const [viewing, setViewing] = useState<PropertyViewTarget | null>(null);
-
   const expireSession = useCallback(() => {
     clearAdminSession();
     router.push(LOGIN_PATH);
@@ -260,11 +255,8 @@ export function useManageProperties({ source, initialStatus = "published" }: Use
     applyFilters,
     reload,
     changePage,
-    viewing,
     pendingDelete,
     pendingListingAction,
-    viewProperty: (property: ManageListItem) => setViewing({ id: property.id, owner: property.owner }),
-    closeView: () => setViewing(null),
     publish,
     requestDelete: setPendingDelete,
     cancelDelete: () => setPendingDelete(null),

@@ -8,7 +8,7 @@ type PropertyDetailsDeveloperCardProps = {
 
 export function PropertyDetailsDeveloperCard({ developer }: PropertyDetailsDeveloperCardProps) {
   return (
-    <PropertyDetailsSection title="About Developer" className="mt-6">
+    <PropertyDetailsSection title="About Developer" icon={Building2} className="mt-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
           <Building2 className="h-7 w-7" aria-hidden />

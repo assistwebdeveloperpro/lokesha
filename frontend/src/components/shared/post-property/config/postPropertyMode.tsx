@@ -12,6 +12,8 @@ export type PostPropertyMode = {
   managePath: string;
   createdPath: string;
   getToken: () => string | null;
+  readOnly?: boolean;
+  defaultReturnPath?: string;
 };
 
 export const USER_POST_PROPERTY_MODE: PostPropertyMode = {
@@ -33,6 +35,13 @@ export const ADMIN_POST_PROPERTY_MODE: PostPropertyMode = {
   managePath: "/backend/properties/manage-properties",
   createdPath: "/backend/properties/our-listings",
   getToken: getAdminToken,
+};
+
+export const ADMIN_REVIEW_PROPERTY_VIEW_MODE: PostPropertyMode = {
+  ...ADMIN_POST_PROPERTY_MODE,
+  basePath: "/backend/properties/review-properties/view",
+  defaultReturnPath: "/backend/properties/review-properties",
+  readOnly: true,
 };
 
 const PostPropertyModeContext = createContext<PostPropertyMode>(USER_POST_PROPERTY_MODE);

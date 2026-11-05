@@ -100,13 +100,18 @@ export function usePostPropertyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const { scope, basePath, managePath, createdPath } = usePostPropertyMode();
+  const { scope, basePath, managePath, createdPath, readOnly: modeReadOnly, defaultReturnPath } =
+    usePostPropertyMode();
   const { role, token, isAuthReady, isAdmin } = usePostPropertyAuth();
   const currentStep = getStepFromSearchParam(searchParams.get("step"));
-  const editId = searchParams.get("edit");
+  const isViewMode = Boolean(modeReadOnly);
+  const viewId = isViewMode ? searchParams.get("view") : null;
+  const editId = isViewMode ? null : searchParams.get("edit");
   const draftParam = searchParams.get("draft");
+  const loadId = editId ?? viewId;
   const isEditMode = Boolean(editId);
-  const { detail: editDetail, isLoading: isLoadingEdit, error: editError } = useEditProperty(editId);
+  const returnPath = searchParams.get("returnTo") ?? defaultReturnPath ?? managePath;
+  const { detail: editDetail, isLoading: isLoadingEdit, error: editError } = useEditProperty(loadId);
 
   const [draft, dispatch] = useReducer(postPropertyReducer, undefined, createInitialDraft);
   const [selectedPostingAs, setPostingAs] = useState<PostingAsId | "">("");
@@ -252,7 +257,7 @@ export function usePostPropertyForm() {
   const serverDraft = usePostPropertyDraft({
     token,
     scope,
-    enabled: !isEditMode,
+    enabled: !isEditMode && !isViewMode,
     getInput: getDraftInput,
     // The URL can lag behind a step change, so the requested step wins
     onCreated: (draftId) => {
@@ -302,13 +307,14 @@ export function usePostPropertyForm() {
   const isRestoringDraft =
     Boolean(draftParam) &&
     !isEditMode &&
+    !isViewMode &&
     !(isAuthReady && !token) &&
     settledDraftId !== draftParam &&
     serverDraft.draftId !== draftParam;
 
   // Resume a saved draft from ?draft=<id>
   useEffect(() => {
-    if (!draftParam || isEditMode || !token) {
+    if (!draftParam || isEditMode || isViewMode || !token) {
       return;
     }
     if (serverDraft.draftId === draftParam || requestedDraftId.current === draftParam) {
@@ -360,15 +366,18 @@ export function usePostPropertyForm() {
   const goToStep = (step: number, { save = true }: { save?: boolean } = {}) => {
     const params = new URLSearchParams();
     if (editId) params.set("edit", editId);
+    if (viewId) params.set("view", viewId);
     const savedDraftId = serverDraft.draftId ?? draftParam;
-    if (savedDraftId && !isEditMode) params.set("draft", savedDraftId);
+    if (savedDraftId && !isEditMode && !isViewMode) params.set("draft", savedDraftId);
     if (step > 1) params.set("step", String(step));
+    const returnTo = searchParams.get("returnTo");
+    if (returnTo) params.set("returnTo", returnTo);
 
     requestedStep.current = step;
     const query = params.toString();
     router.push(query ? `${basePath}?${query}` : basePath, { scroll: false });
 
-    if (save) {
+    if (save && !isViewMode) {
       void serverDraft.save(step);
     }
   };
@@ -552,6 +561,11 @@ export function usePostPropertyForm() {
     dispatch({ type: "existingMediaRemoved", mediaId });
 
   const handleBasicDetailsNext = () => {
+    if (isViewMode) {
+      goToStep(2, { save: false });
+      return;
+    }
+
     const errors = validateAddressLocation(addressLocation, addressValidationOptions);
     const ownerContactErrors = showOwnerContact ? validateOwnerContact(ownerContact) : {};
     replaceErrors({ addressLocationErrors: errors, ownerContactErrors });
@@ -565,6 +579,11 @@ export function usePostPropertyForm() {
   };
 
   const handlePropertyDetailsNext = () => {
+    if (isViewMode) {
+      goToStep(3, { save: false });
+      return;
+    }
+
     if (isMultiSubType) {
       const hasTabErrors = subForms.validateStep("details");
       const projectErrors = {
@@ -611,6 +630,11 @@ export function usePostPropertyForm() {
   };
 
   const handleAmenitiesNext = () => {
+    if (isViewMode) {
+      goToStep(4, { save: false });
+      return;
+    }
+
     if (isMultiSubType) {
       if (subForms.validateStep("amenities")) {
         requestInvalidFieldFocus();
@@ -633,6 +657,11 @@ export function usePostPropertyForm() {
   };
 
   const handlePhotosNext = () => {
+    if (isViewMode) {
+      goToStep(5, { save: false });
+      return;
+    }
+
     if (isMultiSubType) {
       const uploadBlocker = getUploadBlocker();
       if (uploadBlocker) {
@@ -879,9 +908,12 @@ export function usePostPropertyForm() {
     isAdmin,
     editStatus: {
       isBlocking:
-        isRestoringDraft || (isEditMode && (isLoadingEdit || Boolean(editError) || !editDetail)),
+        isRestoringDraft ||
+        ((isEditMode || isViewMode) && (isLoadingEdit || Boolean(editError) || !editDetail)),
       error: editError,
     },
+    isViewMode,
+    returnPath,
     draft,
     serverDraft,
     mediaUploader,
@@ -925,9 +957,10 @@ export function usePostPropertyForm() {
       submitPropertyDetails: handlePropertyDetailsNext,
       submitAmenities: handleAmenitiesNext,
       submitPhotos: handlePhotosNext,
-      submit: () => handleSubmit("submit"),
+      submit: () => (isViewMode ? router.push(returnPath) : handleSubmit("submit")),
       saveAsDraft: () => handleSubmit("draft"),
       close: handleClose,
+      exitView: () => router.push(returnPath),
     },
   };
 }

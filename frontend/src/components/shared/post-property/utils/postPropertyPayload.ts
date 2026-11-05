@@ -356,7 +356,12 @@ function buildSharedProjectHighlightsProject(
       ? [{ text: row.place.trim(), ...(toText(row.distance) && { distance: row.distance.trim() }) }]
       : [],
   );
-  if (highlights.length === 0 && primeLocations.length === 0) {
+  const faqs = project.faqs.flatMap((row) =>
+    toText(row.question) && toText(row.answer)
+      ? [{ question: row.question.trim(), answer: row.answer.trim() }]
+      : [],
+  );
+  if (highlights.length === 0 && primeLocations.length === 0 && faqs.length === 0) {
     return undefined;
   }
 
@@ -364,6 +369,7 @@ function buildSharedProjectHighlightsProject(
     projectName: toText(address.projectName) ?? toText(address.locality) ?? "",
     ...(highlights.length > 0 && { highlights }),
     ...(primeLocations.length > 0 && { primeLocations }),
+    ...(faqs.length > 0 && { faqs }),
   };
 }
 

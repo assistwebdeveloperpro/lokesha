@@ -6,14 +6,14 @@ import OwnerContactField from "./OwnerContactField";
 import PropertyTypeField from "./PropertyTypeField";
 
 export default function BasicDetailsStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, handlers } = form;
+  const { draft, derived, handlers, isViewMode } = form;
   const { showBuilderFields, builderConfig, propertySubType } = derived;
 
   return (
     <PostPropertyStepCard
       title="Add Basic Details"
       description="Step 1 of 5 - Tell us about your listing"
-      actionLabel="Next, Add Property Details"
+      actionLabel={isViewMode ? "Next step" : "Next, Add Property Details"}
       onAction={handlers.submitBasicDetails}
     >
       <ListingTypeField

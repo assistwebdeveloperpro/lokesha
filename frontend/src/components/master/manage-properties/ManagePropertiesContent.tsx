@@ -11,7 +11,6 @@ import PropertyCardSkeleton from "@/components/user/dashboard/manage-properties/
 import DeletePropertyModal from "@/components/user/dashboard/manage-properties/DeletePropertyModal";
 import ListingActionModal from "@/components/user/dashboard/manage-properties/ListingActionModal";
 import { MANAGE_TABS } from "@/components/user/dashboard/manage-properties/managePropertiesShared";
-import ReviewDetailModal from "@/components/master/review-properties/ReviewDetailModal";
 import ManagePropertiesEmptyState from "./ManagePropertiesEmptyState";
 import ManagePropertiesFilterPanel from "./ManagePropertiesFilterPanel";
 import ManagePropertyCard from "./ManagePropertyCard";
@@ -47,6 +46,7 @@ type ManagePropertiesContentProps = {
 
 const SKELETON_COUNT = 6;
 const POST_PROPERTY_PATH = "/backend/properties/post-property";
+const REVIEW_VIEW_PATH = "/backend/properties/review-properties/view";
 
 export default function ManagePropertiesContent({
   title = "Manage Properties",
@@ -67,6 +67,19 @@ export default function ManagePropertiesContent({
   const focusPropertyId = searchParams.get("property");
 
   const manage = useManageProperties({ source, initialStatus });
+
+  const openPropertyView = useCallback(
+    (propertyId: string) => {
+      const returnTo = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      const params = new URLSearchParams({
+        view: propertyId,
+        step: "1",
+        returnTo,
+      });
+      router.push(`${REVIEW_VIEW_PATH}?${params.toString()}`);
+    },
+    [pathname, router, searchParams],
+  );
   const { status, filters, properties, total, page, pageSize, isLoading, isPageLoading, error, busyId } = manage;
   const listReplayKey = `${status}-${filters.projectName}-${filters.role}-${properties[0]?.id ?? "none"}`;
   const resultsRef = useRef<HTMLElement>(null);
@@ -196,7 +209,7 @@ export default function ManagePropertiesContent({
                     showSourceBadge={showSourceBadge}
                     showOwnerDetails={showOwnerDetails}
                     allowListingActions={allowListingActions}
-                    onView={manage.viewProperty}
+                    onView={(property) => openPropertyView(property.id)}
                     onPublish={manage.publish}
                     onDelete={manage.requestDelete}
                     onListingAction={manage.requestListingAction}
@@ -215,9 +228,6 @@ export default function ManagePropertiesContent({
         )}
       </section>
 
-      {manage.viewing ? (
-        <ReviewDetailModal propertyId={manage.viewing.id} owner={manage.viewing.owner} onClose={manage.closeView} />
-      ) : null}
       {manage.pendingDelete ? (
         <DeletePropertyModal
           propertyTitle={manage.pendingDelete.title}

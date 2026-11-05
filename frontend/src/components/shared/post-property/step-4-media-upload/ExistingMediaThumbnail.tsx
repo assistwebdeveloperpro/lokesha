@@ -10,7 +10,7 @@ export default function ExistingMediaThumbnail({
 }: {
   media: PropertyMedia;
   index: number;
-  onRemove: () => void;
+  onRemove?: () => void;
 }) {
   const src = getAssetUrl(media.filePath);
 
@@ -27,7 +27,9 @@ export default function ExistingMediaThumbnail({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt={`Saved media ${index + 1}`} className="h-full w-full object-cover" />
       )}
-      <MediaRemoveButton label={`Remove saved media ${index + 1}`} onRemove={onRemove} />
+      {onRemove ? (
+        <MediaRemoveButton label={`Remove saved media ${index + 1}`} onRemove={onRemove} />
+      ) : null}
     </div>
   );
 }

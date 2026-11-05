@@ -1,20 +1,40 @@
 "use client";
 
-import { MapPin } from "lucide-react";
+import {
+  Award,
+  Armchair,
+  Layers,
+  LayoutGrid,
+  MapPin,
+  CircleHelp,
+  ScrollText,
+} from "lucide-react";
 import { PropertyDetailsAboutTabs } from "./PropertyDetailsAboutTabs";
 import { PropertyDetailsAmenityGrid } from "./PropertyDetailsAmenityGrid";
 import { PropertyDetailsBreadcrumbs } from "./PropertyDetailsBreadcrumbs";
 import { PropertyDetailsDeveloperCard } from "./PropertyDetailsDeveloperCard";
-import { PropertyDetailsFloorPlans } from "./PropertyDetailsFloorPlans";
+import { PropertyDetailsFaqs } from "./PropertyDetailsFaqs";
+import {
+  hasPropertyDetailsFloorPlans,
+  PropertyDetailsFloorPlans,
+} from "./PropertyDetailsFloorPlans";
 import { PropertyDetailsGallery } from "./PropertyDetailsGallery";
 import { PropertyDetailsHeaderActions } from "./PropertyDetailsHeaderActions";
 import { PropertyDetailsMapPlaceholder } from "./PropertyDetailsMapPlaceholder";
+import { PropertyDetailsNearbyPlaces } from "./PropertyDetailsNearbyPlaces";
+import { PropertyDetailsProjectUsps } from "./PropertyDetailsProjectUsps";
 import { PropertyDetailsSection } from "./PropertyDetailsSection";
 import { PropertyDetailsSimilarListings } from "./PropertyDetailsSimilarListings";
 import { PropertyDetailsSummaryCard } from "./PropertyDetailsSummaryCard";
 import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
 import { propertyDetailsContactLabel } from "./propertyDetailsContactLabel";
 import { PropertyDetailsHeroPriceSection } from "./PropertyDetailsHeroPriceSection";
+import {
+  hasPropertyDetailsAboutSection,
+  hasPropertyDetailsDeveloperSection,
+  hasPropertyDetailsFaqs,
+  hasPropertyDetailsText,
+} from "./propertyDetailsSectionVisibility";
 import type { PropertyDetailsView } from "./propertyDetails.types";
 
 const PAGE_CONTAINER = "mx-auto w-full max-w-360 px-2 sm:px-4 lg:px-6";
@@ -44,6 +64,15 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
           rows: withoutPriceNegotiable([...details.propertyDetailRows, ...details.pricingRows]),
         },
       ];
+  const showAboutSection = hasPropertyDetailsAboutSection(details.description, details.address);
+  const showAmenitiesSection = details.amenities.length > 0;
+  const showLocationSection = hasPropertyDetailsText(details.address);
+  const showFloorPlanSection =
+    details.kind === "project" &&
+    hasPropertyDetailsFloorPlans(details.floorPlans, details.bhkConfigurations);
+  const showDeveloperSection =
+    details.kind === "project" && hasPropertyDetailsDeveloperSection(details.developer);
+  const showFaqsSection = hasPropertyDetailsFaqs(details.faqs);
 
   return (
     <div className="bg-slate-50/60 pb-10">
@@ -95,30 +124,51 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
         </div>
 
         <div className="mt-6 space-y-6 lg:mt-8">
-          <PropertyDetailsSection title={details.aboutSectionTitle}>
-            <PropertyDetailsAboutTabs
-              title={listing.title}
-              address={details.address}
-              description={details.description}
-            />
-          </PropertyDetailsSection>
+          {showAboutSection ? (
+            <PropertyDetailsSection title={details.aboutSectionTitle} icon={ScrollText}>
+              <PropertyDetailsAboutTabs
+                title={listing.title}
+                address={details.address}
+                description={details.description}
+              />
+            </PropertyDetailsSection>
+          ) : null}
 
-          <PropertyDetailsSection title={`${listing.title} - Amenities Details`}>
-            <PropertyDetailsAmenityGrid items={details.amenities} />
-          </PropertyDetailsSection>
+          {isProject && details.projectUsps.length > 0 ? (
+            <PropertyDetailsSection title="Project USPs" icon={Award}>
+              <PropertyDetailsProjectUsps items={details.projectUsps} />
+            </PropertyDetailsSection>
+          ) : null}
+
+          {details.nearbyPlaces.length > 0 ? (
+            <PropertyDetailsSection title="Location" icon={MapPin}>
+              <PropertyDetailsNearbyPlaces items={details.nearbyPlaces} />
+            </PropertyDetailsSection>
+          ) : null}
+
+          {showAmenitiesSection ? (
+            <PropertyDetailsSection
+              title={`${listing.title} - Amenities Details`}
+              icon={LayoutGrid}
+            >
+              <PropertyDetailsAmenityGrid items={details.amenities} />
+            </PropertyDetailsSection>
+          ) : null}
 
           {!isProject && details.furnishingItems.length > 0 ? (
-            <PropertyDetailsSection title={`${listing.title} - Furnishing Details`}>
+            <PropertyDetailsSection title="Furnishing Details" icon={Armchair}>
               <PropertyDetailsAmenityGrid items={details.furnishingItems} />
             </PropertyDetailsSection>
           ) : null}
 
-          <PropertyDetailsSection title={`${listing.title} - Location`}>
-            <PropertyDetailsMapPlaceholder title={listing.title} address={details.address} />
-          </PropertyDetailsSection>
+          {showLocationSection ? (
+            <PropertyDetailsSection title="Location" icon={MapPin}>
+              <PropertyDetailsMapPlaceholder title={listing.title} address={details.address} />
+            </PropertyDetailsSection>
+          ) : null}
 
-          {isProject ? (
-            <PropertyDetailsSection title={`${listing.title} -  Floor Plan`}>
+          {showFloorPlanSection ? (
+            <PropertyDetailsSection title={`${listing.title} - Floor Plans`} icon={Layers}>
               <PropertyDetailsFloorPlans
                 projectName={listing.title}
                 plans={details.floorPlans}
@@ -127,7 +177,15 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
             </PropertyDetailsSection>
           ) : null}
 
-          {isProject ? <PropertyDetailsDeveloperCard developer={details.developer} /> : null}
+          {showDeveloperSection ? (
+            <PropertyDetailsDeveloperCard developer={details.developer} />
+          ) : null}
+
+          {showFaqsSection ? (
+            <PropertyDetailsSection title="FAQs" icon={CircleHelp}>
+              <PropertyDetailsFaqs items={details.faqs} />
+            </PropertyDetailsSection>
+          ) : null}
         </div>
 
         <PropertyDetailsSimilarListings

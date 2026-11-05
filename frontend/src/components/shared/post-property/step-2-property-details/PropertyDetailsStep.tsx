@@ -9,7 +9,7 @@ import { SaleCommonSections } from "./PropertyDetailsVariants";
 import SubTypeDetailsTabs from "./SubTypeDetailsTabs";
 
 export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers } = form;
+  const { draft, derived, layout, subForms, handlers, isViewMode } = form;
   const { showBuilderFields, isMultiSubType, activeTabId, propertySubType } = derived;
   const showBhkAreaErrors = Boolean(draft.builderErrors.bhkAreas);
   const bhkAreaErrorIds = showBhkAreaErrors
@@ -115,7 +115,7 @@ export default function PropertyDetailsStep({ form }: { form: PostPropertyForm }
     <PostPropertyStepCard
       title="Add Property Details"
       description="Step 2 of 5 - Area, rooms, and floor information"
-      actionLabel="Next, Add Amenities"
+      actionLabel={isViewMode ? "Next step" : "Next, Add Amenities"}
       onAction={handlers.submitPropertyDetails}
       onBack={handlers.goBack}
     >

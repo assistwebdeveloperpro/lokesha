@@ -4,6 +4,7 @@ import { useState } from "react";
 import MoreOptionsModal from "./MoreOptionsModal";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
+import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
 import { postPropertyChipClass } from "../config/postPropertyForm.styles";
 
 type ChipSelectFieldProps = {
@@ -29,6 +30,7 @@ export default function ChipSelectField({
   legendClassName,
   error,
 }: ChipSelectFieldProps) {
+  const readOnly = usePostPropertyReadOnly();
   const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);
   const isMoreValueSelected = Boolean(
     moreOptions?.length && value && moreOptions.includes(value),
@@ -47,6 +49,7 @@ export default function ChipSelectField({
             key={option}
             type="button"
             aria-pressed={value === option}
+            disabled={readOnly}
             onClick={() => onChange(option)}
             className={chipClassName(value === option)}
           >
@@ -57,6 +60,7 @@ export default function ChipSelectField({
         {moreOptions?.length ? (
           <button
             type="button"
+            disabled={readOnly}
             onClick={() => setIsMoreModalOpen(true)}
             className={`${chipClassName(false)} border-dashed text-sky-700`}
           >

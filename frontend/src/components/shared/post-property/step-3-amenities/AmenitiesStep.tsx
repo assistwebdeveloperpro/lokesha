@@ -11,7 +11,7 @@ import type { PostPropertyForm } from "../hooks/usePostPropertyForm";
 import AmenitiesField from "./AmenitiesField";
 
 export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers } = form;
+  const { draft, derived, layout, subForms, handlers, isViewMode } = form;
   const {
     showBuilderFields,
     optionalAmenities,
@@ -123,7 +123,7 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
     <PostPropertyStepCard
       title="Add Amenities"
       description="Step 3 of 5 - Furnishing, amenities, and parking"
-      actionLabel="Next, Add Photos & Videos"
+      actionLabel={isViewMode ? "Next step" : "Next, Add Photos & Videos"}
       onAction={handlers.submitAmenities}
       onBack={handlers.goBack}
     >

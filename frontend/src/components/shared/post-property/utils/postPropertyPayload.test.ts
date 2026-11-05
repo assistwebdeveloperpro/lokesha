@@ -93,6 +93,21 @@ describe("buildPropertyPayload address and header", () => {
     });
   });
 
+  it("sends project FAQs for non-builder listings", () => {
+    const projectDetails = createInitialProjectDetails();
+    projectDetails.faqs = [
+      { id: "f1", question: " Is parking included? ", answer: " Yes, one slot. " },
+      { id: "f2", question: "Incomplete", answer: "" },
+    ];
+
+    const payload = build({ locationHighlights: projectDetails });
+
+    expect(payload.project).toEqual({
+      projectName: "Sky Towers",
+      faqs: [{ question: "Is parking included?", answer: "Yes, one slot." }],
+    });
+  });
+
   it("sends the trimmed owner contact and leaves empty fields out", () => {
     const payload = build({
       ownerContact: {

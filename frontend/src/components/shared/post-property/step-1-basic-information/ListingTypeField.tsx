@@ -1,3 +1,4 @@
+import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import {
   LISTING_TYPES,
@@ -14,6 +15,7 @@ export default function ListingTypeField({
   onChange: (value: ListingTypeId) => void;
   allowedIds?: ListingTypeId[];
 }) {
+  const readOnly = usePostPropertyReadOnly();
   const visibleTypes = LISTING_TYPES.filter(
     (type) => !allowedIds || allowedIds.includes(type.id),
   );
@@ -34,6 +36,7 @@ export default function ListingTypeField({
               key={type.id}
               type="button"
               aria-pressed={isSelected}
+              disabled={readOnly}
               onClick={() => onChange(type.id)}
               className={`flex min-h-18 w-full flex-col items-center justify-center gap-1.5 rounded-xl border px-4 py-4 text-center transition-all lg:min-h-20 ${postPropertyTileClass(isSelected)}`}
             >

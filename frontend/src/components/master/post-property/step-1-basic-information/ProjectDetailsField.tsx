@@ -1,3 +1,4 @@
+import { usePostPropertyReadOnly } from "@/components/shared/post-property/config/postPropertyReadOnly";
 import { Plus, X } from "lucide-react";
 import ChipSelectField from "../ChipSelectField";
 import PostPropertyFieldSection from "../PostPropertyFieldSection";
@@ -30,6 +31,27 @@ const addRowBtnClassName =
 
 const removeRowBtnClassName =
   "mt-1 inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:text-red-600";
+
+const PROJECT_HIGHLIGHT_ROW_MIN_HEIGHT = "min-h-[4.5rem] lg:min-h-[4rem]";
+
+const PRIME_LOCATION_ROW_MIN_HEIGHT =
+  "min-h-[calc(2*4rem+1rem)] lg:min-h-[4rem]";
+
+function projectHighlightListClassName(rowCount: number) {
+  if (rowCount <= 3) {
+    return "space-y-4";
+  }
+
+  return "max-h-[calc(3*4.5rem+2*1rem)] space-y-4 overflow-y-auto overscroll-y-contain pr-0.5 lg:max-h-[calc(3*4rem+2*1rem)]";
+}
+
+function primeLocationHighlightListClassName(rowCount: number) {
+  if (rowCount <= 3) {
+    return "space-y-4";
+  }
+
+  return "max-h-[calc(3*(2*4rem+1rem)+2*1rem)] space-y-4 overflow-y-auto overscroll-y-contain pr-0.5 lg:max-h-[calc(3*4rem+2*1rem)]";
+}
 
 function RemoveRowButton({
   label,
@@ -257,6 +279,7 @@ export function ProjectHighlightsField({
   values: ProjectDetailsValues;
   onChange: OnChange;
 }) {
+  const readOnly = usePostPropertyReadOnly();
   const rows = values.projectHighlights;
 
   return (
@@ -265,50 +288,57 @@ export function ProjectHighlightsField({
       description="Add the key selling points of this project"
     >
       <div className="space-y-4">
-        {rows.map((row, index) => (
-          <div key={row.id} className="flex items-start gap-3">
-            <div className="flex-1">
-              <PostPropertyInput
-                id={`projectHighlight-${row.id}`}
-                label="Highlight"
-                variant="underline"
-                prominentLabel
-                compactProminentLabel
-                value={row.text}
-                onChange={(value) =>
+        <div className={projectHighlightListClassName(rows.length)}>
+          {rows.map((row, index) => (
+            <div
+              key={row.id}
+              className={`flex items-start gap-3 ${PROJECT_HIGHLIGHT_ROW_MIN_HEIGHT}`}
+            >
+              <div className="flex-1">
+                <PostPropertyInput
+                  id={`projectHighlight-${row.id}`}
+                  label="Highlight"
+                  variant="underline"
+                  prominentLabel
+                  compactProminentLabel
+                  value={row.text}
+                  onChange={(value) =>
+                    onChange(
+                      "projectHighlights",
+                      rows.map((item) =>
+                        item.id === row.id ? { ...item, text: value } : item,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <RemoveRowButton
+                label={`Remove highlight ${index + 1}`}
+                disabled={readOnly || rows.length === 1}
+                onClick={() =>
                   onChange(
                     "projectHighlights",
-                    rows.map((item) =>
-                      item.id === row.id ? { ...item, text: value } : item,
-                    ),
+                    rows.filter((item) => item.id !== row.id),
                   )
                 }
               />
             </div>
-            <RemoveRowButton
-              label={`Remove highlight ${index + 1}`}
-              disabled={rows.length === 1}
-              onClick={() =>
-                onChange(
-                  "projectHighlights",
-                  rows.filter((item) => item.id !== row.id),
-                )
-              }
-            />
-          </div>
-        ))}
-        <button
-          type="button"
-          className={addRowBtnClassName}
-          onClick={() =>
-            onChange("projectHighlights", [
-              ...rows,
-              { id: createRowId(), text: "" },
-            ])
-          }
-        >
-          <Plus className="h-4 w-4" aria-hidden /> Add Highlight
-        </button>
+          ))}
+        </div>
+        {readOnly ? null : (
+          <button
+            type="button"
+            className={addRowBtnClassName}
+            onClick={() =>
+              onChange("projectHighlights", [
+                ...rows,
+                { id: createRowId(), text: "" },
+              ])
+            }
+          >
+            <Plus className="h-4 w-4" aria-hidden /> Add Highlight
+          </button>
+        )}
       </div>
     </PostPropertyFieldSection>
   );
@@ -323,6 +353,7 @@ export function PrimeLocationHighlightsField({
   values: ProjectDetailsValues;
   onChange: OnChange;
 }) {
+  const readOnly = usePostPropertyReadOnly();
   const rows = values.primeLocationHighlights;
   const update = (id: string, patch: Partial<(typeof rows)[number]>) =>
     onChange(
@@ -336,52 +367,59 @@ export function PrimeLocationHighlightsField({
       description="Add nearby landmarks such as metro, schools, hospitals and malls"
     >
       <div className="space-y-4">
-        {rows.map((row, index) => (
-          <div key={row.id} className="flex items-start gap-3">
-            <div className="grid flex-1 gap-4 md:grid-cols-2 md:gap-6">
-              <PostPropertyInput
-                id={`highlightPlace-${row.id}`}
-                label="Place / Landmark"
-                placeholder="e.g. Ahmedabad Metro Station"
-                variant="underline"
-                staticLabel
-                value={row.place}
-                onChange={(value) => update(row.id, { place: value })}
-              />
-              <PostPropertyInput
-                id={`highlightDistance-${row.id}`}
-                label="Distance (km / mins)"
-                placeholder="e.g. 2 km or 10 mins"
-                variant="underline"
-                staticLabel
-                value={row.distance}
-                onChange={(value) => update(row.id, { distance: value })}
+        <div className={primeLocationHighlightListClassName(rows.length)}>
+          {rows.map((row, index) => (
+            <div
+              key={row.id}
+              className={`flex items-start gap-3 ${PRIME_LOCATION_ROW_MIN_HEIGHT}`}
+            >
+              <div className="grid flex-1 gap-4 md:grid-cols-2 md:gap-6">
+                <PostPropertyInput
+                  id={`highlightPlace-${row.id}`}
+                  label="Place / Landmark"
+                  placeholder="e.g. Ahmedabad Metro Station"
+                  variant="underline"
+                  staticLabel
+                  value={row.place}
+                  onChange={(value) => update(row.id, { place: value })}
+                />
+                <PostPropertyInput
+                  id={`highlightDistance-${row.id}`}
+                  label="Distance (km / Meter)"
+                  placeholder="e.g. 2 km or  250 Meter"
+                  variant="underline"
+                  staticLabel
+                  value={row.distance}
+                  onChange={(value) => update(row.id, { distance: value })}
+                />
+              </div>
+              <RemoveRowButton
+                label={`Remove highlight ${index + 1}`}
+                disabled={readOnly || rows.length === 1}
+                onClick={() =>
+                  onChange(
+                    "primeLocationHighlights",
+                    rows.filter((item) => item.id !== row.id),
+                  )
+                }
               />
             </div>
-            <RemoveRowButton
-              label={`Remove highlight ${index + 1}`}
-              disabled={rows.length === 1}
-              onClick={() =>
-                onChange(
-                  "primeLocationHighlights",
-                  rows.filter((item) => item.id !== row.id),
-                )
-              }
-            />
-          </div>
-        ))}
-        <button
-          type="button"
-          className={addRowBtnClassName}
-          onClick={() =>
-            onChange("primeLocationHighlights", [
-              ...rows,
-              { id: createRowId(), place: "", distance: "" },
-            ])
-          }
-        >
-          <Plus className="h-4 w-4" aria-hidden /> Add Highlight
-        </button>
+          ))}
+        </div>
+        {readOnly ? null : (
+          <button
+            type="button"
+            className={addRowBtnClassName}
+            onClick={() =>
+              onChange("primeLocationHighlights", [
+                ...rows,
+                { id: createRowId(), place: "", distance: "" },
+              ])
+            }
+          >
+            <Plus className="h-4 w-4" aria-hidden /> Add Highlight
+          </button>
+        )}
       </div>
     </PostPropertyFieldSection>
   );

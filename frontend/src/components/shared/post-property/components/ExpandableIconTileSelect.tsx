@@ -6,6 +6,7 @@ import { useState } from "react";
 import PostPropertyFieldSection from "./PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "./PostPropertyRequiredAsterisk";
 import { VISIBLE_ICON_TILE_COUNT } from "../config/postPropertyForm.shared";
+import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
 import { postPropertyTileClass } from "../config/postPropertyForm.styles";
 
 type ExpandableImageTileOption = {
@@ -39,6 +40,7 @@ export default function ExpandableIconTileSelect({
   bare = false,
   error,
 }: ExpandableIconTileSelectProps) {
+  const readOnly = usePostPropertyReadOnly();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const visibleOptions = isExpanded ? options : options.slice(0, visibleCount);
@@ -66,6 +68,7 @@ export default function ExpandableIconTileSelect({
             key={option.id}
             type="button"
             aria-pressed={isSelected}
+            disabled={readOnly}
             onClick={() => toggleOption(option.id)}
             className={tileClassName(isSelected)}
           >

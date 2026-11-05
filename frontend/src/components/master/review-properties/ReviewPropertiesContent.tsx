@@ -5,7 +5,6 @@ import { useCallback } from "react";
 import PropertyFilterGrid, { PropertyFilterEmpty } from "@/components/shared/ui/PropertyFilterGrid";
 import PropertyCardSkeleton from "@/components/user/dashboard/manage-properties/PropertyCardSkeleton";
 import { useHighlightProperty } from "@/components/master/manage-properties/useHighlightProperty";
-import ReviewDetailModal from "./ReviewDetailModal";
 import RejectPropertyModal from "./RejectPropertyModal";
 import ReviewPropertiesEmptyState from "./ReviewPropertiesEmptyState";
 import ReviewPropertyCard from "./ReviewPropertyCard";
@@ -13,6 +12,7 @@ import { useReviewProperties } from "./useReviewProperties";
 
 const SKELETON_COUNT = 6;
 const MANAGE_PROPERTIES_PATH = "/backend/properties/manage-properties";
+const REVIEW_VIEW_PATH = "/backend/properties/review-properties/view";
 
 export default function ReviewPropertiesContent() {
   const router = useRouter();
@@ -24,6 +24,13 @@ export default function ReviewPropertiesContent() {
   const { properties, total, isLoading, error, busyId } = review;
 
   // A property no longer pending has moved to manage properties
+  const openPropertyView = useCallback(
+    (propertyId: string) => {
+      router.push(`${REVIEW_VIEW_PATH}?view=${encodeURIComponent(propertyId)}&step=1`);
+    },
+    [router],
+  );
+
   const handleFocusResolved = useCallback(
     (isListed: boolean) => {
       if (isListed) {
@@ -89,7 +96,7 @@ export default function ReviewPropertiesContent() {
                   property={property}
                   isBusy={busyId === property.id}
                   isHighlighted={highlightedId === property.id}
-                  onView={review.viewProperty}
+                  onView={(property) => openPropertyView(property.id)}
                   onApprove={review.approve}
                   onReject={review.requestReject}
                 />
@@ -120,9 +127,6 @@ export default function ReviewPropertiesContent() {
         />
       ) : null}
 
-      {review.viewing ? (
-        <ReviewDetailModal propertyId={review.viewing.id} owner={review.viewing.owner} onClose={review.closeView} />
-      ) : null}
     </div>
   );
 }

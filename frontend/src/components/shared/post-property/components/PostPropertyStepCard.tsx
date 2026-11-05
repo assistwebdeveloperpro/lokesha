@@ -41,7 +41,11 @@ export default function PostPropertyStepCard({
     >
       {onBack ? (
         <div className="mb-4 flex justify-start">
-          <button type="button" onClick={onBack} className={POST_PROPERTY_BACK_BTN}>
+          <button
+            type="button"
+            onClick={onBack}
+            className={`post-property-review-nav ${POST_PROPERTY_BACK_BTN}`}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
           </button>
         </div>
@@ -73,7 +77,7 @@ export default function PostPropertyStepCard({
             type="button"
             onClick={onAction}
             disabled={isActionDisabled}
-            className={`${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
+            className={`post-property-review-nav ${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
           >
             {actionLabel}
           </button>

@@ -21,15 +21,18 @@ import { toUrlSegment } from "@/lib/property-search-url/slug";
 import type {
   PublicPropertyAttributes,
   PublicPropertyDetails,
+  PublicPropertyProject,
   PublicPropertyVariant,
 } from "@/services/propertySearch.service";
 import { formatPropertyConfigurationLabel } from "./propertyDetailsConfigurationLabel";
 import type {
   PropertyDetailsBase,
   PropertyDetailsFloorPlan,
+  PropertyDetailsNearbyPlace,
   PropertyDetailsProjectView,
   PropertyDetailsSpecRow,
   PropertyDetailsUnitView,
+  PropertyDetailsFaq,
   PropertyDetailsView,
 } from "./propertyDetails.types";
 
@@ -264,6 +267,8 @@ function buildBase(dto: PublicPropertyDetails, currentLabel: string, pageTitle: 
     address: dto.address,
     description: dto.description,
     amenities: dto.amenities,
+    nearbyPlaces: buildNearbyPlaces(dto.project?.highlights),
+    faqs: buildFaqs(dto.project),
     similarListings: dto.similar,
     poster: dto.poster,
   };
@@ -302,6 +307,36 @@ function buildFloorPlans(dto: PublicPropertyDetails): PropertyDetailsFloorPlan[]
   });
 }
 
+const PROJECT_USP_KIND = "project-highlight";
+const PRIME_LOCATION_KIND = "prime-location";
+
+function buildProjectUsps(highlights: PublicPropertyProject["highlights"] | undefined): string[] {
+  return (highlights ?? [])
+    .filter(({ kind }) => kind === PROJECT_USP_KIND)
+    .map(({ text }) => text.trim())
+    .filter(Boolean);
+}
+
+function buildNearbyPlaces(
+  highlights: PublicPropertyProject["highlights"] | undefined,
+): PropertyDetailsNearbyPlace[] {
+  return (highlights ?? [])
+    .filter(({ kind }) => kind === PRIME_LOCATION_KIND)
+    .map(({ text, distance }) => ({
+      place: text.trim(),
+      distance: distance?.trim() || null,
+    }))
+    .filter(({ place }) => place.length > 0);
+}
+
+function buildFaqs(project: PublicPropertyDetails["project"]): PropertyDetailsFaq[] {
+  return (project?.faqs ?? []).flatMap(({ question, answer }) => {
+    const q = question?.trim();
+    const a = answer?.trim();
+    return q && a ? [{ question: q, answer: a }] : [];
+  });
+}
+
 function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectView {
   const { listing } = dto;
   const project = dto.project;
@@ -316,6 +351,10 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
   const avgPrice = formatProjectAvgPrice(dto.builderListing?.avgPrice, dto.builderListing?.areaUnit);
   const developerName = project?.developerName ?? listing.builderName ?? dto.poster.name;
   const stats = project?.developerStats;
+  const hasDeveloperStats =
+    (stats?.totalProjects ?? 0) > 0 ||
+    (stats?.ongoingProjects ?? 0) > 0 ||
+    (stats?.completedProjects ?? 0) > 0;
   const plotFloorsAllowed = usesSearchListingDetailRows(listing) ? floorsAllowedRow(dto.attributes) : null;
   const overviewRows: PropertyDetailsSpecRow[] = [
     { label: "Avg. Price", value: avgPrice ?? EMPTY_VALUE },
@@ -358,12 +397,15 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
     pricingRows: buildPricingRows(dto),
     floorPlans: buildFloorPlans(dto),
     bhkConfigurations,
+    projectUsps: buildProjectUsps(project?.highlights),
     developer: {
       name: developerName,
       totalProjects: stats?.totalProjects ?? 0,
       ongoingProjects: stats?.ongoingProjects ?? 0,
       completedProjects: stats?.completedProjects ?? 0,
-      description: `${developerName} lists residential and commercial projects in ${listing.city} on Lokesha.`,
+      description: hasDeveloperStats
+        ? `${developerName} lists residential and commercial projects in ${listing.city} on Lokesha.`
+        : "",
     },
   };
 }

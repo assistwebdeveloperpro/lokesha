@@ -22,16 +22,28 @@ function getSubmitLabel(isSubmitting: boolean, submitsOnSave: boolean, isAdmin: 
 }
 
 export default function PricingOthersStep({ form }: { form: PostPropertyForm }) {
-  const { draft, derived, layout, subForms, handlers, canSaveAsDraft, submitsOnSave, canClose, isAdmin } = form;
+  const {
+    draft,
+    derived,
+    layout,
+    subForms,
+    handlers,
+    canSaveAsDraft,
+    submitsOnSave,
+    canClose,
+    isAdmin,
+    isViewMode,
+  } = form;
   const { showBuilderFields, isMultiSubType, isRent, builderConfig } = derived;
   const { propertyType } = draft;
 
   // Admins can close a published listing, which is not possible for a draft
-  const secondaryAction = canSaveAsDraft
-    ? { label: "Save as Draft", onClick: handlers.saveAsDraft }
-    : canClose
-      ? { label: "Mark as Closed", onClick: handlers.close }
-      : undefined;
+  const secondaryAction =
+    isViewMode || !canSaveAsDraft
+      ? !isViewMode && canClose
+        ? { label: "Mark as Closed", onClick: handlers.close }
+        : undefined
+      : { label: "Save as Draft", onClick: handlers.saveAsDraft };
 
   const renderPricingFields = () => {
     if (showBuilderFields && isMultiSubType && layout.sharedPricing) {
@@ -136,8 +148,10 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
     <PostPropertyStepCard
       title="Add Pricing & Other Details"
       description="Step 5 of 5 - Set your price and finalize the listing"
-      actionLabel={getSubmitLabel(draft.isSubmitting, submitsOnSave, isAdmin)}
-      onAction={handlers.submit}
+      actionLabel={
+        isViewMode ? "Back to review list" : getSubmitLabel(draft.isSubmitting, submitsOnSave, isAdmin)
+      }
+      onAction={isViewMode ? handlers.exitView : handlers.submit}
       secondaryActionLabel={secondaryAction?.label}
       onSecondaryAction={secondaryAction?.onClick}
       onBack={handlers.goBack}
@@ -165,12 +179,12 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
             onChange={handlers.changeProjectDetails}
             priceRangeReadOnly
           />
-          <ProjectFaqField
-            values={draft.projectDetails}
-            onChange={handlers.changeProjectDetails}
-          />
         </>
       ) : null}
+      <ProjectFaqField
+        values={draft.projectDetails}
+        onChange={handlers.changeProjectDetails}
+      />
     </PostPropertyStepCard>
   );
 }

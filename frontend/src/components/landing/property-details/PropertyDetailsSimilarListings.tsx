@@ -1,3 +1,4 @@
+import { Home } from "lucide-react";
 import Link from "next/link";
 import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import { buildPropertyDetailsUrl } from "@/lib/property-search-url/propertyDetailsUrl";
@@ -17,7 +18,7 @@ export function PropertyDetailsSimilarListings({
   if (listings.length === 0) return null;
 
   return (
-    <PropertyDetailsSection title={title} className="mt-6">
+    <PropertyDetailsSection title={title} icon={Home} className="mt-6">
       <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
         {listings.map((listing) => {
           const href = buildPropertyDetailsUrl({
