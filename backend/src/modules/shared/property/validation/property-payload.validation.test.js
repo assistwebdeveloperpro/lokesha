@@ -1,7 +1,7 @@
 const { validateCompletePayload } = require("./property-payload.validation");
 const { RULES } = require("../constants/property.constants");
 
-const address = { locality: "Vesu", pinCode: "395007", state: "Gujarat" };
+const address = { city: "Surat", locality: "Vesu", pinCode: "395007", state: "Gujarat" };
 const files = { media: [{ path: "temp/drafts/d/media-x.jpg", category: "exterior" }] };
 
 const validListing = (propertyType, subType, listingType, extra = {}) => {
@@ -100,6 +100,7 @@ describe("validateCompletePayload", () => {
     const { fields } = validateCompletePayload(body, { isBuilderPost: false });
 
     expect(Object.keys(fields).sort()).toEqual([
+      "address.city",
       "address.pinCode",
       "address.state",
       "listings.0.description",

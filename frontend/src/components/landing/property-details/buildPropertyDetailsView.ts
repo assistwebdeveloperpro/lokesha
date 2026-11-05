@@ -25,6 +25,8 @@ import type {
   PublicPropertyVariant,
 } from "@/services/propertySearch.service";
 import { formatPropertyConfigurationLabel } from "./propertyDetailsConfigurationLabel";
+import { resolveCarParkingLabel } from "./propertyDetailsCarParking";
+import { normalizePropertyGalleryCategories } from "./propertyDetailsGallery.utils";
 import type {
   PropertyDetailsBase,
   PropertyDetailsFloorPlan,
@@ -82,12 +84,6 @@ const formatDate = (value: string | null | undefined) =>
 const formatAmount = (value: unknown) => {
   const amount = toNumber(value);
   return amount === null ? null : formatPriceAmount(amount);
-};
-
-const formatCarParkingValue = (count: number | null): string | null => {
-  if (count === null) return null;
-  if (count === 0) return "No car parking";
-  return String(count);
 };
 
 const AVG_PRICE_UNITS: Record<string, string> = {
@@ -183,18 +179,18 @@ const showsTotalFloors = (listing: PublicSearchListing) =>
     return Boolean(config?.totalFloors);
   });
 
+const showsTotalTower = (listing: PublicSearchListing) => {
+  const propertyType = listing.propertyType as PropertyTypeId;
+  return !getMergedBuilderConfig(propertyType, projectSubTypes(listing)).hideTotalBlocks;
+};
+
 const formatProjectType = (value: string | null | undefined) =>
   value ? (PROJECT_TYPE_LABELS[value] ?? humanize(value)) : null;
 
-const formatProjectArea = (
-  projectAreaAcres: string | number | null | undefined,
-  listing: PublicSearchListing,
-) => {
-  const acres = toNumber(projectAreaAcres);
-  if (acres !== null && acres > 0) {
-    return `${acres.toLocaleString("en-IN")} Acres`;
-  }
-  return formatSearchListingArea(listing);
+const formatProjectArea = (projectAreaSqYd: string | number | null | undefined) => {
+  const area = toNumber(projectAreaSqYd);
+  if (area === null || area <= 0) return EMPTY_VALUE;
+  return `${area.toLocaleString("en-IN")} Sq Yd`;
 };
 
 const bedroomSummary = (bedrooms: number[]) => (bedrooms.length ? bedrooms.join(", ") : EMPTY_VALUE);
@@ -259,6 +255,7 @@ function buildBase(dto: PublicPropertyDetails, currentLabel: string, pageTitle: 
     displayPropertyId: dto.displayPropertyId,
     listing,
     images: dto.images,
+    imageCategories: normalizePropertyGalleryCategories(dto.imageCategories),
     breadcrumbs: buildBreadcrumbs(listing, currentLabel),
     pageTitle,
     headlineTitle: listing.title,
@@ -277,29 +274,125 @@ function buildBase(dto: PublicPropertyDetails, currentLabel: string, pageTitle: 
 const variantArea = (variant: PublicPropertyVariant) =>
   toNumber(variant.superBuiltUpArea) ?? toNumber(variant.carpetArea) ?? toNumber(variant.size);
 
-function matchVariant(variants: PublicPropertyVariant[], label: string | null) {
-  if (!label) return undefined;
-  const needle = label.toLowerCase();
-  return variants.find(
-    (variant) =>
-      variant.label?.toLowerCase() === needle ||
-      (variant.bhk !== undefined && variant.bhk !== null && needle.startsWith(`${variant.bhk} bhk`)),
-  );
+function normalizeMatchKey(value: string | null | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeAreaUnitKey(unit: string | null | undefined): string {
+  return normalizeMatchKey(unit).replace(/\./g, "");
+}
+
+function areaUnitsMatch(left: string | null | undefined, right: string | null | undefined): boolean {
+  const a = normalizeAreaUnitKey(left);
+  const b = normalizeAreaUnitKey(right);
+  if (!a || !b) return true;
+  if (a === b) return true;
+  const isSqFt = (unit: string) => unit === "sq ft" || unit === "sqft";
+  return isSqFt(a) && isSqFt(b);
+}
+
+function parseLabelSizeSuffix(label: string | null | undefined): { amount: number; unit: string } | null {
+  if (!label) return null;
+  const match = label.match(/\(([\d,.]+)\s*([^)]+)\)\s*$/);
+  if (!match) return null;
+
+  const amount = toNumber(match[1].replace(/,/g, ""));
+  if (amount === null) return null;
+
+  return { amount, unit: normalizeAreaUnitKey(match[2]) };
+}
+
+function variantListedSize(variant: PublicPropertyVariant): number | null {
+  return toNumber(variant.size) ?? toNumber(variant.superBuiltUpArea) ?? toNumber(variant.carpetArea);
+}
+
+function variantAreaUnit(variant: PublicPropertyVariant): string | null {
+  if (toNumber(variant.superBuiltUpArea) !== null) {
+    return variant.superBuiltUpAreaUnit ?? variant.sizeUnit ?? "sq-ft";
+  }
+  if (toNumber(variant.carpetArea) !== null) {
+    return variant.carpetAreaUnit ?? variant.sizeUnit ?? "sq-ft";
+  }
+  return variant.sizeUnit ?? "sq-ft";
+}
+
+function parseBhkFromLabel(label: string | null | undefined): number | null {
+  const match = label?.match(/^(\d+)\s*bhk/i);
+  if (!match) return null;
+  const bhk = Number(match[1]);
+  return Number.isFinite(bhk) ? bhk : null;
+}
+
+export function resolveFloorPlanVariant(
+  variants: PublicPropertyVariant[],
+  label: string | null | undefined,
+): PublicPropertyVariant | undefined {
+  if (!label || variants.length === 0) return undefined;
+
+  const needle = normalizeMatchKey(label);
+  const exact = variants.find((variant) => variant.label && normalizeMatchKey(variant.label) === needle);
+  if (exact) return exact;
+
+  const planSize = parseLabelSizeSuffix(label);
+  const planBhk = parseBhkFromLabel(label);
+
+  if (planSize) {
+    const sizedMatches = variants.filter((variant) => {
+      const listedSize = variantListedSize(variant);
+      if (listedSize === null || Math.abs(listedSize - planSize.amount) >= 0.01) {
+        return false;
+      }
+
+      const unit = variantAreaUnit(variant);
+      if (!areaUnitsMatch(unit, planSize.unit)) {
+        return false;
+      }
+
+      if (planBhk !== null && variant.bhk !== undefined && variant.bhk !== null) {
+        return variant.bhk === planBhk;
+      }
+
+      return true;
+    });
+
+    if (sizedMatches.length === 1) {
+      return sizedMatches[0];
+    }
+
+    if (sizedMatches.length > 1 && planBhk !== null) {
+      const bhkMatch = sizedMatches.find((variant) => variant.bhk === planBhk);
+      if (bhkMatch) return bhkMatch;
+    }
+  }
+
+  if (planBhk !== null) {
+    const sameBhk = variants.filter((variant) => variant.bhk === planBhk);
+    if (sameBhk.length === 1) {
+      return sameBhk[0];
+    }
+  }
+
+  return undefined;
 }
 
 function buildFloorPlans(dto: PublicPropertyDetails): PropertyDetailsFloorPlan[] {
   const variants = dto.variants ?? [];
 
   return dto.floorPlans.map((plan) => {
-    const variant = matchVariant(variants, plan.label);
+    const variant = resolveFloorPlanVariant(variants, plan.label);
     const area = variant ? variantArea(variant) : null;
     const price = variant ? formatAmount(variant.price) : null;
+    const areaUnit = variant ? variantAreaUnit(variant) : "sq-ft";
 
     return {
       id: plan.id,
       label: plan.label ?? EMPTY_VALUE,
       planType: plan.planType,
-      areaLabel: area === null ? EMPTY_VALUE : `${area.toLocaleString("en-IN")} sqft`,
+      areaLabel: area === null ? EMPTY_VALUE : (formatArea(area, areaUnit) ?? EMPTY_VALUE),
       areaType: toNumber(variant?.superBuiltUpArea) !== null ? "Super Built-up Area" : "Carpet Area",
       priceLabel: price ?? PRICE_ON_REQUEST,
       imageUrl: plan.path,
@@ -342,7 +435,7 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
   const project = dto.project;
   const subType = subTypeLabel(listing.propertyType, listing.propertySubType);
   const bhkConfigurations = dto.variants?.length
-    ? [...new Set(dto.variants.map((variant) => variant.label ?? `${variant.bhk} BHK ${subType}`))]
+    ? dto.variants.map((variant) => variant.label ?? `${variant.bhk} BHK ${subType}`)
     : listing.bedrooms.map((bhk) => `${bhk} BHK ${subType}`);
   const isReady = dto.constructionStatus === "ready-to-move";
   const possessionLabel = isReady ? "Immediate" : (formatDate(dto.possessionDate) ?? EMPTY_VALUE);
@@ -368,7 +461,14 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
     { label: "Date of Launch", value: launchDate },
     { label: "Date of Possession", value: possessionLabel },
     { label: "Total Units", value: project?.totalUnits ? String(project.totalUnits) : EMPTY_VALUE },
-    { label: "Total Tower", value: project?.totalBlocks ? String(project.totalBlocks) : EMPTY_VALUE },
+    ...(showsTotalTower(listing)
+      ? [
+          {
+            label: "Total Tower",
+            value: project?.totalBlocks ? String(project.totalBlocks) : EMPTY_VALUE,
+          },
+        ]
+      : []),
     ...(showsTotalFloors(listing)
       ? [
           {
@@ -377,7 +477,7 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
           },
         ]
       : []),
-    { label: "Project Area", value: formatProjectArea(project?.projectAreaAcres, listing) },
+    { label: "Project Area", value: formatProjectArea(project?.projectAreaAcres) },
     { label: "ReraId", value: reraNumber ?? "Not Available" },
     ...(plotFloorsAllowed ? [plotFloorsAllowed] : []),
   ];
@@ -431,10 +531,12 @@ function areaWithRate(area: unknown, unit: unknown, price: number | null): strin
 function buildPricingRows(dto: PublicPropertyDetails): PropertyDetailsSpecRow[] {
   const { attributes: a, pricing: p, listing } = dto;
   const isSale = listing.listingType === "sale";
-  const parking = toNumber(a.carParkingCount);
-  const parkingRow: Rows = isPgListing(listing)
-    ? []
-    : [["Car Parking", formatCarParkingValue(parking)]];
+  const parkingLabel = resolveCarParkingLabel({
+    attributeCount: toNumber(a.carParkingCount),
+    listingCount: listing.carParkingCount,
+    variants: dto.variants,
+  });
+  const parkingRow: Rows = isPgListing(listing) ? [] : [["Car Parking", parkingLabel]];
   const rows: Rows = isSale
     ? [
         ["Booking Amount", formatAmount(p.bookingAmount)],

@@ -1,3 +1,4 @@
+import { BackToReviewListButton } from "@/components/master/review-properties/BackToReviewListNav";
 import {
   ProjectFaqField,
   ProjectPricingField,
@@ -128,10 +129,11 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
           embedded
           values={draft.projectDetails}
           onChange={handlers.changeProjectDetails}
-          bhkList={getBhkAreaTabs(draft.projectDetails, propertyType, tabId).map(
-            (tab) => tab.bhk,
-          )}
-          unitType={subForms.tabs.find((tab) => tab.id === tabId)?.label}
+          chargeTabs={
+            tabConfig.chargesByBhk
+              ? getBhkAreaTabs(draft.projectDetails, propertyType, tabId)
+              : []
+          }
           pricingOthers={subForms.getPricing(tabId)}
           onPricingOthersChange={(field, value) =>
             subForms.changePricing(tabId, field, value)
@@ -156,6 +158,15 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
       onSecondaryAction={secondaryAction?.onClick}
       onBack={handlers.goBack}
       isActionDisabled={draft.isSubmitting}
+      actionSlot={
+        isViewMode ? (
+          <BackToReviewListButton
+            onClick={handlers.exitView}
+            disabled={draft.isSubmitting}
+            className="post-property-review-nav"
+          />
+        ) : undefined
+      }
     >
       {renderPricingFields()}
 
@@ -167,6 +178,15 @@ export default function PricingOthersStep({ form }: { form: PostPropertyForm }) 
             <BhkChargesField
               values={draft.projectDetails}
               onChange={handlers.changeProjectDetails}
+              chargeTabs={
+                builderConfig.chargesByBhk
+                  ? getBhkAreaTabs(
+                      draft.projectDetails,
+                      propertyType,
+                      derived.propertySubType,
+                    )
+                  : []
+              }
               pricingOthers={draft.pricingOthers}
               onPricingOthersChange={handlers.changePricing}
               singleBlock={!builderConfig.chargesByBhk}

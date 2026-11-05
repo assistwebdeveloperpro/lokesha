@@ -509,6 +509,38 @@ describe("buildPropertyPayload builder posts", () => {
     expect(payload.project?.projectName).toBe("Vesu");
   });
 
+  it("disambiguates duplicate BHK + unit type rows with size in the variant label", () => {
+    const project = builderProject();
+    const payload = buildPropertyPayload({
+      listingType: "sale",
+      propertyType: "residential",
+      address,
+      builderProject: {
+        ...project,
+        availableSizes: [
+          {
+            ...createAvailableSizeRow("Bungalow/Villa"),
+            bhk: "4 BHK",
+            size: "2500",
+            price: "12000000",
+          },
+          {
+            ...createAvailableSizeRow("Bungalow/Villa"),
+            bhk: "4 BHK",
+            size: "3200",
+            price: "15000000",
+          },
+        ],
+      },
+      listings: [listing({ subType: "bungalow-villa" })],
+    });
+
+    expect(payload.listings[0].variants?.map((variant) => variant.label)).toEqual([
+      "4 BHK Bungalow/Villa (2500 sq ft)",
+      "4 BHK Bungalow/Villa (3200 sq ft)",
+    ]);
+  });
+
   it("gives each sub type its own variants and maximum areas", () => {
     const [flat, duplex] = buildBuilder().listings;
 

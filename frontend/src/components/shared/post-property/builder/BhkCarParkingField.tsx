@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { getVariantLabel } from "./bhkAreaDetails";
 import BhkTabList from "./BhkTabList";
+import {
+  getBhkAreaTabKey,
+  getBhkParkingTabs,
+  lookupBhkCarParking,
+  type BhkAreaTab,
+} from "./bhkAreaDetails";
 import ChipSelectField from "../components/ChipSelectField";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyRequiredAsterisk from "../components/PostPropertyRequiredAsterisk";
-import type { AmenitiesValues } from "../config/postPropertyForm.shared";
+import type { AmenitiesValues, PropertyTypeId } from "../config/postPropertyForm.shared";
 import {
-  POST_PROPERTY_BHK_BADGE,
   POST_PROPERTY_BHK_PANEL,
   POST_PROPERTY_CHECKBOX_ROW,
   POST_PROPERTY_INNER_PANEL,
@@ -26,23 +30,15 @@ const checkboxClassName =
 const COUNT_OPTIONS = ["1", "2", "3", "4", "5", "6", "7"];
 const MORE_COUNT_OPTIONS = ["8", "9", "10"];
 
-type ParkingTab = { key: string; bhk: string };
+function parkingForTab(values: ProjectDetailsValues, tab: BhkAreaTab) {
+  const eligible = values.availableSizes.filter((row) => row.bhk);
+  const row = eligible.find((item) => getBhkAreaTabKey(item, eligible) === tab.key);
 
-// Parking is stored per BHK and unit type; the unit type is only shown when a BHK repeats
-function getParkingTabs(values: ProjectDetailsValues): Map<string, ParkingTab> {
-  const rows = values.availableSizes.filter((row) => row.bhk);
-  const unitTypesByBhk = new Map<string, Set<string>>();
-  for (const row of rows) {
-    unitTypesByBhk.set(row.bhk, (unitTypesByBhk.get(row.bhk) ?? new Set()).add(row.unitType));
+  if (row) {
+    return lookupBhkCarParking(values.bhkCarParking, row, eligible) ?? EMPTY_BHK_CAR_PARKING;
   }
 
-  const tabs = new Map<string, ParkingTab>();
-  for (const row of rows) {
-    const key = getVariantLabel(row);
-    const isRepeated = (unitTypesByBhk.get(row.bhk)?.size ?? 0) > 1;
-    tabs.set(isRepeated ? key : row.bhk, { key, bhk: row.bhk });
-  }
-  return tabs;
+  return values.bhkCarParking[tab.key] ?? EMPTY_BHK_CAR_PARKING;
 }
 
 export default function BhkCarParkingField({
@@ -53,9 +49,13 @@ export default function BhkCarParkingField({
   error,
   singleBlock = false,
   hideClubMembership = false,
+  propertyType,
+  subType,
 }: {
   singleBlock?: boolean;
   hideClubMembership?: boolean;
+  propertyType?: PropertyTypeId;
+  subType?: string;
   values: ProjectDetailsValues;
   onChange: <K extends keyof ProjectDetailsValues>(
     field: K,
@@ -68,15 +68,13 @@ export default function BhkCarParkingField({
   ) => void;
   error?: string;
 }) {
-  const tabs = singleBlock ? new Map<string, ParkingTab>() : getParkingTabs(values);
-  const bhks = [...tabs.keys()];
-  const [selectedBhk, setSelectedBhk] = useState("");
-  const activeBhk = bhks.includes(selectedBhk) ? selectedBhk : (bhks[0] ?? "");
-  const activeTab = tabs.get(activeBhk);
+  const tabItems = singleBlock ? [] : getBhkParkingTabs(values, propertyType, subType);
+  const [selectedKey, setSelectedKey] = useState("");
+  const activeTab =
+    tabItems.find((tab) => tab.key === selectedKey) ?? tabItems[0];
+  const activeKey = activeTab?.key ?? "";
   const activeParking = activeTab
-    ? (values.bhkCarParking[activeTab.key] ??
-      values.bhkCarParking[activeTab.bhk] ??
-      EMPTY_BHK_CAR_PARKING)
+    ? parkingForTab(values, activeTab)
     : EMPTY_BHK_CAR_PARKING;
 
   const update = (patch: Partial<BhkCarParking>) => {
@@ -100,7 +98,7 @@ export default function BhkCarParkingField({
       }
     >
       <div className="space-y-6">
-        {bhks.length === 0 ? (
+        {tabItems.length === 0 ? (
           <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
             {singleBlock ? null : (
               <p className={POST_PROPERTY_SUBSECTION_LABEL}>Project-wide defaults</p>
@@ -153,9 +151,9 @@ export default function BhkCarParkingField({
         ) : (
           <>
             <BhkTabList
-              bhks={bhks}
-              activeBhk={activeBhk}
-              onSelect={setSelectedBhk}
+              tabs={tabItems}
+              activeKey={activeKey}
+              onSelect={setSelectedKey}
               label="Parking by BHK"
             />
             <div role="tabpanel" className={POST_PROPERTY_BHK_PANEL}>
@@ -177,7 +175,7 @@ export default function BhkCarParkingField({
               </label>
               {activeParking.available ? (
                 <ChipSelectField
-                  legend={`Car Parking (${activeBhk})`}
+                  legend={`Car Parking (${activeTab?.bhk ?? activeKey})`}
                   bare
                   options={COUNT_OPTIONS}
                   value={activeParking.count}

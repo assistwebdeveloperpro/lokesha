@@ -29,7 +29,7 @@ import type {
   PropertyMediaFileDto,
   PropertyPayload,
 } from "@/services/property.service";
-import { getVariantLabel } from "../builder/bhkAreaDetails";
+import { getBhkAreaTabKey } from "../builder/bhkAreaDetails";
 import type { PostingAsId } from "../config/postingAs";
 import {
   EMPTY_SUB_TYPE_FORMS_SNAPSHOT,
@@ -365,6 +365,30 @@ function isFullBuilderPayload(listing: PropertyListingPayload) {
   return Boolean(listing.builder ?? listing.variants?.length);
 }
 
+export function resolvePostingAsFromPayload(
+  payload: PropertyPayload,
+): PostingAsId | "" {
+  if (payload.postingAs) {
+    return payload.postingAs;
+  }
+  const [lead] = payload.listings;
+  return lead && isFullBuilderPayload(lead) ? "builder" : "";
+}
+
+function variantHasAreaDetails(area: PayloadFields | undefined) {
+  if (!area) {
+    return false;
+  }
+  return (
+    area.carpetArea !== undefined ||
+    area.carpetAreaMax !== undefined ||
+    area.superBuiltUpArea !== undefined ||
+    area.superBuiltUpAreaMax !== undefined ||
+    area.carpetAreaUnit !== undefined ||
+    area.superBuiltUpAreaUnit !== undefined
+  );
+}
+
 // The first listing leads: project wide values are read from it, the unit sizes from every listing
 function mapProject(
   payload: PropertyPayload,
@@ -382,48 +406,58 @@ function mapProject(
   const bhkCarParking: Record<string, BhkCarParking> = {};
   const bhkCharges: Record<string, BhkCharges> = {};
   const bhkAreaDetails: Record<string, BhkAreaDetails> = {};
-  const availableSizes = listings.flatMap((item) =>
-    (item.variants ?? []).map((variant) => {
-      const bhk = toBhkLabel(variant.details?.bhk);
-      const unitType = subTypeLabelOf(propertyType, item.propertySubType);
-      const charges = variant.charges;
-      const area = variant.details;
-
-      if (bhk && area?.carpetArea !== undefined) {
-        bhkAreaDetails[getVariantLabel({ bhk, unitType })] = {
-          carpetAreaMin: text(area.carpetArea),
-          carpetAreaMax: text(area.carpetAreaMax),
-          carpetAreaType: text(area.carpetAreaUnit),
-          superBuildUpMin: text(area.superBuiltUpArea),
-          superBuildUpMax: text(area.superBuiltUpAreaMax),
-          superBuildUpType: text(area.superBuiltUpAreaUnit),
-        };
-      }
-
-      if (charges) {
-        bhkCarParking[getVariantLabel({ bhk, unitType })] = {
-          available: flag(charges.carParkingAvailable),
-          count: text(charges.carParkingCount),
-          clubMembership: flag(charges.clubMembership),
-        };
-        bhkCharges[getVariantLabel({ bhk, unitType })] = {
-          transferFee: text(charges.transferFee),
-          bookingAmount: text(charges.bookingAmount),
-          maintenanceCharges: text(charges.maintenanceCharges),
-          benefitsRemarks: text(charges.benefitsRemarks),
-        };
-      }
-
-      return {
-        ...createAvailableSizeRow(unitType),
-        bhk,
-        sizeUnit: labelOf(LAND_SIZE_UNIT_OPTIONS, variant.sizeUnit) || LAND_SIZE_UNIT_OPTIONS[0],
-        size: text(variant.size),
-        price: text(variant.price),
-        unitsAvailable: text(variant.unitsAvailable),
-      };
-    }),
+  const variantEntries = listings.flatMap((item) =>
+    (item.variants ?? []).map((variant) => ({
+      variant,
+      unitType: subTypeLabelOf(propertyType, item.propertySubType),
+    })),
   );
+  const availableSizes = variantEntries.map(({ variant, unitType }) => {
+    const bhk = toBhkLabel(variant.details?.bhk);
+
+    return {
+      ...createAvailableSizeRow(unitType),
+      bhk,
+      sizeUnit: labelOf(LAND_SIZE_UNIT_OPTIONS, variant.sizeUnit) || LAND_SIZE_UNIT_OPTIONS[0],
+      size: text(variant.size),
+      price: text(variant.price),
+      unitsAvailable: text(variant.unitsAvailable),
+    };
+  });
+
+  variantEntries.forEach(({ variant, unitType }, index) => {
+    const bhk = toBhkLabel(variant.details?.bhk);
+    const row = availableSizes[index];
+    const key =
+      text(variant.label) || (row ? getBhkAreaTabKey(row, availableSizes) : `${bhk} ${unitType}`.trim());
+    const charges = variant.charges;
+    const area = variant.details;
+
+    if (bhk && variantHasAreaDetails(area)) {
+      bhkAreaDetails[key] = {
+        carpetAreaMin: text(area?.carpetArea),
+        carpetAreaMax: text(area?.carpetAreaMax),
+        carpetAreaType: text(area?.carpetAreaUnit),
+        superBuildUpMin: text(area?.superBuiltUpArea),
+        superBuildUpMax: text(area?.superBuiltUpAreaMax),
+        superBuildUpType: text(area?.superBuiltUpAreaUnit),
+      };
+    }
+
+    if (charges && bhk) {
+      bhkCarParking[key] = {
+        available: flag(charges.carParkingAvailable),
+        count: text(charges.carParkingCount),
+        clubMembership: flag(charges.clubMembership),
+      };
+      bhkCharges[key] = {
+        transferFee: text(charges.transferFee),
+        bookingAmount: text(charges.bookingAmount),
+        maintenanceCharges: text(charges.maintenanceCharges),
+        benefitsRemarks: text(charges.benefitsRemarks),
+      };
+    }
+  });
 
   const initial = createInitialProjectDetails(subTypeLabel);
   const projectTypeLabel = Object.keys(PROJECT_TYPE_KEYS).find((label) => PROJECT_TYPE_KEYS[label] === project?.projectType);
@@ -535,7 +569,7 @@ export function mapDetailToForm(detail: PropertyDetailResponse): EditedForm {
     : EMPTY_SUB_TYPE_FORMS_SNAPSHOT;
 
   return {
-    postingAs: payload.postingAs ?? (isBuilder ? "builder" : ""),
+    postingAs: resolvePostingAsFromPayload(payload),
     tabs,
     form: {
       listingType: payload.listingType as ListingTypeId,

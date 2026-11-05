@@ -49,11 +49,18 @@ export type PropertyDetailsFaq = {
   answer: string;
 };
 
+export type PropertyDetailsImageCategory = {
+  id: string;
+  label: string;
+  images: string[];
+};
+
 export type PropertyDetailsBase = {
   id: string;
   displayPropertyId: string;
   listing: PublicSearchListing;
   images: string[];
+  imageCategories: PropertyDetailsImageCategory[];
   breadcrumbs: PropertyDetailsBreadcrumb[];
   pageTitle: string;
   headlineTitle: string;

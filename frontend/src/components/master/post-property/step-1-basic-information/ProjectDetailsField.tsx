@@ -167,7 +167,7 @@ export function ProjectOverviewField({
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             <PostPropertyInput
               id="projectArea"
-              label="Project Area (Acres)"
+              label="Project Area (SqYd)"
               type="number"
               variant="underline"
               prominentLabel
@@ -385,8 +385,8 @@ export function PrimeLocationHighlightsField({
                 />
                 <PostPropertyInput
                   id={`highlightDistance-${row.id}`}
-                  label="Distance (km / Meter)"
-                  placeholder="e.g. 2 km or  250 Meter"
+                  label="Distance (km / Meter/ Minutes)"
+                  placeholder="e.g. 2 km or  250 Meter or 10 minutes"
                   variant="underline"
                   staticLabel
                   value={row.distance}

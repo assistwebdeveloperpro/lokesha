@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  LISTING_TYPES,
+  PROPERTY_TYPES,
+  SUB_TYPES_BY_PROPERTY_TYPE,
+  getPhotoCategories,
   getPossessionDateInputMax,
   getPossessionDateInputMin,
 } from "./postPropertyForm.shared";
@@ -48,5 +52,28 @@ describe("possession date input bounds", () => {
       expect(getPossessionDateInputMax("pre-launch")).toBeUndefined();
       expect(getPossessionDateInputMax()).toBeUndefined();
     });
+  });
+});
+
+describe("getPhotoCategories", () => {
+  it("includes amenities for every property type, listing type, and sub type", () => {
+    for (const listingType of LISTING_TYPES) {
+      for (const propertyType of PROPERTY_TYPES) {
+        const subTypes = SUB_TYPES_BY_PROPERTY_TYPE[propertyType.id] ?? [
+          { id: "" },
+        ];
+
+        for (const subType of subTypes) {
+          const categoryIds = getPhotoCategories(propertyType.id, {
+            listingType: listingType.id,
+            subType: subType.id,
+          }).map((category) => category.id);
+
+          expect(categoryIds, `${listingType.id}/${propertyType.id}/${subType.id}`).toContain(
+            "amenities",
+          );
+        }
+      }
+    }
   });
 });

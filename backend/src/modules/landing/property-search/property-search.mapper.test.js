@@ -73,6 +73,27 @@ describe("toListing card", () => {
     const card = toListing({ ...baseRow, builder_project_id: "b1", project_name: "Praangan", posted_by: "builder" }, extras);
     expect(card.title).toBe("Praangan");
   });
+
+  it("uses variant parking counts for builder listings", () => {
+    const card = toListing(
+      {
+        ...baseRow,
+        property_type: "residential",
+        builder_project_id: "b1",
+        car_parking_count: 0,
+        posted_by: "builder",
+      },
+      {
+        ...extras,
+        variants: [
+          { property_id: "p1", car_parking_available: true, car_parking_count: 1 },
+          { property_id: "p1", car_parking_available: true, car_parking_count: 2 },
+        ],
+      }
+    );
+
+    expect(card.carParkingCount).toBe(2);
+  });
 });
 
 describe("toListing facts", () => {
@@ -147,10 +168,53 @@ describe("toListing facts", () => {
   });
 });
 
+describe("toPropertyDetails gallery", () => {
+  const baseDetails = {
+    property: { id: "p1", listing_number: 7 },
+    project: null,
+    amenityNames: [],
+    amenities: [],
+    selections: [],
+    floorPlans: [],
+  };
+
+  it("uses the search card image first and includes photos from every group member", () => {
+    const result = toPropertyDetails({
+      ...baseDetails,
+      listing: { postedBy: "builder", imageUrl: "/p2-main.jpg" },
+      media: [
+        { property_id: "p1", category: "gallery", file_path: "/p1-first.jpg" },
+        { property_id: "p2", category: "main-photo", file_path: "/p2-main.jpg" },
+        { property_id: "p1", category: "gallery", file_path: "/p1-second.jpg" },
+        { property_id: "p1", category: "brochure", file_path: "/brochure.pdf" },
+      ],
+    });
+
+    expect(result.images).toEqual(["/p2-main.jpg", "/p1-first.jpg", "/p1-second.jpg"]);
+    expect(result.imageCategories).toEqual([
+      { category: "main-photo", images: ["/p2-main.jpg"] },
+      { category: "gallery", images: ["/p1-first.jpg", "/p1-second.jpg"] },
+    ]);
+  });
+
+  it("keeps the first image when it already matches the search card image", () => {
+    const result = toPropertyDetails({
+      ...baseDetails,
+      listing: { postedBy: "owner", imageUrl: "/hero.jpg" },
+      media: [
+        { category: "main-photo", file_path: "/hero.jpg" },
+        { category: "gallery", file_path: "/other.jpg" },
+      ],
+    });
+
+    expect(result.images).toEqual(["/hero.jpg", "/other.jpg"]);
+  });
+});
+
 describe("toPropertyDetails amenities", () => {
   const details = {
     property: { id: "p1", listing_number: 7 },
-    listing: { postedBy: "owner" },
+    listing: { postedBy: "owner", imageUrl: null },
     project: null,
     media: [],
     amenityNames: [

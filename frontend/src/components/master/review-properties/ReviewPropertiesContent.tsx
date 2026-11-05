@@ -8,11 +8,13 @@ import { useHighlightProperty } from "@/components/master/manage-properties/useH
 import RejectPropertyModal from "./RejectPropertyModal";
 import ReviewPropertiesEmptyState from "./ReviewPropertiesEmptyState";
 import ReviewPropertyCard from "./ReviewPropertyCard";
+import { REVIEW_PROPERTIES_LIST_PATH } from "./BackToReviewListNav";
 import { useReviewProperties } from "./useReviewProperties";
 
 const SKELETON_COUNT = 6;
+
 const MANAGE_PROPERTIES_PATH = "/backend/properties/manage-properties";
-const REVIEW_VIEW_PATH = "/backend/properties/review-properties/view";
+const REVIEW_VIEW_PATH = `${REVIEW_PROPERTIES_LIST_PATH}/view`;
 
 export default function ReviewPropertiesContent() {
   const router = useRouter();

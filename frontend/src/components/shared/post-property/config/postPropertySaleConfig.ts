@@ -82,6 +82,7 @@ const RESIDENTIAL_PHOTO_IDS = [
   "pooja-room",
   "others",
   "balcony",
+  "amenities",
 ];
 
 const COMMERCIAL_PHOTO_IDS = [
@@ -92,6 +93,7 @@ const COMMERCIAL_PHOTO_IDS = [
   "master-plan",
   "others",
   "common-area",
+  "amenities",
 ];
 
 const BASIC_COMMERCIAL_PHOTO_IDS = [
@@ -100,6 +102,7 @@ const BASIC_COMMERCIAL_PHOTO_IDS = [
   "floor-plan",
   "master-plan",
   "others",
+  "amenities",
 ];
 
 const HOTEL_PHOTO_IDS = [
@@ -114,7 +117,13 @@ const HOTEL_PHOTO_IDS = [
   "elevation",
 ];
 
-const PLOT_LAND_PHOTO_IDS = ["exterior", "master-plan", "main-photo", "others"];
+const PLOT_LAND_PHOTO_IDS = [
+  "exterior",
+  "master-plan",
+  "main-photo",
+  "others",
+  "amenities",
+];
 
 const BASE_DETAILS: SaleDetailsConfig = {
   area: "standard",

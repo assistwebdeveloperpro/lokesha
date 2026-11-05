@@ -113,7 +113,9 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
             <PropertyDetailsGallery
               layout="hero"
               images={details.images}
+              imageCategories={details.imageCategories}
               title={listing.title}
+              subtitle={details.headlineSubtitle}
               showBrochure={listing.hasBrochure}
             />
 

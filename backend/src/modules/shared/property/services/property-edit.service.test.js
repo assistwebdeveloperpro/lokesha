@@ -33,7 +33,7 @@ const locked = (overrides = {}) => ({
 const buildPayload = () => ({
   listingType: "sale",
   propertyType: "residential",
-  address: { locality: "Vesu", pinCode: "395007", state: "Gujarat" },
+  address: { city: "Surat", locality: "Vesu", pinCode: "395007", state: "Gujarat" },
   listings: [
     {
       propertySubType: "flat-apartment",
@@ -76,7 +76,7 @@ describe("updateProperty", () => {
     expect(editRepository.updateProperty).toHaveBeenCalledWith(
       mockTrx,
       PROPERTY_ID,
-      expect.objectContaining({ title: "2 BHK Flat/Apartment in Vesu", description: "Updated", city: null })
+      expect.objectContaining({ title: "2 BHK Flat/Apartment in Vesu", description: "Updated", city: "Surat" })
     );
     expect(editRepository.deleteListingChildren).toHaveBeenCalledWith(mockTrx, PROPERTY_ID);
     expect(writeRepository.insertTypeRow).toHaveBeenCalledWith(mockTrx, "residential", {

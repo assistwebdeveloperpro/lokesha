@@ -26,7 +26,7 @@ import {
   validateBuilderProjectType,
   type BuilderFieldErrors,
 } from "../builder/builderValidation";
-import { mapDetailToForm } from "../utils/postPropertyEdit";
+import { mapDetailToForm, resolvePostingAsFromPayload } from "../utils/postPropertyEdit";
 import {
   arePhotosRequired,
   getStepFromSearchParam,
@@ -118,9 +118,7 @@ export function usePostPropertyForm() {
   // A posted property keeps the way it was posted; only a new one lets staff choose
   // A project marks a builder listing even when its owner is a builder user, not staff
   const postingAs: PostingAsId | "" = editDetail
-    ? editDetail.payload.postingAs === "builder"
-      ? "builder"
-      : ""
+    ? resolvePostingAsFromPayload(editDetail.payload)
     : selectedPostingAs;
   const {
     listingType,
@@ -140,7 +138,7 @@ export function usePostPropertyForm() {
   const isRent = isRentListing(listingType);
   // Staff and admins both choose who they are posting the listing as
   const isStaff = isAuthReady && (isAdmin || role === "lokesha_staff");
-  const showOwnerContact = isStaff;
+  const showOwnerContact = isStaff && (editDetail ? Boolean(editDetail.payload.ownerContact) : true);
   const showBuilderFields =
     isAuthReady && (role === "builder" || (isStaff && postingAs === "builder"));
   const isBuilderPost =
@@ -224,8 +222,8 @@ export function usePostPropertyForm() {
     const mapped = mapDetailToForm(editDetail);
     dispatch({ type: "draftRestored", form: mapped.form });
     subForms.restore(mapped.tabs);
-    if (mapped.postingAs === "builder") {
-      setPostingAs("builder");
+    if (mapped.postingAs) {
+      setPostingAs(mapped.postingAs);
     }
     // Runs once per loaded property; restore only sets state
     // eslint-disable-next-line react-hooks/exhaustive-deps

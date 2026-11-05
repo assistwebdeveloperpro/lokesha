@@ -65,7 +65,7 @@ async function getPropertyDetails(id) {
   const isSale = property.listing_type === "sale";
   const isBuilderListing = Boolean(property.builder_project_id);
 
-  const [cardRow, typeRow, plotDetails, pricingRow, builderListing, specifications, selections, amenities, variants, media, floorPlans, project] =
+  const [cardRow, typeRow, plotDetails, pricingRow, builderListing, specifications, selections, amenities, variants, floorPlans, project] =
     await Promise.all([
       repository.findCard(property),
       readRepository.findTypeRow(rule.typeTable, id),
@@ -76,17 +76,18 @@ async function getPropertyDetails(id) {
       readRepository.findSelections(id),
       readRepository.findAmenities(id),
       isBuilderListing ? readRepository.findVariants(id, rule.typeTable) : [],
-      readRepository.findMedia(id),
       readRepository.findFloorPlans(id),
       isBuilderListing ? readRepository.findProject(property.builder_project_id) : null,
     ]);
 
-  const [[listing], amenityNames, similar, developerStats] = await Promise.all([
+  const [cardExtras, [listing], amenityNames, similar, developerStats] = await Promise.all([
+    repository.findCardExtras(cardRow.member_ids),
     toListings([cardRow]),
     repository.findAmenityNames(amenities.map(({ amenity_key: key }) => key)),
     findSimilarListings(property, cardRow),
     project ? repository.countDeveloperProjects(project) : null,
   ]);
+  const media = cardExtras.media;
 
   return {
     ...mapper.toPropertyDetails({

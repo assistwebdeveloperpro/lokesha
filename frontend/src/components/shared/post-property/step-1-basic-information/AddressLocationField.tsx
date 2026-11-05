@@ -12,6 +12,7 @@ import type {
   AddressLocationFieldErrors,
   AddressLocationValues,
 } from "../config/postPropertyForm.shared";
+import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
 
 const DROPDOWN_PLACEHOLDER_CLASS = "font-medium text-slate-700";
 
@@ -44,6 +45,7 @@ export default function AddressLocationField({
   ) => void;
   errors?: AddressLocationFieldErrors;
 }) {
+  const readOnly = usePostPropertyReadOnly();
   const stateOptions = useMemo(
     () => [{ value: "", label: "Select State" }, ...getStateOptions()],
     [],
@@ -152,6 +154,7 @@ export default function AddressLocationField({
             searchPlaceholder="Search city"
             options={cityOptions}
             value={values.city}
+            error={errors.city}
             onChange={handleCityChange}
             dropdownMenuClassName="z-20 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white pb-1 shadow-lg shadow-slate-900/10"
           />
@@ -221,6 +224,7 @@ export default function AddressLocationField({
             id="propertyDescription"
             value={values.propertyDescription}
             rows={2}
+            readOnly={readOnly}
             aria-invalid={Boolean(errors.propertyDescription)}
             placeholder="Describe your property, highlights, and nearby amenities"
             onChange={(event) =>

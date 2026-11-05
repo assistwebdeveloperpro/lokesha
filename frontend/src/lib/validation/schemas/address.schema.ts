@@ -28,9 +28,14 @@ export function createAddressLocationSchema({
     blockNo: unitField("Block No."),
     flatNumber: unitField("Flat / House / Shop number"),
     projectName: projectNameOptional ? projectName.allow("") : projectName.required(),
+    city: Joi.string().trim().max(100).required().messages({
+      "string.empty": "Please select city",
+      "any.required": "Please select city",
+      "string.max": "City must be at most 100 characters long",
+    }),
     locality: Joi.string().trim().max(255).required().messages({
-      "string.empty": "Please enter locality",
-      "any.required": "Please enter locality",
+      "string.empty": "Please select locality",
+      "any.required": "Please select locality",
       "string.max": "Locality must be at most 255 characters long",
     }),
     pinCode: Joi.string().trim().pattern(PIN_CODE_PATTERN).required().messages({

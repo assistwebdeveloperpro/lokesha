@@ -21,7 +21,12 @@ import {
   type PropertyDetailsValues,
   type PropertyTypeId,
 } from "../config/postPropertyForm.shared";
-import { getVariantLabel } from "../builder/bhkAreaDetails";
+import {
+  getAvailableSizeLabel,
+  lookupBhkAreaDetails,
+  lookupBhkCarParking,
+  lookupBhkCharges,
+} from "../builder/bhkAreaDetails";
 import { sanitizeAmountRaw } from "./postPropertyAmount";
 
 // Everything one listing (the single form, or one sub type tab) is built from
@@ -271,14 +276,15 @@ function buildVariants(
   propertyType: PropertyTypeId,
   isFirstListing: boolean,
 ): PropertyVariantPayload[] {
-  return project.availableSizes
+  const rows = project.availableSizes
     .filter((row) => row.unitType === unitTypeLabel || (!row.unitType && isFirstListing))
-    .filter((row) => row.bhk || hasValue(toNumber(row.size)) || hasValue(toNumber(row.price)))
-    .map((row) => {
-      const label = getVariantLabel(row);
-      const parking = project.bhkCarParking[label] ?? project.bhkCarParking[row.bhk];
-      const charges = project.bhkCharges[label] ?? project.bhkCharges[row.bhk];
-      const area = project.bhkAreaDetails[label];
+    .filter((row) => row.bhk || hasValue(toNumber(row.size)) || hasValue(toNumber(row.price)));
+
+  return rows.map((row) => {
+      const label = getAvailableSizeLabel(row, rows);
+      const parking = lookupBhkCarParking(project.bhkCarParking, row, rows);
+      const charges = lookupBhkCharges(project.bhkCharges, row, rows);
+      const area = lookupBhkAreaDetails(project.bhkAreaDetails, row, rows);
       const chargeFields = compact({
         carParkingAvailable: parking?.available,
         carParkingCount: parking?.available ? toNumber(parking.count) : undefined,

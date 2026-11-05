@@ -6,6 +6,7 @@ const single = { isMulti: false };
 describe("mapBackendField", () => {
   it.each([
     ["address.locality", 1, "address", "locality"],
+    ["address.city", 1, "address", "city"],
     ["address.pinCode", 1, "address", "pinCode"],
     ["address.state", 1, undefined, undefined],
     ["ownerContact", 1, undefined, undefined],

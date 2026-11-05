@@ -108,6 +108,8 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
                     subForms.changeAmenities(activeTabId, field, value)
                   }
                   error={subForms.amenitiesErrors[activeTabId]?.carParking}
+                  propertyType={draft.propertyType}
+                  subType={activeTabId}
                   singleBlock
                   hideClubMembership
                 />
@@ -146,6 +148,8 @@ export default function AmenitiesStep({ form }: { form: PostPropertyForm }) {
                   ? subForms.amenitiesErrors[subForms.firstTabId]?.carParking
                   : draft.amenitiesErrors.carParking
               }
+              propertyType={draft.propertyType}
+              subType={isMultiSubType ? undefined : derived.propertySubType}
               singleBlock={builderConfig.carParking === "single"}
               hideClubMembership={builderConfig.hideClubMembership}
             />

@@ -20,7 +20,7 @@ const user = { id: "user-1", role: "agent" };
 const buildPayload = () => ({
   listingType: "sale",
   propertyType: "residential",
-  address: { locality: "Vesu", pinCode: "395007", state: "Gujarat" },
+  address: { city: "Surat", locality: "Vesu", pinCode: "395007", state: "Gujarat" },
   listings: [
     {
       propertySubType: "flat-apartment",

@@ -246,7 +246,7 @@ const ADDRESS = {
   pinCode: Joi.string().trim().pattern(/^[0-9]{6}$/).required().messages({
     "string.pattern.base": "Pin code must be 6 digits",
   }),
-  city: text(100),
+  city: text(100).required(),
   state: text(100).required(),
 };
 

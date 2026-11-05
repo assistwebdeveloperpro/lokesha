@@ -64,7 +64,8 @@ export default function CustomDropdown({
   searchPlaceholder = "Search",
   searchMinChars = DEFAULT_SEARCH_MIN_CHARS,
   placeholderClassName = "text-slate-400",
-}:CustomDropdownProps) {
+  suppressFocusCaret = false,
+}: CustomDropdownProps) {
   const isBoxed = variant === "boxed";
   const focusBorder =
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
@@ -113,10 +114,12 @@ export default function CustomDropdown({
       ? "text-slate-600 font-medium"
       : "text-slate-900 font-medium";
 
-  const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none transition-colors ${
+  const underlineFieldClasses = `flex w-full items-center justify-between border-0 border-b bg-transparent pb-2.5 text-left text-sm ${fieldTextColor} outline-none ring-0 transition-colors focus:ring-0 focus-visible:ring-0 focus-visible:outline-none ${
     hasError
       ? "border-red-500 focus:border-red-500"
-      : `border-slate-300 ${focusBorder}`
+      : suppressFocusCaret
+        ? "border-slate-300 focus:border-slate-300"
+        : `border-slate-300 ${focusBorder}`
   }`;
   const boxedFieldClasses = `flex w-full min-h-11 items-center justify-between rounded-xl border bg-white px-3.5 py-2.5 text-left text-sm ${fieldTextColor} shadow-sm outline-none transition ${
     hasError

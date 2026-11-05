@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { BackToReviewListLink } from "@/components/master/review-properties/BackToReviewListNav";
 import EditPropertyStatus from "./components/EditPropertyStatus";
 import FormStepper from "./components/FormStepper";
 import { getProgressForStep } from "./config/postPropertyForm.shared";
@@ -46,13 +45,7 @@ export default function PostPropertyContent() {
       >
         {isViewMode ? (
           <div className="mb-6">
-            <Link
-              href={returnPath}
-              className="post-property-review-nav inline-flex items-center gap-2 text-sm font-semibold text-navy-blue hover:underline"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to review list
-            </Link>
+            <BackToReviewListLink href={returnPath} />
           </div>
         ) : null}
 

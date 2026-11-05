@@ -15,6 +15,7 @@ import {
 const validAddress = {
   ...INITIAL_ADDRESS_LOCATION,
   projectName: "Green Heights",
+  city: "Bengaluru",
   locality: "Indiranagar",
   pinCode: "560038",
   propertyDescription: "Spacious corner flat",
@@ -28,7 +29,8 @@ describe("validateAddressLocation", () => {
   it("reports every missing required field", () => {
     expect(validateAddressLocation(INITIAL_ADDRESS_LOCATION)).toEqual({
       projectName: "Please enter the name of society, building, or project name",
-      locality: "Please enter locality",
+      city: "Please select city",
+      locality: "Please select locality",
       pinCode: "Please enter pin code",
       propertyDescription: "Please enter property description",
     });

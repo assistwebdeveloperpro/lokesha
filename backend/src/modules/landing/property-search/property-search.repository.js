@@ -165,8 +165,17 @@ async function findCardExtras(memberIds) {
       .orderBy("created_at", "asc"),
     db("property_variants as v")
       .join("residential_property_variants as rv", "rv.variant_id", "v.id")
+      .leftJoin("property_variant_charges as vc", "vc.variant_id", "v.id")
       .whereIn("v.property_id", memberIds)
-      .select("v.property_id", "rv.bhk", "rv.carpet_area", "rv.carpet_area_max", "rv.carpet_area_unit"),
+      .select(
+        "v.property_id",
+        "rv.bhk",
+        "rv.carpet_area",
+        "rv.carpet_area_max",
+        "rv.carpet_area_unit",
+        "vc.car_parking_available",
+        "vc.car_parking_count"
+      ),
     db("property_sale_details")
       .whereIn("property_id", memberIds)
       .whereRaw("coalesce(rera_number, '') <> ''")

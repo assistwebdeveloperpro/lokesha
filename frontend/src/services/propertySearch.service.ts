@@ -6,6 +6,12 @@ import { apiFetch, getAssetUrl } from "./apiClient";
 
 export type PublicPropertyAttributes = Record<string, string | number | boolean | null>;
 
+export type PublicPropertyVariantCharges = {
+  carParkingAvailable?: boolean | null;
+  carParkingCount?: number | null;
+  clubMembership?: boolean | null;
+};
+
 export type PublicPropertyVariant = {
   label: string | null;
   size: string | null;
@@ -15,9 +21,12 @@ export type PublicPropertyVariant = {
   bhk?: number | null;
   carpetArea?: string | null;
   carpetAreaMax?: string | null;
+  carpetAreaUnit?: string | null;
   superBuiltUpArea?: string | null;
   superBuiltUpAreaMax?: string | null;
+  superBuiltUpAreaUnit?: string | null;
   bathrooms?: number | null;
+  charges?: PublicPropertyVariantCharges | null;
 };
 
 export type PublicPropertyFloorPlan = {
@@ -55,12 +64,18 @@ export type PublicAmenityItem = {
   imagePath: string;
 };
 
+export type PublicPropertyImageCategory = {
+  category: string;
+  images: string[];
+};
+
 export type PublicPropertyDetails = {
   id: string;
   displayPropertyId: string;
   kind: "project" | "unit";
   listing: PublicSearchListing;
   images: string[];
+  imageCategories?: PublicPropertyImageCategory[];
   address: string;
   description: string;
   facing: string | null;
@@ -123,6 +138,10 @@ export async function getPublicPropertyDetails(id: string) {
     listing: withImageUrl(property.listing),
     similar: property.similar.map(withImageUrl),
     images: property.images.map(getAssetUrl),
+    imageCategories: (property.imageCategories ?? []).map(({ category, images }) => ({
+      category,
+      images: images.map(getAssetUrl),
+    })),
     brochure: property.brochure ? getAssetUrl(property.brochure) : null,
     floorPlans: property.floorPlans.map((plan) => ({ ...plan, path: getAssetUrl(plan.path) })),
   };

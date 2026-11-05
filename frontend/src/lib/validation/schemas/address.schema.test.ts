@@ -4,6 +4,7 @@ import { createAddressLocationSchema } from "./address.schema";
 
 const validAddress = {
   projectName: "Green Heights",
+  city: "Bengaluru",
   locality: "Indiranagar",
   pinCode: "560038",
   propertyDescription: "Spacious corner flat",
@@ -19,6 +20,7 @@ describe("createAddressLocationSchema", () => {
   it("asks for every required field when blank", () => {
     const { errors } = validateWithSchema(createAddressLocationSchema(), {
       projectName: "   ",
+      city: "",
       locality: "",
       pinCode: "",
       propertyDescription: "  ",
@@ -26,7 +28,8 @@ describe("createAddressLocationSchema", () => {
 
     expect(errors).toEqual({
       projectName: "Please enter the name of society, building, or project name",
-      locality: "Please enter locality",
+      city: "Please select city",
+      locality: "Please select locality",
       pinCode: "Please enter pin code",
       propertyDescription: "Please enter property description",
     });

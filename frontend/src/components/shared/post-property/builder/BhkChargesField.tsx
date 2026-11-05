@@ -2,20 +2,17 @@
 
 import { Fragment, useState, type ReactNode } from "react";
 import BhkTabList from "./BhkTabList";
-import { getVariantLabel } from "./bhkAreaDetails";
+import type { BhkAreaTab } from "./bhkAreaDetails";
 import PostPropertyAmountInput from "../step-5-pricing-and-additional-details/PostPropertyAmountInput";
 import PostPropertyFieldSection from "../components/PostPropertyFieldSection";
 import PostPropertyInput from "../components/PostPropertyInput";
 import type { PricingOthersValues } from "../config/postPropertyForm.shared";
 import {
-  POST_PROPERTY_BHK_BADGE,
-  POST_PROPERTY_BHK_PANEL,
   POST_PROPERTY_INNER_PANEL,
   POST_PROPERTY_SUBSECTION_LABEL,
 } from "../config/postPropertyForm.styles";
 import {
   EMPTY_BHK_CHARGES,
-  getSelectedBhks,
   type BhkCharges,
   type ProjectDetailsValues,
 } from "@/components/master/post-property/postPropertyProjectDetails";
@@ -80,6 +77,14 @@ function SectionWrapper({ children }: { children: ReactNode }) {
   );
 }
 
+function getChargesForTab(values: ProjectDetailsValues, tab: BhkAreaTab): BhkCharges {
+  return (
+    values.bhkCharges[tab.key] ??
+    values.bhkCharges[tab.bhk] ??
+    EMPTY_BHK_CHARGES
+  );
+}
+
 export default function BhkChargesField({
   values,
   onChange,
@@ -88,15 +93,10 @@ export default function BhkChargesField({
   singleBlock = false,
   showAssuredReturn = false,
   assuredReturnError,
-  bhkList,
-  unitType,
+  chargeTabs = [],
   embedded = false,
 }: {
-  // BHKs of one sub type; defaults to every BHK of the project
-  bhkList?: string[];
-  // Label of the sub type the BHKs belong to
-  unitType?: string;
-  // Rendered inside sub type tabs, so the section heading is skipped
+  chargeTabs?: BhkAreaTab[];
   embedded?: boolean;
   singleBlock?: boolean;
   showAssuredReturn?: boolean;
@@ -112,24 +112,14 @@ export default function BhkChargesField({
     value: PricingOthersValues[K],
   ) => void;
 }) {
-  const bhks = singleBlock ? [] : (bhkList ?? getSelectedBhks(values));
-  const [selectedBhk, setSelectedBhk] = useState("");
-  const activeBhk = bhks.includes(selectedBhk) ? selectedBhk : (bhks[0] ?? "");
+  const tabs = singleBlock ? [] : chargeTabs;
+  const [selectedKey, setSelectedKey] = useState("");
+  const activeTab = tabs.find((tab) => tab.key === selectedKey) ?? tabs[0];
 
-  // Charges are stored per BHK and unit type, so Flat and Duplex 2 BHK stay apart
-  const chargesKey = (bhk: string) => {
-    const row = values.availableSizes.find(
-      (item) => item.bhk === bhk && (!unitType || !item.unitType || item.unitType === unitType),
-    );
-    return row ? getVariantLabel(row) : bhk;
-  };
-  const getCharges = (bhk: string) =>
-    values.bhkCharges[chargesKey(bhk)] ?? values.bhkCharges[bhk] ?? EMPTY_BHK_CHARGES;
-
-  const update = (bhk: string, patch: Partial<BhkCharges>) =>
+  const update = (tab: BhkAreaTab, patch: Partial<BhkCharges>) =>
     onChange("bhkCharges", {
       ...values.bhkCharges,
-      [chargesKey(bhk)]: { ...getCharges(bhk), ...patch },
+      [tab.key]: { ...getChargesForTab(values, tab), ...patch },
     });
 
   const Wrapper = embedded ? Fragment : SectionWrapper;
@@ -137,7 +127,7 @@ export default function BhkChargesField({
   return (
     <Wrapper>
       <div className="space-y-6">
-        {bhks.length === 0 ? (
+        {tabs.length === 0 ? (
           <div className={`${POST_PROPERTY_INNER_PANEL} space-y-4`}>
             {singleBlock ? null : (
               <p className={`${POST_PROPERTY_SUBSECTION_LABEL} mb-4`}>
@@ -161,37 +151,39 @@ export default function BhkChargesField({
                 />
               </div>
             ) : null}
-          <ChargeFields
-            idSuffix=""
-            values={{
-              transferFee: pricingOthers.transferFee,
-              bookingAmount: pricingOthers.bookingAmount,
-              maintenanceCharges: pricingOthers.maintenanceCharges,
-              benefitsRemarks: pricingOthers.benefitsRemarks,
-            }}
-            onChange={(patch) => {
-              for (const [field, value] of Object.entries(patch)) {
-                onPricingOthersChange(field as keyof BhkCharges, value);
-              }
-            }}
-          />
+            <ChargeFields
+              idSuffix=""
+              values={{
+                transferFee: pricingOthers.transferFee,
+                bookingAmount: pricingOthers.bookingAmount,
+                maintenanceCharges: pricingOthers.maintenanceCharges,
+                benefitsRemarks: pricingOthers.benefitsRemarks,
+              }}
+              onChange={(patch) => {
+                for (const [field, value] of Object.entries(patch)) {
+                  onPricingOthersChange(field as keyof BhkCharges, value);
+                }
+              }}
+            />
           </div>
         ) : (
           <>
             <BhkTabList
-              bhks={bhks}
-              activeBhk={activeBhk}
-              onSelect={setSelectedBhk}
+              tabs={tabs.map((tab) => ({ key: tab.key, label: tab.label }))}
+              activeKey={activeTab?.key ?? ""}
+              onSelect={setSelectedKey}
               label="Charges by BHK"
             />
-            <div role="tabpanel" className={POST_PROPERTY_BHK_PANEL}>
-              <ChargeFields
-                key={activeBhk}
-                idSuffix={`-${activeBhk}`}
-                values={getCharges(activeBhk)}
-                onChange={(patch) => update(activeBhk, patch)}
-              />
-            </div>
+            {activeTab ? (
+              <div role="tabpanel" className="space-y-4">
+                <ChargeFields
+                  key={activeTab.key}
+                  idSuffix={`-${activeTab.key.replace(/\W+/g, "-")}`}
+                  values={getChargesForTab(values, activeTab)}
+                  onChange={(patch) => update(activeTab, patch)}
+                />
+              </div>
+            ) : null}
           </>
         )}
       </div>

@@ -15,7 +15,7 @@ const baseProperty = {
   locality: "Vesu",
   address_line_2: "Near park",
   pin_code: "395007",
-  city: null,
+  city: "Surat",
   state: "Gujarat",
   description: "Nice flat",
   facing: "north-east",
@@ -146,9 +146,8 @@ describe("toPropertyDetail", () => {
     expect(payload).toMatchObject({
       listingType: "sale",
       propertyType: "residential",
-      address: { projectName: "Sky Towers", locality: "Vesu", addressLine2: "Near park", pinCode: "395007", state: "Gujarat" },
+      address: { projectName: "Sky Towers", city: "Surat", locality: "Vesu", addressLine2: "Near park", pinCode: "395007", state: "Gujarat" },
     });
-    expect(payload.address).not.toHaveProperty("city");
     expect(payload).not.toHaveProperty("project");
     expect(listing).toMatchObject({
       propertySubType: "flat-apartment",

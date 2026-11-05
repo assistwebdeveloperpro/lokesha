@@ -28,6 +28,9 @@ const PLAN_TYPE_TABS: { id: FloorPlanViewType; label: string }[] = [
 ];
 
 function configTabLabel(label: string): string {
+  if (/\([^)]+\)\s*$/.test(label.trim())) {
+    return label;
+  }
   const match = label.match(/^(\d+)\s*BHK/i);
   return match ? `${match[1]} BHK` : label;
 }

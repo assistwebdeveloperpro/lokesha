@@ -19,6 +19,8 @@ type PostPropertyStepCardProps = {
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
   isActionDisabled?: boolean;
+  actionClassName?: string;
+  actionSlot?: ReactNode;
   children: ReactNode;
 };
 
@@ -31,6 +33,8 @@ export default function PostPropertyStepCard({
   secondaryActionLabel,
   onSecondaryAction,
   isActionDisabled = false,
+  actionClassName,
+  actionSlot,
   children,
 }: PostPropertyStepCardProps) {
   return (
@@ -73,14 +77,19 @@ export default function PostPropertyStepCard({
               {secondaryActionLabel}
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={onAction}
-            disabled={isActionDisabled}
-            className={`post-property-review-nav ${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`}
-          >
-            {actionLabel}
-          </button>
+          {actionSlot ?? (
+            <button
+              type="button"
+              onClick={onAction}
+              disabled={isActionDisabled}
+              className={
+                actionClassName ??
+                `post-property-review-nav ${POST_PROPERTY_PRIMARY_BTN} disabled:cursor-not-allowed disabled:opacity-60`
+              }
+            >
+              {actionLabel}
+            </button>
+          )}
         </div>
       </div>
     </section>

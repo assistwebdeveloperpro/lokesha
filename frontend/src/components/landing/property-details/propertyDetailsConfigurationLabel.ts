@@ -1,4 +1,9 @@
 const CONFIG_LABEL_RE = /^(\d+\+?)\s*BHK(?:\s+(.+))?$/i;
+const SIZE_SUFFIX_RE = /\s*\([^)]+\)\s*$/;
+
+function stripSizeSuffix(label: string) {
+  return label.replace(SIZE_SUFFIX_RE, "").trim();
+}
 
 function sortBhkKeys(a: string, b: string) {
   const delta = parseInt(a, 10) - parseInt(b, 10);
@@ -10,7 +15,7 @@ export function formatPropertyConfigurationLabel(labels: string[]): string {
   const unmatched: string[] = [];
 
   for (const raw of labels) {
-    const label = raw.trim();
+    const label = stripSizeSuffix(raw);
     if (!label) continue;
 
     const match = CONFIG_LABEL_RE.exec(label);

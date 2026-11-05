@@ -1,26 +1,26 @@
 "use client";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Expand,
-  FileDown,
-  ImageIcon,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Expand, FileDown, ImageIcon } from "lucide-react";
+import { useCallback, useState } from "react";
+import { PropertyDetailsGalleryFullscreen } from "./PropertyDetailsGalleryFullscreen";
+import type { PropertyDetailsImageCategory } from "./propertyDetails.types";
 
 const HERO_THUMB_SLOTS = 5;
 
 type PropertyDetailsGalleryProps = {
   images: string[];
+  imageCategories?: PropertyDetailsImageCategory[];
   title: string;
+  subtitle: string;
   showBrochure?: boolean;
   layout?: "hero" | "full";
 };
 
 export function PropertyDetailsGallery({
   images,
+  imageCategories = [],
   title,
+  subtitle,
   showBrochure = false,
   layout = "full",
 }: PropertyDetailsGalleryProps) {
@@ -41,17 +41,6 @@ export function PropertyDetailsGallery({
     if (safeImages.length === 0) return;
     setActiveIndex((index) => (index + 1) % safeImages.length);
   }, [safeImages.length]);
-
-  useEffect(() => {
-    if (!isFullscreen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsFullscreen(false);
-      if (event.key === "ArrowLeft") goPrev();
-      if (event.key === "ArrowRight") goNext();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isFullscreen, goNext, goPrev]);
 
   if (safeImages.length === 0) {
     return (
@@ -77,7 +66,7 @@ export function PropertyDetailsGallery({
           <img
             src={activeImage}
             alt={`${title} – photo ${activeIndex + 1}`}
-            className="h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover object-center"
             onError={() => setImageErrors((prev) => ({ ...prev, [activeIndex]: true }))}
           />
         ) : (
@@ -157,7 +146,7 @@ export function PropertyDetailsGallery({
                 aria-label={isMoreSlot ? `Show ${heroExtraCount} more photos` : `Show photo ${imageIndex + 1}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image} alt="" className="h-full w-full object-cover" />
+                <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
                 {isMoreSlot ? (
                   <span className="absolute inset-0 flex items-center justify-center bg-slate-900/55 text-xs font-bold text-white sm:text-sm">
                     + {heroExtraCount} More
@@ -184,7 +173,7 @@ export function PropertyDetailsGallery({
               aria-label={`Show photo ${index + 1}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image} alt="" className="h-full w-full object-cover" />
+              <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
             </button>
           ))}
         </div>
@@ -195,48 +184,15 @@ export function PropertyDetailsGallery({
   return (
     <>
       {galleryBody}
-      {isFullscreen ? (
-        <div className="fixed inset-0 z-50 flex flex-col bg-slate-950/95 p-3 sm:p-6">
-          <div className="mb-3 flex items-center justify-between text-white">
-            <p className="truncate text-sm font-medium sm:text-base">{title}</p>
-            <button
-              type="button"
-              onClick={() => setIsFullscreen(false)}
-              className="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-            >
-              Close
-            </button>
-          </div>
-          <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={activeImage}
-              alt={`${title} – fullscreen`}
-              className="max-h-full max-w-full object-contain"
-            />
-            {safeImages.length > 1 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  className="absolute left-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/90 text-navy-blue shadow-lg"
-                  aria-label="Previous photo"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="absolute right-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/90 text-navy-blue shadow-lg"
-                  aria-label="Next photo"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      <PropertyDetailsGalleryFullscreen
+        open={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        title={title}
+        subtitle={subtitle}
+        categories={imageCategories}
+        fallbackImages={safeImages}
+        initialImageUrl={activeImage}
+      />
     </>
   );
 }

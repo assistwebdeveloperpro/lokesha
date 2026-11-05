@@ -28,7 +28,7 @@ const STEP_AMENITIES = 3;
 const STEP_PHOTOS = 4;
 const STEP_PRICING = 5;
 
-const ADDRESS_FIELDS = ["blockNo", "flatNumber", "projectName", "locality", "pinCode"];
+const ADDRESS_FIELDS = ["blockNo", "flatNumber", "projectName", "city", "locality", "pinCode"];
 const OWNER_CONTACT_FIELDS = ["fullName", "mobileNumber", "alternateMobileNumber", "email", "whatsappNumber"];
 
 // Backend detail fields that belong to the amenities step, with the form field they show on

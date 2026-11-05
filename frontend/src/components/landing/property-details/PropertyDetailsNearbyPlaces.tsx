@@ -13,7 +13,7 @@ export function PropertyDetailsNearbyPlaces({ items }: PropertyDetailsNearbyPlac
         {items.map(({ place, distance }, index) => (
           <li key={`${index}-${place}`} className="flex items-center gap-2.5">
             <Home className="h-5 w-5 shrink-0 text-sky-500" strokeWidth={2} aria-hidden />
-            <span className="text-sm leading-snug text-slate-700 sm:text-sm">
+            <span className="text-sm leading-snug text-slate-700 lg:text-sm">
               {place}
               {distance ? ` - ${distance}` : null}
             </span>

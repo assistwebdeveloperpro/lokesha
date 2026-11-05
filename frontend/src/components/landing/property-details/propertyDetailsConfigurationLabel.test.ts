@@ -21,4 +21,14 @@ describe("formatPropertyConfigurationLabel", () => {
   it("keeps 6+ BHK labels", () => {
     expect(formatPropertyConfigurationLabel(["6+ BHK Duplex"])).toBe("6+ BHK Duplex");
   });
+
+  it("collapses repeated BHK + unit type that only differ by size suffix", () => {
+    expect(
+      formatPropertyConfigurationLabel([
+        "4 BHK Bungalow/Villa (225 sq ft)",
+        "4 BHK Bungalow/Villa (265 sq ft)",
+        "4 BHK Bungalow/Villa (325 sq ft)",
+      ]),
+    ).toBe("4 BHK Bungalow/Villa");
+  });
 });

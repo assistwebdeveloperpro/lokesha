@@ -401,9 +401,24 @@ describe("mapDetailToForm builder", () => {
       { ...createAvailableSizeRow("Flat/Apartment"), bhk: "2 BHK", size: "1000", price: "4000000", unitsAvailable: "10" },
       { ...createAvailableSizeRow("Flat/Apartment"), bhk: "6+ BHK", size: "3", price: "6000000", sizeUnit: "Acres" },
     ],
-    bhkCarParking: { "2 BHK": { available: true, count: "1", clubMembership: true } },
+    bhkAreaDetails: {
+      "2 BHK Flat/Apartment": {
+        carpetAreaMin: "800",
+        carpetAreaMax: "950",
+        carpetAreaType: "sq-ft",
+        superBuildUpMin: "1100",
+        superBuildUpMax: "1300",
+        superBuildUpType: "sq-ft",
+      },
+    },
+    bhkCarParking: { "2 BHK Flat/Apartment": { available: true, count: "1", clubMembership: true } },
     bhkCharges: {
-      "2 BHK": { transferFee: "5000", bookingAmount: "", maintenanceCharges: "300", benefitsRemarks: "Free parking" },
+      "2 BHK Flat/Apartment": {
+        transferFee: "5000",
+        bookingAmount: "",
+        maintenanceCharges: "300",
+        benefitsRemarks: "Free parking",
+      },
     },
     brochureImages: [{ id: "bi1", name: "p.jpg", previewUrl: "", status: "uploaded", remote: { id: "bi1", path: "/uploads/properties/p1/bi1.jpg" } }],
     floorPlans: [
@@ -456,6 +471,14 @@ describe("mapDetailToForm builder", () => {
       ["2 BHK", "Flat/Apartment", "sq ft"],
       ["6+ BHK", "Flat/Apartment", "Acres"],
     ]);
+    expect(restored.bhkAreaDetails["2 BHK Flat/Apartment"]).toEqual({
+      carpetAreaMin: "800",
+      carpetAreaMax: "950",
+      carpetAreaType: "sq-ft",
+      superBuildUpMin: "1100",
+      superBuildUpMax: "1300",
+      superBuildUpType: "sq-ft",
+    });
     expect(restored.bhkCarParking["2 BHK Flat/Apartment"]).toEqual({ available: true, count: "1", clubMembership: true });
     expect(restored.bhkCharges["2 BHK Flat/Apartment"].benefitsRemarks).toBe("Free parking");
     expect(restored.projectHighlights.map((row) => row.text)).toEqual(["Near metro"]);

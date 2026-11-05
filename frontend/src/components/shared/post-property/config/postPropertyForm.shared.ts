@@ -363,6 +363,7 @@ export type AddressLocationFieldErrors = Partial<
     | "blockNo"
     | "flatNumber"
     | "projectName"
+    | "city"
     | "locality"
     | "pinCode"
     | "propertyDescription",
@@ -1384,6 +1385,7 @@ const COMMERCIAL_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
   "master-plan",
   "others",
   "common-area",
+  "amenities",
 ];
 
 const LIMITED_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
@@ -1391,14 +1393,30 @@ const LIMITED_PHOTO_CATEGORY_IDS: PhotoCategoryId[] = [
   "master-plan",
   "main-photo",
   "others",
+  "amenities",
 ];
 
-// Main photo is always the first category
+const AMENITIES_PHOTO_CATEGORY = PHOTO_CATEGORY_OPTIONS.find(
+  (category) => category.id === "amenities",
+)!;
+
+function withAmenitiesPhotoCategory(
+  categories: Array<(typeof PHOTO_CATEGORY_OPTIONS)[number]>,
+) {
+  if (categories.some((category) => category.id === "amenities")) {
+    return categories;
+  }
+  return [...categories, AMENITIES_PHOTO_CATEGORY];
+}
+
+// Main photo is always the first category; amenities is always present
 export function getPhotoCategories(
   propertyType: PropertyTypeId,
   context?: { listingType?: ListingTypeId; subType?: string },
 ) {
-  const categories = getBasePhotoCategories(propertyType, context);
+  const categories = withAmenitiesPhotoCategory(
+    getBasePhotoCategories(propertyType, context),
+  );
   const main = categories.filter((category) => category.id === "main-photo");
   return [
     ...main,

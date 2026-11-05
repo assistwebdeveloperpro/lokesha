@@ -78,6 +78,41 @@ export type AvailableSizeRow = {
   unitsAvailable: string;
 };
 
+export function getVariantBaseLabel(row: Pick<AvailableSizeRow, "bhk" | "unitType">) {
+  return [row.bhk, row.unitType].filter(Boolean).join(" ");
+}
+
+export const getVariantLabel = getVariantBaseLabel;
+
+function isAvailableSizeLabelRow(row: AvailableSizeRow) {
+  return Boolean(row.bhk || row.unitType);
+}
+
+// When the same BHK + unit type appears more than once, every row includes size (or an index until size is filled).
+export function getAvailableSizeLabel(row: AvailableSizeRow, rows: AvailableSizeRow[]): string {
+  const base = getVariantBaseLabel(row);
+  const eligible = rows.filter(isAvailableSizeLabelRow);
+  const sameBase = eligible.filter((item) => getVariantBaseLabel(item) === base);
+
+  if (sameBase.length <= 1) {
+    return base;
+  }
+
+  const size = row.size.trim();
+  if (size) {
+    const unit = row.sizeUnit.trim();
+    const sizeLabel = unit ? `${size} ${unit}` : size;
+    return `${base} (${sizeLabel})`;
+  }
+
+  const dupeIndex = sameBase.findIndex((item) => item.id === row.id);
+  return `${base} (${dupeIndex + 1})`;
+}
+
+export function getAvailableSizeLabels(rows: AvailableSizeRow[]): string[] {
+  return rows.filter(isAvailableSizeLabelRow).map((row) => getAvailableSizeLabel(row, rows));
+}
+
 export type SpecificationItem = {
   id: string;
   label: string;
@@ -265,13 +300,11 @@ export function getChargeBhks(values: ProjectDetailsValues): string[] {
   return [...new Set([...getSelectedBhks(values), ...values.chargeBhks])];
 }
 
-// One floor plan title per BHK + unit type combination in Available Sizes
+// One floor plan title per Available Sizes row (size suffix when BHK + unit type repeats)
 export function getFloorPlanTitles(values: ProjectDetailsValues): string[] {
-  const titles = values.availableSizes
-    .filter((row) => row.bhk || row.unitType)
-    .map((row) => [row.bhk, row.unitType].filter(Boolean).join(" "));
-  return [...new Set(titles)];
+  return getAvailableSizeLabels(values.availableSizes);
 }
+
 
 export const SPECIFICATION_FIELD_LABELS = [
   "Electrification",

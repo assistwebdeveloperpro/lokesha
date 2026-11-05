@@ -112,7 +112,7 @@ function FloorPlanRowItem({
   onFile: (file: File) => void;
   onRetry: () => void;
   onRemove: () => void;
-  titleExample: string;
+  titleExample?: string;
   titleLocked?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -157,7 +157,9 @@ function FloorPlanRowItem({
     </button>
   );
 
-  const titleLabel = `Floor Plan Title (e.g. ${titleExample})`;
+  const titleLabel = titleLocked
+    ? "Floor Plan Title"
+    : `Floor Plan Title (e.g. ${titleExample ?? ""})`;
   const titleField = titleLocked ? (
     <PostPropertyInput
       id={`floorPlanLabel-${row.id}`}
@@ -361,7 +363,6 @@ export default function FloorPlansField({
                   <FloorPlanRowItem
                     row={row}
                     titleLocked
-                    titleExample={titleExample}
                     canRemove={false}
                     onUpdate={(patch) => updateByTitle(title, activePlanType, patch)}
                     onFile={(file) => handleFile(row, file)}

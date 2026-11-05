@@ -39,7 +39,7 @@ export function PropertyDetailsFaqs({ items }: PropertyDetailsFaqsProps) {
               aria-controls={panelId}
               onClick={() => toggle(index)}
             >
-              <span className="text-sm font-semibold text-navy-deep sm:text-base">{question}</span>
+              <span className="text-sm font-semibold text-navy sm:text-base">{question}</span>
               {isOpen ? (
                 <ChevronUp className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" aria-hidden />
               ) : (

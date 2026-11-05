@@ -63,7 +63,7 @@ export const CITY_LOCALITIES: Record<string, string[]> = {
   Mapusa: ["Angod", "Khorlim", "Sirsaim", "Duler", "Anjuna", "Mapusa Market"],
   Ponda: ["Farmagudi", "Bethora", "Usgao", "Kavlem", "Curti", "Priol"],
 
-  Ahmedabad: ["Satellite", "Bopal", "Prahlad Nagar", "Vastrapur", "Navrangpura", "Maninagar", "SG Highway", "Gota", "Nikol"],
+  Ahmedabad: ["Satellite", "Bopal", "Prahlad Nagar", "Vastrapur", "Navrangpura", "Maninagar", "SG Highway", "Gota", "Nikol", "Chandkheda", "Hathijan"],
   Surat: ["Vesu", "Adajan", "Piplod", "City Light", "Althan", "Varachha", "Pal"],
   Vadodara: ["Alkapuri", "Gotri", "Manjalpur", "Akota", "Fatehgunj", "Karelibaug", "Waghodia Road"],
   Rajkot: ["Kalawad Road", "University Road", "Raiya Road", "150 Feet Ring Road", "Mavdi", "Gondal Road"],

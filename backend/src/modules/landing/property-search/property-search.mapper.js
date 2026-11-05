@@ -55,6 +55,25 @@ const uniqueSorted = (values) => [...new Set(values.filter((value) => Number.isF
 const minOrNull = (values) => (values.length ? Math.min(...values) : null);
 const maxOrNull = (values) => (values.length ? Math.max(...values) : null);
 
+function resolveCarParkingCount(row, variants, isBuilder) {
+  if (!isBuilder) {
+    return row.car_parking_count ?? null;
+  }
+
+  const counts = variants
+    .map(({ car_parking_count: count }) => toNumberOrNull(count))
+    .filter((count) => count !== null && count > 0);
+  if (counts.length) {
+    return maxOrNull(counts);
+  }
+
+  if (variants.some(({ car_parking_available: available }) => available)) {
+    return row.car_parking_count ?? null;
+  }
+
+  return row.car_parking_count ?? null;
+}
+
 const trimOrNull = (value) => {
   const trimmed = value?.trim();
   return trimmed || null;
@@ -120,7 +139,7 @@ function toListing(row, extras) {
     ageOfConstruction: row.age_of_construction ?? null,
     propertyTransaction: row.property_transaction ?? null,
     washrooms: row.washrooms ?? null,
-    carParkingCount: row.car_parking_count ?? null,
+    carParkingCount: resolveCarParkingCount(row, variants, isBuilder),
     pgGender: row.pg_gender ?? null,
     foodChargeType: row.food_charge_type ?? null,
     roadFacing: row.road_facing ?? null,
@@ -160,6 +179,61 @@ function toVariant({ typeRow, charges, ...variant }) {
   return { ...toCamelRow(variant), ...toCamelRow(typeRow), charges: toCamelRow(charges) };
 }
 
+function galleryMedia(media) {
+  return media.filter(({ category }) => category !== BROCHURE_CATEGORY);
+}
+
+const MAIN_PHOTO_CATEGORY = "main-photo";
+
+function uniquePaths(paths) {
+  return [...new Set(paths)];
+}
+
+function toGalleryImagePaths(media, listingImageUrl) {
+  const items = galleryMedia(media);
+  const mainPhotoPaths = uniquePaths(
+    items.filter(({ category }) => category === MAIN_PHOTO_CATEGORY).map(({ file_path: path }) => path),
+  );
+  const otherPaths = uniquePaths(
+    items
+      .filter(({ category }) => category !== MAIN_PHOTO_CATEGORY)
+      .map(({ file_path: path }) => path)
+      .filter((path) => !mainPhotoPaths.includes(path)),
+  );
+  let paths = [...mainPhotoPaths, ...otherPaths];
+
+  if (!listingImageUrl) return paths;
+
+  const withoutListingImage = paths.filter((path) => path !== listingImageUrl);
+  if (!paths.includes(listingImageUrl)) {
+    return [listingImageUrl, ...paths];
+  }
+
+  return [listingImageUrl, ...withoutListingImage];
+}
+
+function toGalleryImageCategories(media) {
+  const groups = new Map();
+  const order = [];
+
+  for (const { category, file_path: path } of galleryMedia(media)) {
+    const key = category ?? "others";
+    if (!groups.has(key)) {
+      groups.set(key, []);
+      order.push(key);
+    }
+    groups.get(key).push(path);
+  }
+
+  const mainIndex = order.indexOf(MAIN_PHOTO_CATEGORY);
+  if (mainIndex > 0) {
+    order.splice(mainIndex, 1);
+    order.unshift(MAIN_PHOTO_CATEGORY);
+  }
+
+  return order.map((category) => ({ category, images: groups.get(category) }));
+}
+
 // data is the raw rows of one published property, listing is its card
 function toPropertyDetails(data) {
   const { property, listing, project, media, amenityNames } = data;
@@ -175,8 +249,8 @@ function toPropertyDetails(data) {
     displayPropertyId: String(property.listing_number),
     kind: project ? "project" : "unit",
     listing,
-    images: media.filter(({ media_type: type, category }) => type === "image" && category !== BROCHURE_CATEGORY)
-      .map(({ file_path: path }) => path),
+    images: toGalleryImagePaths(media, listing.imageUrl),
+    imageCategories: toGalleryImageCategories(media),
     address: toAddress(property),
     description: property.description,
     facing: property.facing,
