@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { PropertyDetailsReraIdValue } from "./PropertyDetailsReraIdValue";
 import type { PropertyDetailsSpecRow } from "./propertyDetails.types";
 
 type PropertyDetailsSpecGridProps = {
@@ -26,7 +27,11 @@ export function PropertyDetailsSpecGrid({ rows, columns = 2 }: PropertyDetailsSp
               row.label === "ReraId" ? "text-small" : "text-sm sm:text-base",
             )}
           >
-            {row.value}
+            {row.label === "ReraId" ? (
+              <PropertyDetailsReraIdValue value={row.value} />
+            ) : (
+              row.value
+            )}
           </dd>
         </div>
       ))}
