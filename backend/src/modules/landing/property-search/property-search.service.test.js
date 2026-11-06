@@ -3,6 +3,7 @@ jest.mock("./property-search.repository");
 jest.mock("../../shared/property/repositories/property-read.repository");
 
 const repository = require("./property-search.repository");
+const readRepository = require("../../shared/property/repositories/property-read.repository");
 const { searchQuerySchema } = require("./property-search.validation");
 const { searchProperties, getPropertyDetails } = require("./property-search.service");
 
@@ -70,5 +71,42 @@ describe("getPropertyDetails", () => {
     repository.findPublishedProperty.mockResolvedValue(undefined);
 
     await expect(getPropertyDetails("missing")).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  describe("similar listings", () => {
+    const similarRow = { ...row, id: "p2", member_ids: ["p2"] };
+
+    beforeEach(() => {
+      repository.findPublishedProperty.mockResolvedValue({ ...row, listing_number: 101 });
+      repository.findCard.mockResolvedValue(row);
+      repository.findAmenityNames.mockResolvedValue([]);
+      readRepository.findTypeRow.mockResolvedValue({});
+      readRepository.findSaleDetails.mockResolvedValue({});
+      readRepository.findSelections.mockResolvedValue([]);
+      readRepository.findAmenities.mockResolvedValue([]);
+      readRepository.findFloorPlans.mockResolvedValue([]);
+    });
+
+    it("returns same locality listings with the locality scope", async () => {
+      repository.findListings.mockResolvedValue([similarRow]);
+
+      const result = await getPropertyDetails("p1");
+
+      expect(result.similarScope).toBe("locality");
+      expect(result.similar).toHaveLength(1);
+      expect(repository.findListings).toHaveBeenCalledTimes(1);
+      expect(repository.findListings.mock.calls[0][0]).toMatchObject({ city: "Ahmedabad", localities: ["Bopal"] });
+    });
+
+    it("falls back to city listings when the locality has none", async () => {
+      repository.findListings.mockResolvedValueOnce([]).mockResolvedValueOnce([similarRow]);
+
+      const result = await getPropertyDetails("p1");
+
+      expect(result.similarScope).toBe("city");
+      expect(result.similar).toHaveLength(1);
+      expect(repository.findListings).toHaveBeenCalledTimes(2);
+      expect(repository.findListings.mock.calls[1][0].localities).toEqual([]);
+    });
   });
 });

@@ -44,15 +44,24 @@ async function searchProperties(filters) {
 }
 
 async function findSimilarListings(property, card) {
-  const similar = buildFilters({
+  const baseFilters = {
     listingType: property.listing_type,
     category: mapper.FORM_TYPE_BY_DB_TYPE[property.property_type],
     subTypes: property.sub_type_slug,
     ...(property.city && { city: property.city }),
-  });
-  const rows = await repository.findListings(similar, { limit: SIMILAR_LIMIT, offset: 0, excludeIds: card.member_ids });
+  };
+  const options = { limit: SIMILAR_LIMIT, offset: 0, excludeIds: card.member_ids };
 
-  return toListings(rows);
+  if (property.locality) {
+    const localityRows = await repository.findListings(buildFilters({ ...baseFilters, localities: property.locality }), options);
+    if (localityRows.length) {
+      return { listings: await toListings(localityRows), scope: "locality" };
+    }
+  }
+
+  const cityRows = await repository.findListings(buildFilters(baseFilters), options);
+
+  return { listings: await toListings(cityRows), scope: "city" };
 }
 
 async function getPropertyDetails(id) {
@@ -107,7 +116,8 @@ async function getPropertyDetails(id) {
       variants,
       floorPlans,
     }),
-    similar,
+    similar: similar.listings,
+    similarScope: similar.scope,
   };
 }
 

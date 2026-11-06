@@ -267,6 +267,7 @@ function buildBase(dto: PublicPropertyDetails, currentLabel: string, pageTitle: 
     nearbyPlaces: buildNearbyPlaces(dto.project?.highlights),
     faqs: buildFaqs(dto.project),
     similarListings: dto.similar,
+    similarScope: dto.similarScope,
     poster: dto.poster,
   };
 }

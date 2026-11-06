@@ -191,11 +191,9 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
         </div>
 
         <PropertyDetailsSimilarListings
-          title={
-            isProject
-              ? `Similar Projects in ${listing.locality}, ${listing.city}`
-              : `Similar Properties in ${listing.locality}, ${listing.city}`
-          }
+          title={`Similar ${isProject ? "Projects" : "Properties"} in ${
+            details.similarScope === "locality" ? `${listing.locality}, ${listing.city}` : listing.city
+          }`}
           listings={details.similarListings}
         />
       </div>

@@ -71,6 +71,70 @@ const COMMERCIAL_FURNISHING = [
   ["partition", "Partition", "partition.svg"],
 ];
 
+// Lower value is shown first; steps of 10 leave room to insert new items
+const AMENITY_PRIORITY = {
+  "swimming-pool": 10,
+  "club-house": 20,
+  lift: 30,
+  cctv: 40,
+  gym: 50,
+  "mini-theatre": 60,
+  "gated-community": 70,
+  "solar-roof": 80,
+  "fire-safety": 90,
+  "power-backup": 100,
+  security: 110,
+  intercom: 120,
+  "piped-gas": 130,
+  "sports-club": 140,
+  generator: 150,
+  "reserved-parking": 160,
+  "garden-park": 170,
+  "kids-play-area": 180,
+  "community-hall": 190,
+  "wheelchair-access": 200,
+  "basketball-court": 210,
+  "cricket-pitch": 220,
+  skating: 230,
+  "indoor-games": 240,
+  wifi: 250,
+  "house-keeping": 260,
+  gazebo: 270,
+  "vaastu-compliant": 280,
+  "regular-water-supply": 290,
+  "pet-allowed": 300,
+  "no-vehicle-zone": 310,
+};
+
+const FURNISHING_PRIORITY = {
+  ac: 10,
+  "washing-machine": 20,
+  fridge: 30,
+  tv: 40,
+  microwave: 50,
+  geyser: 60,
+  "water-purifier": 70,
+  "gas-pipeline": 80,
+  beds: 90,
+  sofa: 100,
+  wardrobes: 110,
+  "dining-table": 120,
+  wifi: 130,
+  stove: 140,
+  "electric-fittings": 150,
+  fan: 160,
+  "gas-cylinder": 170,
+  "conference-room": 180,
+  "director-cabin": 190,
+  "reception-area": 200,
+  "work-station": 210,
+  partition: 220,
+  "waiting-area": 230,
+  cupboard: 240,
+  tables: 250,
+  chairs: 260,
+};
+
 const keysOf = (items) => items.map(([key]) => key);
 
 const BASE_AMENITY_KEYS = keysOf(BASE_AMENITIES);
@@ -160,18 +224,29 @@ function buildMappings() {
 }
 
 function buildCatalog() {
-  const toRows = (items, kind, dir) =>
-    items.map(([amenity_key, name, file], index) => ({
-      kind,
-      amenity_key,
-      name,
-      image_path: file.startsWith("/") ? file : `${dir}/${file}`,
-      sort_order: index + 1,
-    }));
+  const toRows = (items, kind, dir, priority) =>
+    items.map(([amenity_key, name, file]) => {
+      if (!(amenity_key in priority)) {
+        throw new Error(`Missing priority for ${kind}: ${amenity_key}`);
+      }
+
+      return {
+        kind,
+        amenity_key,
+        name,
+        image_path: file.startsWith("/") ? file : `${dir}/${file}`,
+        sort_order: priority[amenity_key],
+      };
+    });
 
   return [
-    ...toRows([...BASE_AMENITIES, ...EXTRA_AMENITIES], "amenity", AMENITY_DIR),
-    ...toRows([...BASE_FURNISHING, ...COMMERCIAL_FURNISHING], "furnishing", FURNISHING_DIR),
+    ...toRows([...BASE_AMENITIES, ...EXTRA_AMENITIES], "amenity", AMENITY_DIR, AMENITY_PRIORITY),
+    ...toRows(
+      [...BASE_FURNISHING, ...COMMERCIAL_FURNISHING],
+      "furnishing",
+      FURNISHING_DIR,
+      FURNISHING_PRIORITY
+    ),
   ];
 }
 

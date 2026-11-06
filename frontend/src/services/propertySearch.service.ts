@@ -94,6 +94,7 @@ export type PublicPropertyDetails = {
   builderListing?: PublicBuilderListing | null;
   variants?: PublicPropertyVariant[];
   similar: PublicSearchListing[];
+  similarScope: "locality" | "city";
 };
 
 export type PublicSearchResponse = PublicSearchListResponse & {

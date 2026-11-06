@@ -72,6 +72,7 @@ export type PropertyDetailsBase = {
   nearbyPlaces: PropertyDetailsNearbyPlace[];
   faqs: PropertyDetailsFaq[];
   similarListings: PublicSearchListing[];
+  similarScope: "locality" | "city";
   poster: PropertyDetailsPoster;
 };
 
