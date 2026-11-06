@@ -1,7 +1,8 @@
 "use client";
 
 import { BellOff, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useIsClient } from "@/hooks/useIsClient";
 import { createPortal } from "react-dom";
 import type { NotificationStatus, UserNotification } from "@/services/userNotifications.service";
 import NotificationItem from "./NotificationItem";
@@ -29,11 +30,7 @@ export default function NotificationSidebar({
   onActivate,
 }: NotificationSidebarProps) {
   const { isOpen, tab, items, unreadCount, isMarkingAll, isLoading, isLoadingMore, error, busyId, hasMore, close } = notifications;
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsClient();
 
   useEffect(() => {
     if (!isOpen) return;

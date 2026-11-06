@@ -138,12 +138,10 @@ function FloorPlanColumnCard({
   planType: FloorPlanViewType;
   onOpen: (preview: FloorPlanPreview) => void;
 }) {
-  const [imageFailed, setImageFailed] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const plan = group.plansByType[planType];
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [plan?.imageUrl]);
+  // A failure belongs to one url, so a different plan image is tried again
+  const imageFailed = failedImageUrl !== null && failedImageUrl === plan?.imageUrl;
   const summary = plan ?? group.plansByType["2d"] ?? group.plansByType["3d"];
   const imageUrl = plan?.imageUrl && !imageFailed ? plan.imageUrl : null;
   const alt = `${projectName} ${group.tabLabel} ${planType.toUpperCase()} floor plan`;
@@ -168,7 +166,7 @@ function FloorPlanColumnCard({
             <img
               src={imageUrl}
               alt={alt}
-              onError={() => setImageFailed(true)}
+              onError={() => setFailedImageUrl(imageUrl)}
               className="max-h-52 w-full object-contain sm:max-h-60"
             />
           ) : (

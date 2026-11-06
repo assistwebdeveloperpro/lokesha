@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useSessionToken } from "@/hooks/useSessionStore";
 import { getToken } from "@/services/session";
 
 export default function RequireAuth({
@@ -10,18 +11,14 @@ export default function RequireAuth({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [allowed, setAllowed] = useState(false);
+  const token = useSessionToken();
 
   useEffect(() => {
-    if (getToken()) {
-      setAllowed(true);
-      return;
-    }
+    // The store reports no token until hydration ends, so storage is checked directly
+    if (!getToken()) router.replace("/login");
+  }, [router, token]);
 
-    router.replace("/login");
-  }, [router]);
-
-  if (!allowed) {
+  if (!token) {
     return null;
   }
 

@@ -162,11 +162,14 @@ export function useHeroBannerFilters({
     window.history.replaceState(window.history.state, "", url);
   }, [activeCategory, headerCity, transaction]);
 
-  useEffect(() => {
+  // The city tag follows the header city, adjusted while rendering instead of in an effect
+  const [syncedHeaderCity, setSyncedHeaderCity] = useState<string | null>(null);
+  if (syncedHeaderCity !== headerCity) {
+    setSyncedHeaderCity(headerCity);
     setSearchTags((prev) =>
       syncHeaderCityTag(prev, headerCity === ALL_INDIA_LABEL ? null : headerCity),
     );
-  }, [headerCity]);
+  }
 
   const selectedCity =
     searchTags.find((tag) => tag.kind === "city")?.label ?? null;

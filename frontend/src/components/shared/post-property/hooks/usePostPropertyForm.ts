@@ -213,11 +213,10 @@ export function usePostPropertyForm() {
     ? subForms.activeTabId
     : (pricingTabs[0]?.id ?? "");
 
-  // Prefill every step once the property being edited has loaded
-  useEffect(() => {
-    if (!editDetail) {
-      return;
-    }
+  // Prefill every step once per loaded property, adjusted while rendering instead of in an effect
+  const [prefilledDetail, setPrefilledDetail] = useState<typeof editDetail>(null);
+  if (editDetail && prefilledDetail !== editDetail) {
+    setPrefilledDetail(editDetail);
 
     const mapped = mapDetailToForm(editDetail);
     dispatch({ type: "draftRestored", form: mapped.form });
@@ -225,9 +224,7 @@ export function usePostPropertyForm() {
     if (mapped.postingAs) {
       setPostingAs(mapped.postingAs);
     }
-    // Runs once per loaded property; restore only sets state
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editDetail]);
+  }
 
   // Read by the draft hook at save time, so it always sees the latest form values
   const getDraftInput = (): SaveDraftInput => ({
@@ -358,7 +355,7 @@ export function usePostPropertyForm() {
       })
       .catch(() => startFresh("This draft could not be found. Starting a new form."))
       .finally(() => setSettledDraftId(draftParam));
-  }, [draftParam, isEditMode, token, scope, basePath, serverDraft, subForms, searchParams, router, showToast]);
+  }, [draftParam, isEditMode, isViewMode, token, scope, basePath, serverDraft, subForms, searchParams, router, showToast]);
 
   // Every step change stores the form, so leaving and coming back loses nothing
   const goToStep = (step: number, { save = true }: { save?: boolean } = {}) => {
@@ -452,7 +449,7 @@ export function usePostPropertyForm() {
 
   const getSinglePhotosError = () =>
     getUploadBlocker() ||
-    (arePhotosRequired(propertyType, { listingType, subType: propertySubType }) &&
+    (arePhotosRequired() &&
     getTotalMediaCount(photosVideos) + existingMedia.length === 0
       ? MISSING_PHOTOS_MESSAGE
       : "");

@@ -100,7 +100,7 @@ function BusinessProfileRequiredNotice() {
           Business details not added yet
         </h2>
         <p className="profile-description mt-1.5">
-          You haven't filled in your business details yet. Please complete this step first
+          You haven&apos;t filled in your business details yet. Please complete this step first
           so we can show your company profile here.
         </p>
       </div>
@@ -142,7 +142,9 @@ export default function EditCompanyDetailsContent() {
   ]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  // Nothing loads until the user is signed in
+  const isLoading = isFetching && isLoggedIn && Boolean(token);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [needsBusinessDetails, setNeedsBusinessDetails] = useState(false);
 
@@ -151,14 +153,9 @@ export default function EditCompanyDetailsContent() {
       return;
     }
 
-    if (!isLoggedIn || !token) {
-      setIsLoading(false);
-      return;
-    }
+    if (!isLoggedIn || !token) return;
 
     let cancelled = false;
-    setIsLoading(true);
-    setLoadError(null);
 
     async function loadBusinessDetails() {
       try {
@@ -172,7 +169,7 @@ export default function EditCompanyDetailsContent() {
 
         if (!hasCoreBusinessDetails) {
           setNeedsBusinessDetails(true);
-          setIsLoading(false);
+          setIsFetching(false);
           return;
         }
 
@@ -236,18 +233,18 @@ export default function EditCompanyDetailsContent() {
               }))
             : [{ id: "client-1", name: "", dealValue: "" }],
         );
-        setIsLoading(false);
+        setIsFetching(false);
       } catch (err) {
         if (cancelled) return;
 
         if (err instanceof ApiError && err.status === 404) {
           setNeedsBusinessDetails(true);
-          setIsLoading(false);
+          setIsFetching(false);
           return;
         }
 
         setLoadError(err instanceof ApiError ? err.message : "Failed to load company details.");
-        setIsLoading(false);
+        setIsFetching(false);
       }
     }
 

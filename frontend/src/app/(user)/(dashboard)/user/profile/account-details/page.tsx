@@ -47,7 +47,9 @@ export default function AccountDetailsPage() {
   const { token, isLoggedIn, role } = useAuth();
   const { showToast } = useToast();
   const [profile, setProfile] = useState<ProfileDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  // Nothing loads until the user is signed in
+  const isLoading = isFetching && isLoggedIn && Boolean(token);
   const [error, setError] = useState<string | null>(null);
   const [isWhatsappModalOpen, setIsWhatsappModalOpen] = useState(false);
   const [whatsappDraft, setWhatsappDraft] = useState("");
@@ -58,14 +60,9 @@ export default function AccountDetailsPage() {
   const showOfficeDetails = hasFullProfileAccess(profile?.role ?? role);
 
   useEffect(() => {
-    if (!isLoggedIn || !token) {
-      setIsLoading(false);
-      return;
-    }
+    if (!isLoggedIn || !token) return;
 
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
 
     async function loadProfile() {
       try {
@@ -78,7 +75,7 @@ export default function AccountDetailsPage() {
           );
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) setIsFetching(false);
       }
     }
 

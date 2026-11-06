@@ -117,7 +117,7 @@ describe("buildPropertyDetailsView floor plans", () => {
         }),
       ],
       similar: [],
-    } as PublicPropertyDetails;
+    } as unknown as PublicPropertyDetails;
 
     const view = buildPropertyDetailsView(dto);
     if (view.kind !== "project") {

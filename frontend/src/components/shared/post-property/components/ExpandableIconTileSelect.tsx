@@ -73,6 +73,7 @@ export default function ExpandableIconTileSelect({
             className={tileClassName(isSelected)}
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden sm:h-11 sm:w-11">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageSrc}
                 alt=""

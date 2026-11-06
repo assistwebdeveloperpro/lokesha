@@ -2,27 +2,23 @@
 
 import { FileDown, Heart, Share2 } from "lucide-react";
 import { useState } from "react";
-import { PropertyContactSuccessModal } from "@/components/landing/property-contact/PropertyContactSuccessModal";
+import { PropertyContactButton } from "@/components/landing/property-contact/PropertyContactButton";
 import type { PublicSearchPostedBy } from "@/components/landing/property-search/property-list/publicSearchListing.types";
 
 type PropertyDetailsHeaderActionsProps = {
-  contactLabel: string;
   postedBy: PublicSearchPostedBy;
-  contactName: string;
+  propertyId: string;
   showBrochure?: boolean;
 };
 
 export function PropertyDetailsHeaderActions({
-  contactLabel,
   postedBy,
-  contactName,
+  propertyId,
   showBrochure = false,
 }: PropertyDetailsHeaderActionsProps) {
   const [saved, setSaved] = useState(false);
-  const [showContactSuccess, setShowContactSuccess] = useState(false);
 
   return (
-    <>
     <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 lg:shrink-0 lg:flex-nowrap">
       <button
         type="button"
@@ -43,13 +39,11 @@ export function PropertyDetailsHeaderActions({
       >
         <Heart className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
       </button>
-      <button
-        type="button"
-        onClick={() => setShowContactSuccess(true)}
+      <PropertyContactButton
+        propertyId={propertyId}
+        postedBy={postedBy}
         className="shrink-0 cursor-pointer rounded-xl bg-navy-blue px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-slate-900/15 transition hover:opacity-95"
-      >
-        {contactLabel}
-      </button>
+      />
       {showBrochure ? (
         <button
           type="button"
@@ -60,13 +54,5 @@ export function PropertyDetailsHeaderActions({
         </button>
       ) : null}
     </div>
-    {showContactSuccess ? (
-      <PropertyContactSuccessModal
-        postedBy={postedBy}
-        contactName={contactName}
-        onClose={() => setShowContactSuccess(false)}
-      />
-    ) : null}
-    </>
   );
 }

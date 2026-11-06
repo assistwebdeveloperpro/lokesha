@@ -85,7 +85,7 @@ function OfficeDetailsRequiredNotice() {
       <div className="max-w-sm">
         <h2 className="text-xl font-semibold text-slate-800">Office details not added yet</h2>
         <p className="profile-description mt-1.5">
-          You haven't filled in your office details yet. Please complete this step first so
+          You haven&apos;t filled in your office details yet. Please complete this step first so
           we can show your office profile here.
         </p>
       </div>
@@ -116,7 +116,9 @@ export default function EditOfficeDetailsContent() {
   const [officePhotos, setOfficePhotos] = useState<OfficePhoto[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  // Nothing loads until the user is signed in
+  const isLoading = isFetching && isLoggedIn && Boolean(token);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [needsOfficeDetails, setNeedsOfficeDetails] = useState(false);
 
@@ -131,14 +133,9 @@ export default function EditOfficeDetailsContent() {
       return;
     }
 
-    if (!isLoggedIn || !token) {
-      setIsLoading(false);
-      return;
-    }
+    if (!isLoggedIn || !token) return;
 
     let cancelled = false;
-    setIsLoading(true);
-    setLoadError(null);
 
     async function loadOfficeDetails() {
       try {
@@ -154,7 +151,7 @@ export default function EditOfficeDetailsContent() {
 
         if (!hasCoreOfficeDetails) {
           setNeedsOfficeDetails(true);
-          setIsLoading(false);
+          setIsFetching(false);
           return;
         }
 
@@ -172,18 +169,18 @@ export default function EditOfficeDetailsContent() {
             createOfficePhotoFromStoredPath(storedPath, getAssetUrl(storedPath)),
           ),
         );
-        setIsLoading(false);
+        setIsFetching(false);
       } catch (err) {
         if (cancelled) return;
 
         if (err instanceof ApiError && err.status === 404) {
           setNeedsOfficeDetails(true);
-          setIsLoading(false);
+          setIsFetching(false);
           return;
         }
 
         setLoadError(err instanceof ApiError ? err.message : "Failed to load office details.");
-        setIsLoading(false);
+        setIsFetching(false);
       }
     }
 
@@ -446,7 +443,7 @@ export default function EditOfficeDetailsContent() {
 
               <KycWarning>
                 Your Contact Name should be as per your KYC records. No further change is allowed in
-                your 'Contact Name' once submitted.
+                your &apos;Contact Name&apos; once submitted.
               </KycWarning>
             </div>
 
@@ -476,7 +473,7 @@ export default function EditOfficeDetailsContent() {
 
               <KycWarning>
                 Agency Name/Company Name should be as per your KYC records. No further change is
-                allowed in your 'Agency Name/Company Name' once submitted.
+                allowed in your &apos;Agency Name/Company Name&apos; once submitted.
               </KycWarning>
             </div>
 

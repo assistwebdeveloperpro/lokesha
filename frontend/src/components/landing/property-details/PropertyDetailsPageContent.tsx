@@ -26,8 +26,6 @@ import { PropertyDetailsProjectUsps } from "./PropertyDetailsProjectUsps";
 import { PropertyDetailsSection } from "./PropertyDetailsSection";
 import { PropertyDetailsSimilarListings } from "./PropertyDetailsSimilarListings";
 import { PropertyDetailsSummaryCard } from "./PropertyDetailsSummaryCard";
-import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
-import { propertyDetailsContactLabel } from "./propertyDetailsContactLabel";
 import { PropertyDetailsHeroPriceSection } from "./PropertyDetailsHeroPriceSection";
 import {
   hasPropertyDetailsAboutSection,
@@ -51,11 +49,6 @@ type PropertyDetailsPageContentProps = {
 export function PropertyDetailsPageContent({ details }: PropertyDetailsPageContentProps) {
   const { listing } = details;
   const isProject = details.kind === "project";
-  const contactLabel = propertyDetailsContactLabel(details.poster.postedBy);
-  const contactName = propertyContactDisplayName(
-    details.poster.postedBy,
-    details.poster.postedBy === "builder" ? listing.builderName : details.poster.name,
-  );
   const summaryTitle = isProject ? "Project Details" : "Property Details";
   const summaryGroups = isProject
     ? [{ rows: withoutPriceNegotiable([...details.overviewRows, ...details.pricingRows]) }]
@@ -101,9 +94,8 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
           </header>
 
           <PropertyDetailsHeaderActions
-            contactLabel={contactLabel}
             postedBy={details.poster.postedBy}
-            contactName={contactName}
+            propertyId={listing.id}
             showBrochure={listing.hasBrochure}
           />
         </div>

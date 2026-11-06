@@ -3,7 +3,8 @@
 import { ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useIsClient } from "@/hooks/useIsClient";
 import { createPortal } from "react-dom";
 import {
   GUEST_ACTIVITY_LINKS,
@@ -40,11 +41,7 @@ export default function MobileSidebar({
   onLogout,
 }: MobileSidebarProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsClient();
 
   useEffect(() => {
     if (!open) return;

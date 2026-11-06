@@ -392,7 +392,7 @@ export function useSubTypeForms({
   };
 
   const getPhotosError = (id: string, values: PhotosVideosValues) =>
-    arePhotosRequired(propertyType, { listingType, subType: id }) &&
+    arePhotosRequired() &&
     getTotalMediaCount(values) + (id === firstTabId ? existingMediaCount : 0) === 0
       ? "Please add at least one photo"
       : "";

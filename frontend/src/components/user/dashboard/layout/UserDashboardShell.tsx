@@ -19,7 +19,6 @@ import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/user/dashboard/notifications/NotificationBell";
 import {
-  getActiveNavLabel,
   getActiveSectionHref,
   getRestrictedNavRedirect,
   getUserDashboardNavItems,
@@ -192,11 +191,12 @@ function UserDashboardShellInner({
   );
   const [expandedSectionHref, setExpandedSectionHref] = useState<string | null>(activeSectionHref);
 
-  useEffect(() => {
-    if (activeSectionHref) {
-      setExpandedSectionHref(activeSectionHref);
-    }
-  }, [activeSectionHref]);
+  // The section of the current page opens when the route changes, adjusted while rendering
+  const [syncedSectionHref, setSyncedSectionHref] = useState(activeSectionHref);
+  if (syncedSectionHref !== activeSectionHref) {
+    setSyncedSectionHref(activeSectionHref);
+    if (activeSectionHref) setExpandedSectionHref(activeSectionHref);
+  }
 
   // const currentSection = useMemo(() => getActiveNavLabel(pathname, role), [pathname, role]);
 

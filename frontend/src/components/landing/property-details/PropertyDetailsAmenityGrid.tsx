@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PublicAmenityItem } from "@/services/propertySearch.service";
 
 const COLLAPSED_ITEM_COUNT = 11;
@@ -22,14 +22,12 @@ export function PropertyDetailsAmenityGrid({
   items,
   emptyMessage = "No amenities have been listed for this property.",
 }: PropertyDetailsAmenityGridProps) {
-  const [expanded, setExpanded] = useState(false);
+  // Expansion is tied to the list it was opened for, so a new list starts collapsed
+  const [expandedItems, setExpandedItems] = useState<PublicAmenityItem[] | null>(null);
+  const expanded = expandedItems === items;
   const hasOverflow = items.length > COLLAPSED_ITEM_COUNT;
   const visibleItems =
     expanded || !hasOverflow ? items : items.slice(0, COLLAPSED_ITEM_COUNT);
-
-  useEffect(() => {
-    setExpanded(false);
-  }, [items]);
 
   if (items.length === 0) {
     return (
@@ -72,7 +70,7 @@ export function PropertyDetailsAmenityGrid({
         <li>
           <button
             type="button"
-            onClick={() => setExpanded((current) => !current)}
+            onClick={() => setExpandedItems(expanded ? null : items)}
             className={toggleTileClass}
             aria-expanded={expanded}
           >

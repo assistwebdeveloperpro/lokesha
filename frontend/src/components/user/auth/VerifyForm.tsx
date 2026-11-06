@@ -107,7 +107,7 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
       });
       setSession(token, role);
       showToast("OTP verified successfully.");
-      router.push(consumePostLoginRedirect() ?? getDefaultUserDashboardRoute(role));
+      router.push(consumePostLoginRedirect() ?? getDefaultUserDashboardRoute());
     } catch {
       setOtpError(true);
       showToast("OTP is not verified. Please try again.", "error");

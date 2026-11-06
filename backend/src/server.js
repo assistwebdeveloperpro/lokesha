@@ -22,6 +22,8 @@ const propertyReviewRoutes = require("./modules/master/dashboard/property-review
 const adminNotificationsRoutes = require("./modules/master/dashboard/admin-notifications/admin-notifications.routes");
 const propertySearchRoutes = require("./modules/landing/property-search/property-search.routes");
 const propertyRequirementRoutes = require("./modules/landing/property-requirement/property-requirement.routes");
+const leadsRoutes = require("./modules/master/dashboard/leads/leads.routes");
+const propertyContactRoutes =require("./modules/landing/property-contact/property-contact.routes");
 const { LIMITS } = require("./modules/shared/property/constants/property.constants");
 const { scheduleDraftCleanup } = require("./modules/shared/property/services/property-cleanup.service");
 
@@ -55,12 +57,14 @@ app.use("/api/property", userPostPropertyRoutes);
 
 app.use("/api/property-search", propertySearchRoutes);
 app.use("/api/property-requirements", propertyRequirementRoutes);
+app.use("/api/property-contact", propertyContactRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
 app.use("/api/master/post-property", adminPostPropertyRoutes);
 app.use("/api/master/manage-properties", managePropertiesRoutes);
 app.use("/api/master/property-review", propertyReviewRoutes);
 app.use("/api/master/notifications", adminNotificationsRoutes);
+app.use("/api/master/leads", leadsRoutes);
 
 const PORT = process.env.PORT;
 

@@ -18,7 +18,6 @@ import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import AdminNotificationBell from "@/components/master/notifications/AdminNotificationBell";
 import { cn } from "@/lib/utils";
 import {
-  getMasterActiveNavLabel,
   getMasterActiveSectionHref,
   isMasterNavItemActive,
   masterDashboardNavItems,
@@ -165,11 +164,12 @@ function MasterDashboardShellInner({
     activeSectionHref,
   );
 
-  useEffect(() => {
-    if (activeSectionHref) {
-      setExpandedSectionHref(activeSectionHref);
-    }
-  }, [activeSectionHref]);
+  // The section of the current page opens when the route changes, adjusted while rendering
+  const [syncedSectionHref, setSyncedSectionHref] = useState(activeSectionHref);
+  if (syncedSectionHref !== activeSectionHref) {
+    setSyncedSectionHref(activeSectionHref);
+    if (activeSectionHref) setExpandedSectionHref(activeSectionHref);
+  }
 
   const toggleSection = (href: string) => {
     setExpandedSectionHref((current) => (current === href ? null : href));

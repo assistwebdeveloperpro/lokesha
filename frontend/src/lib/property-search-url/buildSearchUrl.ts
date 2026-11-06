@@ -8,7 +8,6 @@ import {
   KEYWORD_SEARCH_PATHS,
   SEARCH_PARAM_KEYS,
   type KeywordSearchSlug,
-  type SearchParamKey,
 } from "./searchUrl.config";
 import { normalizeSearchCriteria } from "./normalizeSearchCriteria";
 import type { PropertySearchCriteria } from "./searchUrl.types";

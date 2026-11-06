@@ -38,6 +38,13 @@ export type LoginResponse = {
   otp_expires_in: number;
 };
 
+export type ConnectSellerPayload = {
+  name: string;
+  email: string;
+  mobile_number: string;
+  agreed_to_terms: boolean;
+};
+
 export type VerifyOtpPayload = {
   mobile_number: string;
   otp: string;
@@ -70,6 +77,13 @@ export function signup(payload: SignupPayload) {
 
 export function login(payload: LoginPayload) {
   return apiFetch<LoginResponse>("/user/auth/login", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function connectSeller(payload: ConnectSellerPayload) {
+  return apiFetch<LoginResponse>("/user/auth/connect-seller", {
     method: "POST",
     body: payload,
   });

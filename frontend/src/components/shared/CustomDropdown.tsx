@@ -38,6 +38,7 @@ type CustomDropdownProps = {
   searchPlaceholder?: string;
   searchMinChars?: number;
   placeholderClassName?: string;
+  suppressFocusCaret?: boolean;
 };
 
 const staticLabelClasses = "mb-1.5 block text-sm font-medium text-slate-700";
@@ -128,6 +129,11 @@ export default function CustomDropdown({
   }`;
   const fieldClasses = isBoxed ? boxedFieldClasses : underlineFieldClasses;
 
+  const toggleMenu = () => {
+    setSearchQuery("");
+    setIsOpen((open) => !open);
+  };
+
   const handleSelect = (nextValue: string) => {
     if (!isControlled) {
       setInternalValue(nextValue);
@@ -135,10 +141,6 @@ export default function CustomDropdown({
     onChange?.(nextValue);
     setIsOpen(false);
   };
-
-  useEffect(() => {
-    if (!isOpen) setSearchQuery("");
-  }, [isOpen]);
 
   useLayoutEffect(() => {
     if (!isOpen) return;
@@ -234,10 +236,12 @@ export default function CustomDropdown({
           id={id}
           type="button"
           aria-label={accessibleLabel}
+          role="combobox"
           aria-haspopup="listbox"
+          aria-controls={`${id}-listbox`}
           aria-expanded={isOpen}
           aria-invalid={hasError}
-          onClick={() => setIsOpen((open) => !open)}
+          onClick={toggleMenu}
           className={`${fieldClasses} ${fieldTopPadding} relative cursor-pointer ${isBoxed ? "pr-10" : "pr-6"}`}
         >
           <span className={!selectedValue ? placeholderClassName : fieldTextColor}>
@@ -261,6 +265,7 @@ export default function CustomDropdown({
         ? createPortal(
             <ul
               ref={menuRef}
+              id={`${id}-listbox`}
               role="listbox"
               aria-label={accessibleLabel}
               style={menuStyle}

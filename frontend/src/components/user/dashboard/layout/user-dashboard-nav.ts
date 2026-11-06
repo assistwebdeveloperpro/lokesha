@@ -101,7 +101,7 @@ function isBuyerOwnerRestrictedRoute(pathname: string): boolean {
   );
 }
 
-export function getDefaultUserDashboardRoute(role: Role | null): string {
+export function getDefaultUserDashboardRoute(): string {
   return "/user/dashboard";
 }
 

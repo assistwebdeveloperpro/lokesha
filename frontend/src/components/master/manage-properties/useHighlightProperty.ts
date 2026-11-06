@@ -13,19 +13,27 @@ type UseHighlightPropertyOptions = {
 
 export function useHighlightProperty({ focusId, isLoading, isListed, onResolved }: UseHighlightPropertyOptions) {
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const resolvedId = useRef<string | null>(null);
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
+  const notifiedId = useRef<string | null>(null);
+
+  // The focused property is resolved once its list has loaded, and again for each new focus
+  if (!focusId && resolvedId !== null) {
+    setResolvedId(null);
+  } else if (focusId && !isLoading && resolvedId !== focusId) {
+    setResolvedId(focusId);
+    if (isListed) setHighlightedId(focusId);
+  }
 
   useEffect(() => {
-    if (!focusId) {
-      resolvedId.current = null;
+    if (!resolvedId) {
+      notifiedId.current = null;
       return;
     }
-    if (isLoading || resolvedId.current === focusId) return;
+    if (notifiedId.current === resolvedId) return;
 
-    resolvedId.current = focusId;
-    if (isListed) setHighlightedId(focusId);
+    notifiedId.current = resolvedId;
     onResolved(isListed);
-  }, [focusId, isLoading, isListed, onResolved]);
+  }, [resolvedId, isListed, onResolved]);
 
   useEffect(() => {
     if (!highlightedId) return;

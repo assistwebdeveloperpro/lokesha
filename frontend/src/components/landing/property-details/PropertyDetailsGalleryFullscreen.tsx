@@ -24,58 +24,48 @@ type PropertyDetailsGalleryFullscreenProps = {
   initialImageUrl: string;
 };
 
-export function PropertyDetailsGalleryFullscreen({
-  open,
+// The content mounts per open (and per opened image), so its state always starts from the opened photo
+export function PropertyDetailsGalleryFullscreen({ open, ...props }: PropertyDetailsGalleryFullscreenProps) {
+  if (!open) return null;
+
+  return <GalleryFullscreenContent key={props.initialImageUrl} {...props} />;
+}
+
+function GalleryFullscreenContent({
   onClose,
   title,
   subtitle,
   categories,
   fallbackImages,
   initialImageUrl,
-}: PropertyDetailsGalleryFullscreenProps) {
-  const buildSlides = useCallback(
-    (categoryId: string | null) =>
-      categories.length > 0
-        ? orderGalleryImagesForCategory(categories, categoryId)
-        : fallbackImages,
-    [categories, fallbackImages],
-  );
+}: Omit<PropertyDetailsGalleryFullscreenProps, "open">) {
+  const hasCategories = categories.length > 0;
 
-  const [slides, setSlides] = useState<string[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [slideIndex, setSlideIndex] = useState(0);
+  const buildSlides = (categoryId: string | null) =>
+    hasCategories ? orderGalleryImagesForCategory(categories, categoryId) : fallbackImages;
+
+  const initialCategoryId = hasCategories
+    ? resolveGalleryCategoryForImage(categories, initialImageUrl)
+    : null;
+
+  const [slides, setSlides] = useState(() => buildSlides(initialCategoryId));
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId);
+  const [slideIndex, setSlideIndex] = useState(() => Math.max(0, buildSlides(initialCategoryId).indexOf(initialImageUrl)));
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
-  const hasCategories = categories.length > 0;
   const activeImage = slides[slideIndex];
-
-  const syncFromInitial = useCallback(() => {
-    if (!open) return;
-
-    const categoryId = hasCategories
-      ? resolveGalleryCategoryForImage(categories, initialImageUrl)
-      : null;
-    const ordered = buildSlides(categoryId);
-    const index = ordered.indexOf(initialImageUrl);
-
-    setSlides(ordered);
-    setSelectedCategoryId(categoryId);
-    setSlideIndex(index >= 0 ? index : 0);
-    setImageErrors({});
-  }, [buildSlides, categories, hasCategories, initialImageUrl, open]);
+  const activeCategoryId =
+    hasCategories && activeImage
+      ? (resolveGalleryCategoryForImage(categories, activeImage) ?? selectedCategoryId)
+      : selectedCategoryId;
 
   useEffect(() => {
-    syncFromInitial();
-  }, [syncFromInitial]);
-
-  useEffect(() => {
-    if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
+  }, []);
 
   const goPrev = useCallback(() => {
     if (slides.length === 0) return;
@@ -88,7 +78,6 @@ export function PropertyDetailsGalleryFullscreen({
   }, [slides.length]);
 
   useEffect(() => {
-    if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
       if (event.key === "ArrowLeft") goPrev();
@@ -96,19 +85,7 @@ export function PropertyDetailsGalleryFullscreen({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [goNext, goPrev, onClose, open]);
-
-  useEffect(() => {
-    if (slideIndex >= slides.length) {
-      setSlideIndex(Math.max(0, slides.length - 1));
-    }
-  }, [slideIndex, slides.length]);
-
-  useEffect(() => {
-    if (!open || !hasCategories || !activeImage) return;
-    const categoryId = resolveGalleryCategoryForImage(categories, activeImage);
-    if (categoryId) setSelectedCategoryId(categoryId);
-  }, [activeImage, categories, hasCategories, open]);
+  }, [goNext, goPrev, onClose]);
 
   const selectCategory = (categoryId: string) => {
     setSlides(buildSlides(categoryId));
@@ -117,10 +94,8 @@ export function PropertyDetailsGalleryFullscreen({
     setImageErrors({});
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-linear-to-b from-[var(--color-navy-deep)] via-navy-blue to-[var(--color-navy-sidebar-active)] text-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-linear-to-b from-(--color-navy-deep) via-navy-blue to-(--color-navy-sidebar-active) text-white">
       <div className="shrink-0 space-y-3 px-3 pb-3 pt-3 sm:space-y-4 sm:px-6 sm:pb-4 sm:pt-5 lg:px-8">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
@@ -143,7 +118,7 @@ export function PropertyDetailsGalleryFullscreen({
         {hasCategories ? (
           <div className={TAB_SCROLLER} role="tablist" aria-label="Photo categories">
             {categories.map((category) => {
-              const isActive = category.id === selectedCategoryId;
+              const isActive = category.id === activeCategoryId;
               return (
                 <button
                   key={category.id}
@@ -155,7 +130,6 @@ export function PropertyDetailsGalleryFullscreen({
                       ? "border-sky-400/50 bg-sky-600 text-white shadow-md shadow-sky-950/50"
                       : "border-white/15 bg-white/10 text-slate-200 hover:border-sky-400/35 hover:bg-white/15 hover:text-white"
                   }`}
-                  aria-pressed={isActive}
                   aria-selected={isActive}
                 >
                   {category.label}

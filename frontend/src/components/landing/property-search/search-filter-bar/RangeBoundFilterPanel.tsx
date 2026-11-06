@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import { useResetState } from "@/hooks/useResetState";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   FOCUS_RING,
@@ -53,18 +54,14 @@ export function RangeBoundFilterPanel({
   maxFieldLabel,
   onCommit,
 }: RangeBoundFilterPanelProps) {
-  const [draft, setDraft] = useState({
-    min: valueMin ?? bounds.min,
-    max: valueMax ?? bounds.max,
-  });
-  const [openBound, setOpenBound] = useState<Bound | null>(null);
-
-  useEffect(() => {
-    setDraft({
+  const [draft, setDraft] = useResetState(
+    () => ({
       min: valueMin ?? bounds.min,
       max: valueMax ?? bounds.max,
-    });
-  }, [valueMin, valueMax, bounds.min, bounds.max]);
+    }),
+    [valueMin, valueMax, bounds.min, bounds.max],
+  );
+  const [openBound, setOpenBound] = useState<Bound | null>(null);
 
   const minIndex =
     steps.length < 2

@@ -1,6 +1,5 @@
 import { CATEGORY_ID_BY_SLUG } from "@/lib/property-search-url/searchUrl.config";
 import type {
-  CategorySlug,
   PropertySearchCriteria,
   TransactionSlug,
 } from "@/lib/property-search-url/searchUrl.types";

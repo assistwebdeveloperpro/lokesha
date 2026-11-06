@@ -66,6 +66,11 @@ const loginSchema = Joi.object({
   mobile_number: mobileNumber,
 });
 
+const connectSellerSchema = signupSchema.fork(["role"], (schema) => schema.forbidden()).fork(
+  ["agency_name", "company_name"],
+  (schema) => schema.forbidden()
+);
+
 const verifyOtpSchema = Joi.object({
   mobile_number: mobileNumber,
   otp: Joi.string()
@@ -79,6 +84,7 @@ const verifyOtpSchema = Joi.object({
 module.exports = {
   signupSchema,
   loginSchema,
+  connectSellerSchema,
   verifyOtpSchema,
   SIGNUP_ROLE_VALUES,
 };

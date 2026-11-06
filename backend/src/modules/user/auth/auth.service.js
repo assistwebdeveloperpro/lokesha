@@ -12,6 +12,8 @@ class AppError extends Error {
 const NOT_REGISTERED_MESSAGE =
   "This mobile number isn't registered with us yet. Please sign up first.";
 
+const CONNECT_SELLER_ROLE = "buyer_owner_tenant";
+
 async function signup({
   role,
   name,
@@ -44,6 +46,14 @@ async function signup({
   return user;
 }
 
+async function issueOtp(mobile_number) {
+  const otpCode = generateOtp();
+  const otpExpiresAt = getOtpExpiry();
+  await repository.setOtp(mobile_number, otpCode, otpExpiresAt);
+
+  return { message: "OTP sent successfully.", otp_expires_in: OTP_EXPIRY_SECONDS };
+}
+
 async function login({ mobile_number }) {
   const user = await repository.findUserByMobile(mobile_number);
 
@@ -51,11 +61,28 @@ async function login({ mobile_number }) {
     throw new AppError(NOT_REGISTERED_MESSAGE, 404);
   }
 
-  const otpCode = generateOtp();
-  const otpExpiresAt = getOtpExpiry();
-  await repository.setOtp(mobile_number, otpCode, otpExpiresAt);
+  return issueOtp(mobile_number);
+}
 
-  return { message: "OTP sent successfully.", otp_expires_in: OTP_EXPIRY_SECONDS };
+async function connectSeller({ name, email, mobile_number, agreed_to_terms }) {
+  const existingMobile = await repository.findUserByMobile(mobile_number);
+
+  if (!existingMobile) {
+    const existingEmail = await repository.findUserByEmail(email);
+    if (existingEmail) {
+      throw new AppError("Email is already registered with another mobile number", 409);
+    }
+
+    await repository.createUser({
+      role: CONNECT_SELLER_ROLE,
+      name,
+      email,
+      mobile_number,
+      agreed_to_terms,
+    });
+  }
+
+  return issueOtp(mobile_number);
 }
 
 async function verifyOtp({ mobile_number, otp }) {
@@ -92,4 +119,4 @@ async function getMe(userId) {
   return user;
 }
 
-module.exports = { signup, login, verifyOtp, getMe, AppError };
+module.exports = { signup, login, connectSeller, verifyOtp, getMe, AppError };

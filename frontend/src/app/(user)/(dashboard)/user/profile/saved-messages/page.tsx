@@ -151,16 +151,14 @@ export default function SavedMessagesPage() {
   const [messages, setMessages] = useState(createEmptyMessages);
   const [savedMessages, setSavedMessages] = useState(createEmptyMessages);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  // Nothing loads until the user is signed in
+  const isLoading = isFetching && isLoggedIn && Boolean(token);
 
   useEffect(() => {
-    if (!isLoggedIn || !token) {
-      setIsLoading(false);
-      return;
-    }
+    if (!isLoggedIn || !token) return;
 
     let cancelled = false;
-    setIsLoading(true);
 
     async function loadSavedMessages() {
       try {
@@ -175,7 +173,7 @@ export default function SavedMessagesPage() {
           );
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) setIsFetching(false);
       }
     }
 

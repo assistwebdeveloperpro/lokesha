@@ -142,17 +142,16 @@ export default function ManageProfilePhotosPage() {
   const [contactPersonName, setContactPersonName] = useState("");
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
   const [contactPersonPhoto, setContactPersonPhoto] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
+  // Nothing loads until the user is signed in
+  const isLoading = isFetching && isLoggedIn && Boolean(token);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoggedIn || !token) {
-      setIsLoading(false);
-      return;
-    }
+    if (!isLoggedIn || !token) return;
 
     let cancelled = false;
 
@@ -171,7 +170,7 @@ export default function ManageProfilePhotosPage() {
           setContactPersonName("—");
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) setIsFetching(false);
       }
     }
 

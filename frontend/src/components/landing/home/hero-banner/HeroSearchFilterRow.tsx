@@ -38,22 +38,18 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
     isPg,
   } = filters;
 
-  const [searchHintsOpen, setSearchHintsOpen] = useState(false);
+  const [searchHintsRequested, setSearchHintsOpen] = useState(false);
+  // Hints give way to any open filter dropdown
+  const searchHintsOpen = searchHintsRequested && openDropdown === null;
 
   useEffect(() => {
-    if (openDropdown !== null) {
-      setSearchHintsOpen(false);
-    }
-  }, [openDropdown]);
-
-  useEffect(() => {
-    if (!searchHintsOpen) return;
+    if (!searchHintsRequested) return;
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setSearchHintsOpen(false);
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [searchHintsOpen]);
+  }, [searchHintsRequested]);
 
   const toggleDropdown = (event: MouseEvent, key: SimpleDropdown) => {
     event.stopPropagation();
@@ -195,6 +191,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
                   ? "Enter City, Locality, Project Name"
                   : "Add more"
               }
+              role="combobox"
               aria-expanded={searchHintsOpen}
               aria-controls="hero-search-hints"
               aria-invalid={searchError !== null}

@@ -398,7 +398,7 @@ export default function PhotosVideosField({
       {parts === "brochure" ? null : (
       <PostPropertyFieldSection
         title={title}
-        required={arePhotosRequired(propertyType, { listingType, subType })}
+        required={arePhotosRequired()}
         description={description}
       >
         <div className="flex flex-wrap gap-2.5">

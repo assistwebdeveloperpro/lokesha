@@ -1,8 +1,8 @@
 "use client";
 
 import { Filter, Search } from "lucide-react";
-import { useEffect, useState } from "react";
 import CustomDropdown from "@/components/shared/CustomDropdown";
+import { useResetState } from "@/hooks/useResetState";
 import {
   MANAGE_ROLE_FILTER_OPTIONS,
   MANAGE_STATUS_FILTER_OPTIONS,
@@ -24,15 +24,9 @@ export default function ManagePropertiesFilterPanel({
   onApply,
   isLoading = false,
 }: ManagePropertiesFilterPanelProps) {
-  const [projectName, setProjectName] = useState(applied.projectName);
-  const [role, setRole] = useState<ListedByRoleFilter>(applied.role);
-  const [status, setStatus] = useState(applied.status);
-
-  useEffect(() => {
-    setProjectName(applied.projectName);
-    setRole(applied.role);
-    setStatus(applied.status);
-  }, [applied]);
+  const [projectName, setProjectName] = useResetState(() => applied.projectName, [applied]);
+  const [role, setRole] = useResetState<ListedByRoleFilter>(() => applied.role, [applied]);
+  const [status, setStatus] = useResetState(() => applied.status, [applied]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();

@@ -1,8 +1,10 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useResetState } from "@/hooks/useResetState";
 import { postPropertyChipClass } from "../config/postPropertyForm.styles";
 
 type MoreOptionsModalProps = {
@@ -22,17 +24,11 @@ export default function MoreOptionsModal({
   onClose,
   onSubmit,
 }: MoreOptionsModalProps) {
-  const [pendingValue, setPendingValue] = useState(selectedValue);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [pendingValue, setPendingValue] = useResetState(() => selectedValue, [isOpen, selectedValue]);
+  const mounted = useIsClient();
 
   useEffect(() => {
     if (!isOpen) return;
-
-    setPendingValue(selectedValue);
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -47,7 +43,7 @@ export default function MoreOptionsModal({
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose, selectedValue]);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !mounted) return null;
 
@@ -107,7 +103,7 @@ export default function MoreOptionsModal({
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setPendingValue(option)}
-                    className={`${postPropertyChipClass(isSelected)} min-w-[3rem] px-4 py-2.5 text-sm`}
+                    className={`${postPropertyChipClass(isSelected)} min-w-12 px-4 py-2.5 text-sm`}
                   >
                     {option}
                   </button>

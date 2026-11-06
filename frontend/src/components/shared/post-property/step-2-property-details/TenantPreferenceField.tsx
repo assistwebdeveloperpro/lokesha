@@ -48,7 +48,7 @@ export default function TenantPreferenceField({
               type="button"
               onClick={() => toggleOption(option.id)}
               aria-pressed={isSelected}
-              className={`flex min-h-[8rem] w-full flex-col items-center justify-center gap-2.5 rounded-xl border px-3 py-5 text-center sm:min-h-[8.5rem] sm:gap-3 sm:px-4 sm:py-6 ${postPropertyTileClass(isSelected)}`}
+              className={`flex min-h-32 w-full flex-col items-center justify-center gap-2.5 rounded-xl border px-3 py-5 text-center sm:min-h-34 sm:gap-3 sm:px-4 sm:py-6 ${postPropertyTileClass(isSelected)}`}
             >
               <span className="flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
                 {Icon ? (
@@ -62,6 +62,7 @@ export default function TenantPreferenceField({
                     aria-hidden
                   />
                 ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={imageSrc}
                     alt=""

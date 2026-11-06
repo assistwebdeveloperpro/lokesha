@@ -352,7 +352,9 @@ export function MoreFiltersPanel({
     () => buildMoreFilterNav(criteria.category, criteria.transaction),
     [criteria.category, criteria.transaction],
   );
-  const [activeId, setActiveId] = useState(navItems[0]?.id ?? "");
+  const [selectedId, setActiveId] = useState(navItems[0]?.id ?? "");
+  // Falls back to the first section when the selected one is no longer listed
+  const activeId = navItems.some((item) => item.id === selectedId) ? selectedId : (navItems[0]?.id ?? "");
   const [navSyncHeight, setNavSyncHeight] = useState<number | undefined>();
   const navRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -365,12 +367,6 @@ export function MoreFiltersPanel({
     }),
     [],
   );
-
-  useEffect(() => {
-    if (!navItems.some((item) => item.id === activeId)) {
-      setActiveId(navItems[0]?.id ?? "");
-    }
-  }, [navItems, activeId]);
 
   useLayoutEffect(() => {
     const nav = navRef.current;

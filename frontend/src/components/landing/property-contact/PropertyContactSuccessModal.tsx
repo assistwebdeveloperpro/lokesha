@@ -1,16 +1,18 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { BadgeCheck, Building2, Check, Home, UserRound, X } from "lucide-react";
+import { BadgeCheck, Building2, Check, Home, Lock, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { PublicSearchPostedBy } from "@/components/landing/property-search/property-list/publicSearchListing.types";
 
 type PropertyContactSuccessModalProps = {
   postedBy: PublicSearchPostedBy;
   contactName: string;
-  contactPhone?: string;
-  creditBalance?: number;
+  contactPhone: string | null;
+  creditBalance: number;
+  canSubscribe: boolean;
   onClose: () => void;
 };
 
@@ -42,8 +44,6 @@ const VARIANT: Record<PublicSearchPostedBy, ContactVariantConfig> = {
   },
 };
 
-const DEFAULT_PHONE = "+91 96244 96001";
-
 function StepItem({ index, children }: { index: number; children: ReactNode }) {
   return (
     <li className="flex gap-3 text-sm leading-relaxed text-slate-600">
@@ -61,13 +61,15 @@ function StepItem({ index, children }: { index: number; children: ReactNode }) {
 export function PropertyContactSuccessModal({
   postedBy,
   contactName,
-  contactPhone = DEFAULT_PHONE,
-  creditBalance = 2,
+  contactPhone,
+  creditBalance,
+  canSubscribe,
   onClose,
 }: PropertyContactSuccessModalProps) {
   const variant = VARIANT[postedBy];
   const { Icon } = variant;
   const headingId = useId();
+  const subscribeTooltipId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -87,7 +89,8 @@ export function PropertyContactSuccessModal({
     };
   }, [onClose]);
 
-  return (
+  // Portaled to body so card hover transforms cannot offset the fixed overlay
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <button
         type="button"
@@ -138,14 +141,37 @@ export function PropertyContactSuccessModal({
             </span>
             <div className="min-w-0 flex-1 text-left">
               <p className="truncate text-base font-bold text-slate-900">{contactName}</p>
-              <p className="mt-0.5 text-sm font-medium text-slate-600">{contactPhone}</p>
+              {contactPhone ? <p className="mt-0.5 text-sm font-medium text-slate-600">{contactPhone}</p> : null}
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
-                <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-                Unlocked
-              </span>
-              <p className="text-[11px] font-medium text-slate-500">Credit balance: {creditBalance}</p>
+              {canSubscribe ? (
+                <div className="group relative">
+                  <button
+                    type="button"
+                    aria-describedby={subscribeTooltipId}
+                    className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm transition hover:bg-amber-600"
+                  >
+                    <Lock className="h-3.5 w-3.5" aria-hidden />
+                    Subscribe Package
+                  </button>
+                  <span
+                    id={subscribeTooltipId}
+                    role="tooltip"
+                    className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-52 translate-y-1 rounded-lg bg-slate-900 px-3 py-2 text-left text-xs font-medium normal-case leading-snug tracking-normal text-white opacity-0 shadow-lg transition duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100"
+                  >
+                    Subscribe to a package to unlock the owner&apos;s mobile number.
+                    <span className="absolute right-6 top-full -mt-1 h-2 w-2 rotate-45 bg-slate-900" aria-hidden />
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
+                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                    Unlocked
+                  </span>
+                  <p className="text-[11px] font-medium text-slate-500">Credit balance: {creditBalance}</p>
+                </>
+              )}
             </div>
           </div>
 
@@ -198,6 +224,7 @@ export function PropertyContactSuccessModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

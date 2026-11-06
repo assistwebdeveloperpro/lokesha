@@ -267,7 +267,7 @@ export default function UserRegistrationStep3Content() {
 
               <KycWarning>
                 Your Contact Name should be as per your KYC records. No further change is allowed
-                in your 'Contact Name' once submitted.
+                in your &apos;Contact Name&apos; once submitted.
               </KycWarning>
             </div>
 
@@ -298,7 +298,7 @@ export default function UserRegistrationStep3Content() {
 
               <KycWarning>
                 Agency Name/Company Name should be as per your KYC records. No further change is
-                allowed in your 'Agency Name/Company Name' once submitted.
+                allowed in your &apos;Agency Name/Company Name&apos; once submitted.
               </KycWarning>
             </div>
 

@@ -2,10 +2,8 @@
 
 import { BadgeCheck, Building2, Heart, Share2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { PropertyContactSuccessModal } from "@/components/landing/property-contact/PropertyContactSuccessModal";
-import { propertyContactDisplayName } from "@/components/landing/property-contact/propertyContactDisplayName";
-import { propertyDetailsContactLabel } from "@/components/landing/property-details/propertyDetailsContactLabel";
+import { createElement, useState } from "react";
+import { PropertyContactButton } from "@/components/landing/property-contact/PropertyContactButton";
 import { buildPropertyDetailsUrl } from "@/lib/property-search-url/propertyDetailsUrl";
 import { buildSearchListingFacts, formatSearchListingPrice } from "./buildSearchListingFacts";
 import { formatSearchListingArea } from "./formatSearchListingArea";
@@ -32,13 +30,14 @@ type SearchListingMetricChipProps = {
 };
 
 function SearchListingMetricChip({ label, value }: SearchListingMetricChipProps) {
-  const Icon = getSearchListingMetricIcon(label);
-
   return (
     <li className="flex min-w-0 flex-col gap-0.5 rounded-lg border border-slate-200 bg-slate-100/20 px-2.5 py-1.5">
       <span className="text-[11px] font-medium leading-tight text-slate-500 sm:text-xs">{label}</span>
       <span className="inline-flex min-w-0 items-center gap-1 text-xs font-semibold leading-snug text-slate-800 sm:text-sm">
-        <Icon className="h-3.5 w-3.5 shrink-0 text-sky-600" aria-hidden />
+        {createElement(getSearchListingMetricIcon(label), {
+          className: "h-3.5 w-3.5 shrink-0 text-sky-600",
+          "aria-hidden": true,
+        })}
         <span className="truncate tabular-nums">{value}</span>
       </span>
     </li> 
@@ -50,7 +49,6 @@ export function PropertySearchListingCard({
   featured = false,
 }: PropertySearchListingCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
-  const [showContactSuccess, setShowContactSuccess] = useState(false);
   const detailsHref = buildPropertyDetailsUrl({
     id: listing.id,
     bedrooms: listing.bedrooms,
@@ -68,8 +66,6 @@ export function PropertySearchListingCard({
   const bhk = bedroomLabel(listing.bedrooms);
   const facts = buildSearchListingFacts(listing);
   const priceValue = formatSearchListingPrice(listing);
-
-  const contactName = propertyContactDisplayName(listing.postedBy, listing.listerName);
 
   return (
     <>
@@ -185,26 +181,17 @@ export function PropertySearchListingCard({
                   Brochure
                 </button>
               ) : null}
-              <button
-                type="button"
-                onClick={() => setShowContactSuccess(true)}
-                className="inline-flex min-h-10 shrink-0 items-center rounded-xl bg-navy-blue px-4 text-xs font-semibold text-white transition hover:cursor-pointer hover:opacity-90 sm:text-sm"
-              >
-                {propertyDetailsContactLabel(listing.postedBy)}
-              </button>
+              <PropertyContactButton
+                propertyId={listing.id}
+                postedBy={listing.postedBy}
+                className="min-h-10 shrink-0 rounded-xl bg-navy-blue px-4 text-xs font-semibold text-white transition hover:cursor-pointer hover:opacity-90 sm:text-sm"
+              />
             </div>
           </div>
           </div>
         </div>
       </div>
     </article>
-    {showContactSuccess ? (
-      <PropertyContactSuccessModal
-        postedBy={listing.postedBy}
-        contactName={contactName}
-        onClose={() => setShowContactSuccess(false)}
-      />
-    ) : null}
     </>
   );
 }

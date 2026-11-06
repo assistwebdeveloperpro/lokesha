@@ -2,46 +2,26 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getAdminMe } from "@/services/adminAuth.service";
-import {
-  ADMIN_SESSION_CHANGE_EVENT,
-  clearAdminSession,
-  getAdminToken,
-} from "@/services/adminSession";
+import { clearAdminSession } from "@/services/adminSession";
+import { useIsClient } from "./useIsClient";
+import { useAdminSessionToken } from "./useSessionStore";
+
+const DEFAULT_ADMIN_NAME = "Admin";
 
 export function useAdminAuth() {
-  const [token, setToken] = useState<string | null>(null);
-  const [adminName, setAdminName] = useState("Admin");
-  const [isAuthReady, setIsAuthReady] = useState(false);
-
-  const refresh = useCallback(() => {
-    setToken(getAdminToken());
-  }, []);
+  const token = useAdminSessionToken();
+  const isAuthReady = useIsClient();
+  const [fetchedName, setFetchedName] = useState(DEFAULT_ADMIN_NAME);
 
   useEffect(() => {
-    refresh();
-    setIsAuthReady(true);
-
-    window.addEventListener(ADMIN_SESSION_CHANGE_EVENT, refresh);
-    window.addEventListener("storage", refresh);
-
-    return () => {
-      window.removeEventListener(ADMIN_SESSION_CHANGE_EVENT, refresh);
-      window.removeEventListener("storage", refresh);
-    };
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!token) {
-      setAdminName("Admin");
-      return;
-    }
+    if (!token) return;
 
     let cancelled = false;
 
     async function loadAdminName() {
       try {
         const { admin } = await getAdminMe(token!);
-        if (!cancelled) setAdminName(admin.name || "Admin");
+        if (!cancelled) setFetchedName(admin.name || DEFAULT_ADMIN_NAME);
       } catch {
         // Expired or invalid token ends the session
         if (!cancelled) clearAdminSession();
@@ -55,14 +35,12 @@ export function useAdminAuth() {
     };
   }, [token]);
 
-  const logout = useCallback(() => {
-    clearAdminSession();
-  }, []);
+  const logout = useCallback(() => clearAdminSession(), []);
 
   return {
     isLoggedIn: Boolean(token),
     token,
-    adminName,
+    adminName: token ? fetchedName : DEFAULT_ADMIN_NAME,
     isAuthReady,
     logout,
   };

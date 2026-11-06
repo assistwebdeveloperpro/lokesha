@@ -27,6 +27,15 @@ async function login(req, res) {
   }
 }
 
+async function connectSeller(req, res) {
+  try {
+    const result = await authService.connectSeller(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 async function verifyOtp(req, res) {
   try {
     const result = await authService.verifyOtp(req.body);
@@ -45,4 +54,4 @@ async function getMe(req, res) {
   }
 }
 
-module.exports = { signup, login, verifyOtp, getMe };
+module.exports = { signup, login, connectSeller, verifyOtp, getMe };

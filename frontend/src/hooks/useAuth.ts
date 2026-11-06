@@ -2,12 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getMe, type Role } from "@/services/auth.service";
-import {
-  clearSession,
-  getRole,
-  getToken,
-  SESSION_CHANGE_EVENT,
-} from "@/services/session";
+import { clearSession } from "@/services/session";
+import { useIsClient } from "./useIsClient";
+import { useSessionRole, useSessionToken } from "./useSessionStore";
 
 export type AuthState = {
   isLoggedIn: boolean;
@@ -18,69 +15,26 @@ export type AuthState = {
   isAuthReady: boolean;
 };
 
-type SessionState = {
-  isLoggedIn: boolean;
-  token: string | null;
-  role: Role | null;
-};
-
-const INITIAL_SESSION: SessionState = {
-  isLoggedIn: false,
-  token: null,
-  role: null,
-};
-
-function readSessionState(): SessionState {
-  const token = getToken();
-  const role = getRole();
-
-  return {
-    isLoggedIn: Boolean(token),
-    token,
-    role,
-  };
-}
+const DEFAULT_USER_NAME = "User";
 
 export function useAuth() {
-  const [session, setSession] = useState<SessionState>(INITIAL_SESSION);
-  const [userName, setUserName] = useState("User");
-  const [isAuthReady, setIsAuthReady] = useState(false);
-
-  const refresh = useCallback(() => {
-    setSession(readSessionState());
-  }, []);
+  const token = useSessionToken();
+  const role = useSessionRole();
+  const isAuthReady = useIsClient();
+  const [fetchedName, setFetchedName] = useState(DEFAULT_USER_NAME);
+  const isLoggedIn = Boolean(token);
 
   useEffect(() => {
-    refresh();
-    setIsAuthReady(true);
-
-    const handleSessionChange = () => refresh();
-    window.addEventListener(SESSION_CHANGE_EVENT, handleSessionChange);
-    window.addEventListener("storage", handleSessionChange);
-
-    return () => {
-      window.removeEventListener(SESSION_CHANGE_EVENT, handleSessionChange);
-      window.removeEventListener("storage", handleSessionChange);
-    };
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!session.isLoggedIn || !session.token) {
-      setUserName("User");
-      return;
-    }
+    if (!token) return;
 
     let cancelled = false;
 
     async function loadUserName() {
       try {
-        const { user } = await getMe(session.token!);
-        if (cancelled) return;
-        setUserName(user.name || "User");
+        const { user } = await getMe(token!);
+        if (!cancelled) setFetchedName(user.name || DEFAULT_USER_NAME);
       } catch {
-        if (!cancelled) {
-          setUserName("User");
-        }
+        if (!cancelled) setFetchedName(DEFAULT_USER_NAME);
       }
     }
 
@@ -89,21 +43,12 @@ export function useAuth() {
     return () => {
       cancelled = true;
     };
-  }, [session.isLoggedIn, session.token]);
+  }, [token]);
 
-  const logout = useCallback(() => {
-    clearSession();
-    refresh();
-  }, [refresh]);
+  const logout = useCallback(() => clearSession(), []);
 
+  const userName = isLoggedIn ? fetchedName : DEFAULT_USER_NAME;
   const displayInitial = userName.charAt(0).toUpperCase();
 
-  return {
-    ...session,
-    userName,
-    displayInitial,
-    isAuthReady,
-    logout,
-    refresh,
-  };
+  return { isLoggedIn, token, role, userName, displayInitial, isAuthReady, logout };
 }

@@ -68,11 +68,12 @@ export function SidebarProvider({
     }
   }, [isDesktop]);
 
-  React.useEffect(() => {
-    if (!isDesktop) {
-      setOpenMobile(false);
-    }
-  }, [isDesktop]);
+  // The mobile menu starts closed whenever the layout becomes mobile
+  const [wasDesktop, setWasDesktop] = React.useState(isDesktop);
+  if (wasDesktop !== isDesktop) {
+    setWasDesktop(isDesktop);
+    if (!isDesktop) setOpenMobile(false);
+  }
 
   return (
     <SidebarContext.Provider value={{ open, isDesktop, setOpen, toggleSidebar }}>

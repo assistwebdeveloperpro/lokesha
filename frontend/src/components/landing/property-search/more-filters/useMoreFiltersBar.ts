@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useResetState } from "@/hooks/useResetState";
 import { EMPTY_MORE_FILTERS } from "@/lib/property-search-url/moreFilters.types";
 import type { PropertySearchCriteria } from "@/lib/property-search-url/searchUrl.types";
 import type { CriteriaUpdateMode } from "../useSearchResultsFilters";
@@ -25,13 +26,10 @@ export function useMoreFiltersBar(
 ) {
   const closeBarDropdowns = useCloseSearchFilterBar();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<MoreFiltersDraft>(() =>
-    draftFromCriteria(criteria),
+  const [draft, setDraft] = useResetState<MoreFiltersDraft>(
+    () => draftFromCriteria(criteria),
+    [criteria],
   );
-
-  useEffect(() => {
-    setDraft(draftFromCriteria(criteria));
-  }, [criteria]);
 
   const selectionCount = useMemo(() => countNavSelections(draft), [draft]);
 
@@ -45,7 +43,7 @@ export function useMoreFiltersBar(
         areaMax: next.areaMax,
       });
     },
-    [onChange],
+    [onChange, setDraft],
   );
 
   const toggleOpen = () => {

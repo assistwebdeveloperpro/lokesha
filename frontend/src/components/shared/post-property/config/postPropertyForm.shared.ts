@@ -1455,10 +1455,7 @@ function getBasePhotoCategories(
       );
 }
 
-export function arePhotosRequired(
-  _propertyType?: PropertyTypeId,
-  _context?: { listingType?: ListingTypeId; subType?: string },
-): boolean {
+export function arePhotosRequired(): boolean {
   return true;
 }
 

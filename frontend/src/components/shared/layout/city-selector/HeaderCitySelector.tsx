@@ -3,33 +3,23 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CitySelectorDropdown from "./CitySelectorDropdown";
-import {
-  ALL_INDIA_LABEL,
-  DEFAULT_SELECTED_CITY,
-  readStoredCity,
-  storeCity,
-} from "./citySelector.shared";
+import { ALL_INDIA_LABEL, storeCity } from "./citySelector.shared";
+import { useHeaderCity } from "./useHeaderCity";
 
 type HeaderCitySelectorProps = {
   variant?: "desktop" | "mobile";
 };
 
 export default function HeaderCitySelector({ variant = "desktop" }: HeaderCitySelectorProps) {
-  const [selectedCity, setSelectedCity] = useState(DEFAULT_SELECTED_CITY);
+  const selectedCity = useHeaderCity();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    setSelectedCity(readStoredCity());
-  }, []);
-
-  const persistCity = useCallback((city: string) => {
-    setSelectedCity(city);
-    storeCity(city);
-  }, []);
+  // Storing the city notifies useHeaderCity, which updates selectedCity
+  const persistCity = storeCity;
 
   const close = useCallback(() => setOpen(false), []);
 

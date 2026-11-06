@@ -4,14 +4,14 @@ import homeLoanBanner from "../../../../../public/assets/images/banner-images/ge
 export function PropertySearchHomeLoanCard() {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="relative aspect-[6/3] w-full bg-slate-100">
+      <div className="relative aspect-6/3 w-full bg-slate-100">
         <Image
           src={homeLoanBanner}
           alt="Planning home loan payments with a calculator and budget notes"
           fill
           className="object-cover object-center"
           sizes="(min-width: 1280px) 320px, (min-width: 1024px) 288px, 100vw"
-          priority={false}
+          loading="eager"
         />
         <div
           className="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-900/25 via-transparent to-transparent"

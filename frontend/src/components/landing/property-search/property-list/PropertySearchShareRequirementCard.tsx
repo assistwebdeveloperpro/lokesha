@@ -2,7 +2,14 @@
 
 import { Check, ChevronDown, ClipboardList, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
 import {
   ALL_INDIA_LABEL,
@@ -10,6 +17,7 @@ import {
 } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
 import { useToast } from "@/components/shared/ui/ToastProvider";
+import { useIsClient } from "@/hooks/useIsClient";
 import { INDIAN_CITIES } from "@/data/indianCities";
 import { CATEGORIES } from "@/components/landing/home/hero-banner/heroBanner.shared";
 import {
@@ -128,11 +136,6 @@ function RequirementLocalityField({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const knownLocalities = useMemo(() => getCityLocalities(city), [city]);
-
-  useEffect(() => {
-    setQuery("");
-    setOpen(false);
-  }, [city]);
 
   useEffect(() => {
     if (!open) return;
@@ -260,6 +263,7 @@ function RequirementSubtypeField({
   onChange: (next: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -293,6 +297,7 @@ function RequirementSubtypeField({
         tabIndex={0}
         aria-label="Property subtype"
         aria-haspopup="listbox"
+        aria-controls={listboxId}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
         onKeyDown={(event) => {
@@ -340,6 +345,7 @@ function RequirementSubtypeField({
       </div>
       {open ? (
         <ul
+          id={listboxId}
           role="listbox"
           aria-label="Property subtype"
           aria-multiselectable="true"
@@ -467,12 +473,15 @@ function ShareRequirementHeader() {
   );
 }
 
+// The form reads the saved draft on mount, so it only renders on the client
 export function PropertySearchShareRequirementCard({
   criteria,
 }: PropertySearchShareRequirementCardProps) {
-  const router = useRouter();
   const headerCity = useHeaderCity();
-  const { showToast } = useToast();
+  const isClient = useIsClient();
+
+  if (!isClient) return null;
+
   const cityFromSearch = canonicalCity(
     criteria.cityName ??
       (headerCity !== ALL_INDIA_LABEL ? headerCity : DEFAULT_SELECTED_CITY),
@@ -485,43 +494,29 @@ export function PropertySearchShareRequirementCard({
     criteria.propertyTypes.join("\u0001"),
   ].join("\u0002");
 
-  const snapshotRef = useRef({ criteria, cityFromSearch });
-  snapshotRef.current = { criteria, cityFromSearch };
+  // A new search remounts the form, which resets it to the new criteria
+  return <RequirementForm key={searchSignature} criteria={criteria} cityFromSearch={cityFromSearch} />;
+}
 
-  const [transaction, setTransaction] = useState(criteria.transaction);
-  const [category, setCategory] = useState(criteria.category);
-  const [city, setCity] = useState(cityFromSearch);
-  const [localities, setLocalities] = useState(criteria.localities);
-  const [subtypes, setSubtypes] = useState(() =>
-    matchedSubtypeValues(criteria.propertyTypes, criteria.category),
+function RequirementForm({
+  criteria,
+  cityFromSearch,
+}: PropertySearchShareRequirementCardProps & { cityFromSearch: string }) {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [savedDraft] = useState(() => loadRequirementDraft(window.location.href));
+
+  const [transaction, setTransaction] = useState(savedDraft?.transaction ?? criteria.transaction);
+  const [category, setCategory] = useState(savedDraft?.category ?? criteria.category);
+  const [city, setCity] = useState(savedDraft?.city ?? cityFromSearch);
+  const [localities, setLocalities] = useState(savedDraft?.localities ?? criteria.localities);
+  const [subtypes, setSubtypes] = useState(
+    () => savedDraft?.subtypes ?? matchedSubtypeValues(criteria.propertyTypes, criteria.category),
   );
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(savedDraft?.description ?? "");
   const [localityError, setLocalityError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const draft = loadRequirementDraft(window.location.href);
-    if (draft) {
-      setTransaction(draft.transaction);
-      setCategory(draft.category);
-      setCity(draft.city);
-      setLocalities(draft.localities);
-      setSubtypes(draft.subtypes);
-      setDescription(draft.description);
-      return;
-    }
-
-    const current = snapshotRef.current;
-    setTransaction(current.criteria.transaction);
-    setCategory(current.criteria.category);
-    setCity(current.cityFromSearch);
-    setLocalities(current.criteria.localities);
-    setSubtypes(
-      matchedSubtypeValues(current.criteria.propertyTypes, current.criteria.category),
-    );
-    setLocalityError(false);
-  }, [searchSignature]);
 
   const transactionOptions = useMemo(
     () =>
@@ -635,6 +630,7 @@ export function PropertySearchShareRequirementCard({
         </div>
 
         <RequirementLocalityField
+          key={city}
           city={city}
           localities={localities}
           hasError={localityError}

@@ -100,7 +100,8 @@ export default function ChangePasswordPage() {
   const { token, isLoggedIn } = useAuth();
 
   const [email, setEmail] = useState("");
-  const [isLoadingEmail, setIsLoadingEmail] = useState(true);
+  const [isFetchingEmail, setIsFetchingEmail] = useState(true);
+  const isLoadingEmail = isFetchingEmail && isLoggedIn && Boolean(token);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -110,10 +111,7 @@ export default function ChangePasswordPage() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
-    if (!isLoggedIn || !token) {
-      setIsLoadingEmail(false);
-      return;
-    }
+    if (!isLoggedIn || !token) return;
 
     let cancelled = false;
 
@@ -124,7 +122,7 @@ export default function ChangePasswordPage() {
       } catch {
         if (!cancelled) setEmail("");
       } finally {
-        if (!cancelled) setIsLoadingEmail(false);
+        if (!cancelled) setIsFetchingEmail(false);
       }
     }
 
