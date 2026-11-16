@@ -11,6 +11,7 @@ import type {
   SearchParamRecord,
   TransactionSlug,
 } from "@/lib/property-search-url/searchUrl.types";
+import { PropertySearchHeaderSearch } from "./header-search/PropertySearchHeaderSearch";
 import { PropertySearchResultsContent } from "./PropertySearchResultsContent";
 import { buildSearchHeading } from "./searchPageText";
 
@@ -70,7 +71,10 @@ export async function PropertySearchResultsPage({
 
   return (
     <div className="flex min-h-screen w-full shrink-0 flex-col bg-white font-sans">
-      <Header compact />
+      <Header
+        compact
+        searchSlot={<PropertySearchHeaderSearch criteria={criteria} />}
+      />
       <PropertySearchResultsContent criteria={criteria} />
     </div>
   );

@@ -53,6 +53,8 @@ beforeEach(() => {
   });
   readRepository.findOwnedProperty.mockResolvedValue(locked());
   readRepository.findGroupSiblings.mockResolvedValue([]);
+  readRepository.findOwnerContact.mockResolvedValue(undefined);
+  readRepository.findBuilderListingDetails.mockResolvedValue(undefined);
   writeRepository.findSubTypes.mockResolvedValue([{ id: "st-1", slug: "flat-apartment", name: "Flat/Apartment" }]);
   filesService.removePropertyFile.mockResolvedValue();
   filesService.removePropertyFolder.mockResolvedValue();
@@ -100,6 +102,17 @@ describe("updateProperty", () => {
     const ownerContact = { fullName: "Ramesh Patel", mobileNumber: "9876543210" };
     const staff = { id: "staff-1", role: "lokesha_staff" };
     const admin = { adminId: "admin-1", role: "admin" };
+
+    beforeEach(() => {
+      readRepository.findOwnerContact.mockResolvedValue({ full_name: "Ramesh Patel" });
+    });
+
+    it("does not require an owner contact when the listing has none", async () => {
+      readRepository.findOwnerContact.mockResolvedValue(undefined);
+
+      await expect(service.updateProperty(admin, PROPERTY_ID, { payload: buildPayload() })).resolves.toBeDefined();
+      expect(writeRepository.upsertOwnerContact).not.toHaveBeenCalled();
+    });
 
     it.each([["staff", staff], ["admin", admin]])("replaces the owner contact for %s", async (_role, caller) => {
       await service.updateProperty(caller, PROPERTY_ID, { payload: { ...buildPayload(), ownerContact } });
@@ -154,6 +167,7 @@ describe("updateProperty", () => {
         locked({ sub_type_slug: "flat-apartment", builder_project_id: "bp-1" })
       );
       readRepository.findGroupSiblings.mockResolvedValue([locked({ id: SIBLING_ID, sub_type_slug: "duplex" })]);
+      readRepository.findBuilderListingDetails.mockResolvedValue({ property_id: PROPERTY_ID });
       editRepository.findGroupForUpdate.mockResolvedValue([
         locked({ builder_project_id: "bp-1" }),
         locked({ id: SIBLING_ID, builder_project_id: "bp-1" }),
@@ -190,7 +204,19 @@ describe("updateProperty", () => {
     );
   });
 
+  it("keeps the location highlights of an agent listing editable by an admin", async () => {
+    readRepository.findOwnedProperty.mockResolvedValue(locked({ builder_project_id: "bp-1" }));
+    editRepository.findPropertyForUpdate.mockResolvedValue(locked({ builder_project_id: "bp-1" }));
+    const payload = { ...buildPayload(), project: { projectName: "Vesu Heights", highlights: [{ text: "Near metro" }] } };
+
+    await expect(
+      service.updateProperty({ adminId: "admin-1", role: "admin" }, PROPERTY_ID, { payload })
+    ).resolves.toBeDefined();
+    expect(writeRepository.updateBuilderProject).toHaveBeenCalled();
+  });
+
   it("updates the shared project for builder listings", async () => {
+    readRepository.findBuilderListingDetails.mockResolvedValue({ property_id: PROPERTY_ID });
     readRepository.findOwnedProperty.mockResolvedValue(locked({ builder_project_id: "bp-1" }));
     editRepository.findPropertyForUpdate.mockResolvedValue(locked({ builder_project_id: "bp-1" }));
     const payload = buildPayload();

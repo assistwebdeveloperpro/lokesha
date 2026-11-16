@@ -33,7 +33,7 @@ export default function LeadsFilterBar({ applied, onApply, isLoading = false }: 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-5 rounded-2xl border border-slate-200/80 bg-linear-to-br from-white via-slate-50/80 to-sky-50/40 p-4 shadow-[0_1px_3px_rgba(15,23,42,.06),0_8px_24px_rgba(15,23,42,.04)] sm:p-5"
+      className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5"
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">
         <div className="min-w-0 sm:col-span-2 lg:col-span-1">

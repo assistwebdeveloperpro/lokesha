@@ -3,7 +3,7 @@
 import { ChevronDown, Home, HousePlus, Mail, Menu, Phone, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import {
@@ -345,9 +345,15 @@ function DesktopUserMenu({
 
 type HeaderProps = {
   compact?: boolean;
+  showCitySelector?: boolean;
+  searchSlot?: ReactNode;
 };
 
-export default function Header({ compact = false }: HeaderProps) {
+export default function Header({
+  compact = false,
+  showCitySelector = false,
+  searchSlot,
+}: HeaderProps) {
   const { isLoggedIn, userName, displayInitial, logout } = useAuth();
   const { showToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -416,7 +422,7 @@ export default function Header({ compact = false }: HeaderProps) {
                   <Home className="h-4 w-4 text-sky-300" aria-hidden />
                 </span>
               </Link>
-              <HeaderCitySelector variant="mobile" />
+              {showCitySelector && <HeaderCitySelector variant="mobile" />}
             </div>
 
             {/* Desktop: logo + city */}
@@ -432,8 +438,14 @@ export default function Header({ compact = false }: HeaderProps) {
                   Lokesha
                 </span>
               </Link>
-              <HeaderCitySelector />
+              {showCitySelector && <HeaderCitySelector />}
             </div>
+
+            {searchSlot && (
+              <div className="mx-2 hidden min-w-0 max-w-3xl flex-1 lg:block">
+                {searchSlot}
+              </div>
+            )}
 
             {/* Right actions */}
             <div className="flex shrink-0 items-center gap-3 sm:gap-4">
@@ -449,6 +461,11 @@ export default function Header({ compact = false }: HeaderProps) {
               <PostPropertyButton compact />
             </div>
           </div>
+          {searchSlot && (
+            <div className="mx-auto max-w-360 px-2 pb-2 sm:px-3 lg:hidden">
+              {searchSlot}
+            </div>
+          )}
         </div>
 
         {!compact && (

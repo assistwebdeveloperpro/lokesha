@@ -112,7 +112,7 @@ export function PropertySearchResultsContent({
 
       <div
         ref={summaryBarRef}
-        className="sticky z-30 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-sm"
+        className="static xl:sticky z-30 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-sm"
         style={{ top: contentStickyTopPx > 0 ? contentStickyTopPx : undefined }}
       >
         <div className={`${RESULTS_CONTAINER} ${RESULTS_GRID}`}>

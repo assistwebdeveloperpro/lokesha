@@ -1,8 +1,9 @@
 "use client";
 
 import { Loader2, X } from "lucide-react";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
+import { authOtpDigitClassName } from "@/components/shared/auth/authForm.styles";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { ApiError } from "@/services/apiClient";
 import { connectSeller, verifyOtp } from "@/services/auth.service";
@@ -15,9 +16,24 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const inputClassName =
   "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-navy-blue focus:ring-2 focus:ring-navy-blue/15";
 
+export type ConnectSellerModalCopy = {
+  title: string;
+  description: string;
+  submitLabel: string;
+  verifyLabel: string;
+};
+
+const DEFAULT_COPY: ConnectSellerModalCopy = {
+  title: "Connect to Seller",
+  description: "Share your details and verify with OTP to contact the seller.",
+  submitLabel: "Login",
+  verifyLabel: "Verify & Connect",
+};
+
 type ConnectSellerModalProps = {
   onClose: () => void;
   onVerified: (token: string) => void;
+  copy?: ConnectSellerModalCopy;
 };
 
 type FormValues = {
@@ -40,12 +56,13 @@ function validate({ name, email, mobile, agreed }: FormValues) {
   return null;
 }
 
-export function ConnectSellerModal({ onClose, onVerified }: ConnectSellerModalProps) {
+export function ConnectSellerModal({ onClose, onVerified, copy = DEFAULT_COPY }: ConnectSellerModalProps) {
   const headingId = useId();
   const { showToast } = useToast();
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState<FormValues>({ name: "", email: "", mobile: "", agreed: false });
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [step, setStep] = useState<"details" | "otp">("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,7 +71,7 @@ export function ConnectSellerModal({ onClose, onVerified }: ConnectSellerModalPr
     document.body.style.overflow = "hidden";
     firstFieldRef.current?.focus();
 
-    function handleKeyDown(event: KeyboardEvent) {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
 
@@ -97,20 +114,39 @@ export function ConnectSellerModal({ onClose, onVerified }: ConnectSellerModalPr
 
   const handleOtpSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (otp.length !== OTP_LENGTH) {
+    const otpCode = otp.join("");
+    if (otpCode.length !== OTP_LENGTH) {
       showToast("Please enter the verification code.", "error");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const { token, role } = await verifyOtp({ mobile_number: values.mobile, otp });
+      const { token, role } = await verifyOtp({ mobile_number: values.mobile, otp: otpCode });
       setSession(token, role);
       onVerified(token);
     } catch {
       showToast("OTP is not verified. Please try again.", "error");
       setIsSubmitting(false);
     }
+  };
+
+  const updateDigit = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    setOtp((prev) => prev.map((current, i) => (i === index ? digit : current)));
+    if (digit && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index: number, event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Backspace" && !otp[index] && index > 0) otpRefs.current[index - 1]?.focus();
+  };
+
+  const handleOtpPaste = (event: ClipboardEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    setOtp(Array.from({ length: OTP_LENGTH }, (_, i) => pasted[i] ?? ""));
+    otpRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
   };
 
   const setField = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
@@ -140,11 +176,11 @@ export function ConnectSellerModal({ onClose, onVerified }: ConnectSellerModalPr
         </button>
 
         <h2 id={headingId} className="font-display text-xl font-bold tracking-tight text-slate-900">
-          Connect to Seller
+          {copy.title}
         </h2>
         <p className="mt-1.5 text-sm text-slate-600">
           {step === "details"
-            ? "Share your details and verify with OTP to contact the seller."
+            ? copy.description
             : `Enter the 4-digit code sent to ${values.mobile}.`}
         </p>
 
@@ -188,7 +224,7 @@ export function ConnectSellerModal({ onClose, onVerified }: ConnectSellerModalPr
                 className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-navy-blue"
               />
               <span>
-                I Agree to <span className="font-semibold text-navy-blue">AddressBox&apos;s Terms of use</span> and{" "}
+                I Agree to <span className="font-semibold text-navy-blue">Lokesha&apos;s Terms of use</span> and{" "}
                 <span className="font-semibold text-slate-900">Allow Whatsapp</span>
               </span>
             </label>
@@ -198,35 +234,43 @@ export function ConnectSellerModal({ onClose, onVerified }: ConnectSellerModalPr
               className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r-navy-blue px-5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-              {isSubmitting ? "Sending OTP..." : "Login"}
+              {isSubmitting ? "Sending OTP..." : copy.submitLabel}
             </button>
           </form>
         ) : (
           <form className="mt-5 space-y-3.5" onSubmit={handleOtpSubmit}>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder="Enter OTP"
-              aria-label="Verification code"
-              maxLength={OTP_LENGTH}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              className={`${inputClassName} text-center text-lg tracking-[0.5em]`}
-              autoFocus
-            />
+            <div className="flex justify-center gap-2.5 sm:gap-3" onPaste={handleOtpPaste}>
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    otpRefs.current[index] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  maxLength={1}
+                  value={digit}
+                  aria-label={`Digit ${index + 1} of verification code`}
+                  onChange={(e) => updateDigit(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  className={authOtpDigitClassName(false)}
+                  autoFocus={index === 0}
+                />
+              ))}
+            </div>
             <button
               type="submit"
               disabled={isSubmitting}
               className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r-navy-blue px-5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-              {isSubmitting ? "Verifying..." : "Verify & Connect"}
+              {isSubmitting ? "Verifying..." : copy.verifyLabel}
             </button>
             <button
               type="button"
               onClick={() => setStep("details")}
-              className="w-full cursor-pointer text-center text-sm font-medium text-slate-600 transition hover:text-navy-blue"
+              className="w-full cursor-pointer text-center text-sm font-medium text-slate-600 underline decoration-slate-400 underline-offset-4 transition hover:text-navy-blue hover:decoration-navy-blue"
             >
               Change details
             </button>

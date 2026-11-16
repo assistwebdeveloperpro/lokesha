@@ -58,10 +58,12 @@ async function updateProperty(user, propertyId, { payload }) {
   }
   const members = [existing, ...((await readRepository.findGroupSiblings(existing)) ?? [])];
 
-  const { value, fields } = validateCompletePayload(payload, {
-    isBuilderPost: Boolean(existing.builder_project_id),
-    hasOwnerContact: canManageOwnerContact(user),
-  });
+  // Only listings posted on behalf of an owner carry a contact; builder listings never do
+  const hasOwnerContact = canManageOwnerContact(user) && Boolean(await readRepository.findOwnerContact(existing.id));
+  // A shared project also holds the location highlights of agent and owner listings, so it does not mark a builder post
+  const isBuilderPost = Boolean(await readRepository.findBuilderListingDetails(existing.id));
+
+  const { value, fields } = validateCompletePayload(payload, { isBuilderPost, hasOwnerContact });
   if (!value) {
     throw validationError(fields);
   }

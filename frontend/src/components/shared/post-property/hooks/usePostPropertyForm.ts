@@ -148,7 +148,7 @@ export function usePostPropertyForm() {
     isStaff,
     postingAs,
     isBuilderPost,
-    isOwnerAgentListing: isEditMode && editDetail !== null && !editDetail.payload.project,
+    isOwnerAgentListing: isEditMode && editDetail !== null && !isBuilderPost,
   });
   const builderConfig = getMergedBuilderConfig(propertyType, propertySubTypes);
   const addressValidationOptions = {

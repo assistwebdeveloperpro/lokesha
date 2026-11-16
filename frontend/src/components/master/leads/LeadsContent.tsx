@@ -1,5 +1,6 @@
 "use client";
 
+import { Users } from "lucide-react";
 import ListPagination from "@/components/shared/ui/ListPagination";
 import LeadsEmptyState from "./LeadsEmptyState";
 import LeadsFilterBar from "./LeadsFilterBar";
@@ -16,12 +17,20 @@ export default function LeadsContent() {
 
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
-      <header>
-        <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">Leads</h1>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="bg-linear-to-r-navy-blue flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-md">
+            <Users className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+          </span>
+          <div>
+            <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">Leads</h1>
+            <p className="text-sm text-slate-500">Enquiries received on property listings</p>
+          </div>
+        </div>
         {!isLoading && !error ? (
-          <p className="mt-1 text-sm text-slate-500">
+          <span className="inline-flex items-center rounded-full bg-sky-50 px-3.5 py-1.5 text-sm font-semibold text-sky-700 ring-1 ring-sky-200">
             {total} {total === 1 ? "lead" : "leads"}
-          </p>
+          </span>
         ) : null}
       </header>
 

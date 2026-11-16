@@ -125,7 +125,7 @@ export function PropertyContactSuccessModal({
               <Check className="h-8 w-8 text-white" strokeWidth={2.5} />
             </div>
             <h2 id={headingId} className="font-display mt-4 text-2xl font-bold tracking-tight text-slate-900">
-              You&apos;re Connected!
+             Your Enquiry Has Been Submitted!
             </h2>
             <p className="mt-2 max-w-sm text-sm text-slate-600">{variant.subtitle}</p>
           </div>

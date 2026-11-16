@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, ChevronDown, ClipboardList, Search, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   useEffect,
   useId,
@@ -24,7 +23,6 @@ import {
   LANDING_CATEGORY_SLUGS,
   type LandingCategory,
 } from "@/lib/property-search-url/landingUrl.config";
-import { setPostLoginRedirect } from "@/lib/postLoginRedirect";
 import {
   CATEGORY_ID_BY_SLUG,
   CATEGORY_TRANSACTIONS,
@@ -42,6 +40,10 @@ import {
 } from "@/services/propertySearch.service";
 import { clearSession, getToken } from "@/services/session";
 import {
+  ConnectSellerModal,
+  type ConnectSellerModalCopy,
+} from "@/components/landing/property-contact/ConnectSellerModal";
+import {
   getCategoryFilters,
   includesValue,
   type FilterOption,
@@ -51,7 +53,6 @@ import { getCityLocalities } from "../search-filter-bar/searchTopLocalities";
 import {
   clearRequirementDraft,
   loadRequirementDraft,
-  saveRequirementDraft,
   type RequirementDraft,
 } from "./requirementDraft";
 
@@ -94,7 +95,14 @@ function matchedSubtypeValues(selected: string[], category: CategorySlug): strin
 }
 
 const SUBMIT_FAILED_MESSAGE = "Unable to submit your requirement. Please try again.";
-const LOGIN_REQUIRED_MESSAGE = "Please login to share your requirement.";
+
+const REQUIREMENT_MODAL_COPY: ConnectSellerModalCopy = {
+  title: "Let's Find the Right Property for You!",
+  description:
+    "Verify your mobile number with a quick OTP to share your requirement with matching property sellers.",
+  submitLabel: "Send OTP",
+  verifyLabel: "Verify & Submit",
+};
 
 function toRequirementPayload(draft: RequirementDraft): PropertyRequirementPayload {
   const propertyType = CATEGORY_ID_BY_SLUG[draft.category];
@@ -178,7 +186,7 @@ function RequirementLocalityField({
   return (
     <div ref={rootRef} className="relative">
       <div
-        className={`flex min-h-11 w-full flex-wrap items-center gap-1 rounded-xl border bg-white py-1.5 pl-2.5 pr-9 shadow-sm transition focus-within:ring-2 ${
+        className={`relative flex min-h-11 w-full flex-wrap items-center gap-1 rounded-xl border bg-white py-1.5 pl-2.5 pr-9 shadow-sm transition focus-within:ring-2 ${
           hasError
             ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
             : "border-slate-200/90 focus-within:border-sky-500 focus-within:ring-sky-500/20"
@@ -502,7 +510,6 @@ function RequirementForm({
   criteria,
   cityFromSearch,
 }: PropertySearchShareRequirementCardProps & { cityFromSearch: string }) {
-  const router = useRouter();
   const { showToast } = useToast();
   const [savedDraft] = useState(() => loadRequirementDraft(window.location.href));
 
@@ -517,6 +524,7 @@ function RequirementForm({
   const [localityError, setLocalityError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<RequirementDraft | null>(null);
 
   const transactionOptions = useMemo(
     () =>
@@ -547,11 +555,25 @@ function RequirementForm({
     setSubtypes([]);
   };
 
-  const redirectToLogin = (draft: RequirementDraft) => {
-    saveRequirementDraft(draft, window.location.href);
-    setPostLoginRedirect(`${window.location.pathname}${window.location.search}`);
-    showToast(LOGIN_REQUIRED_MESSAGE, "error");
-    router.push("/login");
+  const submitRequirement = async (draft: RequirementDraft, token: string) => {
+    setIsSubmitting(true);
+    try {
+      const { message } = await submitPropertyRequirement(toRequirementPayload(draft), token);
+      showToast(message);
+      clearRequirementDraft();
+      setDescription("");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearSession();
+        setPendingDraft(draft);
+        return;
+      }
+      const message =
+        error instanceof ApiError ? (error.errors?.[0] ?? error.message) : SUBMIT_FAILED_MESSAGE;
+      showToast(message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -565,28 +587,18 @@ function RequirementForm({
     const draft: RequirementDraft = { transaction, category, city, localities, subtypes, description };
     const token = getToken();
     if (!token) {
-      redirectToLogin(draft);
+      setPendingDraft(draft);
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const { message } = await submitPropertyRequirement(toRequirementPayload(draft), token);
-      showToast(message);
-      clearRequirementDraft();
-      setDescription("");
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        clearSession();
-        redirectToLogin(draft);
-        return;
-      }
-      const message =
-        error instanceof ApiError ? (error.errors?.[0] ?? error.message) : SUBMIT_FAILED_MESSAGE;
-      showToast(message, "error");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await submitRequirement(draft, token);
+  };
+
+  const handleVerified = (token: string) => {
+    if (!pendingDraft) return;
+    const draft = pendingDraft;
+    setPendingDraft(null);
+    void submitRequirement(draft, token);
   };
 
   return (
@@ -694,6 +706,13 @@ function RequirementForm({
           {isSubmitting ? "Submitting..." : "Submit requirements"}
         </button>
       </form>
+      {pendingDraft ? (
+        <ConnectSellerModal
+          copy={REQUIREMENT_MODAL_COPY}
+          onClose={() => setPendingDraft(null)}
+          onVerified={handleVerified}
+        />
+      ) : null}
     </section>
   );
 }

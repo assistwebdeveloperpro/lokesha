@@ -5,7 +5,7 @@ import type { HeroBannerInitialSelection } from "./hero-banner/useHeroBannerFilt
 export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 font-sans">
-      <Header />
+      <Header showCitySelector />
       <main className="flex flex-1 flex-col">
         <HeroBanner {...initialSelection} />
       </main>

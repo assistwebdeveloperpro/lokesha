@@ -104,6 +104,21 @@ const AMENITY_PRIORITY = {
   "regular-water-supply": 290,
   "pet-allowed": 300,
   "no-vehicle-zone": 310,
+  "laundry-service": 320,
+  skydeck: 330,
+  "outdoor-tennis-court": 340,
+  "visitor-parking": 350,
+  "banquet-hall": 360,
+  "bar-lounge": 370,
+  "service-goods-lift": 380,
+  fireplace: 390,
+  "water-front": 400,
+  "jogging-strolling-track": 410,
+  "library-business-centre": 420,
+  "solar-energy": 430,
+  "meditation-area": 440,
+  "kids-splash-pool": 450,
+  "private-terrace": 460,
 };
 
 const FURNISHING_PRIORITY = {
@@ -253,25 +268,34 @@ function buildCatalog() {
 /** @param {import('knex').Knex} knex */
 exports.seed = async function seed(knex) {
   await knex.transaction(async (trx) => {
+    const catalog = buildCatalog();
     await trx("amenities")
-      .insert(buildCatalog())
+      .insert(catalog)
       .onConflict(["kind", "amenity_key"])
       .merge(["name", "image_path", "sort_order", "updated_at"]);
+
+    const catalogKeys = new Set(catalog.map((row) => row.amenity_key));
+    await Promise.all(
+      Object.entries(AMENITY_PRIORITY)
+        .filter(([key]) => !catalogKeys.has(key))
+        .map(([key, sortOrder]) =>
+          trx("amenities").where({ kind: "amenity", amenity_key: key }).update({ sort_order: sortOrder })
+        )
+    );
 
     const amenities = await trx("amenities").select("id", "kind", "amenity_key");
     const idByKey = new Map(amenities.map((a) => [`${a.kind}:${a.amenity_key}`, a.id]));
 
-    // Rebuild mappings so edits to the rules above always take effect
-    await trx("amenity_property_types").del();
-    await trx.batchInsert(
-      "amenity_property_types",
-      buildMappings().map((m) => ({
-        amenity_id: idByKey.get(`${m.kind}:${m.key}`),
-        listing_type: m.listing,
-        property_type: m.type,
-        property_sub_type: m.subType,
-      })),
-      200
-    );
+    const mappings = buildMappings().map((m) => ({
+      amenity_id: idByKey.get(`${m.kind}:${m.key}`),
+      listing_type: m.listing,
+      property_type: m.type,
+      property_sub_type: m.subType,
+    }));
+    const ownedIds = [...new Set(mappings.map((m) => m.amenity_id))];
+
+    // Rebuild only this seed's mappings so amenities seeded elsewhere keep theirs
+    await trx("amenity_property_types").whereIn("amenity_id", ownedIds).del();
+    await trx.batchInsert("amenity_property_types", mappings, 200);
   });
 };

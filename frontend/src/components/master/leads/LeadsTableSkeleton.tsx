@@ -10,22 +10,34 @@ function SkeletonRow() {
       className={`grid gap-4 border-b border-slate-100 px-4 py-4 last:border-b-0 sm:px-5 ${LEAD_GRID_CLASS}`}
     >
       <div className="flex items-start gap-3">
-        <span className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-slate-200/80" />
+        <span className="h-11 w-11 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
         <div className="min-w-0 flex-1 space-y-2">
           <div className={`${bar} h-4 w-3/4`} />
-          <div className={`${bar} h-3 w-1/2`} />
-          <div className={`${bar} h-3 w-2/3`} />
+          <div className="flex items-center gap-2">
+            <span className={`${bar} h-5 w-5 shrink-0 rounded-full`} />
+            <div className={`${bar} h-3 w-1/2`} />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`${bar} h-5 w-5 shrink-0 rounded-full`} />
+            <div className={`${bar} h-3 w-2/3`} />
+          </div>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className={`${bar} h-4 w-4/5`} />
-        <div className={`${bar} h-3 w-1/3`} />
-        <div className="flex gap-1.5">
-          <div className={`${bar} h-4 w-16 rounded-full`} />
-          <div className={`${bar} h-4 w-12 rounded-full`} />
+      <div className="flex items-start gap-3">
+        <span className="h-11 w-11 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className={`${bar} h-4 w-4/5`} />
+          <div className="flex gap-1.5">
+            <div className={`${bar} h-5 w-14 rounded-md`} />
+            <div className={`${bar} h-5 w-16 rounded-md`} />
+            <div className={`${bar} h-5 w-12 rounded-md`} />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`${bar} h-5 w-5 shrink-0 rounded-full`} />
+            <div className={`${bar} h-3 w-2/3`} />
+          </div>
         </div>
-        <div className={`${bar} h-3 w-2/3`} />
       </div>
 
       <div className="space-y-2">
@@ -54,7 +66,7 @@ export default function LeadsTableSkeleton() {
     <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-sm" aria-busy>
       <div className={LEAD_TABLE_MIN_WIDTH_CLASS}>
         <div
-          className={`border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 ${LEAD_GRID_CLASS}`}
+          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${LEAD_GRID_CLASS}`}
           aria-hidden
         >
           {LEAD_TABLE_COLUMNS.map((column) => (
