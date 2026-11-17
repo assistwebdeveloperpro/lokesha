@@ -1,6 +1,7 @@
 const { db } = require("../../../config/db");
 
 const TABLE = "users";
+const PENDING_TABLE = "pending_user_registrations";
 
 async function findUserByMobile(mobile_number) {
   return db(TABLE).where({ mobile_number }).first();
@@ -67,6 +68,42 @@ async function getUserRoleAndOtp(mobile_number) {
     .first();
 }
 
+async function upsertPendingRegistration({
+  mobile_number,
+  name,
+  email,
+  agreed_to_terms,
+  otpCode,
+  otpExpiresAt,
+}) {
+  return db(PENDING_TABLE)
+    .insert({
+      mobile_number,
+      name,
+      email,
+      agreed_to_terms,
+      otp_code: otpCode,
+      otp_expires_at: otpExpiresAt,
+    })
+    .onConflict("mobile_number")
+    .merge({
+      name,
+      email,
+      agreed_to_terms,
+      otp_code: otpCode,
+      otp_expires_at: otpExpiresAt,
+      updated_at: db.fn.now(),
+    });
+}
+
+async function findPendingRegistration(mobile_number) {
+  return db(PENDING_TABLE).where({ mobile_number }).first();
+}
+
+async function deletePendingRegistration(mobile_number) {
+  return db(PENDING_TABLE).where({ mobile_number }).del();
+}
+
 async function findUserById(id) {
   return db(TABLE)
     .where({ id })
@@ -81,5 +118,8 @@ module.exports = {
   setOtp,
   clearOtp,
   getUserRoleAndOtp,
+  upsertPendingRegistration,
+  findPendingRegistration,
+  deletePendingRegistration,
   findUserById,
 };

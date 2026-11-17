@@ -14,6 +14,26 @@ const NOT_REGISTERED_MESSAGE =
 
 const CONNECT_SELLER_ROLE = "buyer_owner_tenant";
 
+function isOtpValid(record, otp) {
+  const isExpired = !record.otp_expires_at || new Date(record.otp_expires_at) < new Date();
+
+  return Boolean(record.otp_code) && record.otp_code === otp && !isExpired;
+}
+
+async function assertEmailAvailable(email) {
+  const existingEmail = await repository.findUserByEmail(email);
+  if (existingEmail) {
+    throw new AppError("Email is already registered with another mobile number", 409);
+  }
+}
+
+async function assertMobileAvailable(mobile_number) {
+  const existingMobile = await repository.findUserByMobile(mobile_number);
+  if (existingMobile) {
+    throw new AppError("Mobile number is already registered", 409);
+  }
+}
+
 async function signup({
   role,
   name,
@@ -67,42 +87,70 @@ async function login({ mobile_number }) {
 async function connectSeller({ name, email, mobile_number, agreed_to_terms }) {
   const existingMobile = await repository.findUserByMobile(mobile_number);
 
-  if (!existingMobile) {
-    const existingEmail = await repository.findUserByEmail(email);
-    if (existingEmail) {
-      throw new AppError("Email is already registered with another mobile number", 409);
-    }
-
-    await repository.createUser({
-      role: CONNECT_SELLER_ROLE,
-      name,
-      email,
-      mobile_number,
-      agreed_to_terms,
-    });
+  if (existingMobile) {
+    return issueOtp(mobile_number);
   }
 
-  return issueOtp(mobile_number);
+  await assertEmailAvailable(email);
+
+  const otpCode = generateOtp();
+  const otpExpiresAt = getOtpExpiry();
+
+  await repository.upsertPendingRegistration({
+    mobile_number,
+    name,
+    email,
+    agreed_to_terms,
+    otpCode,
+    otpExpiresAt,
+  });
+
+  return { message: "OTP sent successfully.", otp_expires_in: OTP_EXPIRY_SECONDS };
 }
 
-async function verifyOtp({ mobile_number, otp }) {
-  const user = await repository.getUserRoleAndOtp(mobile_number);
+async function verifyPendingRegistration({ mobile_number, otp }) {
+  const pending = await repository.findPendingRegistration(mobile_number);
 
-  if (!user) {
+  if (!pending) {
     throw new AppError(
       "No account found with this mobile number. Please register to continue.",
       404
     );
   }
 
-  const isExpired =
-    !user.otp_expires_at || new Date(user.otp_expires_at) < new Date();
-
-  if (!user.otp_code || user.otp_code !== otp || isExpired) {
+  if (!isOtpValid(pending, otp)) {
     throw new AppError("Invalid or expired OTP", 400);
   }
 
-  await repository.clearOtp(user.id);
+  await assertMobileAvailable(mobile_number);
+  await assertEmailAvailable(pending.email);
+
+  const user = await repository.createUser({
+    role: CONNECT_SELLER_ROLE,
+    name: pending.name,
+    email: pending.email,
+    mobile_number,
+    agreed_to_terms: pending.agreed_to_terms,
+  });
+
+  await repository.deletePendingRegistration(mobile_number);
+
+  return user;
+}
+
+async function verifyOtp({ mobile_number, otp }) {
+  const existingUser = await repository.getUserRoleAndOtp(mobile_number);
+
+  let user;
+  if (existingUser) {
+    if (!isOtpValid(existingUser, otp)) {
+      throw new AppError("Invalid or expired OTP", 400);
+    }
+    await repository.clearOtp(existingUser.id);
+    user = existingUser;
+  } else {
+    user = await verifyPendingRegistration({ mobile_number, otp });
+  }
 
   const token = signToken({ id: user.id, role: user.role });
 
