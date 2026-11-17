@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Loader2, Plus } from "lucide-react";
+import { Building2, ChevronDown, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import PropertyFilterGrid, { PropertyFilterEmpty } from "@/components/shared/ui/PropertyFilterGrid";
 import DeletePropertyModal from "./DeletePropertyModal";
@@ -21,13 +21,18 @@ export default function ManagePropertiesContent() {
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">Manage Properties</h1>
-          {!isLoading && !error ? (
-            <p className="mt-1 text-sm text-slate-500">
-              {total} {total === 1 ? "property" : "properties"}
-            </p>
-          ) : null}
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="bg-linear-to-r-navy-blue flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md sm:h-11 sm:w-11">
+            <Building2 className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h1 className="font-display truncate text-lg font-bold text-slate-800 lg:text-xl">Manage Properties</h1>
+            {!isLoading && !error ? (
+              <p className="truncate text-xs text-slate-500 sm:text-sm">
+                {total} {total === 1 ? "property" : "properties"}
+              </p>
+            ) : null}
+          </div>
         </div>
         <Link
           href="/post-property"
@@ -111,7 +116,7 @@ export default function ManagePropertiesContent() {
                   disabled={manager.isLoadingMore}
                   onClick={manager.loadMore}
                   aria-busy={manager.isLoadingMore}
-                  className="group inline-flex min-h-11 min-w-[220px] cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-white px-8 text-sm font-semibold text-navy-blue shadow-sm ring-1 ring-slate-200/90 transition duration-200 hover:shadow-md hover:ring-navy-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white disabled:hover:shadow-sm disabled:hover:ring-slate-200/90"
+                  className="group inline-flex min-h-11 min-w-55 cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-white px-8 text-sm font-semibold text-navy-blue shadow-sm ring-1 ring-slate-200/90 transition duration-200 hover:shadow-md hover:ring-navy-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white disabled:hover:shadow-sm disabled:hover:ring-slate-200/90"
                 >
                   {manager.isLoadingMore ? (
                     <>

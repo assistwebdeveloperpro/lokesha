@@ -15,6 +15,8 @@ const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-mes
 const userNotificationsRoutes = require("./modules/user/dashboard/user-notifications/user-notifications.routes");
 const userContactedPropertiesRoutes = require("./modules/user/dashboard/user-contacted-properties/user-contacted-properties.routes");
 const savedPropertiesRoutes = require("./modules/user/dashboard/saved-properties/saved-properties.routes");
+const seenPropertiesRoutes = require("./modules/user/dashboard/seen-properties/seen-properties.routes");
+const seenPropertyViewRoutes = require("./modules/user/dashboard/seen-properties/seen-properties.view.routes");
 const adminAuthRoutes =require("./modules/master/auth/admin-auth.routes");
 const userManagePropertiesRoutes = require("./modules/user/dashboard/manage-properties/manage-properties.routes");
 const userPostPropertyRoutes = require("./modules/user/dashboard/post-property/user-post-property.routes");
@@ -59,7 +61,9 @@ app.use("/api/property", userPostPropertyRoutes);
 
 app.use("/api/user/contacted-properties", userContactedPropertiesRoutes);
 app.use("/api/user/saved-properties", savedPropertiesRoutes);
+app.use("/api/user/seen-properties", seenPropertiesRoutes);
 
+app.use("/api/property-search", seenPropertyViewRoutes);
 app.use("/api/property-search", propertySearchRoutes);
 app.use("/api/property-requirements", propertyRequirementRoutes);
 app.use("/api/property-contact", propertyContactRoutes);

@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Building2, ListChecks, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
@@ -42,7 +42,13 @@ type ManagePropertiesContentProps = {
   showOwnerDetails?: boolean;
   allowListingActions?: boolean;
   showPropertyCount?: boolean;
+  icon?: keyof typeof HEADER_ICONS;
 };
+
+const HEADER_ICONS = {
+  properties: Building2,
+  listings: ListChecks,
+} as const;
 
 const SKELETON_COUNT = 6;
 const POST_PROPERTY_PATH = "/backend/properties/post-property";
@@ -59,7 +65,9 @@ export default function ManagePropertiesContent({
   showOwnerDetails = true,
   allowListingActions = true,
   showPropertyCount = true,
+  icon = "properties",
 }: ManagePropertiesContentProps) {
+  const Icon = HEADER_ICONS[icon];
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -115,14 +123,19 @@ export default function ManagePropertiesContent({
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">{title}</h1>
-          {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
-          {showPropertyCount && !isLoading && !error ? (
-            <p className={`${description ? "mt-0.5" : "mt-1"} text-sm text-slate-500`}>
-              {total} {total === 1 ? "property" : "properties"}
-            </p>
-          ) : null}
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="bg-linear-to-r-navy-blue flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md sm:h-11 sm:w-11">
+            <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h1 className="font-display truncate text-lg font-bold text-slate-800 lg:text-xl">{title}</h1>
+            {description ? <p className="truncate text-xs text-slate-500 sm:text-sm">{description}</p> : null}
+            {showPropertyCount && !isLoading && !error ? (
+              <p className="truncate text-xs text-slate-500 sm:text-sm">
+                {total} {total === 1 ? "property" : "properties"}
+              </p>
+            ) : null}
+          </div>
         </div>
         <Link
           href={POST_PROPERTY_PATH}

@@ -1,6 +1,8 @@
 const searchRepository = require("../../../landing/property-search/property-search.repository");
 const searchMapper = require("../../../landing/property-search/property-search.mapper");
 
+const { toGalleryImagePaths } = searchMapper;
+
 const PUBLISHED_STATUS = "published";
 
 const groupBy = (items, getKey) =>
@@ -35,6 +37,13 @@ async function findListingsByPropertyId(rows, enrich = (listing) => listing) {
   );
 }
 
+// Adds the slider images of every sub type in the card's group
+function withGalleryImages(listing, card, extras) {
+  const media = extras.media.filter(({ property_id: id }) => card.member_ids.includes(id));
+
+  return { ...listing, imageUrls: toGalleryImagePaths(media, listing.imageUrl) };
+}
+
 function toUnavailableProperty(row) {
   return {
     id: row.property_id,
@@ -47,4 +56,9 @@ function toUnavailableProperty(row) {
   };
 }
 
-module.exports = { PUBLISHED_STATUS, findListingsByPropertyId, toUnavailableProperty };
+module.exports = {
+  PUBLISHED_STATUS,
+  findListingsByPropertyId,
+  withGalleryImages,
+  toUnavailableProperty,
+};

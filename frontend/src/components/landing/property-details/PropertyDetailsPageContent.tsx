@@ -9,6 +9,7 @@ import {
   CircleHelp,
   ScrollText,
 } from "lucide-react";
+import { PropertyViewTracker } from "@/components/landing/seen-properties/PropertyViewTracker";
 import { PropertyDetailsAboutTabs } from "./PropertyDetailsAboutTabs";
 import { PropertyDetailsAmenityGrid } from "./PropertyDetailsAmenityGrid";
 import { PropertyDetailsBreadcrumbs } from "./PropertyDetailsBreadcrumbs";
@@ -69,6 +70,7 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
 
   return (
     <div className="bg-slate-50/60 pb-10">
+      <PropertyViewTracker propertyId={listing.id} />
       <div className={`${PAGE_CONTAINER} pt-3 sm:pt-4`}>
         <PropertyDetailsBreadcrumbs items={details.breadcrumbs} />
 

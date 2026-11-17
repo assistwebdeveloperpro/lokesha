@@ -1,5 +1,6 @@
 import { Handshake } from "lucide-react";
 import Link from "next/link";
+import { EXPLORE_PROPERTIES_HREF } from "@/lib/property-search-url/buildLandingUrl";
 import { CONTACTED_EMPTY_STATES } from "./contactedPropertiesShared";
 
 type ContactedPropertiesEmptyStateProps = {
@@ -18,7 +19,7 @@ export default function ContactedPropertiesEmptyState({ isFiltered }: ContactedP
       <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">{description}</p>
       {isFiltered ? null : (
         <Link
-          href="/property-search"
+          href={EXPLORE_PROPERTIES_HREF}
           className="bg-linear-to-r-navy-blue mt-6 inline-flex min-h-10 items-center rounded-xl px-6 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
         >
           Search properties

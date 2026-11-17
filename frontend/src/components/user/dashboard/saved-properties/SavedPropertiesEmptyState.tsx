@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { EXPLORE_PROPERTIES_HREF } from "@/lib/property-search-url/buildLandingUrl";
 import { SAVED_EMPTY_STATE } from "./savedPropertiesShared";
 
 export default function SavedPropertiesEmptyState() {
@@ -13,7 +14,7 @@ export default function SavedPropertiesEmptyState() {
       </h2>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">{SAVED_EMPTY_STATE.description}</p>
       <Link
-        href="/property-search"
+        href={EXPLORE_PROPERTIES_HREF}
         className="bg-linear-to-r-navy-blue mt-6 inline-flex min-h-10 items-center rounded-xl px-6 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
       >
         Explore properties

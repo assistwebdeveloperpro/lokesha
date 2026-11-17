@@ -5,6 +5,7 @@ import ManagePropertiesContent, {
 export default function MasterOurListingsPage() {
   return (
     <ManagePropertiesContent
+      icon="listings"
       title="Our Listings"
       description="Properties posted by the admin team."
       source="admin"

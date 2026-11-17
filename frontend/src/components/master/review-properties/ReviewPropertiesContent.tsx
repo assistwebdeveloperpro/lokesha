@@ -54,7 +54,7 @@ export default function ReviewPropertiesContent() {
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header>
-        <h1 className="font-display text-xl font-bold text-slate-800 lg:text-2xl">Review Properties</h1>
+        <h1 className="font-display text-lg font-bold text-slate-800 lg:text-xl">Review Properties</h1>
         {!isLoading && !error ? (
           <p className="mt-1 text-sm text-slate-500">
             {total} {total === 1 ? "property" : "properties"}

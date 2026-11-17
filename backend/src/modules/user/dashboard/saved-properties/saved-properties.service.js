@@ -1,18 +1,11 @@
 const repository = require("./saved-properties.repository");
 const { AppError } = require("../../../shared/property/utils/property.errors");
-const { toGalleryImagePaths } = require("../../../landing/property-search/property-search.mapper");
 const {
   PUBLISHED_STATUS,
   findListingsByPropertyId,
+  withGalleryImages,
   toUnavailableProperty,
 } = require("../shared/published-listings");
-
-// Adds the slider images of every sub type in the card's group
-function withImageUrls(listing, card, extras) {
-  const media = extras.media.filter(({ property_id: id }) => card.member_ids.includes(id));
-
-  return { ...listing, imageUrls: toGalleryImagePaths(media, listing.imageUrl) };
-}
 
 function toSavedItem(row, listings) {
   const isAvailable = row.status === PUBLISHED_STATUS;
@@ -57,7 +50,7 @@ async function listSavedProperties(userId, query) {
     repository.findSavedRows(userId, query),
     repository.countSaved(userId),
   ]);
-  const listings = await findListingsByPropertyId(rows, withImageUrls);
+  const listings = await findListingsByPropertyId(rows, withGalleryImages);
 
   return {
     items: rows.map((row) => toSavedItem(row, listings)),

@@ -28,3 +28,10 @@ export function buildLandingUrl({
   if (!transaction) return path;
   return `${path}?${LANDING_TRANSACTION_PARAM}=${LANDING_TRANSACTION_CODES[transaction]}`;
 }
+
+// Default destination for "Explore properties" calls to action
+export const EXPLORE_PROPERTIES_HREF = buildLandingUrl({
+  category: "residential",
+  cityName: null,
+  transaction: "buy",
+});

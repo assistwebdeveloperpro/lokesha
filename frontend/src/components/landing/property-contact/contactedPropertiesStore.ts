@@ -23,7 +23,8 @@ function subscribe(listener: Listener) {
 }
 
 const getSnapshot = () => contactedIds;
-const getServerSnapshot = (): ReadonlySet<string> => new Set();
+const EMPTY_IDS: ReadonlySet<string> = new Set();
+const getServerSnapshot = () => EMPTY_IDS;
 
 export function markPropertyContacted(propertyId: string) {
   if (contactedIds.has(propertyId)) return;
