@@ -24,16 +24,14 @@ export type UserDashboardNavItem = {
 export const userDashboardNavItems: UserDashboardNavItem[] = [
   { label: "Dashboard", href: "/user/dashboard", icon: LayoutDashboard },
   {
-    label: "Contacts",
-    href: "/user/contacts/active-buyers",
+    label: "My Activity",
+    href: "/user/activities/saved-properties",
     icon: ContactRound,
     children: [
-      { label: "View Responses", href: "/user/contacts/responses" },
-      { label: "My Bonus Leads", href: "/user/contacts/bonus-leads" },
-      { label: "Most Active Buyers", href: "/user/contacts/active-buyers" },
-      { label: "Property Contacts Made", href: "/user/contacts/property-contacts" },
-      { label: "Requirement Contacts Made", href: "/user/contacts/requirement-contacts" },
-      { label: "Company Contacts Made", href: "/user/contacts/company-contacts" },
+      { label: "Saved Properties", href: "/user/activities/saved-properties" },
+      { label: "Contacted Properties", href: "/user/activities/contacted-properties" },
+      { label: "Seen Properties", href: "/user/activities/seen-properties" },
+      { label: "Recent Searches", href: "/user/activities/recent-searches" },
     ],
   },
   {

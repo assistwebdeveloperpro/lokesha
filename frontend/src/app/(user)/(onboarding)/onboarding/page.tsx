@@ -282,7 +282,7 @@ export default function OnboardingPage() {
                 similar to yours.
               </p>
               <div className="mt-4">
-                <ActionLink href="/user/contacts/active-buyers">
+                <ActionLink href="/user/activities/saved-properties">
                   View All Packs
                 </ActionLink>
               </div>
@@ -332,7 +332,7 @@ export default function OnboardingPage() {
 
             <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <Link
-                href="/user/contacts/active-buyers"
+                href="/user/activities/saved-properties"
                 className="inline-flex h-11 items-center justify-center rounded-md bg-linear-to-r-navy-blue px-8 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
               >
                 Connect Now

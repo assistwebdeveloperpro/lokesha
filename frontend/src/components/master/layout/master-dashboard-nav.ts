@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { Building2, LayoutDashboard, Users } from "lucide-react";
+import { Building2, LayoutDashboard, Package, Users } from "lucide-react";
 
 export type MasterDashboardNavChild = {
   label: string;
@@ -29,6 +29,7 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     ],
   },
   { label: "Leads", href: "/backend/leads", icon: Users },
+  { label: "Subscription Packages", href: "/backend/subscription-packages", icon: Package },
 ];
 
 export function isMasterNavItemActive(pathname: string, href: string): boolean {
