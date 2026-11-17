@@ -11,7 +11,7 @@ function authMiddleware(req, res, next) {
 
   try {
     const decoded = verifyToken(token);
-    if (decoded.type === "admin") {
+    if (decoded.type === "admin" || decoded.purpose) {
       return res.status(401).json({ message: "Invalid or expired token" });
     }
     req.user = { id: decoded.id, role: decoded.role };

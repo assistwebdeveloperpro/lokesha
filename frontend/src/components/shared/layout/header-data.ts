@@ -39,6 +39,8 @@ export const LOGGED_IN_PROFILE_LINK: HeaderMenuLink = {
   href: "/user/profile/account-details",
 };
 
+export const SAVED_PROPERTIES_HREF = "/user/activities/saved-properties";
+
 export const LOGGED_IN_PREMIUM_LINK: HeaderMenuLink = {
   label: "Lokesha Prime",
   href: "#",
@@ -50,5 +52,5 @@ export const LOGGED_IN_ACTIVITY_LINKS: HeaderMenuLink[] = [
   { label: "Manage Properties", href: "/user/properties/manage-properties" },
   { label: "Manage Alerts", href: "/user/property-alerts" },
   { label: "Manage Subscriptions", href: "/user/subscription/subscribed-services" },
-  { label: "PG Dashboard", href: "#" },
+  { label: "My activities", href: "/user/activities/contacted-properties" },
 ];

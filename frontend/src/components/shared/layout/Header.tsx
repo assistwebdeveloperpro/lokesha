@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Home, HousePlus, Mail, Menu, Phone, User } from "lucide-react";
+import { ChevronDown, Heart, Home, HousePlus, Mail, Menu, Phone, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -14,7 +14,9 @@ import {
   LOGGED_IN_PROFILE_LINK,
   HEADER_CONTACT,
   MAIN_NAV_ITEMS,
+  SAVED_PROPERTIES_HREF,
 } from "./header-data";
+import { useSavedPropertiesCount } from "@/components/landing/saved-properties/savedPropertiesStore";
 import MobileSidebar from "@/components/shared/layout/MobileSidebar";
 import HeaderCitySelector from "@/components/shared/layout/city-selector/HeaderCitySelector";
 
@@ -62,6 +64,26 @@ function PostPropertyButton({ compact = false }: { compact?: boolean }) {
         Post Property
       </span>
       <FreeBadge className="absolute -right-1 -top-2 sm:-right-1.5 sm:-top-2.5" />
+    </Link>
+  );
+}
+
+function SavedPropertiesLink() {
+  const count = useSavedPropertiesCount();
+  const badgeLabel = count > 99 ? "99+" : String(count);
+
+  return (
+    <Link
+      href={SAVED_PROPERTIES_HREF}
+      className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/10 sm:h-10 sm:w-10"
+      aria-label={`Saved properties (${count})`}
+    >
+      <Heart className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={2} aria-hidden />
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-4 text-white">
+          {badgeLabel}
+        </span>
+      )}
     </Link>
   );
 }
@@ -449,6 +471,8 @@ export default function Header({
 
             {/* Right actions */}
             <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+              {isLoggedIn && <SavedPropertiesLink />}
+
               <div className="hidden lg:block">
                 <DesktopUserMenu
                   isLoggedIn={isLoggedIn}

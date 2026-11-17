@@ -282,4 +282,4 @@ function toPropertyDetails(data) {
   };
 }
 
-module.exports = { FORM_TYPE_BY_DB_TYPE, toListing, toPropertyDetails };
+module.exports = { FORM_TYPE_BY_DB_TYPE, toListing, toPropertyDetails, toGalleryImagePaths };

@@ -56,6 +56,25 @@ export type VerifyOtpResponse = {
   name: string;
 };
 
+export type SendMobileOtpPayload = {
+  mobile_number: string;
+};
+
+export type SendMobileOtpResponse = LoginResponse & {
+  is_registered: boolean;
+};
+
+export type VerifyMobileOtpResponse =
+  | ({ is_new_user: false } & VerifyOtpResponse)
+  | { is_new_user: true; registration_token: string };
+
+export type RegisterWithOtpPayload = {
+  registration_token: string;
+  name: string;
+  email: string;
+  agreed_to_terms: boolean;
+};
+
 export type MeResponse = {
   user: {
     id: string;
@@ -91,6 +110,27 @@ export function connectSeller(payload: ConnectSellerPayload) {
 
 export function verifyOtp(payload: VerifyOtpPayload) {
   return apiFetch<VerifyOtpResponse>("/user/auth/verify-otp", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function sendMobileOtp(payload: SendMobileOtpPayload) {
+  return apiFetch<SendMobileOtpResponse>("/user/auth/otp/send", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function verifyMobileOtp(payload: VerifyOtpPayload) {
+  return apiFetch<VerifyMobileOtpResponse>("/user/auth/otp/verify", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function registerWithOtp(payload: RegisterWithOtpPayload) {
+  return apiFetch<VerifyOtpResponse>("/user/auth/otp/register", {
     method: "POST",
     body: payload,
   });

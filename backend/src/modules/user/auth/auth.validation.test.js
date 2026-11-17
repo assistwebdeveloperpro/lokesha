@@ -1,4 +1,11 @@
-const { signupSchema, loginSchema, verifyOtpSchema } = require("./auth.validation");
+const {
+  signupSchema,
+  loginSchema,
+  verifyOtpSchema,
+  sendOtpSchema,
+  verifyMobileOtpSchema,
+  registerWithOtpSchema,
+} = require("./auth.validation");
 
 const validSignup = {
   role: "buyer_owner_tenant",
@@ -58,6 +65,57 @@ describe("loginSchema", () => {
 
   it.each(["98765", "9".repeat(16), "98765abcde"])("rejects %s", (mobile_number) => {
     expect(loginSchema.validate({ mobile_number }).error).toBeDefined();
+  });
+});
+
+describe("sendOtpSchema", () => {
+  it("accepts a valid mobile number and rejects a short one", () => {
+    expect(sendOtpSchema.validate({ mobile_number: "9876543210" }).error).toBeUndefined();
+    expect(sendOtpSchema.validate({ mobile_number: "98765" }).error).toBeDefined();
+  });
+});
+
+describe("verifyMobileOtpSchema", () => {
+  it("requires a 4 digit otp", () => {
+    const mobile_number = "9876543210";
+
+    expect(verifyMobileOtpSchema.validate({ mobile_number, otp: "1234" }).error).toBeUndefined();
+    expect(verifyMobileOtpSchema.validate({ mobile_number, otp: "12" }).error).toBeDefined();
+  });
+});
+
+describe("registerWithOtpSchema", () => {
+  const valid = {
+    registration_token: "token",
+    name: "Asha Rao",
+    email: "asha@example.com",
+    agreed_to_terms: true,
+  };
+
+  it("accepts a valid payload", () => {
+    expect(registerWithOtpSchema.validate(valid).error).toBeUndefined();
+  });
+
+  it("rejects a missing token, bad email and declined terms", () => {
+    const fields = fieldsWithErrors(registerWithOtpSchema, {
+      name: "Asha Rao",
+      email: "nope",
+      agreed_to_terms: false,
+    });
+
+    expect(fields).toEqual(
+      expect.arrayContaining(["registration_token", "email", "agreed_to_terms"]),
+    );
+  });
+
+  it("does not accept a client supplied mobile number or role", () => {
+    const fields = fieldsWithErrors(registerWithOtpSchema, {
+      ...valid,
+      mobile_number: "9876543210",
+      role: "builder",
+    });
+
+    expect(fields).toEqual(expect.arrayContaining(["mobile_number", "role"]));
   });
 });
 

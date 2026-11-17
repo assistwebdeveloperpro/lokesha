@@ -1,8 +1,8 @@
 "use client";
 
-import { FileDown, Heart, Share2 } from "lucide-react";
-import { useState } from "react";
+import { FileDown, Share2 } from "lucide-react";
 import { PropertyContactButton } from "@/components/landing/property-contact/PropertyContactButton";
+import { SavePropertyButton } from "@/components/landing/saved-properties/SavePropertyButton";
 import type { PublicSearchPostedBy } from "@/components/landing/property-search/property-list/publicSearchListing.types";
 
 type PropertyDetailsHeaderActionsProps = {
@@ -16,8 +16,6 @@ export function PropertyDetailsHeaderActions({
   propertyId,
   showBrochure = false,
 }: PropertyDetailsHeaderActionsProps) {
-  const [saved, setSaved] = useState(false);
-
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 lg:shrink-0 lg:flex-nowrap">
       <button
@@ -27,18 +25,7 @@ export function PropertyDetailsHeaderActions({
       >
         <Share2 className="h-4 w-4" />
       </button>
-      <button
-        type="button"
-        onClick={() => setSaved((value) => !value)}
-        className={`inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border bg-white shadow-sm transition ${
-          saved
-            ? "border-rose-200 bg-rose-50/80 text-rose-600"
-            : "border-slate-200 text-slate-600 hover:border-sky-200 hover:bg-sky-50/80 hover:text-sky-700"
-        }`}
-        aria-label={saved ? "Remove from saved" : "Save property"}
-      >
-        <Heart className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
-      </button>
+      <SavePropertyButton propertyId={propertyId} />
       <PropertyContactButton
         propertyId={propertyId}
         postedBy={postedBy}

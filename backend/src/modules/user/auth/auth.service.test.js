@@ -211,6 +211,191 @@ describe("verifyOtp for a pending registration", () => {
   });
 });
 
+describe("sendOtp", () => {
+  const mobile_number = "9876543210";
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    repository.getUserRoleAndOtp.mockResolvedValue(null);
+    repository.findMobileOtp.mockResolvedValue(null);
+  });
+
+  it("issues the otp on the users table for a registered number", async () => {
+    repository.getUserRoleAndOtp.mockResolvedValue({ id: 1, otp_expires_at: null });
+
+    const result = await service.sendOtp({ mobile_number });
+
+    expect(repository.setOtp).toHaveBeenCalled();
+    expect(repository.upsertMobileOtp).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ is_registered: true });
+  });
+
+  it("stores the otp in otp_verifications for an unknown number", async () => {
+    const result = await service.sendOtp({ mobile_number });
+
+    expect(repository.upsertMobileOtp).toHaveBeenCalledWith(
+      expect.objectContaining({ mobile_number, otpCode: expect.stringMatching(/^\d{4}$/) }),
+    );
+    expect(repository.setOtp).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ is_registered: false });
+  });
+
+  it("answers 429 with retryAfter inside the cooldown for an unknown number", async () => {
+    repository.findMobileOtp.mockResolvedValue({ last_sent_at: new Date(Date.now() - 10_000) });
+
+    await expect(service.sendOtp({ mobile_number })).rejects.toMatchObject({
+      statusCode: 429,
+      details: { retryAfter: expect.any(Number) },
+    });
+    expect(repository.upsertMobileOtp).not.toHaveBeenCalled();
+  });
+
+  it("answers 429 inside the cooldown for a registered number", async () => {
+    repository.getUserRoleAndOtp.mockResolvedValue({
+      id: 1,
+      otp_expires_at: new Date(Date.now() + 290_000),
+    });
+
+    await expect(service.sendOtp({ mobile_number })).rejects.toMatchObject({ statusCode: 429 });
+    expect(repository.setOtp).not.toHaveBeenCalled();
+  });
+
+  it("allows a resend once the cooldown has passed", async () => {
+    repository.findMobileOtp.mockResolvedValue({ last_sent_at: new Date(Date.now() - 61_000) });
+
+    await service.sendOtp({ mobile_number });
+
+    expect(repository.upsertMobileOtp).toHaveBeenCalled();
+  });
+});
+
+describe("verifyMobileOtp", () => {
+  const mobile_number = "9876543210";
+  const futureExpiry = () => new Date(Date.now() + 60_000);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    repository.getUserRoleAndOtp.mockResolvedValue(null);
+  });
+
+  it("signs in a registered user and clears the otp", async () => {
+    repository.getUserRoleAndOtp.mockResolvedValue({
+      id: 7,
+      role: "agent",
+      name: "Asha",
+      otp_code: "1234",
+      otp_expires_at: futureExpiry(),
+    });
+
+    const result = await service.verifyMobileOtp({ mobile_number, otp: "1234" });
+
+    expect(repository.clearOtp).toHaveBeenCalledWith(7);
+    expect(result).toMatchObject({ is_new_user: false, role: "agent", name: "Asha" });
+    expect(jwt.verify(result.token, "test-secret")).toMatchObject({ id: 7, role: "agent" });
+  });
+
+  it("returns a registration token and deletes the otp for an unknown number", async () => {
+    repository.findMobileOtp.mockResolvedValue({ otp_code: "1234", otp_expires_at: futureExpiry() });
+
+    const result = await service.verifyMobileOtp({ mobile_number, otp: "1234" });
+
+    expect(repository.deleteMobileOtp).toHaveBeenCalledWith(mobile_number);
+    expect(result.is_new_user).toBe(true);
+    expect(jwt.verify(result.registration_token, "test-secret")).toMatchObject({
+      purpose: "register",
+      mobile_number,
+    });
+  });
+
+  it.each([
+    ["missing", null],
+    ["wrong", { otp_code: "9999", otp_expires_at: futureExpiry() }],
+    ["expired", { otp_code: "1234", otp_expires_at: new Date(Date.now() - 1000) }],
+  ])("rejects a %s otp for an unknown number with 400", async (_label, record) => {
+    repository.findMobileOtp.mockResolvedValue(record);
+
+    await expect(service.verifyMobileOtp({ mobile_number, otp: "1234" })).rejects.toMatchObject({
+      statusCode: 400,
+      message: "Invalid or expired OTP",
+    });
+    expect(repository.deleteMobileOtp).not.toHaveBeenCalled();
+  });
+
+  it("rejects a wrong otp for a registered user with 400", async () => {
+    repository.getUserRoleAndOtp.mockResolvedValue({
+      id: 7,
+      otp_code: "9999",
+      otp_expires_at: futureExpiry(),
+    });
+
+    await expect(service.verifyMobileOtp({ mobile_number, otp: "1234" })).rejects.toMatchObject({
+      statusCode: 400,
+    });
+    expect(repository.clearOtp).not.toHaveBeenCalled();
+  });
+});
+
+describe("registerWithOtp", () => {
+  const mobile_number = "9876543210";
+  const details = { name: "Asha Rao", email: "asha@example.com", agreed_to_terms: true };
+  const tokenFor = (payload, options = { expiresIn: "15m" }) =>
+    jwt.sign(payload, "test-secret", options);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    repository.findUserByMobile.mockResolvedValue(null);
+    repository.findUserByEmail.mockResolvedValue(null);
+  });
+
+  it("creates the buyer account for the verified mobile and returns a session", async () => {
+    repository.createUser.mockResolvedValue({ id: 9, role: "buyer_owner_tenant", name: "Asha Rao" });
+
+    const result = await service.registerWithOtp({
+      ...details,
+      registration_token: tokenFor({ purpose: "register", mobile_number }),
+    });
+
+    expect(repository.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({ role: "buyer_owner_tenant", mobile_number }),
+    );
+    expect(jwt.verify(result.token, "test-secret")).toMatchObject({ id: 9 });
+  });
+
+  it.each([
+    ["an expired", () => tokenFor({ purpose: "register", mobile_number }, { expiresIn: -10 })],
+    ["a wrong purpose", () => tokenFor({ id: 1, role: "agent" })],
+    ["a malformed", () => "not-a-token"],
+  ])("rejects %s registration token with 401", async (_label, buildToken) => {
+    await expect(
+      service.registerWithOtp({ ...details, registration_token: buildToken() }),
+    ).rejects.toMatchObject({ statusCode: 401 });
+    expect(repository.createUser).not.toHaveBeenCalled();
+  });
+
+  it("rejects an email owned by another account with 409", async () => {
+    repository.findUserByEmail.mockResolvedValue({ id: 2 });
+
+    await expect(
+      service.registerWithOtp({
+        ...details,
+        registration_token: tokenFor({ purpose: "register", mobile_number }),
+      }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+    expect(repository.createUser).not.toHaveBeenCalled();
+  });
+
+  it("maps a unique violation raised by the insert to 409", async () => {
+    repository.createUser.mockRejectedValue({ code: "23505" });
+
+    await expect(
+      service.registerWithOtp({
+        ...details,
+        registration_token: tokenFor({ purpose: "register", mobile_number }),
+      }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+  });
+});
+
 describe("getMe", () => {
   it("returns the user", async () => {
     repository.findUserById.mockResolvedValue({ id: 1 });

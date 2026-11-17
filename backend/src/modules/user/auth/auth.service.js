@@ -1,13 +1,21 @@
 const repository = require("./auth.repository");
 const { generateOtp, getOtpExpiry, OTP_EXPIRY_SECONDS } = require("../../../utils/otp");
-const { signToken } = require("../../../utils/jwt");
+const {
+  signToken,
+  signRegistrationToken,
+  verifyRegistrationToken,
+} = require("../../../utils/jwt");
 
 class AppError extends Error {
-  constructor(message, statusCode) {
+  constructor(message, statusCode, details = {}) {
     super(message);
     this.statusCode = statusCode;
+    this.details = details;
   }
 }
+
+const RESEND_COOLDOWN_SECONDS = 60;
+const UNIQUE_VIOLATION_CODE = "23505";
 
 const NOT_REGISTERED_MESSAGE =
   "This mobile number isn't registered with us yet. Please sign up first.";
@@ -152,9 +160,107 @@ async function verifyOtp({ mobile_number, otp }) {
     user = await verifyPendingRegistration({ mobile_number, otp });
   }
 
+  return buildSession(user);
+}
+
+function buildSession(user) {
   const token = signToken({ id: user.id, role: user.role });
 
   return { token, role: user.role, name: user.name };
+}
+
+function assertResendAllowed(lastSentAt) {
+  if (!lastSentAt) return;
+
+  const elapsedSeconds = (Date.now() - new Date(lastSentAt).getTime()) / 1000;
+  const retryAfter = Math.ceil(RESEND_COOLDOWN_SECONDS - elapsedSeconds);
+
+  if (retryAfter > 0) {
+    throw new AppError(`Please wait ${retryAfter} seconds before requesting another OTP.`, 429, {
+      retryAfter,
+    });
+  }
+}
+
+// users rows only store the expiry, so the send time is derived from it.
+function getUserOtpSentAt(user) {
+  if (!user.otp_expires_at) return null;
+
+  return new Date(new Date(user.otp_expires_at).getTime() - OTP_EXPIRY_SECONDS * 1000);
+}
+
+async function sendOtp({ mobile_number }) {
+  const existingUser = await repository.getUserRoleAndOtp(mobile_number);
+
+  if (existingUser) {
+    assertResendAllowed(getUserOtpSentAt(existingUser));
+    const result = await issueOtp(mobile_number);
+
+    return { ...result, is_registered: true };
+  }
+
+  const pendingOtp = await repository.findMobileOtp(mobile_number);
+  assertResendAllowed(pendingOtp?.last_sent_at);
+
+  await repository.upsertMobileOtp({
+    mobile_number,
+    otpCode: generateOtp(),
+    otpExpiresAt: getOtpExpiry(),
+  });
+
+  return {
+    message: "OTP sent successfully.",
+    otp_expires_in: OTP_EXPIRY_SECONDS,
+    is_registered: false,
+  };
+}
+
+async function verifyMobileOtp({ mobile_number, otp }) {
+  const existingUser = await repository.getUserRoleAndOtp(mobile_number);
+
+  if (existingUser) {
+    if (!isOtpValid(existingUser, otp)) {
+      throw new AppError("Invalid or expired OTP", 400);
+    }
+    await repository.clearOtp(existingUser.id);
+
+    return { is_new_user: false, ...buildSession(existingUser) };
+  }
+
+  const pendingOtp = await repository.findMobileOtp(mobile_number);
+  if (!pendingOtp || !isOtpValid(pendingOtp, otp)) {
+    throw new AppError("Invalid or expired OTP", 400);
+  }
+  await repository.deleteMobileOtp(mobile_number);
+
+  return { is_new_user: true, registration_token: signRegistrationToken(mobile_number) };
+}
+
+async function registerWithOtp({ registration_token, name, email, agreed_to_terms }) {
+  const mobile_number = verifyRegistrationToken(registration_token);
+  if (!mobile_number) {
+    throw new AppError("Registration session expired. Please verify your mobile number again.", 401);
+  }
+
+  await assertMobileAvailable(mobile_number);
+  await assertEmailAvailable(email);
+
+  try {
+    const user = await repository.createUser({
+      role: CONNECT_SELLER_ROLE,
+      name,
+      email,
+      mobile_number,
+      agreed_to_terms,
+    });
+
+    return buildSession(user);
+  } catch (error) {
+    if (error.code === UNIQUE_VIOLATION_CODE) {
+      throw new AppError("Email or mobile number is already registered", 409);
+    }
+    throw error;
+  }
 }
 
 async function getMe(userId) {
@@ -167,4 +273,14 @@ async function getMe(userId) {
   return user;
 }
 
-module.exports = { signup, login, connectSeller, verifyOtp, getMe, AppError };
+module.exports = {
+  signup,
+  login,
+  connectSeller,
+  verifyOtp,
+  sendOtp,
+  verifyMobileOtp,
+  registerWithOtp,
+  getMe,
+  AppError,
+};

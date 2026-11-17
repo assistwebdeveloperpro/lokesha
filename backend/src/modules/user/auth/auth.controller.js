@@ -2,7 +2,7 @@ const authService = require("./auth.service");
 
 function handleError(res, error) {
   if (error.statusCode) {
-    return res.status(error.statusCode).json({ message: error.message });
+    return res.status(error.statusCode).json({ message: error.message, ...error.details });
   }
 
   console.error("Auth module error:", error);
@@ -45,6 +45,33 @@ async function verifyOtp(req, res) {
   }
 }
 
+async function sendOtp(req, res) {
+  try {
+    const result = await authService.sendOtp(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+async function verifyMobileOtp(req, res) {
+  try {
+    const result = await authService.verifyMobileOtp(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+async function registerWithOtp(req, res) {
+  try {
+    const result = await authService.registerWithOtp(req.body);
+    return res.status(201).json(result);
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 async function getMe(req, res) {
   try {
     const user = await authService.getMe(req.user.id);
@@ -54,4 +81,13 @@ async function getMe(req, res) {
   }
 }
 
-module.exports = { signup, login, connectSeller, verifyOtp, getMe };
+module.exports = {
+  signup,
+  login,
+  connectSeller,
+  verifyOtp,
+  sendOtp,
+  verifyMobileOtp,
+  registerWithOtp,
+  getMe,
+};

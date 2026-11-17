@@ -71,14 +71,35 @@ const connectSellerSchema = signupSchema.fork(["role"], (schema) => schema.forbi
   (schema) => schema.forbidden()
 );
 
+const otpCode = Joi.string()
+  .pattern(/^[0-9]{4}$/)
+  .required()
+  .messages({
+    "string.pattern.base": "otp must be exactly 4 digits",
+  });
+
 const verifyOtpSchema = Joi.object({
   mobile_number: mobileNumber,
-  otp: Joi.string()
-    .pattern(/^[0-9]{4}$/)
-    .required()
-    .messages({
-      "string.pattern.base": "otp must be exactly 4 digits",
-    }),
+  otp: otpCode,
+});
+
+const sendOtpSchema = Joi.object({
+  mobile_number: mobileNumber,
+});
+
+const verifyMobileOtpSchema = Joi.object({
+  mobile_number: mobileNumber,
+  otp: otpCode,
+});
+
+const registerWithOtpSchema = Joi.object({
+  registration_token: Joi.string().required().messages({
+    "string.empty": "Registration token is required.",
+    "any.required": "Registration token is required.",
+  }),
+  name: signupSchema.extract("name"),
+  email: signupSchema.extract("email"),
+  agreed_to_terms: signupSchema.extract("agreed_to_terms"),
 });
 
 module.exports = {
@@ -86,5 +107,8 @@ module.exports = {
   loginSchema,
   connectSellerSchema,
   verifyOtpSchema,
+  sendOtpSchema,
+  verifyMobileOtpSchema,
+  registerWithOtpSchema,
   SIGNUP_ROLE_VALUES,
 };

@@ -2,6 +2,7 @@ const { db } = require("../../../config/db");
 
 const TABLE = "users";
 const PENDING_TABLE = "pending_user_registrations";
+const OTP_TABLE = "otp_verifications";
 
 async function findUserByMobile(mobile_number) {
   return db(TABLE).where({ mobile_number }).first();
@@ -104,6 +105,26 @@ async function deletePendingRegistration(mobile_number) {
   return db(PENDING_TABLE).where({ mobile_number }).del();
 }
 
+async function upsertMobileOtp({ mobile_number, otpCode, otpExpiresAt }) {
+  return db(OTP_TABLE)
+    .insert({ mobile_number, otp_code: otpCode, otp_expires_at: otpExpiresAt })
+    .onConflict("mobile_number")
+    .merge({
+      otp_code: otpCode,
+      otp_expires_at: otpExpiresAt,
+      last_sent_at: db.fn.now(),
+      updated_at: db.fn.now(),
+    });
+}
+
+async function findMobileOtp(mobile_number) {
+  return db(OTP_TABLE).where({ mobile_number }).first();
+}
+
+async function deleteMobileOtp(mobile_number) {
+  return db(OTP_TABLE).where({ mobile_number }).del();
+}
+
 async function findUserById(id) {
   return db(TABLE)
     .where({ id })
@@ -121,5 +142,8 @@ module.exports = {
   upsertPendingRegistration,
   findPendingRegistration,
   deletePendingRegistration,
+  upsertMobileOtp,
+  findMobileOtp,
+  deleteMobileOtp,
   findUserById,
 };
