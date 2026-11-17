@@ -181,7 +181,7 @@ export function PropertyContactSuccessModal({
               <StepItem index={1}>
                 You can now view your connected property information in your{" "}
                 <Link
-                  href="#"
+                  href="/user/activities/contacted-properties"
                   className="font-semibold text-navy-blue underline decoration-navy-blue/30 underline-offset-2 transition hover:decoration-navy-blue"
                   onClick={onClose}
                 >
@@ -215,7 +215,7 @@ export function PropertyContactSuccessModal({
               Cancel
             </button>
             <Link
-              href="#"
+              href="/user/activities/contacted-properties"
               onClick={onClose}
               className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-linear-to-r-navy-blue px-5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 sm:w-auto"
             >

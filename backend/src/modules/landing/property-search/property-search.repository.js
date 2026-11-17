@@ -147,6 +147,18 @@ async function findCard(property) {
   return selectCards(query, property.property_type).first();
 }
 
+// Cards of the published groups that contain any of the given property ids
+async function findCardsByPropertyIds(propertyIds, dbType) {
+  if (!propertyIds.length) return [];
+
+  const groupIds = db("properties as g")
+    .whereIn("g.id", propertyIds)
+    .select(db.raw("coalesce(g.listing_group_id, g.builder_project_id, g.id)"));
+  const query = baseQuery(dbType).where("p.status", "published").whereRaw(`${GROUP_KEY} in (?)`, [groupIds]);
+
+  return selectCards(query, dbType);
+}
+
 async function countListings(filters) {
   const [{ count }] = await filteredQuery(filters).select(db.raw(`count(distinct ${GROUP_KEY}) as count`));
   return Number(count);
@@ -224,6 +236,7 @@ async function findAmenityNames(keys) {
 module.exports = {
   findListings,
   findCard,
+  findCardsByPropertyIds,
   countListings,
   findCardExtras,
   findPublishedProperty,

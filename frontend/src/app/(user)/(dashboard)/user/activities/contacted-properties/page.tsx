@@ -1,8 +1,5 @@
+import ContactedPropertiesContent from "@/components/user/dashboard/contacted-properties/ContactedPropertiesContent";
+
 export default function ContactedPropertiesPage() {
-  return (
-    <div className="flex min-h-full flex-1 flex-col px-4 py-8">
-      <h1 className="text-2xl font-semibold text-slate-800">Contacted Properties</h1>
-      <p className="mt-2 text-slate-600">This page is under construction.</p>
-    </div>
-  );
+  return <ContactedPropertiesContent />;
 }

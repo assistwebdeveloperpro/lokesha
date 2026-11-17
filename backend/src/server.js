@@ -13,6 +13,7 @@ const userReraRoutes = require("./modules/user/dashboard/user-rera/user-rera.rou
 const userProfileRoutes = require("./modules/user/dashboard/user-profile/user-profile.routes");
 const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-messages/user-saved-messages.routes");
 const userNotificationsRoutes = require("./modules/user/dashboard/user-notifications/user-notifications.routes");
+const userContactedPropertiesRoutes = require("./modules/user/dashboard/user-contacted-properties/user-contacted-properties.routes");
 const adminAuthRoutes =require("./modules/master/auth/admin-auth.routes");
 const userManagePropertiesRoutes = require("./modules/user/dashboard/manage-properties/manage-properties.routes");
 const userPostPropertyRoutes = require("./modules/user/dashboard/post-property/user-post-property.routes");
@@ -54,6 +55,8 @@ app.use("/api/user/notifications", userNotificationsRoutes);
 // Manage-properties first so its static /me is never captured by post-property's /:id
 app.use("/api/property", userManagePropertiesRoutes);
 app.use("/api/property", userPostPropertyRoutes);
+
+app.use("/api/user/contacted-properties", userContactedPropertiesRoutes);
 
 app.use("/api/property-search", propertySearchRoutes);
 app.use("/api/property-requirements", propertyRequirementRoutes);
