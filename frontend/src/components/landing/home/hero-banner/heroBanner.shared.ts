@@ -49,7 +49,7 @@ export const BAR_HEIGHT =
   "h-12 min-h-12 shrink-0 lg:h-full lg:min-h-12";
 
 export const BAR_CONTROL =
-  `inline-flex ${BAR_HEIGHT} w-full items-center justify-between gap-2 bg-white px-3.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50/80 hover:cursor-pointer lg:min-w-[5.5rem]`;
+  `inline-flex ${BAR_HEIGHT} w-full items-center justify-between gap-2 bg-white px-2 sm:px-3.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50/80 hover:cursor-pointer lg:min-w-[5.5rem]`;
 
 export type PropertyCategory =
   | "residential"

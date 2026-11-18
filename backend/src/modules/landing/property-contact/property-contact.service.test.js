@@ -81,6 +81,31 @@ describe("contactLister quota", () => {
   });
 });
 
+describe("contactLister staff listed quota", () => {
+  it.each([["admin", adminProperty], ["lokesha_staff", { ...userProperty, listed_by: "lokesha_staff" }]])(
+    "hides the phone over quota for a %s listed property",
+    async (_listedBy, property) => {
+      repository.findPublishedPropertyWithLister.mockResolvedValue(property);
+      repository.countRevealedLeads.mockResolvedValue(2);
+
+      const result = await contactLister(USER_ID, input);
+
+      expect(result).toMatchObject({ contactPhone: null, phoneRevealed: false, canSubscribe: true });
+      expect(repository.insertLead).toHaveBeenCalledWith(expect.objectContaining({ phone_revealed: false }), mockTrx);
+    }
+  );
+
+  it("does not reveal an earlier over-quota staff lead on a repeat contact", async () => {
+    repository.findPublishedPropertyWithLister.mockResolvedValue(adminProperty);
+    repository.findLead.mockResolvedValue({ phone_revealed: false, created_at: new Date() });
+    repository.countRevealedLeads.mockResolvedValue(2);
+
+    const result = await contactLister(USER_ID, input);
+
+    expect(result).toMatchObject({ contactPhone: null, canSubscribe: true });
+  });
+});
+
 describe("contactLister idempotency", () => {
   it("returns the earlier result without inserting or using a credit", async () => {
     repository.findLead.mockResolvedValue({ phone_revealed: true, created_at: new Date() });

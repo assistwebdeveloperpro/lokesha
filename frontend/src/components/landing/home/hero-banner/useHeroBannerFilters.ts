@@ -10,6 +10,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { recordRecentSearch } from "@/components/landing/recent-searches/recordRecentSearch";
 import {
   ALL_INDIA_LABEL,
   storeCity,
@@ -244,6 +245,7 @@ export function useHeroBannerFilters({
     setSearchTags(tags);
     setSearchText("");
     setOpenDropdown(null);
+    void recordRecentSearch(criteria);
     router.push(buildSearchUrl(criteria));
   };
 

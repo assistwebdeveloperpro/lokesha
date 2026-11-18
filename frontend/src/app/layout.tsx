@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { RecentSearchesSync } from "@/components/landing/recent-searches/RecentSearchesSync";
 import { SeenHistorySync } from "@/components/landing/seen-properties/SeenHistorySync";
 import { ToastProvider } from "@/components/shared/ui/ToastProvider";
 import "./globals.css";
@@ -49,6 +50,7 @@ export default function RootLayout({
       >
         <ToastProvider>
           <SeenHistorySync />
+          <RecentSearchesSync />
           {children}
         </ToastProvider>
       </body>

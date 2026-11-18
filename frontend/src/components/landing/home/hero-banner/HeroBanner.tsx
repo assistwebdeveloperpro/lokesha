@@ -1,5 +1,6 @@
 "use client";
 
+import { RecentSearchesStrip } from "@/components/landing/recent-searches/RecentSearchesStrip";
 import { HeroCategoryTabs } from "./HeroCategoryTabs";
 import { HeroSearchFilterRow } from "./HeroSearchFilterRow";
 import { HeroTrustList } from "./HeroTrustList";
@@ -54,6 +55,8 @@ export default function HeroBanner(initialSelection: HeroBannerInitialSelection)
             </div>
           </div>
         </div>
+
+        <RecentSearchesStrip />
       </div>
     </section>
   );

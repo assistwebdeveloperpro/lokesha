@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import type { SearchTag } from "@/components/landing/home/hero-banner/heroBanner.shared";
+import { recordRecentSearch } from "@/components/landing/recent-searches/recordRecentSearch";
 import {
   getSearchSuggestions,
   resolveSearchTag,
@@ -103,6 +104,7 @@ export function useHeaderSearch(criteria: PropertySearchCriteria) {
     });
     setSearchTags(tags);
     setSearchText("");
+    void recordRecentSearch(next);
     router.push(buildSearchUrl(next), { scroll: false });
   };
 

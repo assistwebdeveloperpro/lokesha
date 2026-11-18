@@ -1,7 +1,5 @@
 const { db } = require("../../../config/db");
 
-const STAFF_LISTED_BY = ["lokesha_staff", "admin"];
-
 async function findPublishedPropertyWithLister(propertyId) {
   return db("properties as p")
     .leftJoin("users as u", "u.id", "p.user_id")
@@ -41,13 +39,10 @@ async function findContactedPropertyIds(userId) {
 }
 
 async function countRevealedLeads(userId, { before, trx = db } = {}) {
-  const query = trx("property_leads as l")
-    .join("properties as p", "p.id", "l.property_id")
-    .where({ "l.lead_user_id": userId, "l.phone_revealed": true })
-    .whereNotIn("p.listed_by", STAFF_LISTED_BY);
-  if (before) query.andWhere("l.created_at", "<", before);
+  const query = trx("property_leads").where({ lead_user_id: userId, phone_revealed: true });
+  if (before) query.andWhere("created_at", "<", before);
 
-  const row = await query.count({ total: "l.id" }).first();
+  const row = await query.count({ total: "id" }).first();
   return Number(row.total);
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type MouseEvent } from "react";
-import { ChevronDown, MapPin, Sparkles, X } from "lucide-react";
+import { ChevronDown, MapPin, Search, Sparkles, X } from "lucide-react";
 import { HeroSearchHintsDropdown } from "./HeroSearchHintsDropdown";
 import {
   BAR_CONTROL,
@@ -62,25 +62,16 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
     }`;
 
   const segmentDivider = (
-    <>
-      <div
-        className="h-px shrink-0 bg-slate-300 lg:hidden"
-        aria-hidden
-      />
-      <div
-        className="hidden w-px shrink-0 self-stretch bg-slate-300 lg:block"
-        aria-hidden
-      />
-    </>
+    <div className="w-px shrink-0 self-stretch bg-slate-300" aria-hidden />
   );
 
   return (
-    <div className="flex flex-col overflow-visible rounded-lg border border-slate-300 bg-white lg:flex-row lg:items-stretch">
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-visible lg:flex-row lg:items-stretch">
+    <div className="flex flex-row items-stretch overflow-visible rounded-lg border border-slate-300 bg-white">
+      <div className="relative flex min-w-0 flex-1 flex-row items-stretch overflow-visible">
         {!isPg && (
           <>
             <div
-              className={`relative ${
+              className={`relative shrink-0 ${
                 openDropdown === "transaction" ? "z-50" : ""
               }`}
             >
@@ -89,7 +80,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
                 aria-expanded={openDropdown === "transaction"}
                 aria-haspopup="listbox"
                 onClick={(event) => toggleDropdown(event, "transaction")}
-                className={`${BAR_CONTROL} rounded-tl-lg rounded-tr-lg lg:rounded-none lg:rounded-l-[7px] ${FOCUS_RING}`}
+                className={`${BAR_CONTROL} rounded-l-[7px] ${FOCUS_RING}`}
               >
                 <span className="min-w-0 flex-1 truncate text-left">
                   {TRANSACTION_LABELS[transaction]}
@@ -139,20 +130,18 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
           } ${BAR_HEIGHT}`}
         >
           <MapPin
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-600"
+            className="pointer-events-none absolute left-3.5 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-sky-600 lg:block"
             aria-hidden
           />
           <div
-            className={`${BAR_HEIGHT} flex w-full items-center gap-1.5 overflow-x-auto bg-white py-2 pl-10 pr-3 scrollbar-none focus-within:bg-slate-50/50 ${
-              isPg
-                ? "rounded-tl-lg rounded-tr-lg lg:rounded-tr-none lg:rounded-l-[7px]"
-                : ""
+            className={`${BAR_HEIGHT} flex w-full items-center gap-1.5 overflow-hidden bg-white py-2 pl-2 pr-2 scrollbar-none lg:overflow-x-auto lg:pl-10 lg:pr-3 focus-within:bg-slate-50/50 ${
+              isPg ? "rounded-l-[7px]" : ""
             }`}
           >
             {searchTags.map((tag) => (
               <span
                 key={searchTagKey(tag)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 py-1 pl-2.5 pr-1 text-sm font-medium text-navy-blue"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-sky-200 bg-sky-50 py-1 pl-2 pr-1 text-xs font-medium text-navy-blue lg:pl-2.5 lg:text-sm"
               >
                 {tag.label}
                 <button
@@ -196,7 +185,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               aria-controls="hero-search-hints"
               aria-invalid={searchError !== null}
               aria-describedby={searchError ? "hero-search-error" : undefined}
-              className="h-full min-w-24 flex-1 border-0 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus-visible:outline-none"
+              className="h-full min-w-10 flex-1 border-0 bg-transparent px-1 text-xs text-slate-800 lg:min-w-24 lg:px-0 lg:text-sm placeholder:text-slate-400 focus-visible:outline-none"
             />
           </div>
           {searchHintsOpen && !searchError && (
@@ -219,10 +208,10 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
           )}
         </div>
 
-        {segmentDivider}
+        <div className="hidden lg:flex">{segmentDivider}</div>
 
         <div
-          className={`relative min-w-40 lg:min-w-44 ${
+          className={`relative hidden min-w-44 lg:block ${
             openDropdown === "property-panel" ? "z-50" : ""
           }`}
         >
@@ -249,24 +238,28 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
 
       {segmentDivider}
 
-      <div className={`flex w-full shrink-0 items-stretch self-stretch lg:w-auto ${BAR_HEIGHT}`}>
+      <div className={`flex shrink-0 items-stretch self-stretch ${BAR_HEIGHT}`}>
         <button
           type="button"
           aria-label="AI assisted search"
-          className={`inline-flex ${BAR_HEIGHT} flex-1 items-center justify-center gap-1 rounded-bl-lg bg-sky-50/90 px-4 text-navy-blue transition hover:bg-sky-100 lg:flex-none lg:rounded-none ${FOCUS_RING}`}
+          className={`inline-flex ${BAR_HEIGHT} items-center justify-center gap-1 bg-sky-50/90 px-3 text-navy-blue transition hover:bg-sky-100 lg:px-4 ${FOCUS_RING}`}
         >
-          <Sparkles className="h-3.5 w-3.5 text-sky-600" aria-hidden />
-          <span className="text-xs font-bold leading-none">AI</span>
+          <Sparkles className="h-4 w-4 text-sky-600 lg:h-3.5 lg:w-3.5" aria-hidden />
+          <span className="hidden text-xs font-bold leading-none lg:inline">
+            AI
+          </span>
         </button>
 
         <div className="w-px shrink-0 self-stretch bg-slate-300" aria-hidden />
 
         <button
           type="button"
+          aria-label="Search"
           onClick={submitSearch}
-          className={`inline-flex ${BAR_HEIGHT} flex-1 items-center justify-center rounded-br-lg bg-linear-to-r-navy-blue px-6 text-sm font-bold uppercase tracking-wide text-white transition hover:opacity-95 hover:cursor-pointer sm:px-10 lg:flex-none lg:rounded-none lg:rounded-r-[7px] ${FOCUS_RING}`}
+          className={`inline-flex ${BAR_HEIGHT} items-center justify-center rounded-r-[7px] bg-linear-to-r-navy-blue px-4 text-sm font-bold uppercase tracking-wide text-white transition hover:opacity-95 hover:cursor-pointer lg:px-10 ${FOCUS_RING}`}
         >
-          Search
+          <Search className="h-4 w-4 lg:hidden" aria-hidden />
+          <span className="hidden lg:inline">Search</span>
         </button>
       </div>
     </div>

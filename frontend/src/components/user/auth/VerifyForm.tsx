@@ -170,7 +170,7 @@ export default function VerifyForm({ mobile, resendSeconds, onBack, onResend }: 
             ))}
           </div>
           {otpError && (
-            <p className="mt-2 text-center text-sm text-red-500 sm:text-left" role="alert">
+            <p className="mt-2 text-center text-sm text-red-500" role="alert">
               Invalid or incomplete code. Please try again.
             </p>
           )}

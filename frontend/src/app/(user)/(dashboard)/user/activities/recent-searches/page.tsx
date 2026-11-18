@@ -1,8 +1,5 @@
+import RecentSearchesContent from "@/components/user/dashboard/recent-searches/RecentSearchesContent";
+
 export default function RecentSearchesPage() {
-  return (
-    <div className="flex min-h-full flex-1 flex-col px-4 py-8">
-      <h1 className="text-lg lg:text-xl font-semibold text-slate-800">Recent Searches</h1>
-      <p className="mt-2 text-slate-600">This page is under construction.</p>
-    </div>
-  );
+  return <RecentSearchesContent />;
 }

@@ -87,7 +87,11 @@ export default function PropertyActivityCard({ item, action, isNew = false }: Pr
         </div>
 
         <div className="mt-3 flex items-end justify-between gap-3">
-          <p className="min-w-0 truncate text-base font-bold text-navy-blue">{categoryLabel}</p>
+          <p 
+            className="min-w-0 truncate text-base font-bold text-navy-blue"
+            title={categoryLabel}>
+              {categoryLabel}
+            </p>
           <p className="shrink-0 text-base font-bold text-navy-blue">
             {listing ? getSavedPriceLabel(listing) : null}
           </p>

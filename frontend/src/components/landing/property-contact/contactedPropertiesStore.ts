@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { fetchContactedPropertyIds } from "@/services/propertyContact.service";
-import { getToken } from "@/services/session";
+import { getToken, SESSION_CHANGE_EVENT } from "@/services/session";
 
 type Listener = () => void;
 
@@ -32,14 +32,19 @@ export function markPropertyContacted(propertyId: string) {
   emit();
 }
 
+function resetContactedIds() {
+  if (contactedIds.size === 0) return;
+  contactedIds = new Set();
+  emit();
+}
+
 async function loadContactedIds() {
   const token = getToken();
+  if (token !== loadedToken) resetContactedIds();
+
   if (!token) {
-    if (loadedToken !== null) {
-      contactedIds = new Set();
-      loadedToken = null;
-      emit();
-    }
+    loadedToken = null;
+    pendingToken = null;
     return;
   }
   if (token === loadedToken || token === pendingToken) return;
@@ -47,13 +52,14 @@ async function loadContactedIds() {
   pendingToken = token;
   try {
     const { propertyIds } = await fetchContactedPropertyIds(token);
+    if (getToken() !== token) return;
     contactedIds = new Set([...contactedIds, ...propertyIds]);
     loadedToken = token;
     emit();
   } catch {
     // Button stays clickable; the contact endpoint is idempotent per property
   } finally {
-    pendingToken = null;
+    if (pendingToken === token) pendingToken = null;
   }
 }
 
@@ -61,7 +67,10 @@ export function useIsPropertyContacted(propertyId: string) {
   const ids = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    void loadContactedIds();
+    const syncWithSession = () => void loadContactedIds();
+    syncWithSession();
+    window.addEventListener(SESSION_CHANGE_EVENT, syncWithSession);
+    return () => window.removeEventListener(SESSION_CHANGE_EVENT, syncWithSession);
   }, []);
 
   return ids.has(propertyId);

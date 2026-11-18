@@ -1,7 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createDebouncedRecentSearchRecorder,
+  isRecordableCriteriaPatch,
+} from "@/components/landing/recent-searches/debouncedRecentSearchRecorder";
+import { recordRecentSearch } from "@/components/landing/recent-searches/recordRecentSearch";
 import {
   ALL_INDIA_LABEL,
   CITY_CHANGE_EVENT,
@@ -25,6 +30,23 @@ export function useSearchResultsFilters(criteria: PropertySearchCriteria) {
     criteriaRef.current = criteria;
   }, [criteria]);
 
+  const [recorder] = useState(() =>
+    createDebouncedRecentSearchRecorder((next) => void recordRecentSearch(next)),
+  );
+
+  // A pending search is saved when the user leaves the results page
+  useEffect(() => recorder.flush, [recorder]);
+
+  const navigate = useCallback(
+    (next: PropertySearchCriteria, mode: CriteriaUpdateMode) => {
+      const url = buildSearchUrl(next);
+      if (mode === "replace") router.replace(url, { scroll: false });
+      else router.push(url, { scroll: false });
+    },
+    [router],
+  );
+
+  // Every user-driven filter change counts as a search; page changes do not.
   const updateCriteria = useCallback(
     (
       patch: Partial<PropertySearchCriteria>,
@@ -35,11 +57,10 @@ export function useSearchResultsFilters(criteria: PropertySearchCriteria) {
         page: 1,
         ...patch,
       });
-      const url = buildSearchUrl(next);
-      if (mode === "replace") router.replace(url, { scroll: false });
-      else router.push(url, { scroll: false });
+      if (isRecordableCriteriaPatch(patch)) recorder.schedule(next);
+      navigate(next, mode);
     },
-    [router],
+    [navigate, recorder],
   );
 
   // Header city change: new city, old locality/project no longer apply.
@@ -48,11 +69,21 @@ export function useSearchResultsFilters(criteria: PropertySearchCriteria) {
       const stored = readStoredCity();
       const cityName = stored === ALL_INDIA_LABEL ? undefined : stored;
       if (sameCity(cityName, criteriaRef.current.cityName)) return;
-      updateCriteria({ cityName, localities: [], projects: [] }, "replace");
+      // Automatic sync with the header, not a search by the user
+      navigate(
+        normalizeSearchCriteria({
+          ...criteriaRef.current,
+          page: 1,
+          cityName,
+          localities: [],
+          projects: [],
+        }),
+        "replace",
+      );
     };
     window.addEventListener(CITY_CHANGE_EVENT, handleCityChange);
     return () => window.removeEventListener(CITY_CHANGE_EVENT, handleCityChange);
-  }, [updateCriteria]);
+  }, [navigate]);
 
   // Direct visit: the url city wins over the stored header city.
   const urlCity = criteria.cityName;

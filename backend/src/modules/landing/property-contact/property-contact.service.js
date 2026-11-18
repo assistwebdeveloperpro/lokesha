@@ -16,8 +16,6 @@ function resolveLister(property) {
   return { name: property.admin_name, mobile: property.admin_mobile };
 }
 
-const isStaffListed = (property) => STAFF_LISTED_BY.includes(property.listed_by);
-
 function buildResult(lister, phoneRevealed, revealedBefore) {
   return {
     contactName: lister.name,
@@ -52,11 +50,11 @@ async function contactLister(userId, { propertyId, contactRole }) {
     const existing = await repository.findLead(userId, propertyId, trx);
     if (existing) {
       const revealedBefore = await repository.countRevealedLeads(userId, { before: existing.created_at, trx });
-      return buildResult(lister, (existing.phone_revealed || isStaffListed(property)) && hasPhone, revealedBefore);
+      return buildResult(lister, existing.phone_revealed && hasPhone, revealedBefore);
     }
 
     const revealedBefore = await repository.countRevealedLeads(userId, { trx });
-    const phoneRevealed = hasPhone && (isStaffListed(property) || revealedBefore < FREE_CONTACT_LIMIT);
+    const phoneRevealed = hasPhone && revealedBefore < FREE_CONTACT_LIMIT;
 
     await repository.insertLead(
       {
