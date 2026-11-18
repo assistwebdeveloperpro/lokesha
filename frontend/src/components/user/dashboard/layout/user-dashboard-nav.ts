@@ -6,6 +6,7 @@ import {
   ContactRound,
   LayoutDashboard,
   Receipt,
+  Users,
 } from "lucide-react";
 import type { Role } from "@/services/auth.service";
 
@@ -45,7 +46,8 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
       { label: "Locality Reviews", href: "/user/properties/locality-reviews" },
     ],
   },
-  { label: "Property Alerts", href: "/user/property-alerts", icon: Bell },  
+  { label: "Leads", href: "/user/leads", icon: Users },
+  { label: "Property Alerts", href: "/user/property-alerts", icon: Bell },
   {
     label: "Profile",
     href: "/user/profile/account-details",

@@ -10,6 +10,7 @@ function toNotification(row, images) {
     title: row.title,
     message: row.message,
     propertyId: row.property_id,
+    leadId: row.lead_id,
     image: pickMainImage(images),
     isRead: row.read_at !== null,
     createdAt: row.created_at,

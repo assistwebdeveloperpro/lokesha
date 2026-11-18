@@ -14,6 +14,7 @@ const userProfileRoutes = require("./modules/user/dashboard/user-profile/user-pr
 const userSavedMessagesRoutes = require("./modules/user/dashboard/user-saved-messages/user-saved-messages.routes");
 const userNotificationsRoutes = require("./modules/user/dashboard/user-notifications/user-notifications.routes");
 const userContactedPropertiesRoutes = require("./modules/user/dashboard/user-contacted-properties/user-contacted-properties.routes");
+const userLeadsRoutes = require("./modules/user/dashboard/user-leads/user-leads.routes");
 const savedPropertiesRoutes = require("./modules/user/dashboard/saved-properties/saved-properties.routes");
 const seenPropertiesRoutes = require("./modules/user/dashboard/seen-properties/seen-properties.routes");
 const seenPropertyViewRoutes = require("./modules/user/dashboard/seen-properties/seen-properties.view.routes");
@@ -61,6 +62,7 @@ app.use("/api/property", userManagePropertiesRoutes);
 app.use("/api/property", userPostPropertyRoutes);
 
 app.use("/api/user/contacted-properties", userContactedPropertiesRoutes);
+app.use("/api/user/leads", userLeadsRoutes);
 app.use("/api/user/saved-properties", savedPropertiesRoutes);
 app.use("/api/user/seen-properties", seenPropertiesRoutes);
 app.use("/api/user/recent-searches", recentSearchesRoutes);

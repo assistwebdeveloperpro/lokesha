@@ -1,4 +1,5 @@
 import type { DropdownOption } from "@/components/shared/CustomDropdown";
+import type { AdminLead, SentLeadResult } from "@/services/adminLeads.service";
 import type { PropertyContactRole } from "@/services/propertyContact.service";
 
 export const LEADS_PAGE_SIZE = 10;
@@ -23,8 +24,8 @@ export const LEAD_ROLE_OPTIONS: DropdownOption[] = [
 
 export const LEAD_PHONE_OPTIONS: DropdownOption[] = [
   { value: "all", label: "All" },
-  { value: "shared", label: "Phone shared" },
-  { value: "hidden", label: "Phone hidden" },
+  { value: "shared", label: "Lister phone shared" },
+  { value: "hidden", label: "Lister phone hidden" },
 ];
 
 export const CONTACT_ROLE_LABEL: Record<PropertyContactRole, string> = {
@@ -41,12 +42,30 @@ export const LISTED_BY_LABEL: Record<string, string> = {
   admin: "Admin",
 };
 
-export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Enquiry", "Date", "Status"] as const;
+export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Enquiry", "Date", "Status", "Action"] as const;
 
 // Shared by header, rows and skeleton so the columns always line up
-export const LEAD_GRID_CLASS = "grid grid-cols-[1.2fr_1.3fr_1.2fr_1fr_0.9fr_0.8fr] items-center gap-4";
+export const LEAD_GRID_CLASS = "grid grid-cols-[1.2fr_1.8fr_1.2fr_1fr_0.9fr_0.8fr_1.2fr] items-center gap-4";
 
-export const LEAD_TABLE_MIN_WIDTH_CLASS = "min-w-[1100px]";
+export const LEAD_TABLE_MIN_WIDTH_CLASS = "min-w-[1450px]";
+
+// Returns the list with the sent lead updated in place, other rows keep their reference
+export function applySentLead(leads: AdminLead[], sent: SentLeadResult): AdminLead[] {
+  return leads.map((lead) =>
+    lead.id === sent.id ? { ...lead, distributionStatus: sent.distributionStatus, sentAt: sent.sentAt } : lead,
+  );
+}
+
+export type LeadSendState ="none" | "can_send" | "sent" | "no_account";
+
+// Decides what the Action column shows for a lead
+export function getLeadSendState(
+  lead: Pick<AdminLead, "verificationStatus" | "distributionStatus" | "canSendToLister">,
+): LeadSendState {
+  if (lead.distributionStatus === "sent") return "sent";
+  if (lead.verificationStatus !== "verified") return "none";
+  return lead.canSendToLister ? "can_send" : "no_account";
+}
 
 export function getInitials(name: string): string {
   return (

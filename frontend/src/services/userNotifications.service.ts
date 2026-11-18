@@ -8,6 +8,8 @@ export type UserNotification = {
   title: string;
   message: string;
   propertyId: string | null;
+  // Set on lead notifications only; the admin feed shares this type without it
+  leadId?: string | null;
   image: string | null;
   isRead: boolean;
   createdAt: string;

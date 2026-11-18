@@ -1,5 +1,6 @@
 import { Building2, Hash, Mail, MapPin, Phone } from "lucide-react";
 import type { AdminLead } from "@/services/adminLeads.service";
+import LeadSendAction from "./LeadSendAction";
 import LeadStatusBadge from "./LeadStatusBadge";
 import {
   CONTACT_ROLE_LABEL,
@@ -27,7 +28,13 @@ const chipClassName =
 const iconBubbleClassName = (tone: string) =>
   `flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${tone}`;
 
-function LeadRow({ lead }: { lead: AdminLead }) {
+type LeadSendProps = {
+  sendingId: string | null;
+  sendError: { id: string; message: string } | null;
+  onSend: (id: string) => void;
+};
+
+function LeadRow({ lead, sendingId, sendError, onSend }: { lead: AdminLead } & LeadSendProps) {
   const { property, lister } = lead;
 
   return (
@@ -75,7 +82,7 @@ function LeadRow({ lead }: { lead: AdminLead }) {
           <p className="truncate text-sm font-bold text-slate-900" title={property.title}>
             {property.title}
           </p>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1.5 whitespace-nowrap">
             <span className="inline-flex items-center gap-0.5 rounded-md bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-white">
               <Hash className="h-2.5 w-2.5" aria-hidden />
               {property.listingNumber}
@@ -109,7 +116,7 @@ function LeadRow({ lead }: { lead: AdminLead }) {
           {CONTACT_ROLE_LABEL[lead.contactRole]}
         </span>
         <p className={`mt-1.5 text-xs font-medium ${lead.phoneRevealed ? "text-emerald-600" : "text-slate-500"}`}>
-          {lead.phoneRevealed ? "Phone shared" : "Phone hidden"}
+          {lead.phoneRevealed ? "Lister phone shared" : "Lister phone hidden"}
         </p>
       </div>
 
@@ -121,11 +128,21 @@ function LeadRow({ lead }: { lead: AdminLead }) {
       <div className="min-w-0">
         <LeadStatusBadge status={lead.verificationStatus} />
       </div>
+
+      <div className="min-w-0">
+        <LeadSendAction
+          lead={lead}
+          isSending={sendingId === lead.id}
+          isDisabled={sendingId !== null}
+          error={sendError?.id === lead.id ? sendError.message : undefined}
+          onSend={onSend}
+        />
+      </div>
     </li>
   );
 }
 
-export default function LeadsTable({ leads }: { leads: AdminLead[] }) {
+export default function LeadsTable({ leads, sendingId, sendError, onSend }: { leads: AdminLead[] } & LeadSendProps) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-sm">
       <div className={LEAD_TABLE_MIN_WIDTH_CLASS}>
@@ -139,7 +156,7 @@ export default function LeadsTable({ leads }: { leads: AdminLead[] }) {
         </div>
         <ul>
           {leads.map((lead) => (
-            <LeadRow key={lead.id} lead={lead} />
+            <LeadRow key={lead.id} lead={lead} sendingId={sendingId} sendError={sendError} onSend={onSend} />
           ))}
         </ul>
       </div>

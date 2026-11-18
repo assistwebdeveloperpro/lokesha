@@ -3,12 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { clearAdminSession, getAdminToken } from "@/services/adminSession";
-import { fetchAdminLeads, type AdminLead, type AdminLeadsQuery } from "@/services/adminLeads.service";
+import {
+  fetchAdminLeads,
+  sendLeadToLister,
+  type AdminLead,
+  type AdminLeadsQuery,
+} from "@/services/adminLeads.service";
 import { ApiError } from "@/services/apiClient";
-import { DEFAULT_LEAD_FILTERS, LEADS_PAGE_SIZE, type LeadFilters } from "./leadsShared";
+import { applySentLead, DEFAULT_LEAD_FILTERS, LEADS_PAGE_SIZE, type LeadFilters } from "./leadsShared";
 
 const LOGIN_PATH = "/backend/login";
 const LOAD_ERROR = "We could not load the leads. Please try again.";
+const SEND_ERROR = "We could not send the lead. Please try again.";
+
+type SendError = { id: string; message: string };
 
 const PHONE_QUERY: Record<LeadFilters["phone"], boolean | undefined> = {
   all: undefined,
@@ -35,6 +43,8 @@ export function useLeads() {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<SendError | null>(null);
 
   const expireSession = useCallback(() => {
     clearAdminSession();
@@ -89,5 +99,41 @@ export function useLeads() {
     setReloadToken((current) => current + 1);
   };
 
-  return { leads, total, page, filters, isLoading, error, applyFilters, changePage, reload };
+  const sendLead = async (id: string) => {
+    const token = getAdminToken();
+    if (!token) {
+      router.push(LOGIN_PATH);
+      return;
+    }
+
+    setSendingId(id);
+    setSendError(null);
+    try {
+      const sent = await sendLeadToLister(id, token);
+      setLeads((current) => applySentLead(current, sent));
+    } catch (failure: unknown) {
+      if (failure instanceof ApiError && failure.status === 401) {
+        expireSession();
+        return;
+      }
+      setSendError({ id, message: failure instanceof ApiError ? failure.message : SEND_ERROR });
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  return {
+    leads,
+    total,
+    page,
+    filters,
+    isLoading,
+    error,
+    sendingId,
+    sendError,
+    applyFilters,
+    changePage,
+    reload,
+    sendLead,
+  };
 }

@@ -1,24 +1,25 @@
 "use client";
 
-import { Building2, Hash, Lock, MapPin, Phone } from "lucide-react";
+import { Hash, Lock, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { formatSearchListingArea } from "@/components/landing/property-search/property-list/formatSearchListingArea";
 import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
 import { formatTimeAgo } from "@/components/user/dashboard/notifications/formatTimeAgo";
-import { getAssetUrl } from "@/services/apiClient";
-import type { ContactedProperty } from "@/services/userContactedProperties.service";
+import PropertyThumbnail from "@/components/user/dashboard/shared/PropertyThumbnail";
 import {
   CONTACT_ROLE_LABEL,
-  CONTACTED_GRID_CLASS,
-  CONTACTED_TABLE_COLUMNS,
-  CONTACTED_TABLE_MIN_WIDTH_CLASS,
-  formatContactedAt,
+  formatActivityDateTime,
   getListingTypeLabel,
   getPropertyLocation,
   getViewPropertyHref,
   humanizeSlug,
   isSearchListing,
+} from "@/components/user/dashboard/shared/propertyActivityShared";
+import type { ContactedProperty } from "@/services/userContactedProperties.service";
+import {
+  CONTACTED_GRID_CLASS,
+  CONTACTED_TABLE_COLUMNS,
+  CONTACTED_TABLE_MIN_WIDTH_CLASS,
 } from "./contactedPropertiesShared";
 
 const chipClassName =
@@ -31,26 +32,6 @@ const SUBSCRIPTION_HREF = "/user/subscription/subscribed-services";
 
 const ACTION_BASE_CLASS =
   "inline-flex min-h-9 items-center justify-center rounded-xl px-3 md:px-4 text-xs md:text-xs font-semibold transition";
-
-function PropertyThumbnail({ imageUrl }: { imageUrl: string | null }) {
-  const [hasError, setHasError] = useState(false);
-
-  return (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-indigo-50 to-sky-100 text-indigo-600 ring-1 ring-indigo-100">
-      {imageUrl && !hasError ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={getAssetUrl(imageUrl)}
-          alt=""
-          className="h-full w-full object-cover"
-          onError={() => setHasError(true)}
-        />
-      ) : (
-        <Building2 className="h-6 w-6" aria-hidden />
-      )}
-    </span>
-  );
-}
 
 function ContactedPropertyRow({ item }: { item: ContactedProperty }) {
   const { property, lister } = item;
@@ -133,7 +114,7 @@ function ContactedPropertyRow({ item }: { item: ContactedProperty }) {
             </span>
           ) : null}
         </div>
-        <p className="mt-0.5 text-xs text-slate-500">{formatContactedAt(item.contactedAt)}</p>
+        <p className="mt-0.5 text-xs text-slate-500">{formatActivityDateTime(item.contactedAt)}</p>
       </div>
 
       <div className="min-w-0">

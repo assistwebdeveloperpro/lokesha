@@ -8,12 +8,15 @@ const STAFF_LISTED_BY = ["lokesha_staff", "admin"];
 
 function resolveLister(property) {
   if (STAFF_LISTED_BY.includes(property.listed_by) && property.owner_name) {
-    return { name: property.owner_name, mobile: property.owner_mobile };
+    // Real owner's name, but the staff/admin who listed it receives the enquiry
+    const mobile = property.admin_mobile ?? property.user_mobile;
+    // Leads page shows the real owner's number, falling back to the staff number
+    return { name: property.owner_name, mobile, leadMobile: property.owner_mobile ?? mobile };
   }
   if (property.user_id) {
-    return { name: property.user_name, mobile: property.user_mobile };
+    return { name: property.user_name, mobile: property.user_mobile, leadMobile: property.user_mobile };
   }
-  return { name: property.admin_name, mobile: property.admin_mobile };
+  return { name: property.admin_name, mobile: property.admin_mobile, leadMobile: property.admin_mobile };
 }
 
 function buildResult(lister, phoneRevealed, revealedBefore) {
@@ -68,7 +71,7 @@ async function contactLister(userId, { propertyId, contactRole }) {
         lead_mobile: user.mobile_number,
         lead_email: user.email,
         lister_name: lister.name,
-        lister_mobile: lister.mobile,
+        lister_mobile: lister.leadMobile,
         lister_listed_by: property.listed_by,
       },
       trx

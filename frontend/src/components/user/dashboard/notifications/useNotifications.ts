@@ -13,6 +13,7 @@ import {
   type UserNotification,
 } from "@/services/userNotifications.service";
 import { getToken } from "@/services/session";
+import { getUserNotificationHref } from "./notificationHref";
 
 export type NotificationSource = {
   getToken: () => string | null;
@@ -29,6 +30,7 @@ export const userNotificationSource: NotificationSource = {
   getUnreadCount: getUnreadNotificationCount,
   markAsRead: markNotificationAsRead,
   markAllAsRead: markAllNotificationsAsRead,
+  getNotificationHref: getUserNotificationHref,
 };
 
 const PAGE_SIZE = 20;

@@ -12,4 +12,8 @@ const leadsListQuerySchema = Joi.object({
   phoneRevealed: Joi.boolean(),
 });
 
-module.exports = { leadsListQuerySchema };
+const leadIdParamSchema = Joi.object({
+  id: Joi.string().uuid().required(),
+});
+
+module.exports = { leadsListQuerySchema, leadIdParamSchema };

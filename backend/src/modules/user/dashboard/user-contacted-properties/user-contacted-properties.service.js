@@ -4,8 +4,7 @@ const {
   findListingsByPropertyId,
   toUnavailableProperty,
 } = require("../shared/published-listings");
-
-const NEW_CONTACT_WINDOW_MS = 48 * 60 * 60 * 1000;
+const { isNewActivity } = require("../shared/new-activity");
 
 function toContactedItem(lead, listings, now) {
   const isAvailable = lead.status === PUBLISHED_STATUS;
@@ -14,7 +13,7 @@ function toContactedItem(lead, listings, now) {
   return {
     id: lead.id,
     contactedAt: lead.created_at,
-    isNew: now - new Date(lead.created_at).getTime() < NEW_CONTACT_WINDOW_MS,
+    isNew: isNewActivity(lead.created_at, now),
     contactRole: lead.lister_role,
     phoneRevealed: lead.phone_revealed,
     lister: {

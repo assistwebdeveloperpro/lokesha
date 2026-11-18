@@ -1,7 +1,7 @@
 const { db } = require("../../../../config/db");
 
 const TABLE = "property_status_notifications";
-const COLUMNS = ["id", "type", "title", "message", "property_id", "read_at", "created_at"];
+const COLUMNS = ["id", "type", "title", "message", "property_id", "lead_id", "read_at", "created_at"];
 
 // trx is the caller's transaction, so a notification exists only if its cause was saved
 async function insertNotification(trx, row) {

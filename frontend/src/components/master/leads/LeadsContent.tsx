@@ -10,7 +10,20 @@ import { DEFAULT_LEAD_FILTERS, LEADS_PAGE_SIZE } from "./leadsShared";
 import { useLeads } from "./useLeads";
 
 export default function LeadsContent() {
-  const { leads, total, page, filters, isLoading, error, applyFilters, changePage, reload } = useLeads();
+  const {
+    leads,
+    total,
+    page,
+    filters,
+    isLoading,
+    error,
+    sendingId,
+    sendError,
+    applyFilters,
+    changePage,
+    reload,
+    sendLead,
+  } = useLeads();
   const isFiltered = Object.keys(DEFAULT_LEAD_FILTERS).some(
     (key) => filters[key as keyof typeof filters] !== DEFAULT_LEAD_FILTERS[key as keyof typeof filters],
   );
@@ -56,7 +69,7 @@ export default function LeadsContent() {
           <LeadsEmptyState isFiltered={isFiltered} />
         ) : (
           <>
-            <LeadsTable leads={leads} />
+            <LeadsTable leads={leads} sendingId={sendingId} sendError={sendError} onSend={sendLead} />
             <ListPagination page={page} pageSize={LEADS_PAGE_SIZE} total={total} onPageChange={changePage} />
           </>
         )}

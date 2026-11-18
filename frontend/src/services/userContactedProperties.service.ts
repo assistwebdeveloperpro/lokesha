@@ -1,18 +1,8 @@
-import type { PublicSearchListing } from "@/components/landing/property-search/property-list/publicSearchListing.types";
 import { apiFetch } from "./apiClient";
 import type { PropertyContactRole } from "./propertyContact.service";
+import type { ActivityProperty } from "./userPropertyActivity.types";
 
 export type ContactedAvailability = "all" | "available" | "unavailable";
-
-export type UnavailableContactedProperty = {
-  id: string;
-  title: string;
-  listingNumber: number;
-  listingType: string;
-  propertyType: string;
-  locality: string;
-  city: string | null;
-};
 
 export type ContactedProperty = {
   id: string;
@@ -22,7 +12,7 @@ export type ContactedProperty = {
   phoneRevealed: boolean;
   lister: { name: string | null; mobile: string | null; listedBy: string | null };
   isAvailable: boolean;
-  property: PublicSearchListing | UnavailableContactedProperty;
+  property: ActivityProperty;
 };
 
 export type ContactedPropertiesSummary = {

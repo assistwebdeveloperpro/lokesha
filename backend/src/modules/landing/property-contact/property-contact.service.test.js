@@ -154,6 +154,22 @@ describe("contactLister lister resolution", () => {
 
     expect(result).toMatchObject({ contactName: "Staff Member", contactPhone: "9000000005" });
   });
+
+  it("shows the real owner name with the lister's number for a staff listed property", async () => {
+    repository.findPublishedPropertyWithLister.mockResolvedValue({
+      ...adminProperty,
+      owner_name: "Real Owner",
+      owner_mobile: "9222222222",
+    });
+
+    const result = await contactLister(USER_ID, input);
+
+    expect(result).toMatchObject({ contactName: "Real Owner", contactPhone: "9000000009" });
+    expect(repository.insertLead).toHaveBeenCalledWith(
+      expect.objectContaining({ lister_name: "Real Owner", lister_mobile: "9222222222" }),
+      expect.anything()
+    );
+  });
 });
 
 describe("listContactedPropertyIds", () => {

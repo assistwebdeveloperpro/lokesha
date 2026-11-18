@@ -1,14 +1,22 @@
+const mockTrx = {};
+
+jest.mock("../../../../config/db", () => ({ db: { transaction: (callback) => callback(mockTrx) } }));
 jest.mock("./leads.repository");
+jest.mock("../../../user/dashboard/user-notifications/user-notifications.repository");
 
 const repository = require("./leads.repository");
-const { leadsListQuerySchema } = require("./leads.validation");
-const { listLeads } = require("./leads.service");
+const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
+const { leadsListQuerySchema, leadIdParamSchema } = require("./leads.validation");
+const { listLeads, sendLeadToLister } = require("./leads.service");
 
 const row = {
   id: "lead-1",
   lister_role: "agent",
   phone_revealed: false,
   verification_status: "not_verified",
+  distribution_status: "not_sent",
+  sent_at: null,
+  lister_user_id: "user-9",
   lead_name: "Ravi",
   lead_mobile: "9111111111",
   lead_email: "ravi@example.com",
@@ -45,7 +53,19 @@ describe("listLeads", () => {
       contactRole: "agent",
       phoneRevealed: false,
       verificationStatus: "not_verified",
+      distributionStatus: "not_sent",
+      sentAt: null,
+      canSendToLister: true,
     });
+  });
+
+  it("marks admin-posted leads as not sendable", async () => {
+    repository.findLeads.mockResolvedValue([{ ...row, lister_user_id: null }]);
+    repository.countLeads.mockResolvedValue(1);
+
+    const result = await listLeads({ page: 1, limit: 10 });
+
+    expect(result.items[0].canSendToLister).toBe(false);
   });
 
   it("prefers the project name over the property title", async () => {
@@ -71,5 +91,80 @@ describe("leadsListQuerySchema", () => {
   it("rejects unknown roles and oversized pages", () => {
     expect(validate({ role: "admin" }).error).toBeDefined();
     expect(validate({ limit: 500 }).error).toBeDefined();
+  });
+});
+
+describe("leadIdParamSchema", () => {
+  it("requires a uuid", () => {
+    expect(leadIdParamSchema.validate({ id: "3f1c2a9e-5b7d-4c11-9a3e-2d6f8b0c1e44" }).error).toBeUndefined();
+    expect(leadIdParamSchema.validate({ id: "lead-1" }).error).toBeDefined();
+  });
+});
+
+describe("sendLeadToLister", () => {
+  const sendable = {
+    id: "lead-1",
+    property_id: "prop-1",
+    lister_user_id: "user-9",
+    verification_status: "verified",
+    distribution_status: "not_sent",
+    property_title: "Sky Heights",
+  };
+
+  beforeEach(() => {
+    repository.findLeadForUpdate.mockResolvedValue(sendable);
+    repository.markLeadSent.mockResolvedValue({
+      id: "lead-1",
+      distribution_status: "sent",
+      sent_at: "2026-11-18T10:00:00.000Z",
+    });
+    notificationRepository.insertNotification.mockResolvedValue();
+  });
+
+  const expectRejected = async (statusCode) => {
+    await expect(sendLeadToLister("lead-1")).rejects.toMatchObject({ statusCode });
+    expect(notificationRepository.insertNotification).not.toHaveBeenCalled();
+  };
+
+  it("marks the lead sent and notifies the stored lister in the same transaction", async () => {
+    const result = await sendLeadToLister("lead-1");
+
+    expect(result).toEqual({ id: "lead-1", distributionStatus: "sent", sentAt: "2026-11-18T10:00:00.000Z" });
+    expect(repository.markLeadSent).toHaveBeenCalledWith(mockTrx, "lead-1");
+    expect(notificationRepository.insertNotification).toHaveBeenCalledWith(
+      mockTrx,
+      expect.objectContaining({
+        user_id: "user-9",
+        type: "lead_received",
+        property_id: "prop-1",
+        lead_id: "lead-1",
+        title: "Sky Heights",
+      })
+    );
+  });
+
+  it("returns 404 for a missing lead", async () => {
+    repository.findLeadForUpdate.mockResolvedValue(undefined);
+    await expectRejected(404);
+  });
+
+  it("rejects a lead that is not verified", async () => {
+    repository.findLeadForUpdate.mockResolvedValue({ ...sendable, verification_status: "not_verified" });
+    await expectRejected(409);
+  });
+
+  it("rejects a lead that was already sent", async () => {
+    repository.findLeadForUpdate.mockResolvedValue({ ...sendable, distribution_status: "sent" });
+    await expectRejected(409);
+  });
+
+  it("rejects a lead with no user lister", async () => {
+    repository.findLeadForUpdate.mockResolvedValue({ ...sendable, lister_user_id: null });
+    await expectRejected(422);
+  });
+
+  it("creates no notification when a concurrent send already updated the lead", async () => {
+    repository.markLeadSent.mockResolvedValue(undefined);
+    await expectRejected(409);
   });
 });

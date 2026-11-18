@@ -40,6 +40,9 @@ async function findLeads(filters) {
       "l.lister_role",
       "l.phone_revealed",
       "l.verification_status",
+      "l.distribution_status",
+      "l.sent_at",
+      "l.lister_user_id",
       "l.lead_name",
       "l.lead_mobile",
       "l.lead_email",
@@ -63,4 +66,30 @@ async function countLeads(filters) {
   return Number(row.total);
 }
 
-module.exports = { findLeads, countLeads };
+// Row lock serialises concurrent sends of the same lead
+async function findLeadForUpdate(trx, id) {
+  return trx("property_leads as l")
+    .join("properties as p", "p.id", "l.property_id")
+    .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
+    .where("l.id", id)
+    .forUpdate("l")
+    .first(
+      "l.id",
+      "l.property_id",
+      "l.lister_user_id",
+      "l.verification_status",
+      "l.distribution_status",
+      db.raw("coalesce(bp.project_name, p.title) as property_title")
+    );
+}
+
+// The status guards make a second send affect no rows
+async function markLeadSent(trx, id) {
+  const [row] = await trx("property_leads")
+    .where({ id, distribution_status: "not_sent", verification_status: "verified" })
+    .update({ distribution_status: "sent", sent_at: trx.fn.now(), updated_at: trx.fn.now() })
+    .returning(["id", "distribution_status", "sent_at"]);
+  return row;
+}
+
+module.exports = { findLeads, countLeads, findLeadForUpdate, markLeadSent };

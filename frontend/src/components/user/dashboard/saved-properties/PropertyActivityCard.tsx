@@ -4,7 +4,7 @@ import { MapPin, Share2 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { SavedProperty } from "@/services/savedProperties.service";
-import { getViewPropertyHref, humanizeSlug } from "../contacted-properties/contactedPropertiesShared";
+import { getViewPropertyHref, humanizeSlug } from "../shared/propertyActivityShared";
 import SavedPropertyImageSlider from "./SavedPropertyImageSlider";
 import {
   getSavedImages,

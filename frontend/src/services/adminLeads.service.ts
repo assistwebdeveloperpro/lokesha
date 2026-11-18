@@ -2,6 +2,7 @@ import { apiFetch } from "./apiClient";
 import type { PropertyContactRole } from "./propertyContact.service";
 
 export type LeadVerificationStatus = "not_verified" | "verified";
+export type LeadDistributionStatus = "not_sent" | "sent";
 
 export type AdminLead = {
   id: string;
@@ -19,7 +20,16 @@ export type AdminLead = {
   contactRole: PropertyContactRole;
   phoneRevealed: boolean;
   verificationStatus: LeadVerificationStatus;
+  distributionStatus: LeadDistributionStatus;
+  sentAt: string | null;
+  canSendToLister: boolean;
   createdAt: string;
+};
+
+export type SentLeadResult = {
+  id: string;
+  distributionStatus: LeadDistributionStatus;
+  sentAt: string;
 };
 
 export type AdminLeadsQuery = {
@@ -45,6 +55,13 @@ export function fetchAdminLeads(query: AdminLeadsQuery, token: string) {
 
   return apiFetch<AdminLeadsResponse>(`/master/leads?${params.toString()}`, {
     method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function sendLeadToLister(id: string, token: string) {
+  return apiFetch<SentLeadResult>(`/master/leads/${id}/send`, {
+    method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
 }

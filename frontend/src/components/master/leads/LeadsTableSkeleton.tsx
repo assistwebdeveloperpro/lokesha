@@ -57,6 +57,10 @@ function SkeletonRow() {
       </div>
 
       <div className={`${bar} h-6 w-24 rounded-full`} />
+
+      <div className="space-y-2">
+        <div className={`${bar} h-9 w-36 rounded-xl`} />
+      </div>
     </li>
   );
 }
