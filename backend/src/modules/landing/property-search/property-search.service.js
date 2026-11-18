@@ -2,7 +2,7 @@ const repository = require("./property-search.repository");
 const mapper = require("./property-search.mapper");
 const { searchQuerySchema } = require("./property-search.validation");
 const { normalizeText } = require("./property-search.filters");
-const { SIMILAR_LIMIT, OTHER_LOCALITIES_LIMIT } = require("./property-search.constants");
+const { SIMILAR_LIMIT, OTHER_LOCALITIES_LIMIT, SUGGESTIONS_PER_KIND } = require("./property-search.constants");
 const readRepository = require("../../shared/property/repositories/property-read.repository");
 const { getRule } = require("../../shared/property/constants/property.constants");
 const { AppError } = require("../../shared/property/utils/property.errors");
@@ -121,4 +121,14 @@ async function getPropertyDetails(id) {
   };
 }
 
-module.exports = { searchProperties, getPropertyDetails };
+async function getSearchSuggestions({ q, city }) {
+  const options = { text: q, city, limit: SUGGESTIONS_PER_KIND };
+  const [projects, builders] = await Promise.all([
+    repository.findSuggestedProjects(options),
+    repository.findSuggestedBuilders(options),
+  ]);
+
+  return { projects, builders };
+}
+
+module.exports = { searchProperties, getPropertyDetails, getSearchSuggestions };

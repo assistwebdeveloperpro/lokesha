@@ -82,10 +82,10 @@ function buildPropertyTypeText(criteria: TitleCriteria): string {
   return CATEGORY_NOUN[criteria.category] ?? "Property";
 }
 
-// "Bopal, Ahmedabad": projects and localities first, then the city
+// "Bopal, Ahmedabad": builders and localities first, then the city
 function buildLocationText(criteria: TitleCriteria): string {
   const places = [
-    ...(criteria.projects ?? []),
+    ...(criteria.builders ?? []),
     ...(criteria.localities ?? []),
   ].map(displayName);
   return [...places, ...(criteria.cityName ? [displayName(criteria.cityName)] : [])].join(", ");

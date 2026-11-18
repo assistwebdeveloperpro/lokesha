@@ -38,15 +38,13 @@ import {
   type TransactionType,
 } from "./heroBanner.shared";
 import { buildHeroSearchCriteria } from "./heroSearchCriteria";
-import {
-  getSearchSuggestions,
-  resolveSearchTag,
-} from "./heroSearchSuggestions";
+import { resolveSearchTag } from "./heroSearchSuggestions";
 import {
   appendSearchTag,
   searchTagKey,
   syncHeaderCityTag,
 } from "./heroSearchTags";
+import { useSearchSuggestions } from "./useSearchSuggestions";
 
 const defaultExpandedSection = (category: PropertyCategory): FilterSection =>
   category === "residential" || category === "pg-co-living" ? "budget" : "area";
@@ -175,9 +173,9 @@ export function useHeroBannerFilters({
   const selectedCity =
     searchTags.find((tag) => tag.kind === "city")?.label ?? null;
 
-  const searchSuggestions = useMemo(
-    () => getSearchSuggestions(searchText, selectedCity),
-    [searchText, selectedCity],
+  const { searchSuggestions, fetchedTags } = useSearchSuggestions(
+    searchText,
+    selectedCity,
   );
 
   const addSearchTag = useCallback((tag: SearchTag) => {
@@ -193,10 +191,18 @@ export function useHeroBannerFilters({
 
   const addTypedSearchTag = useCallback(() => {
     if (!searchText.trim()) return;
-    const tag = resolveSearchTag(searchText, selectedCity);
+    const tag = resolveSearchTag(searchText, selectedCity, fetchedTags);
     if (tag) addSearchTag(tag);
+    else if (searchTags.length > 0) setSearchText("");
     else rejectSearchText();
-  }, [addSearchTag, rejectSearchText, searchText, selectedCity]);
+  }, [
+    addSearchTag,
+    fetchedTags,
+    rejectSearchText,
+    searchTags.length,
+    searchText,
+    selectedCity,
+  ]);
 
   const removeSearchTag = useCallback((tag: SearchTag) => {
     setSearchTags((prev) =>
@@ -210,8 +216,9 @@ export function useHeroBannerFilters({
   }, []);
 
   const submitSearch = () => {
-    const pendingTag = resolveSearchTag(searchText, selectedCity);
-    if (searchText.trim() && !pendingTag) {
+    const pendingTag = resolveSearchTag(searchText, selectedCity, fetchedTags);
+    // Unmatched text is ignored when tags already give something to search
+    if (searchText.trim() && !pendingTag && searchTags.length === 0) {
       rejectSearchText();
       return;
     }

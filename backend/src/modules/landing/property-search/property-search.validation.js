@@ -35,6 +35,7 @@ const filterFields = {
   city: Joi.string().trim().max(100),
   localities: csvList(textItem),
   projects: csvList(textItem),
+  builders: csvList(textItem),
   bedrooms: csvList(Joi.number().integer().min(1).max(20)),
   subTypes: csvList(Joi.string().max(40)),
   constructionStatuses: csvList(textItem),
@@ -72,4 +73,9 @@ const propertyIdParamSchema = Joi.object({
   id: Joi.string().guid().required(),
 });
 
-module.exports = { searchQuerySchema, propertyIdParamSchema };
+const suggestionsQuerySchema = Joi.object({
+  q: Joi.string().trim().min(c.MIN_SUGGESTION_CHARS).max(100).required(),
+  city: Joi.string().trim().max(100),
+});
+
+module.exports = { searchQuerySchema, propertyIdParamSchema, suggestionsQuerySchema };

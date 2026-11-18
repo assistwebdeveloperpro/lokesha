@@ -123,6 +123,7 @@ export function parseSearchUrl({
     cityName: cityName || undefined,
     localities: splitList(params.locality).map(fromUrlSegment),
     projects: splitList(params["project-socity"]).map(fromUrlSegment),
+    builders: splitList(params.builder).map(fromUrlSegment),
     bedrooms: parseBedrooms(params.bedroom),
     propertyTypes: splitList(params.proptype),
     constructionStatuses: splitList(params["construction-status"]),

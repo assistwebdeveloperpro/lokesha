@@ -37,6 +37,7 @@ export function toSearchApiQuery(
     city: criteria.cityName,
     localities: criteria.localities,
     projects: criteria.projects,
+    builders: criteria.builders,
     bedrooms: criteria.bedrooms,
     subTypes,
     constructionStatuses: criteria.constructionStatuses,

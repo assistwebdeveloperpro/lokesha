@@ -7,6 +7,8 @@ const MAX_SUGGESTIONS_PER_KIND = 6;
 
 const normalize = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase();
 
+export const normalizeSuggestionText = normalize;
+
 const uniqueLabels = (labels: string[]) => [...new Set(labels)];
 
 const localitiesFor = (city: string | null) =>
@@ -29,6 +31,15 @@ export const isSuggestionQuery = (text: string) =>
 export type SearchSuggestionGroups = {
   cities: SearchTag[];
   localities: SearchTag[];
+  projects: SearchTag[];
+  builders: SearchTag[];
+};
+
+export const EMPTY_SUGGESTION_GROUPS: SearchSuggestionGroups = {
+  cities: [],
+  localities: [],
+  projects: [],
+  builders: [],
 };
 
 // Localities narrow to the selected city when there is one.
@@ -36,10 +47,11 @@ export function getSearchSuggestions(
   text: string,
   selectedCity: string | null,
 ): SearchSuggestionGroups {
-  if (!isSuggestionQuery(text)) return { cities: [], localities: [] };
+  if (!isSuggestionQuery(text)) return EMPTY_SUGGESTION_GROUPS;
   const query = normalize(text);
 
   return {
+    ...EMPTY_SUGGESTION_GROUPS,
     cities: matchLabels(INDIAN_CITIES, query)
       .slice(0, MAX_SUGGESTIONS_PER_KIND)
       .map((label) => ({ kind: "city", label })),
@@ -49,10 +61,11 @@ export function getSearchSuggestions(
   };
 }
 
-// Exact (case-insensitive) match against known cities, then localities.
+// Exact (case-insensitive) match against known cities, localities, then fetched projects and builders.
 export function resolveSearchTag(
   text: string,
   selectedCity: string | null,
+  fetchedTags: SearchTag[] = [],
 ): SearchTag | null {
   const query = normalize(text);
   if (!query) return null;
@@ -63,5 +76,7 @@ export function resolveSearchTag(
   const locality = localitiesFor(selectedCity).find(
     (item) => normalize(item) === query,
   );
-  return locality ? { kind: "locality", label: locality } : null;
+  if (locality) return { kind: "locality", label: locality };
+
+  return fetchedTags.find((tag) => normalize(tag.label) === query) ?? null;
 }

@@ -4,10 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import type { SearchTag } from "@/components/landing/home/hero-banner/heroBanner.shared";
 import { recordRecentSearch } from "@/components/landing/recent-searches/recordRecentSearch";
-import {
-  getSearchSuggestions,
-  resolveSearchTag,
-} from "@/components/landing/home/hero-banner/heroSearchSuggestions";
+import { resolveSearchTag } from "@/components/landing/home/hero-banner/heroSearchSuggestions";
+import { useSearchSuggestions } from "@/components/landing/home/hero-banner/useSearchSuggestions";
 import {
   appendSearchTag,
   searchTagKey,
@@ -23,6 +21,7 @@ const tagsFromCriteria = (criteria: PropertySearchCriteria): SearchTag[] => [
     : []),
   ...criteria.localities.map((label) => ({ kind: "locality", label }) as const),
   ...criteria.projects.map((label) => ({ kind: "project", label }) as const),
+  ...(criteria.builders ?? []).map((label) => ({ kind: "builder", label }) as const),
 ];
 
 const tagLabels = (tags: SearchTag[], kind: SearchTag["kind"]) =>
@@ -49,9 +48,9 @@ export function useHeaderSearch(criteria: PropertySearchCriteria) {
   const selectedCity =
     searchTags.find((tag) => tag.kind === "city")?.label ?? null;
 
-  const searchSuggestions = useMemo(
-    () => getSearchSuggestions(searchText, selectedCity),
-    [searchText, selectedCity],
+  const { searchSuggestions, fetchedTags } = useSearchSuggestions(
+    searchText,
+    selectedCity,
   );
 
   const addSearchTag = useCallback((tag: SearchTag) => {
@@ -67,10 +66,18 @@ export function useHeaderSearch(criteria: PropertySearchCriteria) {
 
   const addTypedSearchTag = useCallback(() => {
     if (!searchText.trim()) return;
-    const tag = resolveSearchTag(searchText, selectedCity);
+    const tag = resolveSearchTag(searchText, selectedCity, fetchedTags);
     if (tag) addSearchTag(tag);
+    else if (searchTags.length > 0) setSearchText("");
     else rejectSearchText();
-  }, [addSearchTag, rejectSearchText, searchText, selectedCity]);
+  }, [
+    addSearchTag,
+    fetchedTags,
+    rejectSearchText,
+    searchTags.length,
+    searchText,
+    selectedCity,
+  ]);
 
   const removeSearchTag = useCallback((tag: SearchTag) => {
     setSearchTags((prev) =>
@@ -84,8 +91,9 @@ export function useHeaderSearch(criteria: PropertySearchCriteria) {
   }, []);
 
   const submitSearch = () => {
-    const pendingTag = resolveSearchTag(searchText, selectedCity);
-    if (searchText.trim() && !pendingTag) {
+    const pendingTag = resolveSearchTag(searchText, selectedCity, fetchedTags);
+    // Unmatched text is ignored when tags already give something to search
+    if (searchText.trim() && !pendingTag && searchTags.length === 0) {
       rejectSearchText();
       return;
     }
@@ -100,6 +108,7 @@ export function useHeaderSearch(criteria: PropertySearchCriteria) {
       cityName: tagLabels(tags, "city")[0],
       localities: tagLabels(tags, "locality"),
       projects: tagLabels(tags, "project"),
+      builders: tagLabels(tags, "builder"),
       page: 1,
     });
     setSearchTags(tags);

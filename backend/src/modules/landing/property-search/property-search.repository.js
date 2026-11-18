@@ -1,6 +1,14 @@
 const { db } = require("../../../config/db");
 const c = require("./property-search.constants");
-const { applySearchFilters, normalizedSql, PRICE_MIN_SQL, PRICE_MAX_SQL } = require("./property-search.filters");
+const {
+  applySearchFilters,
+  whereCity,
+  normalizedSql,
+  PRICE_MIN_SQL,
+  PRICE_MAX_SQL,
+  PROJECT_NAME_SQL,
+  BUILDER_NAME_SQL,
+} = require("./property-search.filters");
 
 const GROUP_KEY = "coalesce(p.listing_group_id, p.builder_project_id, p.id)";
 
@@ -228,6 +236,29 @@ async function countDeveloperProjects(project) {
   return { totalProjects: Number(row.total), ongoingProjects: Number(row.ongoing), completedProjects: Number(row.completed) };
 }
 
+const escapeLike = (value) => value.replace(/[\\%_]/g, "\\$&");
+
+// Distinct published names matching the text, prefix matches first
+async function findSuggestedNames(nameSql, { text, city, limit }) {
+  const pattern = `%${escapeLike(text)}%`;
+  const query = db("properties as p")
+    .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
+    .where("p.status", "published")
+    .whereRaw(`${nameSql} ilike ?`, [pattern])
+    .select(db.raw(`${nameSql} as name`))
+    .groupByRaw(nameSql)
+    .orderByRaw(`strpos(lower(${nameSql}), lower(?)) asc, ${nameSql} asc`, [text])
+    .limit(limit);
+
+  if (city) whereCity(query, city);
+
+  const rows = await query;
+  return rows.map(({ name }) => name);
+}
+
+const findSuggestedProjects = (options) => findSuggestedNames(PROJECT_NAME_SQL, options);
+const findSuggestedBuilders = (options) => findSuggestedNames(BUILDER_NAME_SQL, options);
+
 async function findAmenityNames(keys) {
   if (!keys.length) return [];
   return db("amenities").whereIn("amenity_key", keys).select("kind", "amenity_key", "name", "image_path");
@@ -242,4 +273,6 @@ module.exports = {
   findPublishedProperty,
   findAmenityNames,
   countDeveloperProjects,
+  findSuggestedProjects,
+  findSuggestedBuilders,
 };

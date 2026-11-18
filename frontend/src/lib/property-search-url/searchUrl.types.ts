@@ -17,6 +17,7 @@ export type PropertySearchCriteria = {
   cityName?: string;
   localities: string[];
   projects: string[];
+  builders?: string[];
   bedrooms: number[];
   propertyTypes: string[];
   constructionStatuses: string[];

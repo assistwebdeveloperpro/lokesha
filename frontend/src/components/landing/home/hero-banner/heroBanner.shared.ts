@@ -59,7 +59,7 @@ export type PropertyCategory =
   | "plot"
   | "land";
 
-export type SearchTagKind = "city" | "locality" | "project";
+export type SearchTagKind = "city" | "locality" | "project" | "builder";
 
 export type SearchTag = {
   kind: SearchTagKind;
@@ -167,7 +167,7 @@ const DEFAULT_PROPERTY_TYPE_SET: Record<
   SearchablePropertyCategory,
   readonly string[]
 > = {
-  residential: ["Flat/Apartment", "Bungalow/Villa"],
+  residential: ["Flat/Apartment"],
   commercial: ["Shop", "Office", "Showroom"],
   plot: PROPERTY_TYPES.plot,
   land: ["Residential Land", "Commercial Land"],

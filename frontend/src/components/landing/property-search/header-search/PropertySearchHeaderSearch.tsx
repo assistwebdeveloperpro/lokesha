@@ -76,7 +76,7 @@ export function PropertySearchHeaderSearch({
               onBlur={() => setHintsRequested(false)}
               placeholder={
                 searchTags.length === 0
-                  ? "Enter City, Locality, Project Name"
+                  ? "Enter City, Locality, Project, Developer Name"
                   : "Add more"
               }
               role="combobox"

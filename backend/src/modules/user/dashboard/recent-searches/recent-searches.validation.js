@@ -83,6 +83,7 @@ const searchCriteriaSchema = Joi.object({
   cityName: text,
   localities: textList,
   projects: textList,
+  builders: textList,
   bedrooms: Joi.array().items(Joi.number().integer().min(1).max(MAX_ITEMS)).max(MAX_ITEMS).default([]),
   propertyTypes: textList,
   constructionStatuses: textList,

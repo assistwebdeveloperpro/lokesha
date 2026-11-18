@@ -25,4 +25,12 @@ async function getPropertyDetails(req, res) {
   }
 }
 
-module.exports = { searchProperties, getPropertyDetails };
+async function getSearchSuggestions(req, res) {
+  try {
+    return res.status(200).json(await service.getSearchSuggestions(req.validatedQuery));
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+module.exports = { searchProperties, getPropertyDetails, getSearchSuggestions };

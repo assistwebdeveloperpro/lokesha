@@ -56,6 +56,7 @@ export const SEARCH_PARAM_KEYS = [
   "locality",
   "city-name",
   "project-socity",
+  "builder",
   "min-price",
   "max-price",
   "construction-status",

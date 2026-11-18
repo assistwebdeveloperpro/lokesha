@@ -83,7 +83,7 @@ describe("buildRecentSearchTitle", () => {
     ).toBe("Buy 2, 3 BHK Flat/Apartment, Bungalow/Villa in Surat");
   });
 
-  it("capitalises lowercase locations and counts projects as localities", () => {
+  it("capitalises lowercase locations and leaves project names out", () => {
     expect(
       buildRecentSearchTitle({
         ...base,
@@ -91,7 +91,7 @@ describe("buildRecentSearchTitle", () => {
         localities: ["bopal"],
         cityName: "Ahmedabad",
       }),
-    ).toBe("Buy Residential property in Shyam Swastik, Bopal, Ahmedabad");
+    ).toBe("Buy Residential property in Bopal, Ahmedabad");
   });
 
   it("shows one-sided prices and area", () => {

@@ -128,6 +128,24 @@ export async function searchProperties(query: string, signal?: AbortSignal) {
   };
 }
 
+export type PublicSearchSuggestions = {
+  projects: string[];
+  builders: string[];
+};
+
+export function getSearchSuggestions(
+  text: string,
+  city: string | null,
+  signal?: AbortSignal,
+) {
+  const query = new URLSearchParams({ q: text, ...(city && { city }) });
+
+  return apiFetch<PublicSearchSuggestions>(
+    `/property-search/suggestions?${query}`,
+    { method: "GET", signal },
+  );
+}
+
 export async function getPublicPropertyDetails(id: string) {
   const { property } = await apiFetch<{ property: PublicPropertyDetails }>(`/property-search/${id}`, {
     method: "GET",

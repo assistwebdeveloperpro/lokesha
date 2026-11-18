@@ -103,9 +103,9 @@ function buildPropertyTypeText(criteria) {
   return CATEGORY_NOUN[criteria.category] ?? "Property";
 }
 
-// "Bopal, Ahmedabad": projects and localities first, then the city
+// "Bopal, Ahmedabad": builders and localities first, then the city
 function buildLocationText(criteria) {
-  return [...(criteria.projects ?? []), ...(criteria.localities ?? [])]
+  return [...(criteria.builders ?? []), ...(criteria.localities ?? [])]
     .map(displayName)
     .concat(criteria.cityName ? [displayName(criteria.cityName)] : [])
     .join(", ");

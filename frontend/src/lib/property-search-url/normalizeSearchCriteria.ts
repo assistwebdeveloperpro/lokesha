@@ -8,6 +8,7 @@ export function normalizeSearchCriteria(
     ...criteria,
     localities: criteria.localities ?? [],
     projects: criteria.projects ?? [],
+    builders: criteria.builders ?? [],
     bedrooms: criteria.bedrooms ?? [],
     propertyTypes: criteria.propertyTypes ?? [],
     constructionStatuses: criteria.constructionStatuses ?? [],

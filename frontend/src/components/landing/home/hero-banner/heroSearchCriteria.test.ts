@@ -15,7 +15,7 @@ import {
 
 const city: SearchTag = { kind: "city", label: "Ahmedabad" };
 
-const DEFAULT_RESIDENTIAL_TYPES = "proptype=Flat-Apartment,Bungalow-Villa";
+const DEFAULT_RESIDENTIAL_TYPES = "proptype=Flat-Apartment";
 const ALL_COMMERCIAL_TYPES =
   "proptype=Shop,Office,Showroom,Cold-Storage,Industrial-Shed,Guest-House,Hotel-Resort,Warehouse-Godown,Co-working-Space-Business-Centre";
 const ALL_LAND_TYPES =
@@ -249,10 +249,7 @@ describe("buildHeroSearchCriteria extras", () => {
 
 describe("defaultPropertyTypes", () => {
   it("selects a subset for residential, commercial, and land", () => {
-    expect(defaultPropertyTypes("residential")).toEqual([
-      "Flat/Apartment",
-      "Bungalow/Villa",
-    ]);
+    expect(defaultPropertyTypes("residential")).toEqual(["Flat/Apartment"]);
     expect(defaultPropertyTypes("commercial")).toEqual([
       "Shop",
       "Office",

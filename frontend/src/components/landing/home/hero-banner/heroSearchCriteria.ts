@@ -98,6 +98,7 @@ export function buildHeroSearchCriteria(
     cityName: tagLabels(input.searchTags, "city")[0],
     localities: tagLabels(input.searchTags, "locality"),
     projects: tagLabels(input.searchTags, "project"),
+    builders: tagLabels(input.searchTags, "builder"),
     bedrooms: sections.includes("bedroom")
       ? input.selectedBedrooms.map(bedroomCount).filter(Number.isInteger)
       : [],

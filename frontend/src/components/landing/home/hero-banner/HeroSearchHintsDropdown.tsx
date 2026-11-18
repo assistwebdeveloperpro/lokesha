@@ -1,6 +1,7 @@
-import { Building2, MapPin, MapPinned } from "lucide-react";
+import { Building2, HardHat, MapPin, MapPinned } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { SearchTag } from "./heroBanner.shared";
+import { searchTagKey } from "./heroSearchTags";
 import {
   isSuggestionQuery,
   type SearchSuggestionGroups,
@@ -41,7 +42,7 @@ function SuggestionGroup({
       </p>
       <ul>
         {tags.map((tag) => (
-          <li key={tag.label}>
+          <li key={searchTagKey(tag)}>
             <button
               type="button"
               onMouseDown={(event) => event.preventDefault()}
@@ -86,8 +87,7 @@ export function HeroSearchHintsDropdown({
     );
   }
 
-  const hasResults =
-    suggestions.cities.length > 0 || suggestions.localities.length > 0;
+  const hasResults = Object.values(suggestions).some((tags) => tags.length > 0);
 
   if (!hasResults) return null;
 
@@ -107,6 +107,18 @@ export function HeroSearchHintsDropdown({
         heading="Locality"
         icon={MapPinned}
         tags={suggestions.localities}
+        onSelect={onSelect}
+      />
+      <SuggestionGroup
+        heading="Project"
+        icon={Building2}
+        tags={suggestions.projects}
+        onSelect={onSelect}
+      />
+      <SuggestionGroup
+        heading="Builder"
+        icon={HardHat}
+        tags={suggestions.builders}
         onSelect={onSelect}
       />
     </div>

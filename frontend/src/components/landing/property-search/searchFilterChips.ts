@@ -62,6 +62,13 @@ export function getActiveFilterChips(
       clearPatch: { projects: without(criteria.projects, project) },
     });
   }
+  for (const builder of criteria.builders ?? []) {
+    chips.push({
+      id: `builder:${builder}`,
+      label: displayName(builder),
+      clearPatch: { builders: without(criteria.builders ?? [], builder) },
+    });
+  }
   for (const bedroom of criteria.bedrooms) {
     chips.push({
       id: `bedroom:${bedroom}`,

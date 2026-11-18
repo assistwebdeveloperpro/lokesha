@@ -177,7 +177,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               onBlur={() => setSearchHintsOpen(false)}
               placeholder={
                 searchTags.length === 0
-                  ? "Enter City, Locality, Project Name"
+                  ? "Search City, Locality, Project or Builder"
                   : "Add more"
               }
               role="combobox"

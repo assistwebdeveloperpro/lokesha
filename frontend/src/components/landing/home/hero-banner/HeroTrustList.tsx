@@ -5,7 +5,7 @@ import { TRUST_ITEMS } from "./heroBanner.shared";
 
 export function HeroTrustList() {
   return (
-    <ul className="mt-5 hidden flex-row flex-wrap justify-center gap-x-8 gap-y-2 lg:flex">
+    <ul className="mt-6 hidden flex-row flex-wrap justify-center gap-x-8 gap-y-2 lg:flex">
       {TRUST_ITEMS.map((item) => (
         <li
           key={item}

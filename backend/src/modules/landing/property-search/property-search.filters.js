@@ -3,6 +3,7 @@ const c = require("./property-search.constants");
 const PRICE_MIN_SQL = "coalesce(bld.price_min, p.price)";
 const PRICE_MAX_SQL = "coalesce(bld.price_max, p.price)";
 const PROJECT_NAME_SQL = "coalesce(bp.project_name, p.project_name)";
+const BUILDER_NAME_SQL = "bp.developer_name";
 
 const normalizedSql = (column) => `lower(trim(regexp_replace(coalesce(${column}, ''), '[^[:alnum:]]+', ' ', 'g')))`;
 const normalizeText = (value) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -115,6 +116,7 @@ function applySearchFilters(query, filters) {
   if (filters.city) whereCity(query, filters.city);
   whereAnyOf(query, normalizedSql("p.locality"), filters.localities.map(normalizeText));
   whereAnyOf(query, normalizedSql(PROJECT_NAME_SQL), filters.projects.map(normalizeText));
+  whereAnyOf(query, normalizedSql(BUILDER_NAME_SQL), filters.builders.map(normalizeText));
   whereAnyOf(query, "st.slug", filters.subTypes.map(toKey));
   whereAnyOf(query, "p.construction_status", filters.constructionStatuses.map(toKey));
   whereAnyOf(query, "lower(p.facing)", filters.facings.map(toKey));
@@ -154,4 +156,4 @@ function applySearchFilters(query, filters) {
   return query;
 }
 
-module.exports = { applySearchFilters, whereCity, normalizedSql, normalizeText, PRICE_MIN_SQL, PRICE_MAX_SQL, PROJECT_NAME_SQL };
+module.exports = { applySearchFilters, whereCity, normalizedSql, normalizeText, PRICE_MIN_SQL, PRICE_MAX_SQL, PROJECT_NAME_SQL, BUILDER_NAME_SQL };

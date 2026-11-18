@@ -34,6 +34,7 @@ function collectParamValues(
     locality: joinSegments(normalized.localities.map(toUrlSegment)),
     "city-name": cityName ? toUrlSegment(cityName) : undefined,
     "project-socity": joinSegments(normalized.projects.map(slugify)),
+    builder: joinSegments((normalized.builders ?? []).map(slugify)),
     "min-price": formatOptional(budgetMin, String),
     "max-price": formatOptional(budgetMax, String),
     "construction-status": joinSegments(normalized.constructionStatuses),
