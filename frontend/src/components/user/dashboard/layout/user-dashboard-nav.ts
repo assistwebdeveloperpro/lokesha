@@ -55,7 +55,6 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
       { label: "Edit Office Details", href: "/user/profile/edit-office-details" },
       { label: "Manage RERA Details", href: "/user/profile/manage-rera-details" },
       { label: "Edit Login Details", href: "/user/profile/edit-login-details" },
-      { label: "Change Password", href: "/user/profile/change-password" },
       { label: "Manage Profile Photos", href: "/user/profile/manage-profile-photos" },
       { label: "Saved Messages", href: "/user/profile/saved-messages" },
     ],
@@ -78,7 +77,6 @@ export const BUYER_OWNER_HOME = "/user/profile/account-details";
 const BUYER_OWNER_PROFILE_HREFS = new Set([
   BUYER_OWNER_HOME,
   "/user/profile/edit-login-details",
-  "/user/profile/change-password",
   "/user/profile/saved-messages",
 ]);
 

@@ -1,7 +1,6 @@
 /** @param {import('knex').Knex} knex */
 exports.up = async function up(knex) {
   await knex.schema.alterTable("users", (table) => {
-    table.string("password", 255).nullable().alter();
     table.string("agency_name", 150).nullable();
     table.string("company_name", 150).nullable();
   });

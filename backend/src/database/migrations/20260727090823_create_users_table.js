@@ -14,7 +14,6 @@ exports.up = async function up(knex) {
     table.specificType("role", ROLE_ENUM_NAME).notNullable();
     table.string("name", 100).notNullable();
     table.string("email", 255).notNullable().unique();
-    table.string("password", 255).notNullable();
     table.string("mobile_number", 20).notNullable().unique();
     table.boolean("agreed_to_terms").notNullable().defaultTo(false);
     table.string("whatsapp_number", 20).nullable();

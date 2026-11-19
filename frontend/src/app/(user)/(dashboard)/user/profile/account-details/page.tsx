@@ -288,17 +288,6 @@ export default function AccountDetailsPage() {
               ) : null}
             </div>
           </ProfileRow>
-
-          <ProfileRow label="Password">
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
-              <span className="text-sm text-slate-500">
-                Not shown due to security reasons
-              </span>
-              <Link href="/user/profile/change-password" className={actionLinkClass}>
-                Change Password
-              </Link>
-            </div>
-          </ProfileRow>
         </dl>
 
         <div className="border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
