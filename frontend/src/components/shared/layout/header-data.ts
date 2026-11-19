@@ -50,7 +50,6 @@ export const LOGGED_IN_PREMIUM_LINK: HeaderMenuLink = {
 export const LOGGED_IN_ACTIVITY_LINKS: HeaderMenuLink[] = [
   { label: "My Dashboard", href: "/user/dashboard" },
   { label: "Manage Properties", href: "/user/properties/manage-properties" },
-  { label: "Manage Alerts", href: "/user/property-alerts" },
   { label: "Manage Subscriptions", href: "/user/subscription/subscribed-services" },
   { label: "My activities", href: "/user/activities/contacted-properties" },
 ];

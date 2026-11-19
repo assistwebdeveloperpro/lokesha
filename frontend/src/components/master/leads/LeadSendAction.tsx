@@ -44,7 +44,7 @@ export default function LeadSendAction({ lead, isSending, isDisabled, error, onS
         ) : (
           <Send className="h-3.5 w-3.5" aria-hidden />
         )}
-        {isSending ? "Sending..." : "Send Lead to Lister"}
+        {isSending ? "Sending..." : "Assign Lead to Property Owner"}
       </button>
       {error ? (
         <p className="text-xs font-medium text-red-600" role="alert">

@@ -164,10 +164,10 @@ type LeadsTableProps = {
 
 export default function LeadsTable({ items, highlightLeadId }: LeadsTableProps) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-slate-200/90 scrollbar-hidden bg-white shadow-sm">
       <div className={LEADS_TABLE_MIN_WIDTH_CLASS}>
         <div
-          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[12px] font-bold uppercase text-slate-500 ${LEADS_GRID_CLASS}`}
+          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[12px] scrollbar-hidden font-bold uppercase text-slate-500 ${LEADS_GRID_CLASS}`}
           aria-hidden
         >
           {LEADS_TABLE_COLUMNS.map((column) => (

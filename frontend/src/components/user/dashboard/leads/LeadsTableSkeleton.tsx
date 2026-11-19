@@ -57,10 +57,10 @@ function SkeletonRow() {
 
 export default function LeadsTableSkeleton() {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-sm" aria-busy>
+    <div className="overflow-x-auto rounded-2xl border border-slate-200/90 scrollbar-hidden bg-white shadow-sm" aria-busy>
       <div className={LEADS_TABLE_MIN_WIDTH_CLASS}>
         <div
-          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${LEADS_GRID_CLASS}`}
+          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[11px] scrollbar-hidden font-bold uppercase tracking-wider text-slate-500 ${LEADS_GRID_CLASS}`}
           aria-hidden
         >
           {LEADS_TABLE_COLUMNS.map((column) => (

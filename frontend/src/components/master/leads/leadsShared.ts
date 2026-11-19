@@ -45,7 +45,7 @@ export const LISTED_BY_LABEL: Record<string, string> = {
 export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Enquiry", "Date", "Status", "Action"] as const;
 
 // Shared by header, rows and skeleton so the columns always line up
-export const LEAD_GRID_CLASS = "grid grid-cols-[1.2fr_1.8fr_1.2fr_1fr_0.9fr_0.8fr_1.2fr] items-center gap-4";
+export const LEAD_GRID_CLASS = "grid grid-cols-[1.2fr_1.8fr_1.1fr_1fr_0.9fr_0.8fr_1.3fr] items-center gap-4";
 
 export const LEAD_TABLE_MIN_WIDTH_CLASS = "min-w-[1450px]";
 

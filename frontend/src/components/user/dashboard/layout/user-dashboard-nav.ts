@@ -1,6 +1,5 @@
 import type { ComponentType } from "react";
 import {
-  Bell,
   Building2,
   CircleUserRound,
   ContactRound,
@@ -43,11 +42,9 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
       { label: "Manage Properties", href: "/user/properties/manage-properties" },
       { label: "Manage Projects", href: "/user/properties/manage-projects" },
       { label: "Post New Properties", href: "/user/properties/post-new-properties" },
-      { label: "Locality Reviews", href: "/user/properties/locality-reviews" },
     ],
   },
   { label: "Leads", href: "/user/leads", icon: Users },
-  { label: "Property Alerts", href: "/user/property-alerts", icon: Bell },
   {
     label: "Profile",
     href: "/user/profile/account-details",
