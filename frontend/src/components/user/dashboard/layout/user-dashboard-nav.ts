@@ -1,10 +1,27 @@
 import type { ComponentType } from "react";
 import {
+  Building,
   Building2,
+  ChartColumn,
   CircleUserRound,
   ContactRound,
+  Eye,
+  FolderKanban,
+  Heart,
+  History,
+  House,
+  Images,
+  KeyRound,
   LayoutDashboard,
+  MapPin,
+  MessageSquare,
+  PackageCheck,
+  PhoneCall,
   Receipt,
+  ReceiptText,
+  ShieldCheck,
+  SquarePlus,
+  UserRound,
   Users,
 } from "lucide-react";
 import type { Role } from "@/services/auth.service";
@@ -12,6 +29,7 @@ import type { Role } from "@/services/auth.service";
 export type UserDashboardNavChild = {
   label: string;
   href: string;
+  icon?: ComponentType<{ className?: string }>;
 };
 
 export type UserDashboardNavItem = {
@@ -28,10 +46,10 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     href: "/user/activities/saved-properties",
     icon: ContactRound,
     children: [
-      { label: "Saved Properties", href: "/user/activities/saved-properties" },
-      { label: "Contacted Properties", href: "/user/activities/contacted-properties" },
-      { label: "Seen Properties", href: "/user/activities/seen-properties" },
-      { label: "Recent Searches", href: "/user/activities/recent-searches" },
+      { label: "Saved Properties", href: "/user/activities/saved-properties", icon: Heart },
+      { label: "Contacted Properties", href: "/user/activities/contacted-properties", icon: PhoneCall },
+      { label: "Seen Properties", href: "/user/activities/seen-properties", icon: Eye },
+      { label: "Recent Searches", href: "/user/activities/recent-searches", icon: History },
     ],
   },
   {
@@ -39,9 +57,9 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     href: "/user/properties/manage-properties",
     icon: Building2,
     children: [
-      { label: "Manage Properties", href: "/user/properties/manage-properties" },
-      { label: "Manage Projects", href: "/user/properties/manage-projects" },
-      { label: "Post New Properties", href: "/user/properties/post-new-properties" },
+      { label: "Manage Properties", href: "/user/properties/manage-properties", icon: House },
+      { label: "Manage Projects", href: "/user/properties/manage-projects", icon: FolderKanban },
+      { label: "Post New Properties", href: "/user/properties/post-new-properties", icon: SquarePlus },
     ],
   },
   { label: "Leads", href: "/user/leads", icon: Users },
@@ -50,13 +68,13 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     href: "/user/profile/account-details",
     icon: CircleUserRound,
     children: [
-      { label: "Profile Details", href: "/user/profile/account-details" },
-      { label: "Edit Company Details", href: "/user/profile/edit-company-details" },
-      { label: "Edit Office Details", href: "/user/profile/edit-office-details" },
-      { label: "Manage RERA Details", href: "/user/profile/manage-rera-details" },
-      { label: "Edit Login Details", href: "/user/profile/edit-login-details" },
-      { label: "Manage Profile Photos", href: "/user/profile/manage-profile-photos" },
-      { label: "Saved Messages", href: "/user/profile/saved-messages" },
+      { label: "Profile Details", href: "/user/profile/account-details", icon: UserRound },
+      { label: "Edit Company Details", href: "/user/profile/edit-company-details", icon: Building },
+      { label: "Edit Office Details", href: "/user/profile/edit-office-details", icon: MapPin },
+      { label: "Manage RERA Details", href: "/user/profile/manage-rera-details", icon: ShieldCheck },
+      { label: "Edit Login Details", href: "/user/profile/edit-login-details", icon: KeyRound },
+      { label: "Manage Profile Photos", href: "/user/profile/manage-profile-photos", icon: Images },
+      { label: "Saved Messages", href: "/user/profile/saved-messages", icon: MessageSquare },
     ],
   },
   {
@@ -64,9 +82,9 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     href: "/user/subscription/subscribed-services",
     icon: Receipt,
     children: [
-      { label: "Subscribed Services", href: "/user/subscription/subscribed-services" },
-      { label: "Order History", href: "/user/subscription/order-history" },
-      { label: "My Package Usage", href: "/user/subscription/package-usage" },
+      { label: "Subscribed Services", href: "/user/subscription/subscribed-services", icon: PackageCheck },
+      { label: "Order History", href: "/user/subscription/order-history", icon: ReceiptText },
+      { label: "My Package Usage", href: "/user/subscription/package-usage", icon: ChartColumn },
 
     ],
   },
