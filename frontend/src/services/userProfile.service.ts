@@ -15,10 +15,7 @@ export type ProfileDetails = {
   hide_contact_details: boolean;
   agreed_to_terms: boolean;
   whatsapp_number: string | null;
-  city: string | null;
   company_name: string | null;
-  company_logo: string | null;
-  contact_person_photo: string | null;
   created_at: string;
   updated_at: string;
 };

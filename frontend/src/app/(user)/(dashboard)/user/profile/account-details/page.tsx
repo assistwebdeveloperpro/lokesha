@@ -208,10 +208,6 @@ export default function AccountDetailsPage() {
             )}
           </ProfileRow>
 
-          {showOfficeDetails ? (
-            <ProfileRow label="City">{renderValue(profile?.city)}</ProfileRow>
-          ) : null}
-
           <ProfileRow label="Email">{renderValue(profile?.email)}</ProfileRow>
 
           <ProfileRow label="Alternate Email">

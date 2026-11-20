@@ -1,6 +1,5 @@
 import type { ComponentType } from "react";
 import {
-  Building,
   Building2,
   ChartColumn,
   CircleUserRound,
@@ -10,10 +9,8 @@ import {
   Heart,
   History,
   House,
-  Images,
   KeyRound,
   LayoutDashboard,
-  MapPin,
   MessageSquare,
   PackageCheck,
   PhoneCall,
@@ -69,11 +66,8 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     icon: CircleUserRound,
     children: [
       { label: "Profile Details", href: "/user/profile/account-details", icon: UserRound },
-      { label: "Edit Company Details", href: "/user/profile/edit-company-details", icon: Building },
-      { label: "Edit Office Details", href: "/user/profile/edit-office-details", icon: MapPin },
       { label: "Manage RERA Details", href: "/user/profile/manage-rera-details", icon: ShieldCheck },
       { label: "Edit Login Details", href: "/user/profile/edit-login-details", icon: KeyRound },
-      { label: "Manage Profile Photos", href: "/user/profile/manage-profile-photos", icon: Images },
       { label: "Saved Messages", href: "/user/profile/saved-messages", icon: MessageSquare },
     ],
   },

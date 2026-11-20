@@ -2,14 +2,10 @@ const { db } = require("../../../../config/db");
 
 const USERS_TABLE = "users";
 const PREFERENCES_TABLE = "user_contact_preferences";
-const OFFICE_TABLE = "user_office_details";
-const BUSINESS_TABLE = "user_business_details";
 
 async function findProfileByUserId(userId) {
   return db(USERS_TABLE)
     .leftJoin(PREFERENCES_TABLE, `${PREFERENCES_TABLE}.user_id`, `${USERS_TABLE}.id`)
-    .leftJoin(OFFICE_TABLE, `${OFFICE_TABLE}.user_id`, `${USERS_TABLE}.id`)
-    .leftJoin(BUSINESS_TABLE, `${BUSINESS_TABLE}.user_id`, `${USERS_TABLE}.id`)
     .where(`${USERS_TABLE}.id`, userId)
     .select(
       `${USERS_TABLE}.id`,
@@ -31,12 +27,9 @@ async function findProfileByUserId(userId) {
       `${USERS_TABLE}.whatsapp_number`,
       `${USERS_TABLE}.created_at`,
       `${USERS_TABLE}.updated_at`,
-      `${OFFICE_TABLE}.city`,
       db.raw(
-        `COALESCE(NULLIF(TRIM(${OFFICE_TABLE}.agency_company_name), ''), NULLIF(TRIM(${USERS_TABLE}.company_name), ''), NULLIF(TRIM(${USERS_TABLE}.agency_name), '')) as company_name`
-      ),
-      `${OFFICE_TABLE}.contact_person_photo`,
-      `${BUSINESS_TABLE}.company_logo`
+        `COALESCE(NULLIF(TRIM(${USERS_TABLE}.company_name), ''), NULLIF(TRIM(${USERS_TABLE}.agency_name), '')) as company_name`
+      )
     )
     .first();
 }
