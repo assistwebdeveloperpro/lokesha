@@ -8,7 +8,8 @@
     "test": "jest",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
-    "seed": "knex seed:run"
+    "seed": "knex seed:run",
+    "subscription:backfill": "node src/database/scripts/launch-subscription-backfill.js"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +24,9 @@
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.3.0",
     "multer": "^2.2.0",
+    "pdfkit": "^0.17.2",
     "pg": "^8.22.0",
+    "razorpay": "^2.9.8",
     "sharp": "^0.35.5"
   },
   "devDependencies": {

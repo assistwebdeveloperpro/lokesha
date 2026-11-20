@@ -1,6 +1,7 @@
 const NOTIFICATION_TYPES = {
   propertySubmitted: "property_submitted",
   propertyResubmitted: "property_resubmitted",
+  subscriptionPurchased: "subscription_purchased",
 };
 
 function propertySubmitted({ propertyId, title }) {
@@ -21,4 +22,13 @@ function propertyResubmitted({ propertyId, title }) {
   };
 }
 
-module.exports = { NOTIFICATION_TYPES, propertySubmitted, propertyResubmitted };
+function subscriptionPurchased({ userName, listings, months, orderNumber }) {
+  return {
+    type: NOTIFICATION_TYPES.subscriptionPurchased,
+    title: "New subscription purchased",
+    message: `${userName} bought ${listings} ${listings === 1 ? "listing" : "listings"} for ${months} ${months === 1 ? "month" : "months"} (order ${orderNumber}).`,
+    property_id: null,
+  };
+}
+
+module.exports = { NOTIFICATION_TYPES, propertySubmitted, propertyResubmitted, subscriptionPurchased };

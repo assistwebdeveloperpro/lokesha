@@ -9,8 +9,10 @@ jest.mock("../repositories/property-read.repository");
 jest.mock("../repositories/property-write.repository");
 jest.mock("./property-files.service");
 jest.mock("../../../master/dashboard/admin-notifications/admin-notifications.service");
+jest.mock("../../subscription/services/subscription-credit.service");
 
 const fs = require("fs/promises");
+const creditService = require("../../subscription/services/subscription-credit.service");
 const editRepository = require("../repositories/property-edit.repository");
 const readRepository = require("../repositories/property-read.repository");
 const writeRepository = require("../repositories/property-write.repository");
@@ -277,6 +279,32 @@ describe("status changes", () => {
     editRepository.findPropertyForUpdate.mockResolvedValue(undefined);
 
     await expect(service.submitProperty(user, PROPERTY_ID)).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("checks the credits for the listings that still need one", async () => {
+    editRepository.findPropertyForUpdate.mockResolvedValue(locked({ status: "rejected" }));
+    creditService.propertyNeedsCredit.mockReturnValueOnce(true);
+
+    await service.submitProperty(user, PROPERTY_ID);
+
+    expect(creditService.assertCanSubmit).toHaveBeenCalledWith(mockTrx, user, 1, expect.any(Date));
+  });
+
+  it("asks for no credit when the listing is already paid for", async () => {
+    editRepository.findPropertyForUpdate.mockResolvedValue(locked({ status: "rejected" }));
+    creditService.propertyNeedsCredit.mockReturnValueOnce(false);
+
+    await service.submitProperty(user, PROPERTY_ID);
+
+    expect(creditService.assertCanSubmit).toHaveBeenCalledWith(mockTrx, user, 0, expect.any(Date));
+  });
+
+  it("stops the submission when the credits do not cover it", async () => {
+    editRepository.findPropertyForUpdate.mockResolvedValue(locked({ status: "rejected" }));
+    creditService.assertCanSubmit.mockRejectedValueOnce(Object.assign(new Error("no credits"), { statusCode: 402 }));
+
+    await expect(service.submitProperty(user, PROPERTY_ID)).rejects.toMatchObject({ statusCode: 402 });
+    expect(writeRepository.updatePropertyStatus).not.toHaveBeenCalled();
   });
 });
 

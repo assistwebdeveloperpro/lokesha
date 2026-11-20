@@ -2,7 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import { BackToReviewListLink } from "@/components/master/review-properties/BackToReviewListNav";
+import CreditsNote from "./components/CreditsNote";
 import EditPropertyStatus from "./components/EditPropertyStatus";
+import NoCreditsModal from "./components/NoCreditsModal";
 import FormStepper from "./components/FormStepper";
 import { getProgressForStep } from "./config/postPropertyForm.shared";
 import ProgressBar from "./components/ProgressBar";
@@ -20,7 +22,8 @@ import { useSavedDrafts } from "./hooks/useSavedDrafts";
 export default function PostPropertyContent() {
   const searchParams = useSearchParams();
   const form = usePostPropertyForm();
-  const { currentStep, isEditMode, isViewMode, editStatus, staff, serverDraft, returnPath } = form;
+  const { currentStep, isEditMode, isViewMode, editStatus, staff, serverDraft, returnPath, creditPrompt, isAdmin } = form;
+  const showCreditsNote = !isViewMode && !isAdmin && !staff.isStaff;
   const canResumeDraft = currentStep === 1 && !isEditMode && !isViewMode && !serverDraft.draftId;
   const savedDrafts = useSavedDrafts(canResumeDraft);
   const showPostingAs = staff.isStaff && !isEditMode && !isViewMode;
@@ -65,6 +68,7 @@ export default function PostPropertyContent() {
             </div>
             <ProgressBar percent={getProgressForStep(currentStep)} />
           </div>
+          {showCreditsNote ? <CreditsNote /> : null}
         </header>
 
         {!isViewMode ? (
@@ -88,6 +92,8 @@ export default function PostPropertyContent() {
         {isFormVisible && currentStep === 3 ? <AmenitiesStep form={form} /> : null}
         {isFormVisible && currentStep === 4 ? <PhotosVideosStep form={form} /> : null}
         {isFormVisible && currentStep === 5 ? <PricingOthersStep form={form} /> : null}
+
+        {creditPrompt.isOpen ? <NoCreditsModal onClose={creditPrompt.close} /> : null}
       </div>
     </PostPropertyReadOnlyProvider>
   );

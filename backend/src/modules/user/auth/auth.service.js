@@ -1,4 +1,5 @@
 const repository = require("./auth.repository");
+const { grantFreePackage } = require("../../shared/subscription/services/subscription-grant.service");
 const { generateOtp, getOtpExpiry, OTP_EXPIRY_SECONDS } = require("../../../utils/otp");
 const {
   signToken,
@@ -246,12 +247,14 @@ async function registerWithOtp({ registration_token, name, email, agreed_to_term
   await assertEmailAvailable(email);
 
   try {
-    const user = await repository.createUser({
-      role: CONNECT_SELLER_ROLE,
-      name,
-      email,
-      mobile_number,
-      agreed_to_terms,
+    // The Free package is granted with the account or not at all
+    const user = await repository.runInTransaction(async (trx) => {
+      const createdUser = await repository.createUser(
+        { role: CONNECT_SELLER_ROLE, name, email, mobile_number, agreed_to_terms },
+        trx,
+      );
+      await grantFreePackage(trx, createdUser);
+      return createdUser;
     });
 
     return buildSession(user);

@@ -8,6 +8,7 @@ import {
 } from "@/components/master/post-property/postPropertyProjectDetails";
 import { useToast } from "@/components/shared/ui/ToastProvider";
 import { ApiError } from "@/services/apiClient";
+import { SUBSCRIPTION_ERROR_CODES } from "@/services/userSubscription.service";
 import {
   closeProperty,
   completeDraft,
@@ -379,6 +380,7 @@ export function usePostPropertyForm() {
 
   const pendingInvalidFocus = useRef(false);
   const [invalidAttempt, setInvalidAttempt] = useState(0);
+  const [isNoCreditsPromptOpen, setIsNoCreditsPromptOpen] = useState(false);
 
   const requestInvalidFieldFocus = () => {
     pendingInvalidFocus.current = true;
@@ -789,6 +791,11 @@ export function usePostPropertyForm() {
       return;
     }
 
+    if (error instanceof ApiError && error.code === SUBSCRIPTION_ERROR_CODES.NO_CREDITS) {
+      setIsNoCreditsPromptOpen(true);
+      return;
+    }
+
     if (error instanceof ApiError && error.fields) {
       const backendErrors = resolveBackendErrors(error.fields, { isMulti: isMultiSubType });
       if (backendErrors.step !== null) {
@@ -909,6 +916,7 @@ export function usePostPropertyForm() {
     },
     isViewMode,
     returnPath,
+    creditPrompt: { isOpen: isNoCreditsPromptOpen, close: () => setIsNoCreditsPromptOpen(false) },
     draft,
     serverDraft,
     mediaUploader,

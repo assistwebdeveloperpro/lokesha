@@ -38,6 +38,8 @@ const LOCKED_COLUMNS = [
   "p.property_type",
   "p.builder_project_id",
   "p.listing_group_id",
+  "p.credit_consumed_at",
+  "p.expires_at",
   "st.slug as sub_type_slug",
 ];
 

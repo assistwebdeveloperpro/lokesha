@@ -7,8 +7,10 @@ jest.mock("../repositories/property-draft.repository");
 jest.mock("../repositories/property-write.repository");
 jest.mock("./property-files.service");
 jest.mock("../../../master/dashboard/admin-notifications/admin-notifications.service");
+jest.mock("../../subscription/services/subscription-credit.service");
 
 const { db } = require("../../../../config/db");
+const { assertCanSubmit } = require("../../subscription/services/subscription-credit.service");
 const draftRepository = require("../repositories/property-draft.repository");
 const writeRepository = require("../repositories/property-write.repository");
 const filesService = require("./property-files.service");
@@ -94,6 +96,28 @@ describe("completeDraft", () => {
       mockTrx,
       expect.objectContaining({ from_status: "draft", to_status: "pending", changed_by_user_id: "user-1" })
     );
+  });
+
+  it("checks the credits for every listing before saving a submission", async () => {
+    await completeDraft(user, DRAFT_ID, { payload: buildPayload(), submit: true });
+
+    expect(assertCanSubmit).toHaveBeenCalledWith(mockTrx, user, 1);
+  });
+
+  it("skips the credit check when only saving", async () => {
+    await completeDraft(user, DRAFT_ID, { payload: buildPayload(), submit: false });
+
+    expect(assertCanSubmit).not.toHaveBeenCalled();
+  });
+
+  it("saves nothing and keeps the draft when the credits fall short", async () => {
+    assertCanSubmit.mockRejectedValueOnce(Object.assign(new Error("no credits"), { statusCode: 402 }));
+
+    await expect(completeDraft(user, DRAFT_ID, { payload: buildPayload(), submit: true })).rejects.toMatchObject({
+      statusCode: 402,
+    });
+    expect(writeRepository.insertProperty).not.toHaveBeenCalled();
+    expect(writeRepository.deleteDraft).not.toHaveBeenCalled();
   });
 
   it("returns 404 when the draft is not the user's", async () => {

@@ -1,7 +1,9 @@
 jest.mock("../repositories/property-write.repository");
 jest.mock("../../../master/dashboard/admin-notifications/admin-notifications.service");
+jest.mock("../../subscription/services/subscription-credit.service");
 
 const writeRepository = require("../repositories/property-write.repository");
+const { consumeCredit } = require("../../subscription/services/subscription-credit.service");
 const adminNotifications = require("../../../master/dashboard/admin-notifications/admin-notifications.service");
 const { assertTransition, changeStatus, markEdited } = require("./property-status.service");
 
@@ -45,6 +47,31 @@ describe("changeStatus", () => {
       trx,
       expect.objectContaining({ changed_by_admin_id: "admin-1", changed_by_user_id: null, to_status: "published" })
     );
+    expect(adminNotifications.notifyPropertyPending).not.toHaveBeenCalled();
+  });
+
+  it("spends a credit when a reviewer approves a listing", async () => {
+    await changeStatus(trx, { propertyId: "p-1", from: "pending", to: "published", actor: REVIEWER_ACTOR });
+
+    expect(consumeCredit).toHaveBeenCalledWith(trx, "p-1");
+  });
+
+  it.each([
+    ["draft", "pending", { userId: "user-1" }],
+    ["pending", "rejected", REVIEWER_ACTOR],
+    ["published", "closed", { userId: "user-1" }],
+  ])("spends no credit on %s to %s", async (from, to, actor) => {
+    await changeStatus(trx, { propertyId: "p-1", from, to, actor });
+
+    expect(consumeCredit).not.toHaveBeenCalled();
+  });
+
+  it("does not save the status when the credit cannot be spent", async () => {
+    consumeCredit.mockRejectedValue(new Error("no credits"));
+
+    await expect(
+      changeStatus(trx, { propertyId: "p-1", from: "pending", to: "published", actor: REVIEWER_ACTOR })
+    ).rejects.toThrow("no credits");
     expect(adminNotifications.notifyPropertyPending).not.toHaveBeenCalled();
   });
 });

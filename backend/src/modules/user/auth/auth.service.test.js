@@ -1,10 +1,14 @@
 process.env.JWT_SECRET = "test-secret";
 
 jest.mock("./auth.repository");
+jest.mock("../../shared/subscription/services/subscription-grant.service");
 
 const jwt = require("jsonwebtoken");
 const repository = require("./auth.repository");
+const { grantFreePackage } = require("../../shared/subscription/services/subscription-grant.service");
 const service = require("./auth.service");
+
+const TRX = Symbol("trx");
 
 const signupInput = {
   role: "buyer_owner_tenant",
@@ -345,6 +349,7 @@ describe("registerWithOtp", () => {
     jest.clearAllMocks();
     repository.findUserByMobile.mockResolvedValue(null);
     repository.findUserByEmail.mockResolvedValue(null);
+    repository.runInTransaction.mockImplementation((callback) => callback(TRX));
   });
 
   it("creates the buyer account for the verified mobile and returns a session", async () => {
@@ -357,8 +362,33 @@ describe("registerWithOtp", () => {
 
     expect(repository.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ role: "buyer_owner_tenant", mobile_number }),
+      TRX,
     );
     expect(jwt.verify(result.token, "test-secret")).toMatchObject({ id: 9 });
+  });
+
+  it("grants the Free package inside the same transaction as the account", async () => {
+    const createdUser = { id: 9, role: "buyer_owner_tenant", mobile_number };
+    repository.createUser.mockResolvedValue(createdUser);
+
+    await service.registerWithOtp({
+      ...details,
+      registration_token: tokenFor({ purpose: "register", mobile_number }),
+    });
+
+    expect(grantFreePackage).toHaveBeenCalledWith(TRX, createdUser);
+  });
+
+  it("fails the registration when the Free package grant fails", async () => {
+    repository.createUser.mockResolvedValue({ id: 9 });
+    grantFreePackage.mockRejectedValue(new Error("db down"));
+
+    await expect(
+      service.registerWithOtp({
+        ...details,
+        registration_token: tokenFor({ purpose: "register", mobile_number }),
+      }),
+    ).rejects.toThrow("db down");
   });
 
   it.each([

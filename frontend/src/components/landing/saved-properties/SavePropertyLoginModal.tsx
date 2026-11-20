@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { useToast } from "@/components/shared/ui/ToastProvider";
+import { loadFreeListingsWelcome } from "@/lib/freeListingsWelcome";
 import { ApiError } from "@/services/apiClient";
 import { registerWithOtp, sendMobileOtp, verifyMobileOtp } from "@/services/auth.service";
 import { setSession } from "@/services/session";
@@ -111,6 +112,9 @@ export function SavePropertyLoginModal({ onClose, onAuthenticated }: SavePropert
       });
       setSession(token, role);
       onAuthenticated(token);
+      void loadFreeListingsWelcome(token).then((message) => {
+        if (message) showToast(message);
+      });
     } catch (error) {
       showToast(getErrorMessage(error, SAVE_PROPERTY_MESSAGES.registerFailed), "error");
       // An expired registration session needs a fresh OTP

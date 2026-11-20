@@ -9,6 +9,7 @@ async function findPublishedPropertyWithLister(propertyId) {
     .andWhere("p.status", "published")
     .first(
       "p.id",
+      "p.title",
       "p.user_id",
       "p.admin_id",
       "p.listed_by",

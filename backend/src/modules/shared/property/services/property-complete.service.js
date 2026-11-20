@@ -5,6 +5,7 @@ const writeRepository = require("../repositories/property-write.repository");
 const filesService = require("./property-files.service");
 const writer = require("./property-listing.writer");
 const { changeStatus } = require("./property-status.service");
+const { assertCanSubmit } = require("../../subscription/services/subscription-credit.service");
 const { validateCompletePayload } = require("../validation/property-payload.validation");
 const { AppError, validationError } = require("../utils/property.errors");
 const { POSTING_AS_ROLES, getRule } = require("../constants/property.constants");
@@ -138,6 +139,10 @@ async function completeDraft(user, draftId, { payload, submit }) {
     result = await db.transaction(async (trx) => {
       if (!(await writeRepository.findDraftForUpdate(trx, draftId, owner))) {
         throw new AppError("Draft not found", 404);
+      }
+      // Every listing of the post needs one credit, the draft is kept when the credits fall short
+      if (submit) {
+        await assertCanSubmit(trx, user, value.listings.length);
       }
 
       const projectId = value.project ? await writer.insertProject(trx, user, value.project) : null;

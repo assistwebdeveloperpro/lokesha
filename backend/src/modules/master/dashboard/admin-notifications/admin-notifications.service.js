@@ -26,6 +26,15 @@ async function notifyPropertyPending(trx, { propertyId, from }) {
   await repository.insertNotification(trx, template({ propertyId, title: property.title }));
 }
 
+// Runs in the payment transaction, so admins hear only about a purchase that was saved
+async function notifySubscriptionPurchased(trx, { userId, listings, months, orderNumber }) {
+  const user = await trx("users").where({ id: userId }).first("name");
+  await repository.insertNotification(
+    trx,
+    templates.subscriptionPurchased({ userName: user?.name ?? "A user", listings, months, orderNumber })
+  );
+}
+
 async function listNotifications({ status, page, limit }) {
   const [rows, total, unreadCount] = await Promise.all([
     repository.findAll({ status, page, limit }),
@@ -64,4 +73,4 @@ async function markAllAsRead() {
   return { unreadCount: 0 };
 }
 
-module.exports = { notifyPropertyPending, listNotifications, getUnreadCount, markAsRead, markAllAsRead };
+module.exports = { notifyPropertyPending, notifySubscriptionPurchased, listNotifications, getUnreadCount, markAsRead, markAllAsRead };

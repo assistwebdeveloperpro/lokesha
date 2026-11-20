@@ -27,9 +27,19 @@ const adminNotificationsRoutes = require("./modules/master/dashboard/admin-notif
 const propertySearchRoutes = require("./modules/landing/property-search/property-search.routes");
 const propertyRequirementRoutes = require("./modules/landing/property-requirement/property-requirement.routes");
 const leadsRoutes = require("./modules/master/dashboard/leads/leads.routes");
+const subscriptionPackagesRoutes = require("./modules/master/dashboard/subscription-packages/subscription-packages.routes");
 const propertyContactRoutes =require("./modules/landing/property-contact/property-contact.routes");
+const userSubscriptionRoutes = require("./modules/user/dashboard/user-subscription/user-subscription.routes");
+const subscriptionUsersRoutes = require("./modules/master/dashboard/subscription-users/subscription-users.routes");
+const subscriptionTransactionsRoutes = require("./modules/master/dashboard/subscription-transactions/subscription-transactions.routes");
+const subscriptionReportsRoutes = require("./modules/master/dashboard/subscription-reports/subscription-reports.routes");
+const subscriptionActionsRoutes = require("./modules/master/dashboard/subscription-actions/subscription-actions.routes");
+const subscriptionSettingsRoutes = require("./modules/master/dashboard/subscription-settings/subscription-settings.routes");
+const subscriptionInvoicesRoutes = require("./modules/master/dashboard/subscription-invoices/subscription-invoices.routes");
+const razorpayWebhookRoutes = require("./modules/landing/razorpay-webhook/razorpay-webhook.routes");
 const { LIMITS } = require("./modules/shared/property/constants/property.constants");
 const { scheduleDraftCleanup } = require("./modules/shared/property/services/property-cleanup.service");
+const { scheduleSubscriptionJobs } = require("./modules/shared/subscription/services/subscription-jobs.service");
 
 const app = express();
 
@@ -38,6 +48,8 @@ app.use(
     origin: process.env.FRONTEND_URL,
   })
 );
+// Raw body for the signature check, so this must stay before every express.json()
+app.use("/api/razorpay/webhook", razorpayWebhookRoutes);
 app.use("/api/property", express.json({ limit: LIMITS.maxFormDataBytes }));
 app.use("/api/master/post-property", express.json({ limit: LIMITS.maxFormDataBytes }));
 app.use(express.json());
@@ -52,6 +64,7 @@ app.use("/api/user/rera", userReraRoutes);
 app.use("/api/user/profile", userProfileRoutes);
 app.use("/api/user/saved-messages", userSavedMessagesRoutes);
 app.use("/api/user/notifications", userNotificationsRoutes);
+app.use("/api/user/subscription", userSubscriptionRoutes);
 
 // Manage-properties first so its static /me is never captured by post-property's /:id
 app.use("/api/property", userManagePropertiesRoutes);
@@ -74,6 +87,13 @@ app.use("/api/master/manage-properties", managePropertiesRoutes);
 app.use("/api/master/property-review", propertyReviewRoutes);
 app.use("/api/master/notifications", adminNotificationsRoutes);
 app.use("/api/master/leads", leadsRoutes);
+app.use("/api/master/subscription/packages", subscriptionPackagesRoutes);
+app.use("/api/master/subscription/users", subscriptionUsersRoutes);
+app.use("/api/master/subscription/transactions", subscriptionTransactionsRoutes);
+app.use("/api/master/subscription/reports", subscriptionReportsRoutes);
+app.use("/api/master/subscription/actions", subscriptionActionsRoutes);
+app.use("/api/master/subscription/invoices", subscriptionInvoicesRoutes);
+app.use("/api/master/subscription/settings", subscriptionSettingsRoutes);
 
 const PORT = process.env.PORT;
 
@@ -83,6 +103,7 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     scheduleDraftCleanup();
+    scheduleSubscriptionJobs();
   });
 }
 

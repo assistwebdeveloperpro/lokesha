@@ -14,7 +14,11 @@ import type { UserNotification } from "@/services/userNotifications.service";
 const REVIEW_PROPERTIES_PATH = "/backend/properties/review-properties";
 const REVIEW_NOTIFICATION_TYPES = new Set(["property_submitted", "property_resubmitted"]);
 
-function getAdminReviewPropertyHref(notification: UserNotification) {
+const TRANSACTIONS_PATH = "/backend/subscription-transactions";
+const SUBSCRIPTION_PURCHASED_TYPE = "subscription_purchased";
+
+function getAdminNotificationHref(notification: UserNotification) {
+  if (notification.type === SUBSCRIPTION_PURCHASED_TYPE) return TRANSACTIONS_PATH;
   if (!notification.propertyId || !REVIEW_NOTIFICATION_TYPES.has(notification.type)) return null;
   return `${REVIEW_PROPERTIES_PATH}?property=${encodeURIComponent(notification.propertyId)}`;
 }
@@ -26,7 +30,7 @@ const adminNotificationSource: NotificationSource = {
   getUnreadCount: getAdminUnreadNotificationCount,
   markAsRead: markAdminNotificationAsRead,
   markAllAsRead: markAllAdminNotificationsAsRead,
-  getNotificationHref: getAdminReviewPropertyHref,
+  getNotificationHref: getAdminNotificationHref,
 };
 
 export default function AdminNotificationBell() {

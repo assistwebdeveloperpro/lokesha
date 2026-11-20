@@ -2,8 +2,10 @@ const mockTrx = {};
 
 jest.mock("../../../config/db", () => ({ db: { transaction: (callback) => callback(mockTrx) } }));
 jest.mock("./property-contact.repository");
+jest.mock("../../shared/subscription/services/subscription-lead-limit.service");
 
 const repository = require("./property-contact.repository");
+const leadLimitService = require("../../shared/subscription/services/subscription-lead-limit.service");
 const { contactLister, listContactedPropertyIds } = require("./property-contact.service");
 
 const USER_ID = "user-1";
@@ -38,6 +40,37 @@ beforeEach(() => {
   repository.findLead.mockResolvedValue(undefined);
   repository.countRevealedLeads.mockResolvedValue(0);
   repository.insertLead.mockResolvedValue({});
+  leadLimitService.assertLeadCapacity.mockResolvedValue({ limit: null, received: 0 });
+});
+
+describe("contactLister lead limit", () => {
+  it("checks the property's capacity inside the transaction and notifies after the lead is stored", async () => {
+    const progress = { limit: 2, received: 1 };
+    leadLimitService.assertLeadCapacity.mockResolvedValue(progress);
+
+    await contactLister(USER_ID, input);
+
+    expect(leadLimitService.assertLeadCapacity).toHaveBeenCalledWith(mockTrx, "prop-1");
+    expect(leadLimitService.notifyLeadProgress).toHaveBeenCalledWith(mockTrx, userProperty, progress);
+    expect(repository.insertLead.mock.invocationCallOrder[0]).toBeLessThan(
+      leadLimitService.notifyLeadProgress.mock.invocationCallOrder[0]
+    );
+  });
+
+  it("stores no lead and uses no phone credit when the property is full", async () => {
+    leadLimitService.assertLeadCapacity.mockRejectedValueOnce(Object.assign(new Error("full"), { statusCode: 409 }));
+
+    await expect(contactLister(USER_ID, input)).rejects.toMatchObject({ statusCode: 409 });
+    expect(repository.insertLead).not.toHaveBeenCalled();
+    expect(leadLimitService.notifyLeadProgress).not.toHaveBeenCalled();
+  });
+
+  it("still answers a seeker who already contacted a full property", async () => {
+    repository.findLead.mockResolvedValue({ created_at: new Date(), phone_revealed: true });
+
+    await expect(contactLister(USER_ID, input)).resolves.toMatchObject({ phoneRevealed: true });
+    expect(leadLimitService.assertLeadCapacity).not.toHaveBeenCalled();
+  });
 });
 
 describe("contactLister quota", () => {

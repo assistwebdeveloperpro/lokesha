@@ -12,16 +12,12 @@ async function findUserByEmail(email) {
   return db(TABLE).where({ email }).first();
 }
 
-async function createUser({
-  role,
-  name,
-  agency_name,
-  company_name,
-  email,
-  mobile_number,
-  agreed_to_terms,
-}) {
-  const [user] = await db(TABLE)
+
+async function createUser(
+  { role, name, agency_name, company_name, email, mobile_number, agreed_to_terms },
+  trx = db,
+) {
+  const [user] = await trx(TABLE)
     .insert({
       role,
       name,
@@ -45,6 +41,8 @@ async function createUser({
 
   return user;
 }
+
+const runInTransaction = (callback) => db.transaction(callback);
 
 async function setOtp(mobile_number, otpCode, otpExpiresAt) {
   return db(TABLE).where({ mobile_number }).update({
@@ -136,6 +134,7 @@ module.exports = {
   findUserByMobile,
   findUserByEmail,
   createUser,
+  runInTransaction,
   setOtp,
   clearOtp,
   getUserRoleAndOtp,

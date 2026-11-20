@@ -29,7 +29,18 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     ],
   },
   { label: "Leads", href: "/backend/leads", icon: Users },
-  { label: "Subscription Packages", href: "/backend/subscription-packages", icon: Package },
+  {
+    label: "Subscription Management",
+    href: "/backend/subscription-packages",
+    icon: Package,
+    children: [
+      { label: "Packages", href: "/backend/subscription-packages" },
+      { label: "Users", href: "/backend/subscription-users" },
+      { label: "Transactions", href: "/backend/subscription-transactions" },
+      { label: "Reports", href: "/backend/subscription-reports" },
+      { label: "Invoice Settings", href: "/backend/subscription-settings" },
+    ],
+  },
 ];
 
 export function isMasterNavItemActive(pathname: string, href: string): boolean {

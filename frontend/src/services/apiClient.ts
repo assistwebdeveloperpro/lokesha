@@ -17,18 +17,22 @@ export class ApiError extends Error {
   status: number;
   errors?: string[];
   fields?: Record<string, string>;
+  // Machine readable reason, e.g. SUBSCRIPTION_NO_CREDITS
+  code?: string;
 
   constructor(
     message: string,
     status: number,
     errors?: string[],
     fields?: Record<string, string>,
+    code?: string,
   ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.errors = errors;
     this.fields = fields;
+    this.code = code;
   }
 }
 
@@ -56,6 +60,7 @@ type ErrorPayload = {
   message?: string;
   errors?: string[];
   fields?: Record<string, string>;
+  code?: string;
 };
 
 export async function apiFetch<TResponse>(
@@ -88,6 +93,7 @@ export async function apiFetch<TResponse>(
       response.status,
       errorPayload.errors,
       errorPayload.fields,
+      errorPayload.code,
     );
   }
 

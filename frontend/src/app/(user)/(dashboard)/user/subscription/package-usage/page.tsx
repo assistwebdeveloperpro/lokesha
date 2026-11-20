@@ -1,8 +1,5 @@
+import PackageUsageContent from "@/components/user/dashboard/subscription/PackageUsageContent";
+
 export default function PackageUsagePage() {
-  return (
-    <div className="flex min-h-full flex-1 flex-col sm:px-6 py-8">
-      <h1 className="text-lg lg:text-xl font-semibold text-slate-800">Package Usage</h1>
-      <p className="mt-2 text-slate-600">This page is under construction.</p>
-    </div>
-  );
+  return <PackageUsageContent />;
 }

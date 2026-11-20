@@ -7,6 +7,7 @@ const writeRepository = require("../repositories/property-write.repository");
 const writer = require("./property-listing.writer");
 const mapper = require("../mappers/property.mapper");
 const { changeStatus, markEdited } = require("./property-status.service");
+const { assertCanSubmit, propertyNeedsCredit } = require("../../subscription/services/subscription-credit.service");
 const { validateCompletePayload } = require("../validation/property-payload.validation");
 const { AppError, validationError } = require("../utils/property.errors");
 const { LIMITS, PROPERTY_TYPE_TO_DB, getRule } = require("../constants/property.constants");
@@ -145,6 +146,10 @@ async function submitProperty(user, propertyId) {
         throw new AppError(`A ${locked.status} property cannot be submitted`, 409);
       }
     }
+
+    // Listings that still need a credit must be covered before they re-enter review or go live
+    const now = new Date();
+    await assertCanSubmit(trx, user, group.filter((locked) => propertyNeedsCredit(locked, now)).length, now);
 
     let targetStatus;
     for (const [index, locked] of group.entries()) {

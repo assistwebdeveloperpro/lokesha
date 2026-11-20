@@ -11,6 +11,20 @@ describe("getUserNotificationHref", () => {
     expect(getUserNotificationHref({ type: "lead_received", leadId: null })).toBe(LEADS_PATH);
   });
 
+  it.each([
+    ["free_package_granted", "/user/subscription/subscribed-services"],
+    ["payment_success", "/user/subscription/order-history"],
+    ["payment_failed", "/user/subscription/subscribed-services#buy-standard"],
+    ["subscription_ending_soon", "/user/subscription/subscribed-services#buy-standard"],
+    ["subscription_ended", "/user/subscription/subscribed-services#buy-standard"],
+    ["credits_low", "/user/subscription/subscribed-services#buy-standard"],
+    ["lead_limit_near", "/user/subscription/package-usage"],
+    ["lead_limit_reached", "/user/subscription/package-usage"],
+    ["property_expired", "/user/properties/manage-properties"],
+  ])("opens the page where a %s notice can be acted on", (type, href) => {
+    expect(getUserNotificationHref({ type, leadId: null })).toBe(href);
+  });
+
   it("leaves other notification types without a link", () => {
     expect(getUserNotificationHref({ type: "property_approved", leadId: null })).toBeNull();
     expect(getUserNotificationHref({ type: "property_rejected", leadId: null })).toBeNull();

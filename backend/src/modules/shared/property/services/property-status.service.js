@@ -1,6 +1,7 @@
 const writeRepository = require("../repositories/property-write.repository");
 const { STATUS_TRANSITIONS, ADMIN_STATUS_TRANSITIONS } = require("../constants/property.constants");
 const { AppError } = require("../utils/property.errors");
+const { consumeCredit } = require("../../subscription/services/subscription-credit.service");
 const adminNotifications = require("../../../master/dashboard/admin-notifications/admin-notifications.service");
 
 function assertTransition(from, to, actor = {}) {
@@ -28,6 +29,11 @@ async function changeStatus(trx, { propertyId, from, to, actor, reason, notify =
     changed_by_admin_id: actor.adminId ?? null,
     reason: reason ?? null,
   });
+
+  // Going live spends a credit in the same transaction, exempt and already-billed listings pass through
+  if (to === "published") {
+    await consumeCredit(trx, propertyId);
+  }
 
   // Every way into review tells the admins in the same transaction
   if (to === "pending" && notify) {
