@@ -31,7 +31,7 @@ export default function UserDashboardSectionTabs() {
   if (tabs.length < 2) return null;
 
   return (
-    <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 sm:mx-6">
+    <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-4 sm:mx-6">
       <div className="mb-4 flex items-center gap-2.5">
         {SectionIcon && <SectionIcon className="h-5 w-5 shrink-0 text-sky-500" />}
         <h1 className="font-display text-xl font-bold text-slate-900">{section?.label}</h1>
@@ -49,7 +49,7 @@ export default function UserDashboardSectionTabs() {
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "inline-flex items-center gap-2.5 whitespace-nowrap rounded-lg border px-5 py-2.5 sm:py-3.5 text-sm font-medium transition-colors duration-200",
+                  "inline-flex items-center gap-2.5 whitespace-nowrap rounded-lg border px-5 py-2.5 sm:py-3.0 text-sm font-medium transition-colors duration-200",
                   isActive
                     ? "border-sky-500 font-semibold text-sky-600 bg-sky-50 [&_svg]:text-sky-600"
                     : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
