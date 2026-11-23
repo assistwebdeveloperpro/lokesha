@@ -223,7 +223,7 @@ Ponda: [
     "Borim", "Joefill Nagar", "Ambegal", "Nagzer", "Varkhande"
   ],
 
-  Ahmedabad: ["Ambli", "Bopal", "Satellite", "Prahlad Nagar", "Vastrapur", "Navrangpura", "Maninagar", "SG Highway", "Gota", "Nikol", "Chandkheda", "Hathijan", "Ghuma", "Sindhu Bhavan", "Naroda", "Science City", "Shela", "Bodakdev", "Thaltej", "CG Road", "Ashram Road", "Vaishnodevi", "Shilaj", "South Bopal", "Ambawadi", "Paldi", "Ellisbridge", "Gurukul", "Memnagar",
+  Ahmedabad: ["Ambli", "Bopal", "Satellite", "Iskon", "Shivranjani", "Nehrunagar", "Prahlad Nagar", "Vastrapur", "Navrangpura", "Maninagar", "SG Highway", "Gota", "Nikol", "Chandkheda", "Hathijan", "Ghuma", "Sindhu Bhavan", "Naroda", "Science City", "Shela", "Bodakdev", "Thaltej", "CG Road", "Ashram Road", "Vaishnodevi", "Shilaj", "South Bopal", "Ambawadi", "Paldi", "Ellisbridge", "Gurukul", "Memnagar",
   "Drive In Road", "Sola", "Jodhpur", "Makarba", "Vejalpur", "Sarkhej",
   "Juhapura", "Ghodasar", "Vasna", "Tragad", "Chharodi", "Vaishno Devi Circle",
   "Iscon", "Zundal", "Law Garden", "Usmanpura", "Vadaj", "Naranpura",

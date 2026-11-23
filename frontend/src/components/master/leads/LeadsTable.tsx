@@ -1,4 +1,5 @@
 import { Building2, Hash, Mail, MapPin, Phone } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { AdminLead } from "@/services/adminLeads.service";
 import LeadSendAction from "./LeadSendAction";
 import LeadStatusBadge from "./LeadStatusBadge";
@@ -7,6 +8,7 @@ import {
   formatAbsoluteTime,
   formatRelativeTime,
   getInitials,
+  HIGHLIGHT_ROW_CLASS,
   LEAD_GRID_CLASS,
   LEAD_TABLE_COLUMNS,
   LEAD_TABLE_MIN_WIDTH_CLASS,
@@ -34,12 +36,26 @@ type LeadSendProps = {
   onSend: (id: string) => void;
 };
 
-function LeadRow({ lead, sendingId, sendError, onSend }: { lead: AdminLead } & LeadSendProps) {
+function LeadRow({
+  lead,
+  isHighlighted,
+  sendingId,
+  sendError,
+  onSend,
+}: { lead: AdminLead; isHighlighted: boolean } & LeadSendProps) {
+  const rowRef = useRef<HTMLLIElement>(null);
   const { property, lister } = lead;
+
+  useEffect(() => {
+    if (isHighlighted) rowRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [isHighlighted]);
 
   return (
     <li
-      className={`grid gap-4 border-b border-slate-100 px-5 py-4 transition last:border-b-0 hover:bg-slate-50 sm:px-5 ${LEAD_GRID_CLASS}`}
+      ref={rowRef}
+      className={`grid gap-4 border-b border-slate-100 px-5 py-4 transition last:border-b-0 sm:px-5 ${
+        isHighlighted ? HIGHLIGHT_ROW_CLASS : "hover:bg-slate-50"
+      } ${LEAD_GRID_CLASS}`}
     >
       <div className="flex min-w-0 items-start gap-3">
         <span
@@ -142,7 +158,9 @@ function LeadRow({ lead, sendingId, sendError, onSend }: { lead: AdminLead } & L
   );
 }
 
-export default function LeadsTable({ leads, sendingId, sendError, onSend }: { leads: AdminLead[] } & LeadSendProps) {
+type LeadsTableProps = { leads: AdminLead[]; highlightLeadId: string | null } & LeadSendProps;
+
+export default function LeadsTable({ leads, highlightLeadId, sendingId, sendError, onSend }: LeadsTableProps) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200/90 scrollbar-hidden bg-white shadow-sm">
       <div className={LEAD_TABLE_MIN_WIDTH_CLASS}>
@@ -156,7 +174,11 @@ export default function LeadsTable({ leads, sendingId, sendError, onSend }: { le
         </div>
         <ul>
           {leads.map((lead) => (
-            <LeadRow key={lead.id} lead={lead} sendingId={sendingId} sendError={sendError} onSend={onSend} />
+            <LeadRow
+              key={lead.id}
+              lead={lead}
+              isHighlighted={lead.id === highlightLeadId}
+              sendingId={sendingId} sendError={sendError} onSend={onSend} />
           ))}
         </ul>
       </div>

@@ -2,6 +2,7 @@ const NOTIFICATION_TYPES = {
   propertySubmitted: "property_submitted",
   propertyResubmitted: "property_resubmitted",
   subscriptionPurchased: "subscription_purchased",
+  leadReceived: "lead_received",
 };
 
 function propertySubmitted({ propertyId, title }) {
@@ -31,4 +32,14 @@ function subscriptionPurchased({ userName, listings, months, orderNumber }) {
   };
 }
 
-module.exports = { NOTIFICATION_TYPES, propertySubmitted, propertyResubmitted, subscriptionPurchased };
+function leadReceived({ propertyId, leadId, title, leadName }) {
+  return {
+    type: NOTIFICATION_TYPES.leadReceived,
+    title,
+    message: `${leadName} contacted this property.`,
+    property_id: propertyId,
+    lead_id: leadId,
+  };
+}
+
+module.exports = { NOTIFICATION_TYPES, propertySubmitted, propertyResubmitted, subscriptionPurchased, leadReceived };

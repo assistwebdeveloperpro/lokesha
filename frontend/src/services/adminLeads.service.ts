@@ -38,6 +38,7 @@ export type AdminLeadsQuery = {
   search?: string;
   role?: PropertyContactRole;
   phoneRevealed?: boolean;
+  leadId?: string;
 };
 
 export type AdminLeadsResponse = {

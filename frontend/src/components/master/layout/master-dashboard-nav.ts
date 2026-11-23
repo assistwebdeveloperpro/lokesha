@@ -30,7 +30,7 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
   },
   { label: "Leads", href: "/backend/leads", icon: Users },
   {
-    label: "Subscription Management",
+    label: "Subscription Manage...",
     href: "/backend/subscription-packages",
     icon: Package,
     children: [

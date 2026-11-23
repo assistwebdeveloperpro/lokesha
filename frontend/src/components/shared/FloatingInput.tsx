@@ -190,7 +190,7 @@ export default function FloatingInput({
           className={
             isUnderline
               ? `peer ${underlineFieldClasses} ${hideNumberSpinnerClasses} placeholder:text-transparent`
-              : `peer w-full rounded-xl border bg-white px-4 pb-2.5 pt-5 text-sm ${fieldTextColor} ${hideNumberSpinnerClasses} shadow-sm outline-none transition-all placeholder:text-transparent ${
+              : `peer w-full rounded-xl border bg-white px-4 pb-2 pt-6 text-sm ${fieldTextColor} ${hideNumberSpinnerClasses} shadow-sm outline-none transition-all placeholder:text-transparent ${
                   hasError
                     ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
                     : `border-slate-200 focus:ring-2 ${focusRing}`
@@ -202,7 +202,7 @@ export default function FloatingInput({
           className={
             isUnderline
               ? prominentUnderlineLabelClasses
-              : `pointer-events-none absolute left-4 top-3.5 origin-left text-sm font-medium text-slate-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:scale-[0.85] peer-not-placeholder-shown:top-1.5 peer-not-placeholder-shown:scale-[0.85] peer-not-placeholder-shown:font-medium peer-not-placeholder-shown:text-slate-700 ${focusLabel}`
+              : `pointer-events-none absolute left-4 top-3.5 origin-left text-sm font-medium text-slate-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-1 peer-focus:scale-[0.85] peer-not-placeholder-shown:top-1 peer-not-placeholder-shown:scale-[0.85] peer-not-placeholder-shown:font-medium peer-not-placeholder-shown:text-slate-700 ${focusLabel}`
           }
         >
           {label}

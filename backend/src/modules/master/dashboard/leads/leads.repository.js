@@ -33,6 +33,7 @@ async function findLeads(filters) {
   return applyFilters(baseQuery(), filters)
     .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
     .orderBy("l.created_at", "desc")
+    .orderBy("l.id", "desc")
     .limit(limit)
     .offset((page - 1) * limit)
     .select(
@@ -66,6 +67,16 @@ async function countLeads(filters) {
   return Number(row.total);
 }
 
+// Leads ahead of this one in the list order; null when it is missing or filtered out
+async function countLeadsBefore(filters, leadId) {
+  const ranked = applyFilters(baseQuery(), filters)
+    .select("l.id", db.raw("row_number() over (order by l.created_at desc, l.id desc) as position"))
+    .as("ranked");
+
+  const row = await db.from(ranked).where("ranked.id", leadId).first("ranked.position");
+  return row ? Number(row.position) - 1 : null;
+}
+
 // Row lock serialises concurrent sends of the same lead
 async function findLeadForUpdate(trx, id) {
   return trx("property_leads as l")
@@ -92,4 +103,4 @@ async function markLeadSent(trx, id) {
   return row;
 }
 
-module.exports = { findLeads, countLeads, findLeadForUpdate, markLeadSent };
+module.exports = { findLeads, countLeads, countLeadsBefore, findLeadForUpdate, markLeadSent };

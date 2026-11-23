@@ -7,16 +7,20 @@ const bar = "animate-pulse rounded bg-slate-200/80";
 function SkeletonRow() {
   return (
     <li className={`border-b border-slate-100 px-4 py-4 last:border-b-0 sm:px-5 ${USER_GRID_CLASS}`}>
-      <div className="space-y-2">
-        <div className={`${bar} h-4 w-3/4`} />
-        <div className={`${bar} h-3 w-1/2`} />
+      <div className="flex items-center gap-3">
+        <div className={`${bar} h-10 w-10 shrink-0 rounded-full`} />
+        <div className="w-full space-y-2">
+          <div className={`${bar} h-4 w-3/4`} />
+          <div className={`${bar} h-3 w-1/2`} />
+        </div>
       </div>
       <div className="flex gap-1.5">
-        <div className={`${bar} h-5 w-12 rounded-md`} />
-        <div className={`${bar} h-5 w-16 rounded-md`} />
+        <div className={`${bar} h-5 w-12 rounded-full`} />
+        <div className={`${bar} h-5 w-16 rounded-full`} />
       </div>
       <div className="space-y-2">
         <div className={`${bar} h-4 w-20`} />
+        <div className={`${bar} h-1.5 w-full rounded-full`} />
         <div className={`${bar} h-3 w-12`} />
       </div>
       <div className="space-y-2">

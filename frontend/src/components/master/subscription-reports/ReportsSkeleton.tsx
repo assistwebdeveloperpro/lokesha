@@ -5,22 +5,22 @@ const GROUP_TILE_COUNTS = [3, 2, 2];
 
 export default function ReportsSkeleton() {
   return (
-    <div className="space-y-8" aria-busy aria-hidden>
+    <div className="space-y-5" aria-busy aria-hidden>
       {GROUP_TILE_COUNTS.map((count, groupIndex) => (
-        <section key={groupIndex}>
-          <div className="mb-3 space-y-2">
-            <div className={`${bar} h-5 w-40`} />
-            <div className={`${bar} h-3 w-56`} />
+        <section key={groupIndex} className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="space-y-2 border-b border-slate-100 bg-slate-50/60 px-5 py-3.5">
+            <div className={`${bar} h-4 w-32`} />
+            <div className={`${bar} h-3 w-48`} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={`grid divide-y divide-slate-100 sm:divide-x sm:divide-y-0 ${count === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
             {Array.from({ length: count }, (_, index) => (
-              <div key={index} className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between">
+              <div key={index} className="p-5">
+                <div className="flex items-center gap-2.5">
+                  <div className={`${bar} h-8 w-8 rounded-lg`} />
                   <div className={`${bar} h-3 w-28`} />
-                  <div className={`${bar} h-9 w-9 rounded-xl`} />
                 </div>
-                <div className={`${bar} mt-4 h-8 w-32`} />
-                <div className={`${bar} mt-3 h-3 w-44`} />
+                <div className={`${bar} mt-3 h-6 w-28`} />
+                <div className={`${bar} mt-2 h-3 w-40`} />
               </div>
             ))}
           </div>

@@ -3,8 +3,10 @@ const mockTrx = {};
 jest.mock("../../../config/db", () => ({ db: { transaction: (callback) => callback(mockTrx) } }));
 jest.mock("./property-contact.repository");
 jest.mock("../../shared/subscription/services/subscription-lead-limit.service");
+jest.mock("../../master/dashboard/admin-notifications/admin-notifications.service");
 
 const repository = require("./property-contact.repository");
+const adminNotifications = require("../../master/dashboard/admin-notifications/admin-notifications.service");
 const leadLimitService = require("../../shared/subscription/services/subscription-lead-limit.service");
 const { contactLister, listContactedPropertyIds } = require("./property-contact.service");
 
@@ -41,6 +43,28 @@ beforeEach(() => {
   repository.countRevealedLeads.mockResolvedValue(0);
   repository.insertLead.mockResolvedValue({});
   leadLimitService.assertLeadCapacity.mockResolvedValue({ limit: null, received: 0 });
+});
+
+describe("contactLister admin notification", () => {
+  it("notifies admins about a new lead inside the transaction", async () => {
+    repository.insertLead.mockResolvedValue({ id: "lead-1" });
+
+    await contactLister(USER_ID, input);
+
+    expect(adminNotifications.notifyLeadReceived).toHaveBeenCalledWith(mockTrx, {
+      propertyId: "prop-1",
+      leadId: "lead-1",
+      leadName: "Ravi",
+    });
+  });
+
+  it("does not notify again when the user already contacted the property", async () => {
+    repository.findLead.mockResolvedValue({ id: "lead-1", phone_revealed: true, created_at: new Date() });
+
+    await contactLister(USER_ID, input);
+
+    expect(adminNotifications.notifyLeadReceived).not.toHaveBeenCalled();
+  });
 });
 
 describe("contactLister lead limit", () => {

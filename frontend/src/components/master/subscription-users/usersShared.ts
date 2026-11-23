@@ -28,7 +28,7 @@ export const STATUS_FILTER_OPTIONS = [
 ];
 
 
-export const USER_GRID_CLASS = "grid grid-cols-[1.6fr_1fr_0.9fr_1.2fr_0.9fr_0.9fr_0.9fr_0.7fr] items-center gap-4";
+export const USER_GRID_CLASS = "grid grid-cols-[1.5fr_1fr_1fr_1.4fr_0.9fr_0.9fr_0.7fr_0.7fr] items-center gap-4";
 export const USER_TABLE_MIN_WIDTH_CLASS = "min-w-[1120px]";
 export const USER_TABLE_COLUMNS = ["User", "Packages", "Credits", "Validity", "Paid", "Payment", "Status", ""] as const;
 
@@ -44,6 +44,17 @@ export const isFiltered = (filters: UserFilters) =>
   (Object.keys(DEFAULT_USER_FILTERS) as (keyof UserFilters)[]).some((key) => filters[key] !== DEFAULT_USER_FILTERS[key]);
 
 export const getCreditsLeft = (user: Pick<AdminUserRow, "creditsBought" | "creditsUsed">) => Math.max(0, user.creditsBought - user.creditsUsed);
+
+export const getCreditsUsedPercent = (user: Pick<AdminUserRow, "creditsBought" | "creditsUsed">) =>
+  user.creditsBought > 0 ? Math.min(100, Math.round((user.creditsUsed / user.creditsBought) * 100)) : 0;
+
+export const getInitials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("") || "?";
 
 export const PACKAGE_LABELS: Record<AdminUserRow["packages"][number], string> = { free: "Free", standard: "Standard" };
 

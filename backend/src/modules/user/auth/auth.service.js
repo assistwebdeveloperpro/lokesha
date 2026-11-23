@@ -62,17 +62,14 @@ async function signup({
     throw new AppError("Mobile number is already registered", 409);
   }
 
-  const user = await repository.createUser({
-    role,
-    name,
-    agency_name,
-    company_name,
-    email,
-    mobile_number,
-    agreed_to_terms,
+  return repository.runInTransaction(async (trx) => {
+    const user = await repository.createUser(
+      { role, name, agency_name, company_name, email, mobile_number, agreed_to_terms },
+      trx,
+    );
+    await grantFreePackage(trx, user);
+    return user;
   });
-
-  return user;
 }
 
 async function issueOtp(mobile_number) {
@@ -134,17 +131,21 @@ async function verifyPendingRegistration({ mobile_number, otp }) {
   await assertMobileAvailable(mobile_number);
   await assertEmailAvailable(pending.email);
 
-  const user = await repository.createUser({
-    role: CONNECT_SELLER_ROLE,
-    name: pending.name,
-    email: pending.email,
-    mobile_number,
-    agreed_to_terms: pending.agreed_to_terms,
+  return repository.runInTransaction(async (trx) => {
+    const user = await repository.createUser(
+      {
+        role: CONNECT_SELLER_ROLE,
+        name: pending.name,
+        email: pending.email,
+        mobile_number,
+        agreed_to_terms: pending.agreed_to_terms,
+      },
+      trx,
+    );
+    await grantFreePackage(trx, user);
+    await repository.deletePendingRegistration(mobile_number);
+    return user;
   });
-
-  await repository.deletePendingRegistration(mobile_number);
-
-  return user;
 }
 
 async function verifyOtp({ mobile_number, otp }) {

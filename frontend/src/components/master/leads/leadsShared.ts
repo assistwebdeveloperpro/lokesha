@@ -2,7 +2,24 @@ import type { DropdownOption } from "@/components/shared/CustomDropdown";
 import type { AdminLead, SentLeadResult } from "@/services/adminLeads.service";
 import type { PropertyContactRole } from "@/services/propertyContact.service";
 
+export const LEADS_PATH = "/backend/leads";
+export const LEAD_QUERY_PARAM = "lead";
+
 export const LEADS_PAGE_SIZE = 10;
+
+export const HIGHLIGHT_ROW_CLASS = "bg-sky-50 ring-2 ring-inset ring-sky-300";
+
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export function getLeadsHref(leadId?: string | null): string {
+  return leadId ? `${LEADS_PATH}?${LEAD_QUERY_PARAM}=${encodeURIComponent(leadId)}` : LEADS_PATH;
+}
+
+// A repeated query param is ignored, only a single id can be highlighted
+export function getHighlightLeadId(searchParams: SearchParams): string | null {
+  const value = searchParams[LEAD_QUERY_PARAM];
+  return typeof value === "string" && value ? value : null;
+}
 
 export type LeadRoleFilter = PropertyContactRole | "all";
 export type LeadPhoneFilter = "all" | "shared" | "hidden";

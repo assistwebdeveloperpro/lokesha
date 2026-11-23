@@ -25,8 +25,8 @@ async function listNotifications(userId, { status, page, limit }) {
   ]);
 
   const propertyIds = [...new Set(rows.flatMap((row) => row.property_id ?? []))];
-  const images = await readRepository.findImagesByPropertyIds(propertyIds);
-  const imagesByProperty = groupBy(images, "property_id");
+  const images = await readRepository.findGroupImagesByPropertyIds(propertyIds);
+  const imagesByProperty = groupBy(images, "source_id");
 
   return {
     items: rows.map((row) => toNotification(row, imagesByProperty[row.property_id])),

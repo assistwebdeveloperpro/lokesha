@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import {
   BUYER_OWNER_HOME,
+  getDefaultUserDashboardRoute,
   isUserDashboardRouteAllowed,
 } from "@/components/user/dashboard/layout/user-dashboard-nav";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,8 +24,10 @@ export default function RequireUserDashboardAccess({
       return;
     }
 
-    router.replace(BUYER_OWNER_HOME);
-  }, [isAllowed, isAuthReady, router]);
+    router.replace(
+      role === "lokesha_staff" ? getDefaultUserDashboardRoute() : BUYER_OWNER_HOME
+    );
+  }, [isAllowed, isAuthReady, role, router]);
 
   if (!isAuthReady || !isAllowed) {
     return null;

@@ -25,14 +25,14 @@ describe("listNotifications", () => {
   it("returns the page with the property image, read flag and unread count", async () => {
     repository.findByUser.mockResolvedValue([row(), row({ id: "n2", property_id: null, read_at: "2026-10-27T11:00:00.000Z" })]);
     repository.countByUser.mockImplementation(async (userId, status) => (status === "unread" ? 3 : 8));
-    readRepository.findImagesByPropertyIds.mockResolvedValue([
-      { property_id: "p1", category: "main-photo", file_path: "/uploads/properties/p1/a.jpg" },
+    readRepository.findGroupImagesByPropertyIds.mockResolvedValue([
+      { source_id: "p1", category: "main-photo", file_path: "/uploads/properties/p1/a.jpg" },
     ]);
 
     const result = await listNotifications("u1", { status: "read", page: 1, limit: 20 });
 
     expect(repository.findByUser).toHaveBeenCalledWith("u1", { status: "read", page: 1, limit: 20 });
-    expect(readRepository.findImagesByPropertyIds).toHaveBeenCalledWith(["p1"]);
+    expect(readRepository.findGroupImagesByPropertyIds).toHaveBeenCalledWith(["p1"]);
     expect(result).toMatchObject({ page: 1, limit: 20, total: 8, unreadCount: 3 });
     expect(result.items[0]).toMatchObject({ id: "n1", image: "/uploads/properties/p1/a.jpg", isRead: false, propertyId: "p1" });
     expect(result.items[1]).toMatchObject({ id: "n2", image: null, isRead: true });

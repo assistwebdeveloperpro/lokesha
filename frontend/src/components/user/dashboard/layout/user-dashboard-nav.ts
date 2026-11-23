@@ -98,6 +98,14 @@ function isBuyerOwner(role: Role | null): boolean {
   return role === "buyer_owner_tenant";
 }
 
+function isStaff(role: Role | null): boolean {
+  return role === "lokesha_staff";
+}
+
+function isSubscriptionRoute(pathname: string): boolean {
+  return pathname === "/user/subscription" || pathname.startsWith("/user/subscription/");
+}
+
 function hasFullProfileAccess(role: Role | null): boolean {
   return role === "agent" || role === "builder";
 }
@@ -113,6 +121,10 @@ export function getDefaultUserDashboardRoute(): string {
 }
 
 export function isUserDashboardRouteAllowed(pathname: string, role: Role | null): boolean {
+  if (isStaff(role) && isSubscriptionRoute(pathname)) {
+    return false;
+  }
+
   if (!isBuyerOwner(role)) {
     return true;
   }
@@ -144,7 +156,9 @@ export function getRestrictedNavRedirect(
 }
 
 export function getUserDashboardNavItems(role: Role | null): UserDashboardNavItem[] {
-  return userDashboardNavItems.map((item) => {
+  return userDashboardNavItems
+    .filter((item) => !(isStaff(role) && item.label === "Subscription"))
+    .map((item) => {
     if (!hasFullProfileAccess(role) && item.label === "Profile" && item.children) {
       return {
         ...item,

@@ -11,6 +11,7 @@ function toNotification(row, images) {
     title: row.title,
     message: row.message,
     propertyId: row.property_id,
+    leadId: row.lead_id,
     image: pickMainImage(images),
     isRead: row.read_at !== null,
     createdAt: row.created_at,
@@ -35,6 +36,19 @@ async function notifySubscriptionPurchased(trx, { userId, listings, months, orde
   );
 }
 
+// Runs in the contact transaction, so admins hear only about a lead that was saved
+async function notifyLeadReceived(trx, { propertyId, leadId, leadName }) {
+  const property = await trx("properties as p")
+    .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
+    .where("p.id", propertyId)
+    .first(trx.raw("coalesce(bp.project_name, p.title) as title"));
+
+  await repository.insertNotification(
+    trx,
+    templates.leadReceived({ propertyId, leadId, title: property?.title ?? "A property", leadName })
+  );
+}
+
 async function listNotifications({ status, page, limit }) {
   const [rows, total, unreadCount] = await Promise.all([
     repository.findAll({ status, page, limit }),
@@ -43,8 +57,8 @@ async function listNotifications({ status, page, limit }) {
   ]);
 
   const propertyIds = [...new Set(rows.flatMap((row) => row.property_id ?? []))];
-  const images = await readRepository.findImagesByPropertyIds(propertyIds);
-  const imagesByProperty = groupBy(images, "property_id");
+  const images = await readRepository.findGroupImagesByPropertyIds(propertyIds);
+  const imagesByProperty = groupBy(images, "source_id");
 
   return {
     items: rows.map((row) => toNotification(row, imagesByProperty[row.property_id])),
@@ -73,4 +87,4 @@ async function markAllAsRead() {
   return { unreadCount: 0 };
 }
 
-module.exports = { notifyPropertyPending, notifySubscriptionPurchased, listNotifications, getUnreadCount, markAsRead, markAllAsRead };
+module.exports = { notifyPropertyPending, notifySubscriptionPurchased, notifyLeadReceived, listNotifications, getUnreadCount, markAsRead, markAllAsRead };

@@ -9,7 +9,11 @@ import LeadsTableSkeleton from "./LeadsTableSkeleton";
 import { DEFAULT_LEAD_FILTERS, LEADS_PAGE_SIZE } from "./leadsShared";
 import { useLeads } from "./useLeads";
 
-export default function LeadsContent() {
+type LeadsContentProps = {
+  highlightLeadId?: string | null;
+};
+
+export default function LeadsContent({ highlightLeadId = null }: LeadsContentProps) {
   const {
     leads,
     total,
@@ -23,7 +27,7 @@ export default function LeadsContent() {
     changePage,
     reload,
     sendLead,
-  } = useLeads();
+  } = useLeads(highlightLeadId);
   const isFiltered = Object.keys(DEFAULT_LEAD_FILTERS).some(
     (key) => filters[key as keyof typeof filters] !== DEFAULT_LEAD_FILTERS[key as keyof typeof filters],
   );
@@ -69,7 +73,10 @@ export default function LeadsContent() {
           <LeadsEmptyState isFiltered={isFiltered} />
         ) : (
           <>
-            <LeadsTable leads={leads} sendingId={sendingId} sendError={sendError} onSend={sendLead} />
+            <LeadsTable
+              leads={leads}
+              highlightLeadId={highlightLeadId}
+              sendingId={sendingId} sendError={sendError} onSend={sendLead} />
             <ListPagination page={page} pageSize={LEADS_PAGE_SIZE} total={total} onPageChange={changePage} />
           </>
         )}

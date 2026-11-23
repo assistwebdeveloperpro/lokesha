@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, BadgeIndianRupee, Clock, Gift, Percent, RotateCcw, Search, TrendingUp, Undo2, UserCheck, type LucideIcon } from "lucide-react";
+import { AlertCircle, BadgeIndianRupee, CalendarRange, Clock, Gift, Percent, RotateCcw, Search, TrendingUp, Undo2, UserCheck, type LucideIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { cn } from "@/lib/utils";
 import ReportsSkeleton from "./ReportsSkeleton";
@@ -39,16 +39,25 @@ function RangeForm({ applied, isLoading, onApply }: { applied: ReportRange; isLo
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-      <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+    <form onSubmit={handleSubmit} className="mt-5 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+      <div className="flex items-center gap-2.5 border-b border-slate-100 bg-slate-50/60 px-5 py-3.5">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+          <CalendarRange className="h-4 w-4" aria-hidden />
+        </span>
         <div>
-          <label htmlFor="reports-from" className="mb-1.5 block text-sm font-medium text-slate-700">
+          <h2 className="font-display text-sm font-semibold text-slate-800">Filter by date</h2>
+          <p className="text-xs text-slate-500">Leave both empty to see all time</p>
+        </div>
+      </div>
+      <div className="grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div>
+          <label htmlFor="reports-from" className="mb-1.5 block text-xs font-medium text-slate-600">
             From
           </label>
           <input id="reports-from" type="date" value={form.from} max={form.to || undefined} onChange={(event) => setForm({ ...form, from: event.target.value })} className={fieldClassName} />
         </div>
         <div>
-          <label htmlFor="reports-to" className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label htmlFor="reports-to" className="mb-1.5 block text-xs font-medium text-slate-600">
             To
           </label>
           <input id="reports-to" type="date" value={form.to} min={form.from || undefined} onChange={(event) => setForm({ ...form, to: event.target.value })} className={fieldClassName} />
@@ -76,18 +85,19 @@ function RangeForm({ applied, isLoading, onApply }: { applied: ReportRange; isLo
             Apply
           </button>
         </div>
+        {rangeError ? (
+          <p className="text-xs font-medium text-red-500 sm:col-span-3" role="alert">
+            {rangeError}
+          </p>
+        ) : null}
       </div>
-      {rangeError ? (
-        <p className="mt-3 text-xs font-medium text-red-500" role="alert">
-          {rangeError}
-        </p>
-      ) : null}
     </form>
   );
 }
 
 export default function SubscriptionReportsContent() {
   const { range, overview, isLoading, error, applyRange, reload } = useSubscriptionReports();
+  const groups = overview ? buildReportGroups(overview) : [];
 
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
@@ -127,29 +137,33 @@ export default function SubscriptionReportsContent() {
             </button>
           </div>
         ) : (
-          <div className="space-y-8">
-            {buildReportGroups(overview).map((group) => (
-              <section key={group.title} aria-labelledby={`report-${group.title}`}>
-                <div className="mb-3">
-                  <h2 id={`report-${group.title}`} className="font-display text-base font-bold text-slate-800">
+          <div className="space-y-5">
+            {groups.map((group) => (
+              <section
+                key={group.title}
+                aria-labelledby={`report-${group.title}`}
+                className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm"
+              >
+                <div className="border-b border-slate-100 bg-slate-50/60 px-5 py-3.5">
+                  <h2 id={`report-${group.title}`} className="font-display texe-base font-semibold text-slate-800">
                     {group.title}
                   </h2>
-                  <p className="text-sm text-slate-500">{group.text}</p>
+                  <p className="text-xs text-slate-500">{group.text}</p>
                 </div>
-                <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <dl className={cn("grid divide-y divide-slate-100 sm:divide-x sm:divide-y-0", group.tiles.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
                   {group.tiles.map((tile) => {
                     const Icon = TILE_ICONS[tile.key];
 
                     return (
-                      <div key={tile.key} className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
-                        <div className="flex items-start justify-between gap-3">
-                          <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{tile.label}</dt>
-                          <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", TONE_CLASSES[tile.tone])}>
-                            <Icon className="h-4.5 w-4.5" aria-hidden />
+                      <div key={tile.key} className="p-5">
+                        <div className="flex items-center gap-2.5">
+                          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", TONE_CLASSES[tile.tone])}>
+                            <Icon className="h-4 w-4" aria-hidden />
                           </span>
+                          <dt className="text-xs font-medium text-slate-500">{tile.label}</dt>
                         </div>
-                        <dd className="mt-3 font-display text-3xl font-bold text-slate-800">{tile.value}</dd>
-                        <p className="mt-1 text-sm font-medium text-slate-500">{tile.hint}</p>
+                        <dd className="mt-3 font-display text-xl font-semibold text-slate-800">{tile.value}</dd>
+                        <p className="mt-1 text-xs text-slate-500">{tile.hint}</p>
                       </div>
                     );
                   })}

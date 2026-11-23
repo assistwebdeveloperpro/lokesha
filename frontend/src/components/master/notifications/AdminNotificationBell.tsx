@@ -1,5 +1,6 @@
 "use client";
 
+import { getLeadsHref } from "@/components/master/leads/leadsShared";
 import NotificationBell from "@/components/user/dashboard/notifications/NotificationBell";
 import type { NotificationSource } from "@/components/user/dashboard/notifications/useNotifications";
 import {
@@ -17,7 +18,10 @@ const REVIEW_NOTIFICATION_TYPES = new Set(["property_submitted", "property_resub
 const TRANSACTIONS_PATH = "/backend/subscription-transactions";
 const SUBSCRIPTION_PURCHASED_TYPE = "subscription_purchased";
 
+const LEAD_RECEIVED_TYPE = "lead_received";
+
 function getAdminNotificationHref(notification: UserNotification) {
+  if (notification.type === LEAD_RECEIVED_TYPE) return getLeadsHref(notification.leadId);
   if (notification.type === SUBSCRIPTION_PURCHASED_TYPE) return TRANSACTIONS_PATH;
   if (!notification.propertyId || !REVIEW_NOTIFICATION_TYPES.has(notification.type)) return null;
   return `${REVIEW_PROPERTIES_PATH}?property=${encodeURIComponent(notification.propertyId)}`;

@@ -57,11 +57,11 @@ export function useSubscriptionUsers() {
     };
   }, [filters, page, reloadToken, expireSession, router]);
 
-  const applyFilters = (next: UserFilters) => {
+  const applyFilters = useCallback((next: UserFilters) => {
     setIsLoading(true);
     setPage(1);
     setFilters(next);
-  };
+  }, []);
 
   const changePage = (next: number) => {
     setIsLoading(true);

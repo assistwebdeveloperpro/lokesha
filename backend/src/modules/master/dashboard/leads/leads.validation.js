@@ -10,6 +10,7 @@ const leadsListQuerySchema = Joi.object({
   search: Joi.string().trim().max(MAX_SEARCH_LENGTH).allow(""),
   role: Joi.string().valid(...CONTACT_ROLES),
   phoneRevealed: Joi.boolean(),
+  leadId: Joi.string().uuid(),
 });
 
 const leadIdParamSchema = Joi.object({

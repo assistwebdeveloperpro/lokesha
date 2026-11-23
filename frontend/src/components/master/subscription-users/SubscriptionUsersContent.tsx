@@ -34,7 +34,7 @@ export default function SubscriptionUsersContent() {
         ) : null}
       </header>
 
-      <UsersFilterBar applied={filters} isLoading={isLoading} onApply={applyFilters} />
+      <UsersFilterBar applied={filters} onApply={applyFilters} />
 
       <section className="mt-6" aria-live="polite">
         {isLoading ? (

@@ -152,10 +152,10 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-package-heading"
-        className="relative flex h-full w-full max-w-xl flex-col bg-slate-50 shadow-2xl"
+        className="relative flex h-dvh w-full max-w-xl flex-col bg-slate-50 shadow-2xl"
       >
-        <header className="bg-linear-to-r-navy-blue flex items-start justify-between gap-4 px-5 py-4 text-white sm:px-6">
-          <div>
+        <header className="bg-linear-to-r-navy-blue flex items-start justify-between gap-4 px-4 py-4 text-white sm:px-6">
+          <div className="min-w-0">
             <h2 id="edit-package-heading" className="font-display text-lg font-bold">
               Edit {pkg.name} package
             </h2>
@@ -172,7 +172,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
           </button>
         </header>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+        <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
           <Section title="Display details" description="What users see on the package card">
             <FloatingInput
               id="package-name"
@@ -253,7 +253,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
               </button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 items-start gap-3 sm:gap-4">
               <FloatingInput
                 id="package-status"
                 label="Status"
@@ -264,7 +264,29 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
                 onChange={(value) => setField("status", value as PackageFormState["status"])}
                 error={errors.status}
               />
-              {renderNumber({ field: "displayOrder", label: "Display order" })}
+              <div className="min-w-0">
+                <label htmlFor="package-displayOrder" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Display order
+                </label>
+                <input
+                  id="package-displayOrder"
+                  type="number"
+                  inputMode="numeric"
+                  value={form.displayOrder}
+                  onChange={(event) => setField("displayOrder", event.target.value as never)}
+                  aria-invalid={Boolean(errors.displayOrder)}
+                  className={`min-h-11 w-full rounded-xl border bg-white px-3.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+                    errors.displayOrder
+                      ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+                      : "border-slate-200/90 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                  }`}
+                />
+                {errors.displayOrder ? (
+                  <p className="mt-1 text-xs text-red-500" role="alert">
+                    {errors.displayOrder}
+                  </p>
+                ) : null}
+              </div>
             </div>
             {isFree ? <p className="-mt-2 text-xs text-slate-500">The Free package is given to every new user and cannot be deactivated.</p> : null}
           </Section>
@@ -317,7 +339,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
           )}
         </div>
 
-        <footer className="space-y-3 border-t border-slate-200 bg-white px-5 py-4 sm:px-6">
+        <footer className="max-h-[45dvh] space-y-3 overflow-y-auto border-t border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-start gap-2.5 rounded-xl bg-amber-50 px-3.5 py-3 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             Changes apply to new purchases and new users only. Existing subscriptions and orders keep their original terms.
@@ -327,7 +349,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
               {submitError}
             </p>
           ) : null}
-          <div className="flex justify-end gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:justify-end">
             <button
               type="button"
               disabled={isSaving}
@@ -340,7 +362,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
               type="button"
               disabled={isSaving || !hasChanges}
               onClick={handleSubmit}
-              className="bg-linear-to-r-navy-blue inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+              className="bg-linear-to-r-navy-blue inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               {isSaving ? "Saving..." : "Save changes"}

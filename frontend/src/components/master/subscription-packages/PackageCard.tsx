@@ -40,7 +40,7 @@ export default function PackageCard({ pkg, onEdit, onViewHistory }: PackageCardP
 
   return (
     <li className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:shadow-md">
-      <div className="bg-linear-to-r-navy-blue flex items-center justify-between gap-3 px-5 py-4 text-white sm:px-6">
+      <div className="bg-linear-to-r-navy-blue flex items-center justify-between gap-3 px-4 py-4 text-white sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
             <HeaderIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
@@ -60,17 +60,17 @@ export default function PackageCard({ pkg, onEdit, onViewHistory }: PackageCardP
         </span>
       </div>
 
-      <div className="flex-1 space-y-5 px-5 py-5 sm:px-6">
-        {pkg.description ? <p className="text-sm leading-relaxed text-slate-600">{pkg.description}</p> : null}
+      <div className="flex-1 space-y-5 px-4 py-4 sm:px-6 sm:py-5">
+        {pkg.description ? <p className="wrap-break-word text-sm leading-relaxed text-slate-600">{pkg.description}</p> : null}
 
-        <dl className="grid grid-cols-2 gap-3">
+        <dl className="grid grid-cols-2 gap-2.5 sm:gap-3">
           {getStats(pkg).map(({ label, value, hint, Icon }) => (
-            <div key={label} className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-              <dt className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <Icon className="h-3.5 w-3.5 text-sky-600" aria-hidden />
-                {label}
+            <div key={label} className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-3.5">
+              <dt className="flex items-start gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 sm:text-[11px]">
+                <Icon className="mt-px h-3.5 w-3.5 shrink-0 text-sky-600" aria-hidden />
+                <span className="min-w-0 wrap-break-word">{label}</span>
               </dt>
-              <dd className="mt-1.5 text-base font-bold text-slate-800">{value}</dd>
+              <dd className="mt-1.5 wrap-break-word text-sm font-bold text-slate-800 sm:text-base">{value}</dd>
               {hint ? <p className="text-xs font-medium text-slate-500">{hint}</p> : null}
             </div>
           ))}
@@ -82,10 +82,10 @@ export default function PackageCard({ pkg, onEdit, onViewHistory }: PackageCardP
             <ul className="mt-2.5 space-y-2">
               {pkg.benefits.map((benefit) => (
                 <li key={benefit} className="flex items-start gap-2.5 text-sm text-slate-700">
-                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
                   </span>
-                  {benefit}
+                  <span className="min-w-0 wrap-break-word">{benefit}</span>
                 </li>
               ))}
             </ul>
@@ -93,13 +93,13 @@ export default function PackageCard({ pkg, onEdit, onViewHistory }: PackageCardP
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:px-6">
+      <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="text-xs font-medium text-slate-500">Updated {formatDateTime(pkg.updatedAt)}</p>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex">
           <button
             type="button"
             onClick={() => onViewHistory(pkg)}
-            className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           >
             <History className="h-4 w-4" aria-hidden />
             History
@@ -107,7 +107,7 @@ export default function PackageCard({ pkg, onEdit, onViewHistory }: PackageCardP
           <button
             type="button"
             onClick={() => onEdit(pkg)}
-            className="bg-linear-to-r-navy-blue inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white shadow-md"
+            className="bg-linear-to-r-navy-blue inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white shadow-md"
           >
             <Pencil className="h-4 w-4" aria-hidden />
             Edit package

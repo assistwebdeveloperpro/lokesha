@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { clearAdminSession, getAdminToken } from "@/services/adminSession";
 import {
   fetchAdminLeads,
@@ -34,7 +34,7 @@ function toQuery(filters: LeadFilters, page: number): AdminLeadsQuery {
   };
 }
 
-export function useLeads() {
+export function useLeads(focusLeadId: string | null = null) {
   const router = useRouter();
   const [filters, setFilters] = useState<LeadFilters>(DEFAULT_LEAD_FILTERS);
   const [page, setPage] = useState(1);
@@ -45,6 +45,9 @@ export function useLeads() {
   const [error, setError] = useState("");
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [sendError, setSendError] = useState<SendError | null>(null);
+  // The lead is only sent on the first load, so later paging and filtering stay under the admin's control
+  const pendingLeadRef = useRef(focusLeadId);
+  const skipNextFetchRef = useRef(false);
 
   const expireSession = useCallback(() => {
     clearAdminSession();
@@ -52,6 +55,12 @@ export function useLeads() {
   }, [router]);
 
   useEffect(() => {
+    // The page just adopted from the server already holds the loaded leads
+    if (skipNextFetchRef.current) {
+      skipNextFetchRef.current = false;
+      return;
+    }
+
     const token = getAdminToken();
     if (!token) {
       router.push(LOGIN_PATH);
@@ -59,9 +68,16 @@ export function useLeads() {
     }
 
     let cancelled = false;
-    fetchAdminLeads(toQuery(filters, page), token)
+    fetchAdminLeads({ ...toQuery(filters, page), leadId: pendingLeadRef.current ?? undefined }, token)
       .then((response) => {
         if (cancelled) return;
+        if (pendingLeadRef.current) {
+          pendingLeadRef.current = null;
+          if (response.page !== page) {
+            skipNextFetchRef.current = true;
+            setPage(response.page);
+          }
+        }
         setLeads(response.items);
         setTotal(response.total);
         setError("");

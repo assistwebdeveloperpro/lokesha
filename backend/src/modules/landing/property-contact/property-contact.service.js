@@ -2,6 +2,7 @@ const { db } = require("../../../config/db");
 const { AppError } = require("../../shared/property/utils/property.errors");
 const repository = require("./property-contact.repository");
 const { assertLeadCapacity, notifyLeadProgress } = require("../../shared/subscription/services/subscription-lead-limit.service");
+const adminNotifications = require("../../master/dashboard/admin-notifications/admin-notifications.service");
 
 const FREE_CONTACT_LIMIT = 2;
 
@@ -63,7 +64,7 @@ async function contactLister(userId, { propertyId, contactRole }) {
     const revealedBefore = await repository.countRevealedLeads(userId, { trx });
     const phoneRevealed = hasPhone && revealedBefore < FREE_CONTACT_LIMIT;
 
-    await repository.insertLead(
+    const lead = await repository.insertLead(
       {
         property_id: property.id,
         lead_user_id: user.id,
@@ -80,6 +81,11 @@ async function contactLister(userId, { propertyId, contactRole }) {
       },
       trx
     );
+    await adminNotifications.notifyLeadReceived(trx, {
+      propertyId: property.id,
+      leadId: lead.id,
+      leadName: user.name,
+    });
     await notifyLeadProgress(trx, property, leadProgress);
 
     return buildResult(lister, phoneRevealed, revealedBefore);

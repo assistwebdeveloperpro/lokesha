@@ -18,24 +18,24 @@ export default function SubscriptionPackagesContent() {
 
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="bg-linear-to-r-navy-blue flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-md">
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="bg-linear-to-r-navy-blue flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md sm:h-11 sm:w-11">
             <Package className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           </span>
-          <div>
-            <h1 className="font-display text-lg font-bold text-slate-800 lg:text-xl">Subscription Packages</h1>
-            <p className="text-sm text-slate-500">Manage the subscription packages offered to users</p>
+          <div className="min-w-0">
+            <h1 className="font-display text-base font-bold text-slate-800 sm:text-lg lg:text-xl">Subscription Packages</h1>
+            <p className="text-xs text-slate-500 sm:text-sm">Manage the subscription packages offered to users</p>
           </div>
         </div>
         {!isLoading && !error ? (
-          <span className="inline-flex items-center rounded-full bg-sky-50 px-3.5 py-1.5 text-sm font-semibold text-sky-700 ring-1 ring-sky-200">
+          <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200 sm:px-3.5 sm:py-1.5 sm:text-sm">
             {packages.length} {packages.length === 1 ? "package" : "packages"}
           </span>
         ) : null}
       </header>
 
-      <section className="mt-6" aria-live="polite">
+      <section className="mt-4 sm:mt-6" aria-live="polite">
         {isLoading ? (
           <PackagesSkeleton />
         ) : error ? (
@@ -56,7 +56,7 @@ export default function SubscriptionPackagesContent() {
             No packages are set up yet.
           </div>
         ) : (
-          <ul className="grid gap-6 lg:grid-cols-2">
+          <ul className="grid gap-4 sm:gap-6 xl:grid-cols-2">
             {packages.map((pkg) => (
               <PackageCard key={pkg.id} pkg={pkg} onEdit={setEditing} onViewHistory={setViewingHistory} />
             ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, XCircle } from "lucide-react";
+import { Check, XCircle } from "lucide-react";
 import { useState } from "react";
 import { getAssetUrl } from "@/services/apiClient";
 import type { UserNotification } from "@/services/userNotifications.service";
@@ -17,6 +17,23 @@ type NotificationItemProps = {
 const REJECTED_TYPE = "property_rejected";
 const REJECTION_PREFIX = /^Your property was (?:rejected:|not approved\. Reason:)\s*/i;
 
+const FALLBACK_IMAGE = "/no-photo-available.png";
+const IMAGE_DIR = "/assets/images/notifications";
+
+// Notifications without a property have no photo, so the type picks the picture
+const TYPE_IMAGES: Record<string, string> = {
+  free_package_granted: `${IMAGE_DIR}/welcome.svg`,
+  credits_added: `${IMAGE_DIR}/credits.svg`,
+  credits_low: `${IMAGE_DIR}/alert.svg`,
+  payment_success: `${IMAGE_DIR}/payment.svg`,
+  subscription_purchased: `${IMAGE_DIR}/payment.svg`,
+  payment_failed: `${IMAGE_DIR}/alert.svg`,
+  refund_issued: `${IMAGE_DIR}/refund.svg`,
+  subscription_extended: `${IMAGE_DIR}/subscription.svg`,
+  subscription_ending_soon: `${IMAGE_DIR}/alert.svg`,
+  subscription_ended: `${IMAGE_DIR}/alert.svg`,
+};
+
 export default function NotificationItem({
   notification,
   isBusy,
@@ -25,7 +42,10 @@ export default function NotificationItem({
   onActivate,
 }: NotificationItemProps) {
   const [hasImageError, setHasImageError] = useState(false);
-  const showImage = notification.image && !hasImageError;
+  const hasPropertyImage = Boolean(notification.image) && !hasImageError;
+  const imageSrc = hasPropertyImage
+    ? getAssetUrl(notification.image as string)
+    : (notification.propertyId ? undefined : TYPE_IMAGES[notification.type]) ?? FALLBACK_IMAGE;
   const isRejected = notification.type === REJECTED_TYPE;
   const rejectionReason = notification.message.replace(REJECTION_PREFIX, "");
   const isActivatable = Boolean(href && onActivate);
@@ -54,20 +74,14 @@ export default function NotificationItem({
         className={`flex gap-3 px-4 py-4 ${isActivatable ? "cursor-pointer transition hover:bg-slate-50" : ""}`}
       >
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
-        {showImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={getAssetUrl(notification.image as string)}
-            alt={notification.title}
-            loading="lazy"
-            onError={() => setHasImageError(true)}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-slate-400">
-            <Building2 className="h-6 w-6" aria-hidden />
-          </span>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageSrc}
+          alt={notification.title}
+          loading="lazy"
+          onError={() => setHasImageError(true)}
+          className="h-full w-full object-cover"
+        />
       </div>
 
       <div className="min-w-0 flex-1">

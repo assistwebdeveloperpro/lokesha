@@ -28,10 +28,10 @@ export default function SubscribedServicesContent() {
   return (
     <div className="w-full px-1 py-0 sm:px-6 lg:px-6">
       <header className="flex items-center gap-3">
-        <span className="bg-linear-to-r-navy-blue flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-md">
+        <span className="bg-linear-to-r-navy-blue flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-md">
           <PackageCheck className="h-5 w-5" strokeWidth={1.75} aria-hidden />
         </span>
-        <div>
+        <div className="min-w-0">
           <h1 className="font-display text-lg font-bold text-slate-800 lg:text-xl">Subscribed Services</h1>
           <p className="text-sm text-slate-500">Your listing credits, validity and the Standard package</p>
         </div>
@@ -59,7 +59,7 @@ export default function SubscribedServicesContent() {
             <CreditSummaryTiles summary={overview.summary} />
 
             {overview.subscriptions.length ? (
-              <ul className="grid gap-4 lg:grid-cols-2">
+              <ul className="grid gap-4 xl:grid-cols-2">
                 {overview.subscriptions.map((subscription) => (
                   <CurrentSubscriptionCard key={subscription.id} subscription={subscription} />
                 ))}

@@ -74,6 +74,23 @@ async function findImagesByPropertyIds(propertyIds) {
     .orderBy("created_at", "asc");
 }
 
+// Images of each property's whole post group, keyed by the asked property as source_id
+async function findGroupImagesByPropertyIds(propertyIds) {
+  if (!propertyIds.length) return [];
+
+  return db("properties as origin")
+    .joinRaw(
+      `join properties as member on coalesce(member.listing_group_id, member.builder_project_id, member.id) = coalesce(origin.listing_group_id, origin.builder_project_id, origin.id)`
+    )
+    .join("property_media as m", "m.property_id", "member.id")
+    .whereIn("origin.id", propertyIds)
+    .where({ "m.media_type": "image" })
+    .select("origin.id as source_id", "m.category", "m.file_path")
+    .orderBy("member.listing_number", "asc")
+    .orderBy("m.sort_order", "asc")
+    .orderBy("m.created_at", "asc");
+}
+
 // Options mapped to this listing type, property type (form id) and sub type; types without sub types map to null
 async function findAmenityOptions({ listingType, propertyType, subType }) {
   return db("amenities as a")
@@ -212,6 +229,7 @@ module.exports = {
   selectGroupedListings,
   countGroupedListings,
   findImagesByPropertyIds,
+  findGroupImagesByPropertyIds,
   findAmenityOptions,
   findOwnedProperty,
   findGroupSiblings,

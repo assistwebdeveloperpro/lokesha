@@ -152,7 +152,7 @@ export default function UserDetailDrawer({ user, onClose, onChanged }: UserDetai
               )}
 
               <div>
-                <div role="tablist" aria-label="User subscription details" className="flex gap-1 overflow-x-auto rounded-xl bg-slate-200/70 p-1">
+                <div role="tablist" aria-label="User subscription details" className="flex gap-1 overflow-x-auto rounded-xl bg-slate-200/70 p-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
                   {TABS.map((tab) => (
                     <button
                       key={tab.id}

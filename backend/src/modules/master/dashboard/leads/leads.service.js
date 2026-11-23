@@ -26,10 +26,20 @@ const toLead = (row) => ({
   createdAt: row.created_at,
 });
 
-async function listLeads(query) {
-  const [rows, total] = await Promise.all([repository.findLeads(query), repository.countLeads(query)]);
+// A requested lead moves the list to the page holding it; unknown leads keep the requested page
+async function resolvePage({ leadId, ...filters }) {
+  if (!leadId) return filters.page;
 
-  return { items: rows.map(toLead), page: query.page, limit: query.limit, total };
+  const leadsBefore = await repository.countLeadsBefore(filters, leadId);
+  return leadsBefore === null ? filters.page : Math.floor(leadsBefore / filters.limit) + 1;
+}
+
+async function listLeads(query) {
+  const page = await resolvePage(query);
+  const filters = { ...query, page };
+  const [rows, total] = await Promise.all([repository.findLeads(filters), repository.countLeads(filters)]);
+
+  return { items: rows.map(toLead), page, limit: query.limit, total };
 }
 
 function assertSendable(lead) {
