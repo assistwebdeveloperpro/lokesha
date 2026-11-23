@@ -74,21 +74,27 @@ async function countReservedProperties(trx, userId, now) {
   return Number(count);
 }
 
-// Locks the property, so two enquiries never take the last free lead slot together
+// Locks the property, so two sends never take the last free lead slot together
+// The limit belongs to the property, a package bought later does not lift it
 async function findLeadLimitForUpdate(trx, propertyId) {
   const property = await trx(PROPERTIES_TABLE).where({ id: propertyId }).forNoKeyUpdate().first("lead_limit");
   return property?.lead_limit ?? null;
 }
 
-async function countPropertyLeads(trx, propertyId) {
-  const [{ count }] = await trx("property_leads").where({ property_id: propertyId }).count("id as count");
+// 1-based place of the lead among all leads of its property, oldest first
+async function findPropertyLeadPosition(trx, propertyId, leadId) {
+  const [{ count }] = await trx("property_leads as sl")
+    .join("property_leads as l", "l.property_id", "sl.property_id")
+    .where({ "l.id": leadId, "sl.property_id": propertyId })
+    .whereRaw("(sl.created_at, sl.id) <= (l.created_at, l.id)")
+    .count("sl.id as count");
   return Number(count);
 }
 
 module.exports = {
   findPackageByCode,
   findLeadLimitForUpdate,
-  countPropertyLeads,
+  findPropertyLeadPosition,
   findActivePackageByCode,
   insertSubscriptionIfAbsent,
   insertSubscription,

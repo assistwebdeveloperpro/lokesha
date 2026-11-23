@@ -36,7 +36,7 @@ const PACKAGES = [
       "Listings stay live for the entire subscription period",
     ],
     display_order: 2,
-    price_per_listing_month: 100000,     // Amounts are stored in paise
+    price_per_listing_month: 1000,
     gst_percent: 18,
     min_listings: 1,
     max_listings: 50,

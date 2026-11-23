@@ -12,7 +12,7 @@ import type {
 export type SubscriptionPackageCode = "free" | "standard";
 export type SubscriptionPackageStatus = "active" | "inactive";
 
-// Money is in paise, the smallest currency unit
+// Money is in whole rupees
 export type SubscriptionPackage = {
   id: string;
   code: SubscriptionPackageCode;

@@ -7,6 +7,7 @@ const { paymentSuccess, paymentFailed } = require("../../../user/dashboard/user-
 const adminNotifications = require("../../../master/dashboard/admin-notifications/admin-notifications.service");
 const { createInvoiceForOrder } = require("./invoice.service");
 const { addMonths } = require("../utils/subscription-dates.util");
+const { toGatewayAmount } = require("../utils/subscription-pricing.util");
 const { ORDER_STATUSES, SUBSCRIPTION_SOURCES, SUBSCRIPTION_STATUSES, LEDGER_TYPES, ERROR_CODES } = require("../constants/subscription.constants");
 const { AppError } = require("../../property/utils/property.errors");
 
@@ -28,7 +29,7 @@ function assertPaymentMatchesOrder(order, payment) {
   const matches =
     payment.status === PAYMENT_CAPTURED &&
     payment.order_id === order.razorpay_order_id &&
-    payment.amount === order.total_amount &&
+    payment.amount === toGatewayAmount(order.total_amount) &&
     payment.currency === CURRENCY;
 
   if (!matches) {

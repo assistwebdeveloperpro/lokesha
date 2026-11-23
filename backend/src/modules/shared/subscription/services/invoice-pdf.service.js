@@ -15,8 +15,8 @@ const COLUMNS = [
 ];
 
 // Built-in PDF fonts have no rupee glyph, so amounts read "Rs."
-const formatMoney = (paise) =>
-  `Rs. ${(paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatMoney = (amount) =>
+  `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const formatDate = (value) =>
   new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });

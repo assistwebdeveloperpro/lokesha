@@ -54,9 +54,10 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     href: "/user/properties/manage-properties",
     icon: Building2,
     children: [
+      { label: "Post New Properties", href: "/user/properties/post-new-properties", icon: SquarePlus },
       { label: "Manage Properties", href: "/user/properties/manage-properties", icon: House },
       { label: "Manage Projects", href: "/user/properties/manage-projects", icon: FolderKanban },
-      { label: "Post New Properties", href: "/user/properties/post-new-properties", icon: SquarePlus },
+
     ],
   },
   { label: "Leads", href: "/user/leads", icon: Users },

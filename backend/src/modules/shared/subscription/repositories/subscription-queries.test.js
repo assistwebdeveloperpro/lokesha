@@ -47,7 +47,7 @@ describe("every repository query can be built", () => {
       subscriptionRepository.markPropertyBilled(db, "p", { subscriptionId: "s", expiresAt: NOW, leadLimit: 2 }),
     "subscription.countReservedProperties": () => subscriptionRepository.countReservedProperties(db, "u", NOW),
     "subscription.findLeadLimitForUpdate": () => subscriptionRepository.findLeadLimitForUpdate(db, "p"),
-    "subscription.countPropertyLeads": () => subscriptionRepository.countPropertyLeads(db, "p"),
+    "subscription.findPropertyLeadPosition": () => subscriptionRepository.findPropertyLeadPosition(db, "p", "l"),
     "ledger.insertEntry": () => ledgerRepository.insertEntry(db, { subscriptionId: "s", userId: "u", type: "used", credits: -1 }),
     "order.insertOrder": () => orderRepository.insertOrder(db, { order_number: "O" }),
     "order.updateOrder": () => orderRepository.updateOrder(db, "o", { status: "paid" }),

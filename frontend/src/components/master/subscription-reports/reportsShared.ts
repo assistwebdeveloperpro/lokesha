@@ -15,7 +15,7 @@ export type ReportGroup = { title: string; text: string; tiles: ReportTile[] };
 
 const plural = (count: number, singular: string, pluralForm = `${singular}s`) => `${count} ${count === 1 ? singular : pluralForm}`;
 
-// Builds the figures shown on the page; money is in paise
+// Builds the figures shown on the page; money is in rupees
 export function buildReportGroups({ revenue, payments, users }: ReportsOverview): ReportGroup[] {
   return [
     {

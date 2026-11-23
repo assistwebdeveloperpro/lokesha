@@ -3,8 +3,10 @@ const mockTrx = {};
 jest.mock("../../../../config/db", () => ({ db: { transaction: (callback) => callback(mockTrx) } }));
 jest.mock("./leads.repository");
 jest.mock("../../../user/dashboard/user-notifications/user-notifications.repository");
+jest.mock("../../../shared/subscription/services/subscription-lead-limit.service");
 
 const repository = require("./leads.repository");
+const leadLimitService = require("../../../shared/subscription/services/subscription-lead-limit.service");
 const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
 const { leadsListQuerySchema, leadIdParamSchema } = require("./leads.validation");
 const { listLeads, sendLeadToLister } = require("./leads.service");
@@ -119,6 +121,7 @@ describe("sendLeadToLister", () => {
       sent_at: "2026-11-18T10:00:00.000Z",
     });
     notificationRepository.insertNotification.mockResolvedValue();
+    leadLimitService.assertSendCapacity.mockResolvedValue({ limit: null, received: 0 });
   });
 
   const expectRejected = async (statusCode) => {
@@ -140,6 +143,28 @@ describe("sendLeadToLister", () => {
         lead_id: "lead-1",
         title: "Sky Heights",
       })
+    );
+  });
+
+  it("refuses to send once the property's free lead limit is used", async () => {
+    leadLimitService.assertSendCapacity.mockRejectedValueOnce(Object.assign(new Error("limit"), { statusCode: 409 }));
+
+    await expectRejected(409);
+    expect(repository.markLeadSent).not.toHaveBeenCalled();
+    expect(leadLimitService.notifyLeadProgress).not.toHaveBeenCalled();
+  });
+
+  it("reports the lead limit progress after the lead is sent", async () => {
+    const progress = { limit: 2, received: 1 };
+    leadLimitService.assertSendCapacity.mockResolvedValue(progress);
+
+    await sendLeadToLister("lead-1");
+
+    expect(leadLimitService.assertSendCapacity).toHaveBeenCalledWith(mockTrx, "prop-1", "lead-1");
+    expect(leadLimitService.notifyLeadProgress).toHaveBeenCalledWith(
+      mockTrx,
+      { id: "prop-1", user_id: "user-9", title: "Sky Heights" },
+      progress
     );
   });
 

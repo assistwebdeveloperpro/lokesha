@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const repository = require("./user-subscription.repository");
 const { razorpayService } = require("../../../shared/subscription/services/razorpay.service");
 const { confirmPayment } = require("../../../shared/subscription/services/subscription-payment.service");
-const { calculatePrice } = require("../../../shared/subscription/utils/subscription-pricing.util");
+const { calculatePrice, toGatewayAmount } = require("../../../shared/subscription/utils/subscription-pricing.util");
 const { addMonths, formatIstDate } = require("../../../shared/subscription/utils/subscription-dates.util");
 const { ORDER_STATUSES, ERROR_CODES } = require("../../../shared/subscription/constants/subscription.constants");
 const { AppError } = require("../../../shared/property/utils/property.errors");
@@ -11,7 +11,7 @@ const BAD_REQUEST = 400;
 const NOT_FOUND = 404;
 const CONFLICT = 409;
 const PAYMENT_CAPTURED = "captured";
-const MIN_CHARGE = 100;
+const MIN_CHARGE = 1;
 const GATEWAY_ERROR_REASON = "Could not create the payment order";
 
 const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singular : pluralForm}`;
@@ -141,7 +141,7 @@ async function createOrder(userId, { listings, months, gstin }) {
   let gatewayOrder;
   try {
     gatewayOrder = await razorpayService.createOrder({
-      amount: quote.totalAmount,
+      amount: toGatewayAmount(quote.totalAmount),
       receipt: order.order_number,
       notes: { orderId: order.id, userId },
     });
@@ -158,7 +158,7 @@ async function createOrder(userId, { listings, months, gstin }) {
     checkout: {
       keyId: razorpayService.getKeyId(),
       razorpayOrderId: gatewayOrder.id,
-      amount: quote.totalAmount,
+      amount: toGatewayAmount(quote.totalAmount),
       currency: razorpayService.CURRENCY,
       name: "Lokesha",
       description: `Standard package: ${quote.benefits[0]}, ${quote.benefits[2]}`,

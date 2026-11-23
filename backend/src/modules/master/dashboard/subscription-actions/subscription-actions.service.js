@@ -7,6 +7,7 @@ const { creditsAdded, subscriptionExtended, refundIssued } = require("../../../u
 const { razorpayService } = require("../../../shared/subscription/services/razorpay.service");
 const { createCreditNoteForOrder } = require("../../../shared/subscription/services/invoice.service");
 const { addMonths } = require("../../../shared/subscription/utils/subscription-dates.util");
+const { toGatewayAmount } = require("../../../shared/subscription/utils/subscription-pricing.util");
 const {
   PACKAGE_CODES,
   SUBSCRIPTION_SOURCES,
@@ -103,7 +104,7 @@ async function refundAtGateway(order, reason) {
   if (isRefunded) return;
 
   await razorpayService.refundPayment(order.razorpay_payment_id, {
-    amount: order.total_amount,
+    amount: toGatewayAmount(order.total_amount),
     notes: { orderNumber: order.order_number, reason },
   });
 }

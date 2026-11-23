@@ -5,14 +5,14 @@ const { ERROR_CODES } = require("../constants/subscription.constants");
 const { AppError } = require("../../property/utils/property.errors");
 
 const CONFLICT = 409;
-const LIMIT_REACHED_MESSAGE = "This property is not accepting new enquiries right now.";
+const LIMIT_REACHED_MESSAGE = "Lead limit reached. This lead can be sent once the lister upgrades this property.";
 
-// Locks the property and refuses a new lead once its limit is used; a null limit means unlimited
-async function assertLeadCapacity(trx, propertyId) {
+// Locks the property and refuses leads beyond its first `limit` ones; a null limit means unlimited
+async function assertSendCapacity(trx, propertyId, leadId) {
   const limit = await subscriptionRepository.findLeadLimitForUpdate(trx, propertyId);
   if (limit === null) return { limit: null, received: 0 };
 
-  const received = await subscriptionRepository.countPropertyLeads(trx, propertyId);
+  const received = (await subscriptionRepository.findPropertyLeadPosition(trx, propertyId, leadId)) - 1;
   if (received >= limit) {
     throw new AppError(LIMIT_REACHED_MESSAGE, CONFLICT, { code: ERROR_CODES.LEAD_LIMIT_REACHED });
   }
@@ -33,4 +33,4 @@ async function notifyLeadProgress(trx, property, { limit, received }) {
   }
 }
 
-module.exports = { assertLeadCapacity, notifyLeadProgress };
+module.exports = { assertSendCapacity, notifyLeadProgress };

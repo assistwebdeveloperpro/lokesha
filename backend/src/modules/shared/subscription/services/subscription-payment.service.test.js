@@ -27,7 +27,7 @@ const order = (overrides = {}) => ({
   package_id: "pkg-std",
   listings: 2,
   months: 3,
-  total_amount: 708000,
+  total_amount: 7080,
   status: "pending",
   razorpay_order_id: "order_rzp_1",
   ...overrides,

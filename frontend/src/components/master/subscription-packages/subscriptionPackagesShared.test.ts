@@ -4,7 +4,7 @@ import { formatRupees } from "@/lib/currency";
 import {
   buildUpdateInput,
   formatChangeValue,
-  rupeesToPaise,
+  parseRupees,
   toFormState,
   validatePackageForm,
 } from "./subscriptionPackagesShared";
@@ -18,7 +18,7 @@ const standard: SubscriptionPackage = {
   benefits: ["Unlimited leads"],
   status: "active",
   displayOrder: 2,
-  pricePerListingMonth: 100000,
+  pricePerListingMonth: 1000,
   gstPercent: 18,
   minListings: 1,
   maxListings: 50,
@@ -50,19 +50,18 @@ const free: SubscriptionPackage = {
 };
 
 describe("money helpers", () => {
-  it("formats paise as rupees with Indian grouping", () => {
-    expect(formatRupees(100000)).toBe("₹1,000");
-    expect(formatRupees(118050)).toBe("₹1,180.5");
+  it("formats rupees with Indian grouping", () => {
+    expect(formatRupees(1000)).toBe("₹1,000");
+    expect(formatRupees(1180.5)).toBe("₹1,180.5");
     expect(formatRupees(0)).toBe("₹0");
-    expect(formatRupees(12345600)).toBe("₹1,23,456");
+    expect(formatRupees(123456)).toBe("₹1,23,456");
   });
 
-  it("converts typed rupees to whole paise without float drift", () => {
-    expect(rupeesToPaise("1000")).toBe(100000);
-    expect(rupeesToPaise("1500.5")).toBe(150050);
-    expect(rupeesToPaise("0.29")).toBe(29);
-    expect(rupeesToPaise("")).toBeNull();
-    expect(rupeesToPaise("abc")).toBeNull();
+  it("parses typed rupees as whole numbers only", () => {
+    expect(parseRupees("1000")).toBe(1000);
+    expect(parseRupees("1500.5")).toBeNull();
+    expect(parseRupees("")).toBeNull();
+    expect(parseRupees("abc")).toBeNull();
   });
 });
 
@@ -108,12 +107,12 @@ describe("buildUpdateInput", () => {
     expect(buildUpdateInput(free, toFormState(free))).toEqual({});
   });
 
-  it("sends only the changed fields, with the price in paise", () => {
+  it("sends only the changed fields, with the price in rupees", () => {
     const form = { ...toFormState(standard), price: "1500", name: " Standard Plus ", maxListings: "60" };
 
     expect(buildUpdateInput(standard, form)).toEqual({
       name: "Standard Plus",
-      pricePerListingMonth: 150000,
+      pricePerListingMonth: 1500,
       maxListings: 60,
     });
   });
@@ -136,7 +135,7 @@ describe("buildUpdateInput", () => {
 
 describe("formatChangeValue", () => {
   it.each([
-    ["pricePerListingMonth", 150000, "₹1,500"],
+    ["pricePerListingMonth", 1500, "₹1,500"],
     ["gstPercent", 18, "18%"],
     ["freePropertyValidityDays", 30, "30 days"],
     ["allowCustomQuantity", true, "Yes"],

@@ -8,7 +8,7 @@ import type {
 export const AUDIT_PAGE_SIZE = 5;
 export const MAX_BENEFITS = 10;
 
-const PAISE_PER_RUPEE = 100;
+const MAX_PRICE = 100000;
 
 export type PackageFormState = {
   name: string;
@@ -37,7 +37,7 @@ export const STATUS_OPTIONS = [
   { value: "inactive", label: "Inactive" },
 ];
 
-export const formatRupeesInput = (paise: number) => String(paise / PAISE_PER_RUPEE);
+export const formatRupeesInput = (rupees: number) => String(rupees);
 
 function parseNumber(text: string): number | null {
   const trimmed = text.trim();
@@ -52,10 +52,7 @@ const parseInteger = (text: string) => {
   return value !== null && Number.isInteger(value) ? value : null;
 };
 
-export function rupeesToPaise(text: string): number | null {
-  const value = parseNumber(text);
-  return value === null ? null : Math.round(value * PAISE_PER_RUPEE);
-}
+export const parseRupees = parseInteger;
 
 const toText = (value: number | null) => (value === null ? "" : String(value));
 
@@ -117,8 +114,8 @@ export function validatePackageForm(form: PackageFormState, isFree: boolean): Pa
   }
 
   if (!isFree) {
-    const paise = rupeesToPaise(form.price);
-    if (paise === null || paise < 0 || paise > 10000000) errors.price = "Price must be from ₹0 to ₹1,00,000";
+    const price = parseRupees(form.price);
+    if (price === null || price < 0 || price > MAX_PRICE) errors.price = "Price must be a whole number from ₹0 to ₹1,00,000";
 
     const gst = parseNumber(form.gstPercent);
     if (gst === null || gst < 0 || gst > 100) errors.gstPercent = "GST must be from 0 to 100";
@@ -158,7 +155,7 @@ export function buildUpdateInput(pkg: SubscriptionPackage, form: PackageFormStat
           freePropertyValidityDays: Number(form.freePropertyValidityDays),
         }
       : {
-          pricePerListingMonth: rupeesToPaise(form.price) ?? 0,
+          pricePerListingMonth: parseRupees(form.price) ?? 0,
           gstPercent: Number(form.gstPercent),
           minListings: Number(form.minListings),
           maxListings: Number(form.maxListings),

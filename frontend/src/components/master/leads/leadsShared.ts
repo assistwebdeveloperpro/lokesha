@@ -73,15 +73,20 @@ export function applySentLead(leads: AdminLead[], sent: SentLeadResult): AdminLe
   );
 }
 
-export type LeadSendState ="none" | "can_send" | "sent" | "no_account";
+export type LeadSendState = "none" | "can_send" | "sent" | "no_account" | "limit_reached";
+
+export const LEAD_LIMIT_REACHED_LABEL = "Free Limit Reached";
+
+export const LEAD_LIMIT_REACHED_MESSAGE = "Lead limit reached. The lister must upgrade this property to receive more leads.";
 
 // Decides what the Action column shows for a lead
 export function getLeadSendState(
-  lead: Pick<AdminLead, "verificationStatus" | "distributionStatus" | "canSendToLister">,
+  lead: Pick<AdminLead, "verificationStatus" | "distributionStatus" | "canSendToLister" | "leadLimitReached">,
 ): LeadSendState {
   if (lead.distributionStatus === "sent") return "sent";
   if (lead.verificationStatus !== "verified") return "none";
-  return lead.canSendToLister ? "can_send" : "no_account";
+  if (!lead.canSendToLister) return "no_account";
+  return lead.leadLimitReached ? "limit_reached" : "can_send";
 }
 
 export function getInitials(name: string): string {

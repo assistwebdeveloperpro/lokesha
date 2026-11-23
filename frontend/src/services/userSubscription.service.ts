@@ -1,6 +1,6 @@
 import { apiFetch, apiFetchBlob } from "./apiClient";
 
-// Money is in paise, the smallest currency unit
+// Money is in whole rupees; checkout.amount alone is in paise for Razorpay
 export type PurchasablePackage = {
   id: string;
   code: "free" | "standard";

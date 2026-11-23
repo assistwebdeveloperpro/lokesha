@@ -144,7 +144,7 @@ describe("refundOrder", () => {
     order_number: "ORD-1",
     user_id: "user-1",
     status: "paid",
-    total_amount: 708000,
+    total_amount: 7080,
     razorpay_payment_id: "pay_1",
   };
   const subscription = { id: "sub-1", total_credits: 5, used_credits: 2 };
@@ -183,7 +183,7 @@ describe("refundOrder", () => {
         type: "refund",
         orderId: "order-1",
         subscriptionId: "sub-1",
-        details: { amount: 708000, razorpayPaymentId: "pay_1", cancelledCredits: 3, creditNoteNumber: "LOK-CN/2026-27/000001" },
+        details: { amount: 7080, razorpayPaymentId: "pay_1", cancelledCredits: 3, creditNoteNumber: "LOK-CN/2026-27/000001" },
       }),
     );
     expect(notificationRepository.insertNotification).toHaveBeenCalledWith(TRX, expect.objectContaining({ type: "refund_issued" }));

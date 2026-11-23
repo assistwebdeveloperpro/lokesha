@@ -102,7 +102,7 @@ async function findLedger(userId, paging) {
 
 const countLedger = (userId) => countOf(ledgerQuery(userId));
 
-// Properties that used a credit, with how many leads each has received
+// Properties that used a credit, with how many leads were sent to the lister
 const leadUsageQuery = (userId) =>
   db("properties as p").where("p.user_id", userId).whereNotNull("p.credit_consumed_at");
 
@@ -114,7 +114,11 @@ async function findPropertyLeadUsage(userId, paging) {
     "p.status",
     "p.lead_limit",
     "p.expires_at",
-    db("property_leads").whereRaw("property_leads.property_id = p.id").count("*").as("leads_count")
+    db("property_leads")
+      .whereRaw("property_leads.property_id = p.id")
+      .where("property_leads.distribution_status", "sent")
+      .count("*")
+      .as("leads_count")
   );
 }
 

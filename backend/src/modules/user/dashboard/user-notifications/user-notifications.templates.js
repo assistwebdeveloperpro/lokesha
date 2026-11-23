@@ -72,7 +72,7 @@ function leadLimitReached({ userId, propertyId, title, limit }) {
     user_id: userId,
     type: NOTIFICATION_TYPES.leadLimitReached,
     title,
-    message: `This property has received all ${limit} leads included in your package and will not receive new leads. Upgrade to the Standard package for unlimited leads.`,
+    message: `This property has received all ${limit} leads included in your package and new leads are held back until you upgrade. Upgrade to the Standard package for unlimited leads.`,
     property_id: propertyId,
   };
 }

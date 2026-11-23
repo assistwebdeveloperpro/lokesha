@@ -16,7 +16,7 @@ describe("updatePackageSchema", () => {
       benefits: [],
       status: "inactive",
       displayOrder: 2,
-      pricePerListingMonth: 150000,
+      pricePerListingMonth: 1500,
       gstPercent: 18.5,
       minListings: 1,
       maxListings: 50,

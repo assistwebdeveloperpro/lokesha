@@ -58,7 +58,13 @@ async function findLeads(filters) {
       "p.listing_type",
       "p.locality",
       "p.city",
-      "bp.project_name as project_name"
+      "bp.project_name as project_name",
+      db.raw(
+        `case when p.lead_limit is not null and p.user_id is not null and (
+          select count(*) from property_leads sl
+          where sl.property_id = l.property_id and (sl.created_at, sl.id) <= (l.created_at, l.id)
+        ) > p.lead_limit then true else false end as lead_limit_reached`
+      )
     );
 }
 

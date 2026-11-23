@@ -8,11 +8,11 @@ const SNAPSHOT = {
     description: "Standard package subscription",
     listings: 2,
     months: 3,
-    pricePerListingMonth: 100000,
+    pricePerListingMonth: 1000,
     startsAt: "2026-11-20T10:00:00.000Z",
     endsAt: "2027-02-20T10:00:00.000Z",
   },
-  amounts: { baseAmount: 600000, gstPercent: 18, gstAmount: 108000, totalAmount: 708000 },
+  amounts: { baseAmount: 6000, gstPercent: 18, gstAmount: 1080, totalAmount: 7080 },
   payment: { razorpayPaymentId: "pay_1", razorpayOrderId: "order_rzp_1", paidAt: "2026-11-20T10:00:00.000Z" },
 };
 
@@ -111,9 +111,9 @@ describe("credit note", () => {
 });
 
 describe("helpers", () => {
-  it("formats money from paise with Indian grouping", () => {
-    expect(formatMoney(708000)).toBe("Rs. 7,080.00");
-    expect(formatMoney(12345650)).toBe("Rs. 1,23,456.50");
+  it("formats money in rupees with Indian grouping", () => {
+    expect(formatMoney(7080)).toBe("Rs. 7,080.00");
+    expect(formatMoney(123456.5)).toBe("Rs. 1,23,456.50");
     expect(formatMoney(0)).toBe("Rs. 0.00");
   });
 

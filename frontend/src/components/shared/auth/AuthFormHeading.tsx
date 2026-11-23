@@ -19,7 +19,7 @@ export default function AuthFormHeading({
   return (
     <header
       className={cn(
-        "border-b border-slate-100 pb-4 sm:pb-[1.125rem]",
+        "pb-3 sm:pb-3.5",
         className,
       )}
     >

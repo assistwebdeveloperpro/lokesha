@@ -3,7 +3,7 @@ const { PACKAGE_STATUSES } = require("../../../shared/subscription/constants/sub
 
 const MAX_PAGE_SIZE = 50;
 const MAX_BENEFITS = 10;
-const MAX_PRICE = 10000000;
+const MAX_PRICE = 100000;
 const MAX_LISTINGS = 1000;
 const MAX_MONTHS = 60;
 const MAX_FREE_VALUE = 1000;

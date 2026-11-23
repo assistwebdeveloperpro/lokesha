@@ -3,32 +3,32 @@ jest.mock("../../../user/dashboard/user-notifications/user-notifications.reposit
 
 const subscriptionRepository = require("../repositories/subscription.repository");
 const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
-const { assertLeadCapacity, notifyLeadProgress } = require("./subscription-lead-limit.service");
+const { assertSendCapacity, notifyLeadProgress } = require("./subscription-lead-limit.service");
 
 const TRX = Symbol("trx");
 const PROPERTY = { id: "prop-1", user_id: "user-1", title: "Sky Heights" };
 
-describe("assertLeadCapacity", () => {
+describe("assertSendCapacity", () => {
   it("allows any number of leads when the property has no limit", async () => {
     subscriptionRepository.findLeadLimitForUpdate.mockResolvedValue(null);
 
-    await expect(assertLeadCapacity(TRX, "prop-1")).resolves.toEqual({ limit: null, received: 0 });
-    expect(subscriptionRepository.countPropertyLeads).not.toHaveBeenCalled();
+    await expect(assertSendCapacity(TRX, "prop-1", "lead-1")).resolves.toEqual({ limit: null, received: 0 });
+    expect(subscriptionRepository.findPropertyLeadPosition).not.toHaveBeenCalled();
   });
 
   it("allows a lead while the limit is not used", async () => {
     subscriptionRepository.findLeadLimitForUpdate.mockResolvedValue(2);
-    subscriptionRepository.countPropertyLeads.mockResolvedValue(1);
+    subscriptionRepository.findPropertyLeadPosition.mockResolvedValue(2);
 
-    await expect(assertLeadCapacity(TRX, "prop-1")).resolves.toEqual({ limit: 2, received: 1 });
+    await expect(assertSendCapacity(TRX, "prop-1", "lead-1")).resolves.toEqual({ limit: 2, received: 1 });
     expect(subscriptionRepository.findLeadLimitForUpdate).toHaveBeenCalledWith(TRX, "prop-1");
   });
 
-  it.each([2, 3])("refuses a new lead once %i leads are received", async (received) => {
+  it.each([3, 4])("refuses a lead that is number %i on a property with a limit of 2", async (received) => {
     subscriptionRepository.findLeadLimitForUpdate.mockResolvedValue(2);
-    subscriptionRepository.countPropertyLeads.mockResolvedValue(received);
+    subscriptionRepository.findPropertyLeadPosition.mockResolvedValue(received);
 
-    await expect(assertLeadCapacity(TRX, "prop-1")).rejects.toMatchObject({
+    await expect(assertSendCapacity(TRX, "prop-1", "lead-1")).rejects.toMatchObject({
       statusCode: 409,
       details: { code: "PROPERTY_LEAD_LIMIT_REACHED" },
     });

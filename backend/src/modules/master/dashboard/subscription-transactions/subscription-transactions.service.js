@@ -3,7 +3,6 @@ const { toCsv } = require("../../../shared/subscription/utils/csv.util");
 const { addDays, formatIstDate, formatIstDateTime, startOfIstDay } = require("../../../shared/subscription/utils/subscription-dates.util");
 
 const MAX_EXPORT_ROWS = 10000;
-const PAISE_PER_RUPEE = 100;
 
 function toRepositoryFilters({ search, status, userId, from, to }) {
   return {
@@ -52,7 +51,7 @@ async function listTransactions({ page, limit, ...filters }) {
 }
 
 // Accounts read rupees, so every amount column is written as rupees with two decimals
-const rupees = (paise) => (paise / PAISE_PER_RUPEE).toFixed(2);
+const rupees = (amount) => amount.toFixed(2);
 
 const EXPORT_COLUMNS = [
   { header: "Order number", value: (t) => t.orderNumber },

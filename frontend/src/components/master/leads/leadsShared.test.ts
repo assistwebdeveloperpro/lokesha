@@ -6,6 +6,7 @@ const lead = (overrides: Partial<Parameters<typeof getLeadSendState>[0]> = {}) =
   verificationStatus: "verified" as const,
   distributionStatus: "not_sent" as const,
   canSendToLister: true,
+  leadLimitReached: false,
   ...overrides,
 });
 
@@ -24,6 +25,10 @@ describe("getLeadSendState", () => {
 
   it("blocks sending when the lead has no user lister", () => {
     expect(getLeadSendState(lead({ canSendToLister: false }))).toBe("no_account");
+  });
+
+  it("blocks sending once the property's free lead limit is reached", () => {
+    expect(getLeadSendState(lead({ leadLimitReached: true }))).toBe("limit_reached");
   });
 });
 

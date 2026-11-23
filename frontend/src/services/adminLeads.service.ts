@@ -23,6 +23,7 @@ export type AdminLead = {
   distributionStatus: LeadDistributionStatus;
   sentAt: string | null;
   canSendToLister: boolean;
+  leadLimitReached: boolean;
   createdAt: string;
 };
 

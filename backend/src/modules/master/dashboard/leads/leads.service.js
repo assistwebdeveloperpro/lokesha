@@ -3,6 +3,7 @@ const repository = require("./leads.repository");
 const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
 const notificationTemplates = require("../../../user/dashboard/user-notifications/user-notifications.templates");
 const { AppError } = require("../../../shared/property/utils/property.errors");
+const { assertSendCapacity, notifyLeadProgress } = require("../../../shared/subscription/services/subscription-lead-limit.service");
 
 const toLead = (row) => ({
   id: row.id,
@@ -23,6 +24,7 @@ const toLead = (row) => ({
   distributionStatus: row.distribution_status,
   sentAt: row.sent_at,
   canSendToLister: Boolean(row.lister_user_id),
+  leadLimitReached: row.lead_limit_reached,
   createdAt: row.created_at,
 });
 
@@ -55,6 +57,8 @@ async function sendLeadToLister(id) {
     const lead = await repository.findLeadForUpdate(trx, id);
     assertSendable(lead);
 
+    const leadProgress = await assertSendCapacity(trx, lead.property_id, lead.id);
+
     const sent = await repository.markLeadSent(trx, id);
     if (!sent) throw new AppError("Lead already sent", 409);
 
@@ -66,6 +70,11 @@ async function sendLeadToLister(id) {
         leadId: lead.id,
         title: lead.property_title || "Your property",
       })
+    );
+    await notifyLeadProgress(
+      trx,
+      { id: lead.property_id, user_id: lead.lister_user_id, title: lead.property_title || "Your property" },
+      leadProgress
     );
 
     return { id: sent.id, distributionStatus: sent.distribution_status, sentAt: sent.sent_at };

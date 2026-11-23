@@ -1,6 +1,10 @@
 const isPositiveInt = (value) => Number.isInteger(value) && value > 0;
 
-// Amounts are integers in the smallest currency unit (paise)
+const PAISE_PER_RUPEE = 100;
+
+// Amounts are whole rupees; only the payment gateway works in paise
+const toGatewayAmount = (rupees) => rupees * PAISE_PER_RUPEE;
+
 function calculatePrice({ listings, months, pricePerListingMonth, gstPercent }) {
   if (!isPositiveInt(listings) || !isPositiveInt(months)) {
     throw new RangeError("listings and months must be positive integers");
@@ -17,4 +21,4 @@ function calculatePrice({ listings, months, pricePerListingMonth, gstPercent }) 
   return { baseAmount, gstAmount, totalAmount: baseAmount + gstAmount };
 }
 
-module.exports = { calculatePrice };
+module.exports = { calculatePrice, toGatewayAmount };

@@ -24,7 +24,7 @@ const standardRow = (overrides = {}) => ({
   display_title: "Standard Package",
   description: null,
   benefits: [],
-  price_per_listing_month: 100000,
+  price_per_listing_month: 1000,
   gst_percent: "18.00",
   min_listings: 1,
   max_listings: 50,
@@ -45,9 +45,9 @@ const orderRow = (overrides = {}) => ({
   status: "pending",
   listings: 2,
   months: 2,
-  base_amount: 400000,
-  gst_amount: 72000,
-  total_amount: 472000,
+  base_amount: 4000,
+  gst_amount: 720,
+  total_amount: 4720,
   razorpay_order_id: "order_rzp_1",
   paid_at: null,
   ...overrides,
@@ -69,11 +69,11 @@ describe("buildQuote", () => {
       packageId: "pkg-std",
       listings: 2,
       months: 2,
-      pricePerListingMonth: 100000,
+      pricePerListingMonth: 1000,
       gstPercent: 18,
-      baseAmount: 400000,
-      gstAmount: 72000,
-      totalAmount: 472000,
+      baseAmount: 4000,
+      gstAmount: 720,
+      totalAmount: 4720,
       startsAt: NOW,
       endsAt: new Date("2027-01-20T10:00:00.000Z"),
       benefits: ["2 Property Listings", "Unlimited Leads", "2 Months Validity"],
@@ -99,7 +99,7 @@ describe("buildQuote", () => {
   it("allows only the minimum when custom choices are switched off", () => {
     const fixed = standardRow({ allow_custom_quantity: false, allow_custom_duration: false });
 
-    expect(service.buildQuote(fixed, { listings: 1, months: 1 }, NOW).totalAmount).toBe(118000);
+    expect(service.buildQuote(fixed, { listings: 1, months: 1 }, NOW).totalAmount).toBe(1180);
     expect(() => service.buildQuote(fixed, { listings: 2, months: 1 }, NOW)).toThrow(expect.objectContaining({ statusCode: 400 }));
     expect(() => service.buildQuote(fixed, { listings: 1, months: 2 }, NOW)).toThrow(expect.objectContaining({ statusCode: 400 }));
   });
@@ -142,9 +142,9 @@ describe("createOrder", () => {
         package_id: "pkg-std",
         listings: 2,
         months: 2,
-        base_amount: 400000,
-        gst_amount: 72000,
-        total_amount: 472000,
+        base_amount: 4000,
+        gst_amount: 720,
+        total_amount: 4720,
         status: "created",
         user_gstin: "24AAACC1206D1ZM",
         order_number: expect.stringMatching(/^ORD-\d{8}-[0-9A-F]{8}$/),
@@ -156,7 +156,7 @@ describe("createOrder", () => {
       notes: { orderId: "order-1", userId: "user-1" },
     });
     expect(repository.updateOrder).toHaveBeenCalledWith("order-1", { razorpay_order_id: "order_rzp_1", status: "pending" });
-    expect(result.order).toMatchObject({ id: "order-1", status: "pending", totalAmount: 472000 });
+    expect(result.order).toMatchObject({ id: "order-1", status: "pending", totalAmount: 4720 });
     expect(result.checkout).toMatchObject({
       keyId: "rzp_test_key",
       razorpayOrderId: "order_rzp_1",
