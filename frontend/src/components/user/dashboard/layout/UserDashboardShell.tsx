@@ -18,7 +18,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { setRedirectToast } from "@/components/shared/ui/redirectToast";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/user/dashboard/notifications/NotificationBell";
-import UserDashboardSectionTabs from "@/components/user/dashboard/layout/UserDashboardSectionTabs";
 import {
   getActiveSectionHref,
   getRestrictedNavRedirect,
@@ -37,6 +36,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubCollapsible,
+  SidebarMenuSubItem,
   SidebarProvider,
   SidebarSeparator,
   SidebarTrigger,
@@ -186,6 +189,20 @@ function UserDashboardShellInner({
     () => getActiveSectionHref(pathname, role),
     [pathname, role]
   );
+  const [expandedSectionHref, setExpandedSectionHref] = useState<string | null>(
+    activeSectionHref
+  );
+
+  // Section of the current page opens on route change, adjusted while rendering
+  const [syncedSectionHref, setSyncedSectionHref] = useState(activeSectionHref);
+  if (syncedSectionHref !== activeSectionHref) {
+    setSyncedSectionHref(activeSectionHref);
+    if (activeSectionHref) setExpandedSectionHref(activeSectionHref);
+  }
+
+  const toggleSection = (href: string) => {
+    setExpandedSectionHref((current) => (current === href ? null : href));
+  };
 
   const closeSidebarOnMobile = () => {
     if (!isDesktop) {
@@ -264,22 +281,78 @@ function UserDashboardShellInner({
               <SidebarMenu>
                 {navItems.map((item) => {
                   const ItemIcon = item.icon;
-                  const isActive = item.children?.length
-                    ? activeSectionHref === item.href
-                    : isNavItemActive(pathname, item.href, role);
+                  const hasChildren = Boolean(item.children?.length);
+                  const isExpanded = expandedSectionHref === item.href;
+                  const isSectionActive = activeSectionHref === item.href;
 
                   return (
                     <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton asChild isActive={isActive}>
-                        <Link
-                          href={item.href}
-                          title={!open ? item.label : undefined}
-                          onClick={(event) => handleNavClick(item.href, event)}
+                      {hasChildren && open ? (
+                        <SidebarMenuButton
+                          type="button"
+                          aria-expanded={isExpanded}
+                          aria-label={isExpanded ? `Collapse ${item.label}` : `Expand ${item.label}`}
+                          onClick={() => toggleSection(item.href)}
+                          className={cn("justify-between gap-2", isSectionActive && "text-white")}
                         >
-                          <ItemIcon className="h-5 w-5 shrink-0" />
-                          {open && <span className="truncate">{item.label}</span>}
-                        </Link>
-                      </SidebarMenuButton>
+                          <span className="flex min-w-0 flex-1 items-center gap-3">
+                            <ItemIcon className="h-5 w-5 shrink-0" />
+                            <span className="truncate">{item.label}</span>
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200",
+                              isExpanded && "rotate-180"
+                            )}
+                          />
+                        </SidebarMenuButton>
+                      ) : (
+                        <SidebarMenuButton
+                          asChild
+                          isActive={
+                            hasChildren
+                              ? isSectionActive
+                              : isNavItemActive(pathname, item.href, role)
+                          }
+                        >
+                          <Link
+                            href={item.href}
+                            title={!open ? item.label : undefined}
+                            onClick={(event) => handleNavClick(item.href, event)}
+                          >
+                            <ItemIcon className="h-5 w-5 shrink-0" />
+                            {open && <span className="truncate">{item.label}</span>}
+                          </Link>
+                        </SidebarMenuButton>
+                      )}
+
+                      {open && hasChildren && (
+                        <SidebarMenuSubCollapsible open={isExpanded}>
+                          <SidebarMenuSub>
+                            {item.children!.map((child) => {
+                              const ChildIcon = child.icon;
+
+                              return (
+                                <SidebarMenuSubItem key={child.href}>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isNavItemActive(pathname, child.href, role)}
+                                  >
+                                    <Link
+                                      href={child.href}
+                                      tabIndex={isExpanded ? undefined : -1}
+                                      onClick={(event) => handleNavClick(child.href, event)}
+                                    >
+                                      {ChildIcon && <ChildIcon className="mr-2.5 h-4 w-4 shrink-0" />}
+                                      <span className="truncate">{child.label}</span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              );
+                            })}
+                          </SidebarMenuSub>
+                        </SidebarMenuSubCollapsible>
+                      )}
                     </SidebarMenuItem>
                   );
                 })}
@@ -353,7 +426,6 @@ function UserDashboardShellInner({
 
         <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,.04)] sm:p-5">
-            <UserDashboardSectionTabs />
             {children}
           </div>
         </main>
