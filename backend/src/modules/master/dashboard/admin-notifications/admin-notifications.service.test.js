@@ -10,7 +10,7 @@ const row = (overrides = {}) => ({
   id: "n1",
   type: "lead_received",
   title: "Sky Towers",
-  message: "Asha contacted this property.",
+  message: "New lead received from Asha for this property.",
   property_id: "p1",
   lead_id: "l1",
   read_at: null,

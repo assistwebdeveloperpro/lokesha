@@ -36,7 +36,7 @@ function leadReceived({ propertyId, leadId, title, leadName }) {
   return {
     type: NOTIFICATION_TYPES.leadReceived,
     title,
-    message: `${leadName} contacted this property.`,
+    message: `New lead received from ${leadName} for this property.`,
     property_id: propertyId,
     lead_id: leadId,
   };
