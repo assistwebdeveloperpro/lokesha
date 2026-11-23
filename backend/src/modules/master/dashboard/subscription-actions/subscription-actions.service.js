@@ -13,7 +13,9 @@ const {
   SUBSCRIPTION_SOURCES,
   SUBSCRIPTION_STATUSES,
   ORDER_STATUSES,
+  ORDER_TYPES,
   LEDGER_TYPES,
+  ERROR_CODES,
 } = require("../../../shared/subscription/constants/subscription.constants");
 const { AppError } = require("../../../shared/property/utils/property.errors");
 
@@ -116,11 +118,71 @@ function assertRefundable(order) {
   }
 }
 
+// Leads are used once a sent lead sits beyond the limit the property would have without them
+async function assertLeadsUnused(trx, order) {
+  const limit = await subscriptionRepository.findLeadLimitForUpdate(trx, order.property_id);
+  // An unlimited property has no limit the leads could have been used against
+  if (limit === null) return;
+
+  const highestSent = await subscriptionRepository.findHighestSentLeadPosition(trx, order.property_id);
+  if (limit - order.leads < highestSent) {
+    throw new AppError("These leads were already used, so this order cannot be refunded.", CONFLICT, {
+      code: ERROR_CODES.LEAD_PACK_ALREADY_USED,
+    });
+  }
+}
+
+// One transaction holds the property lock from the usage check to the refund, so no send can slip in between
+// The gateway refund is retry-safe, so a failure after it only needs the admin to try again
+async function refundLeadPackOrder(admin, { orderId, reason }, now) {
+  return repository.runInTransaction(async (trx) => {
+    const locked = await orderRepository.findOrderByIdForUpdate(trx, orderId);
+    if (locked.status === ORDER_STATUSES.REFUNDED) return { orderId, status: ORDER_STATUSES.REFUNDED, cancelledCredits: 0, removedLeads: 0, creditNote: null };
+    assertRefundable(locked);
+
+    await assertLeadsUnused(trx, locked);
+    await refundAtGateway(locked, reason);
+
+    const refunded = await orderRepository.updateOrder(trx, orderId, { status: ORDER_STATUSES.REFUNDED, refunded_at: now });
+    await subscriptionRepository.adjustExtraLeads(trx, refunded.property_id, -refunded.leads);
+
+    const creditNote = await createCreditNoteForOrder(trx, { order: refunded, issuedAt: now });
+    await repository.insertAction(trx, {
+      adminId: admin.id,
+      userId: refunded.user_id,
+      orderId,
+      type: ACTION_TYPES.REFUND,
+      reason,
+      details: {
+        amount: refunded.total_amount,
+        razorpayPaymentId: refunded.razorpay_payment_id,
+        leads: refunded.leads,
+        propertyId: refunded.property_id,
+        creditNoteNumber: creditNote?.invoice_number ?? null,
+      },
+    });
+    await notificationRepository.insertNotification(
+      trx,
+      refundIssued({ userId: refunded.user_id, orderNumber: refunded.order_number, leads: refunded.leads, propertyId: refunded.property_id })
+    );
+
+    return {
+      orderId,
+      status: ORDER_STATUSES.REFUNDED,
+      cancelledCredits: 0,
+      removedLeads: refunded.leads,
+      creditNote: creditNote ? { id: creditNote.id, number: creditNote.invoice_number } : null,
+    };
+  });
+}
+
 // Unused credits are cancelled, used ones stay with the properties; closing those is the admin's separate choice
 async function refundOrder(admin, { orderId, reason }, now = new Date()) {
   const order = await repository.findOrder(orderId);
   if (!order) throw new AppError("Order not found", NOT_FOUND);
   assertRefundable(order);
+
+  if (order.order_type === ORDER_TYPES.LEAD_PACK) return refundLeadPackOrder(admin, { orderId, reason }, now);
 
   await refundAtGateway(order, reason);
 

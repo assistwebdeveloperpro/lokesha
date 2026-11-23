@@ -155,6 +155,77 @@ describe("confirmPayment", () => {
   });
 });
 
+describe("confirmPayment for a lead purchase", () => {
+  const leadOrder = (overrides = {}) =>
+    order({ order_type: "lead_pack", property_id: "prop-1", listings: null, months: null, leads: 10, total_amount: 1180, ...overrides });
+  const leadPayment = () => payment({ amount: 118000 });
+
+  beforeEach(() => {
+    orderRepository.findOrderByIdForUpdate.mockResolvedValue(leadOrder());
+    orderRepository.updateOrder.mockImplementation(async (_trx, _id, columns) => ({ ...leadOrder(), ...columns }));
+    subscriptionRepository.adjustExtraLeads.mockResolvedValue({ id: "prop-1", title: "Sky Heights", extra_leads: 10 });
+  });
+
+  it("adds the leads to the property and issues the invoice without any subscription", async () => {
+    const result = await confirmPayment({ orderId: "order-1", payment: leadPayment() }, NOW);
+
+    expect(orderRepository.updateOrder).toHaveBeenCalledWith(mockTrx, "order-1", expect.objectContaining({ status: "paid", paid_at: NOW }));
+    expect(subscriptionRepository.adjustExtraLeads).toHaveBeenCalledWith(mockTrx, "prop-1", 10);
+    expect(subscriptionRepository.insertSubscription).not.toHaveBeenCalled();
+    expect(ledgerRepository.insertEntry).not.toHaveBeenCalled();
+    expect(createInvoiceForOrder).toHaveBeenCalledWith(mockTrx, {
+      order: expect.objectContaining({ id: "order-1", status: "paid" }),
+      payment: leadPayment(),
+      issuedAt: NOW,
+    });
+    expect(result).toMatchObject({ alreadyPaid: false, subscription: null, invoice: { id: "inv-1" } });
+  });
+
+  it("tells the user and the admins about the purchase", async () => {
+    await confirmPayment({ orderId: "order-1", payment: leadPayment() }, NOW);
+
+    expect(notificationRepository.insertNotification).toHaveBeenCalledWith(
+      mockTrx,
+      expect.objectContaining({ user_id: "user-1", type: "lead_pack_purchased", property_id: "prop-1", title: "Sky Heights" })
+    );
+    expect(adminNotifications.notifyLeadPackPurchased).toHaveBeenCalledWith(mockTrx, {
+      userId: "user-1",
+      propertyId: "prop-1",
+      leads: 10,
+      orderNumber: "ORD-1",
+    });
+    expect(adminNotifications.notifySubscriptionPurchased).not.toHaveBeenCalled();
+  });
+
+  it("adds the leads only once when the payment is confirmed again", async () => {
+    orderRepository.findOrderByIdForUpdate.mockResolvedValue(leadOrder({ status: "paid" }));
+
+    const result = await confirmPayment({ orderId: "order-1", payment: leadPayment() }, NOW);
+
+    expect(result).toMatchObject({ alreadyPaid: true });
+    expect(subscriptionRepository.adjustExtraLeads).not.toHaveBeenCalled();
+    expect(createInvoiceForOrder).not.toHaveBeenCalled();
+  });
+
+  it("still adds the leads when the property is no longer live, because the user has paid", async () => {
+    await expect(confirmPayment({ orderId: "order-1", payment: leadPayment() }, NOW)).resolves.toMatchObject({ alreadyPaid: false });
+    expect(subscriptionRepository.adjustExtraLeads).toHaveBeenCalledTimes(1);
+  });
+
+  it("rolls the payment back when the property cannot be found", async () => {
+    subscriptionRepository.adjustExtraLeads.mockResolvedValue(null);
+
+    await expect(confirmPayment({ orderId: "order-1", payment: leadPayment() }, NOW)).rejects.toMatchObject({ statusCode: 404 });
+    expect(createInvoiceForOrder).not.toHaveBeenCalled();
+    expect(notificationRepository.insertNotification).not.toHaveBeenCalled();
+  });
+
+  it("rejects a payment that does not match the order and adds nothing", async () => {
+    await expect(confirmPayment({ orderId: "order-1", payment: payment({ amount: 100 }) }, NOW)).rejects.toMatchObject({ statusCode: 409 });
+    expect(subscriptionRepository.adjustExtraLeads).not.toHaveBeenCalled();
+  });
+});
+
 describe("markPaymentFailed", () => {
   it.each(["created", "pending"])("fails a %s order, keeps the reason and tells the user", async (status) => {
     orderRepository.findOrderByRazorpayOrderIdForUpdate.mockResolvedValue(order({ status }));

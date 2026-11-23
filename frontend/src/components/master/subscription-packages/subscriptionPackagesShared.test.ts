@@ -19,7 +19,10 @@ const standard: SubscriptionPackage = {
   status: "active",
   displayOrder: 2,
   pricePerListingMonth: 1000,
+  pricePerLead: null,
   gstPercent: 18,
+  minLeads: null,
+  maxLeads: null,
   minListings: 1,
   maxListings: 50,
   minMonths: 1,
@@ -31,6 +34,22 @@ const standard: SubscriptionPackage = {
   freePropertyValidityDays: null,
   createdAt: "2026-11-20T00:00:00.000Z",
   updatedAt: "2026-11-20T00:00:00.000Z",
+};
+
+const leads: SubscriptionPackage = {
+  ...standard,
+  id: "pkg-leads",
+  code: "leads",
+  name: "Buy More Leads",
+  displayOrder: 3,
+  pricePerListingMonth: 0,
+  pricePerLead: 100,
+  minLeads: 1,
+  maxLeads: 100,
+  maxListings: 1,
+  maxMonths: 1,
+  allowCustomQuantity: false,
+  allowCustomDuration: false,
 };
 
 const free: SubscriptionPackage = {
@@ -66,15 +85,16 @@ describe("money helpers", () => {
 });
 
 describe("validatePackageForm", () => {
-  it("accepts the stored values of both packages", () => {
-    expect(validatePackageForm(toFormState(standard), false)).toEqual({});
-    expect(validatePackageForm(toFormState(free), true)).toEqual({});
+  it("accepts the stored values of every package", () => {
+    expect(validatePackageForm(toFormState(standard), "standard")).toEqual({});
+    expect(validatePackageForm(toFormState(free), "free")).toEqual({});
+    expect(validatePackageForm(toFormState(leads), "leads")).toEqual({});
   });
 
   it("flags empty text, blank benefit points and a missing price", () => {
     const form = { ...toFormState(standard), name: " ", displayTitle: "", benefits: ["ok", " "], price: "" };
 
-    expect(validatePackageForm(form, false)).toMatchObject({
+    expect(validatePackageForm(form, "standard")).toMatchObject({
       name: expect.any(String),
       displayTitle: expect.any(String),
       benefits: expect.any(String),
@@ -84,7 +104,7 @@ describe("validatePackageForm", () => {
 
   it("flags ranges and bounds on the paid package", () => {
     const form = { ...toFormState(standard), minListings: "10", maxListings: "5", gstPercent: "120", maxMonths: "0" };
-    const errors = validatePackageForm(form, false);
+    const errors = validatePackageForm(form, "standard");
 
     expect(errors.maxListings).toBe("Maximum listings cannot be less than minimum");
     expect(errors.gstPercent).toBeDefined();
@@ -93,11 +113,32 @@ describe("validatePackageForm", () => {
 
   it("checks only the free-grant settings on the Free package", () => {
     const form = { ...toFormState(free), freeCredits: "0", freeLeadLimit: "1.5", price: "bad" };
-    const errors = validatePackageForm(form, true);
+    const errors = validatePackageForm(form, "free");
 
     expect(errors.freeCredits).toBeDefined();
     expect(errors.freeLeadLimit).toBeDefined();
     expect(errors.price).toBeUndefined();
+  });
+
+  it("checks the price per lead, GST and lead range on the Buy More Leads package", () => {
+    const form = { ...toFormState(leads), pricePerLead: "10.5", gstPercent: "120", minLeads: "20", maxLeads: "5" };
+    const errors = validatePackageForm(form, "leads");
+
+    expect(errors.pricePerLead).toBeDefined();
+    expect(errors.gstPercent).toBeDefined();
+    expect(errors.maxLeads).toBe("Maximum leads cannot be less than minimum");
+  });
+
+  it("ignores listing and month fields on the Buy More Leads package", () => {
+    const form = { ...toFormState(leads), price: "bad", minListings: "", maxMonths: "0" };
+
+    expect(validatePackageForm(form, "leads")).toEqual({});
+  });
+
+  it("rejects a lead price that is missing or above the limit", () => {
+    expect(validatePackageForm({ ...toFormState(leads), pricePerLead: "" }, "leads").pricePerLead).toBeDefined();
+    expect(validatePackageForm({ ...toFormState(leads), pricePerLead: "100001" }, "leads").pricePerLead).toBeDefined();
+    expect(validatePackageForm({ ...toFormState(leads), pricePerLead: "0" }, "leads").pricePerLead).toBeUndefined();
   });
 });
 
@@ -105,6 +146,13 @@ describe("buildUpdateInput", () => {
   it("sends nothing when the form is unchanged", () => {
     expect(buildUpdateInput(standard, toFormState(standard))).toEqual({});
     expect(buildUpdateInput(free, toFormState(free))).toEqual({});
+    expect(buildUpdateInput(leads, toFormState(leads))).toEqual({});
+  });
+
+  it("sends only the lead-pack fields, never listing or month settings", () => {
+    const form = { ...toFormState(leads), pricePerLead: "120", maxLeads: "50", price: "999", minListings: "9" };
+
+    expect(buildUpdateInput(leads, form)).toEqual({ pricePerLead: 120, maxLeads: 50 });
   });
 
   it("sends only the changed fields, with the price in rupees", () => {
@@ -136,6 +184,7 @@ describe("buildUpdateInput", () => {
 describe("formatChangeValue", () => {
   it.each([
     ["pricePerListingMonth", 1500, "₹1,500"],
+    ["pricePerLead", 100, "₹100"],
     ["gstPercent", 18, "18%"],
     ["freePropertyValidityDays", 30, "30 days"],
     ["allowCustomQuantity", true, "Yes"],

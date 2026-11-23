@@ -13,6 +13,19 @@ async function findPurchasablePackage() {
   return db(PACKAGES_TABLE).where({ code: PACKAGE_CODES.STANDARD, status: "active" }).first();
 }
 
+async function findLeadPackPackage() {
+  return db(PACKAGES_TABLE).where({ code: PACKAGE_CODES.LEADS, status: "active" }).first();
+}
+
+// Owned, live and limited; unlimited and expired properties have nothing to buy
+async function findEligibleProperty(userId, propertyId, now) {
+  return db("properties")
+    .where({ id: propertyId, user_id: userId, status: "published" })
+    .whereNotNull("lead_limit")
+    .andWhere((builder) => builder.whereNull("expires_at").orWhere("expires_at", ">", now))
+    .first("id", "title", "listing_number");
+}
+
 async function findCheckoutUser(userId) {
   return db("users").where({ id: userId }).first("id", "name", "email", "mobile_number");
 }
@@ -23,6 +36,8 @@ const updateOrder = (id, columns) => orderRepository.updateOrder(db, id, columns
 module.exports = {
   findActivePackages,
   findPurchasablePackage,
+  findLeadPackPackage,
+  findEligibleProperty,
   findCheckoutUser,
   insertOrder,
   updateOrder,

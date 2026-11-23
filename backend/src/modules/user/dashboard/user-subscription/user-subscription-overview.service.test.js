@@ -17,11 +17,12 @@ const subscriptionRow = (overrides = {}) => ({
   ends_at: new Date("2026-11-27T10:00:00Z"),
   package_code: "standard",
   package_name: "Standard",
+  package_title: "Standard Package",
   ...overrides,
 });
 
 const freeRow = (overrides = {}) =>
-  subscriptionRow({ id: "sub-free", source: "free_signup", total_credits: 2, used_credits: 0, lead_limit: 2, ends_at: null, package_code: "free", package_name: "Free", ...overrides });
+  subscriptionRow({ id: "sub-free", source: "free_signup", total_credits: 2, used_credits: 0, lead_limit: 2, ends_at: null, package_code: "free", package_name: "Free", package_title: "Free Package", ...overrides });
 
 beforeEach(() => {
   repository.findCurrentSubscriptions.mockResolvedValue([freeRow(), subscriptionRow()]);
@@ -133,6 +134,45 @@ describe("lists", () => {
     expect(items[1]).toMatchObject({ status: "failed", failureReason: "Card declined", invoice: null });
   });
 
+  it("maps a lead purchase with its leads and property and no listings or months", async () => {
+    repository.findOrders.mockResolvedValue([
+      {
+        id: "o-3",
+        order_number: "ORD-3",
+        status: "paid",
+        order_type: "lead_pack",
+        listings: null,
+        months: null,
+        price_per_listing_month: null,
+        leads: 10,
+        price_per_lead: 100,
+        property_title: "Sky Heights",
+        property_listing_number: "12",
+        gst_percent: "18.00",
+        base_amount: 1000,
+        gst_amount: 180,
+        total_amount: 1180,
+        paid_at: NOW,
+        created_at: NOW,
+        invoice_id: "inv-3",
+        invoice_number: "LOK/2026-27/000003",
+      },
+    ]);
+    repository.countOrders.mockResolvedValue(1);
+
+    const { items } = await service.listPayments("user-1", PAGING);
+
+    expect(items[0]).toMatchObject({
+      orderType: "lead_pack",
+      listings: null,
+      months: null,
+      leads: 10,
+      pricePerLead: 100,
+      property: { title: "Sky Heights", listingNumber: 12 },
+      totalAmount: 1180,
+    });
+  });
+
   it("maps credit ledger entries, with and without a property", async () => {
     repository.findLedger.mockResolvedValue([
       { id: "l-1", type: "used", credits: -1, reason: "Property published", created_at: NOW, property_id: "p-1", property_title: "Sky Heights", listing_number: "12" },
@@ -148,9 +188,9 @@ describe("lists", () => {
 
   it("maps lead usage per property and flags a reached limit", async () => {
     repository.findPropertyLeadUsage.mockResolvedValue([
-      { id: "p-1", title: "Sky Heights", listing_number: "12", status: "published", lead_limit: 2, expires_at: NOW, leads_count: "2" },
-      { id: "p-2", title: "Green Villa", listing_number: "13", status: "published", lead_limit: 2, expires_at: NOW, leads_count: "1" },
-      { id: "p-3", title: "City Loft", listing_number: "14", status: "published", lead_limit: null, expires_at: NOW, leads_count: "9" },
+      { id: "p-1", title: "Sky Heights", listing_number: "12", status: "published", lead_limit: 2, extra_leads: 0, expires_at: NOW, leads_count: "2" },
+      { id: "p-2", title: "Green Villa", listing_number: "13", status: "published", lead_limit: 2, extra_leads: 0, expires_at: NOW, leads_count: "1" },
+      { id: "p-3", title: "City Loft", listing_number: "14", status: "published", lead_limit: null, extra_leads: 0, expires_at: NOW, leads_count: "9" },
     ]);
     repository.countPropertyLeadUsage.mockResolvedValue(3);
 
@@ -160,6 +200,23 @@ describe("lists", () => {
       { leadsReceived: 2, leadLimit: 2, isLimitReached: true },
       { leadsReceived: 1, leadLimit: 2, isLimitReached: false },
       { leadsReceived: 9, leadLimit: null, isLimitReached: false },
+    ]);
+  });
+
+  it("adds bought leads to the limit and lifts the reached flag at the boundary", async () => {
+    repository.findPropertyLeadUsage.mockResolvedValue([
+      { id: "p-1", title: "Sky Heights", listing_number: "12", status: "published", lead_limit: 2, extra_leads: 10, expires_at: NOW, leads_count: "11" },
+      { id: "p-2", title: "Green Villa", listing_number: "13", status: "published", lead_limit: 2, extra_leads: 10, expires_at: NOW, leads_count: "12" },
+      { id: "p-3", title: "City Loft", listing_number: "14", status: "published", lead_limit: null, extra_leads: 5, expires_at: NOW, leads_count: "30" },
+    ]);
+    repository.countPropertyLeadUsage.mockResolvedValue(3);
+
+    const { items } = await service.listPropertyUsage("user-1", PAGING);
+
+    expect(items.map(({ leadLimit, extraLeads, isLimitReached }) => ({ leadLimit, extraLeads, isLimitReached }))).toEqual([
+      { leadLimit: 12, extraLeads: 10, isLimitReached: false },
+      { leadLimit: 12, extraLeads: 10, isLimitReached: true },
+      { leadLimit: null, extraLeads: 5, isLimitReached: false },
     ]);
   });
 });

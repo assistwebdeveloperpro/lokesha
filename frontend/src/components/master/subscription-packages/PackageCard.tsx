@@ -1,4 +1,17 @@
-import { CalendarDays, Check, Clock, Crown, Gift, History, IndianRupee, Layers, Pencil, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  Clock,
+  Crown,
+  Gift,
+  History,
+  IndianRupee,
+  Layers,
+  Pencil,
+  PlusCircle,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import type { ComponentType } from "react";
 import type { SubscriptionPackage } from "@/services/adminSubscription.service";
 import { formatRupees } from "@/lib/currency";
@@ -12,7 +25,13 @@ type PackageCardProps = {
 
 type Stat = { label: string; value: string; hint?: string; Icon: ComponentType<{ className?: string }> };
 
-const formatRange = (min: number, max: number, unit: string) =>
+const HEADER_ICONS: Record<SubscriptionPackage["code"], LucideIcon> = {
+  free: Gift,
+  standard: Crown,
+  leads: PlusCircle,
+};
+
+const formatRange =(min: number, max: number, unit: string) =>
   min === max ? `${min} ${unit}` : `${min} – ${max} ${unit}`;
 
 function getStats(pkg: SubscriptionPackage): Stat[] {
@@ -22,6 +41,15 @@ function getStats(pkg: SubscriptionPackage): Stat[] {
       { label: "Leads per listing", value: String(pkg.freeLeadLimit ?? 0), Icon: Users },
       { label: "Listing validity", value: `${pkg.freePropertyValidityDays ?? 0} days`, Icon: Clock },
       { label: "Price", value: "Free", hint: "No payment needed", Icon: IndianRupee },
+    ];
+  }
+
+  if (pkg.code === "leads") {
+    return [
+      { label: "Per lead", value: formatRupees(pkg.pricePerLead ?? 0), hint: `+ ${pkg.gstPercent}% GST`, Icon: IndianRupee },
+      { label: "Leads per purchase", value: formatRange(pkg.minLeads ?? 1, pkg.maxLeads ?? 1, "leads"), Icon: Layers },
+      { label: "Validity", value: "No expiry", hint: "Stays with the property", Icon: CalendarDays },
+      { label: "Bought for", value: "One property", hint: "Owner of a limited listing", Icon: Users },
     ];
   }
 
@@ -36,7 +64,7 @@ function getStats(pkg: SubscriptionPackage): Stat[] {
 
 export default function PackageCard({ pkg, onEdit, onViewHistory }: PackageCardProps) {
   const isActive = pkg.status === "active";
-  const HeaderIcon = pkg.code === "free" ? Gift : Crown;
+  const HeaderIcon = HEADER_ICONS[pkg.code];
 
   return (
     <li className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:shadow-md">

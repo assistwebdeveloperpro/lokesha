@@ -1,7 +1,7 @@
 import { Undo2 } from "lucide-react";
 import { formatRupees } from "@/lib/currency";
 import type { AdminTransaction } from "@/services/adminSubscription.service";
-import { ORDER_STATUS_TONES, formatDateTime, plural } from "@/components/user/dashboard/subscription/subscriptionShared";
+import { ORDER_STATUS_TONES, describeOrderQuantity, formatDateTime } from "@/components/user/dashboard/subscription/subscriptionShared";
 import AdminDocumentDownloadButton from "@/components/master/subscription-actions/AdminDocumentDownloadButton";
 import {
   TRANSACTION_GRID_CLASS,
@@ -42,10 +42,12 @@ function TransactionRow({ transaction, onRefund }: { transaction: AdminTransacti
 
       <div>
         <p className="text-sm font-semibold text-slate-800">{transaction.packageName}</p>
-        <p className="text-xs font-medium text-slate-500">
-          {plural(transaction.listings, "listing")} · {plural(transaction.months, "month")}
+        <p className="text-xs font-medium text-slate-500">{describeOrderQuantity(transaction)}</p>
+        <p className="text-xs font-medium text-slate-400">
+          {transaction.orderType === "lead_pack"
+            ? `${formatRupees(transaction.pricePerLead ?? 0)} / lead`
+            : `${formatRupees(transaction.pricePerListingMonth ?? 0)} / listing / month`}
         </p>
-        <p className="text-xs font-medium text-slate-400">{formatRupees(transaction.pricePerListingMonth)} / listing / month</p>
       </div>
 
       <div>

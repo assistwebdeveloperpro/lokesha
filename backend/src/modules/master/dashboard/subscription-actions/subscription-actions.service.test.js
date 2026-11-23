@@ -247,6 +247,125 @@ describe("refundOrder", () => {
   });
 });
 
+describe("refundOrder for a lead purchase", () => {
+  const input = { orderId: "order-1", reason: "Bought by mistake" };
+  const leadOrder = {
+    id: "order-1",
+    order_number: "ORD-1",
+    order_type: "lead_pack",
+    user_id: "user-1",
+    property_id: "prop-1",
+    leads: 10,
+    status: "paid",
+    total_amount: 1180,
+    razorpay_payment_id: "pay_1",
+  };
+
+  beforeEach(() => {
+    repository.findOrder.mockResolvedValue(leadOrder);
+    razorpayService.fetchPayment.mockResolvedValue({ id: "pay_1", status: "captured", amount: 118000, amount_refunded: 0 });
+    razorpayService.refundPayment.mockResolvedValue({ id: "rfnd_1" });
+    orderRepository.findOrderByIdForUpdate.mockResolvedValue(leadOrder);
+    orderRepository.updateOrder.mockImplementation(async (_trx, _id, columns) => ({ ...leadOrder, ...columns }));
+    subscriptionRepository.findLeadLimitForUpdate.mockResolvedValue(12);
+    subscriptionRepository.findHighestSentLeadPosition.mockResolvedValue(0);
+    createCreditNoteForOrder.mockResolvedValue({ id: "cn-1", invoice_number: "LOK-CN/2026-27/000001" });
+  });
+
+  it("refunds, takes the leads off the property, issues a credit note and records it", async () => {
+    const result = await service.refundOrder(ADMIN, input, NOW);
+
+    expect(subscriptionRepository.findLeadLimitForUpdate).toHaveBeenCalledWith(TRX, "prop-1");
+    expect(razorpayService.refundPayment).toHaveBeenCalledWith("pay_1", {
+      amount: 118000,
+      notes: { orderNumber: "ORD-1", reason: "Bought by mistake" },
+    });
+    expect(orderRepository.updateOrder).toHaveBeenCalledWith(TRX, "order-1", { status: "refunded", refunded_at: NOW });
+    expect(subscriptionRepository.adjustExtraLeads).toHaveBeenCalledWith(TRX, "prop-1", -10);
+    expect(repository.findSubscriptionByOrderForUpdate).not.toHaveBeenCalled();
+    expect(ledgerRepository.insertEntry).not.toHaveBeenCalled();
+    expect(createCreditNoteForOrder).toHaveBeenCalledWith(TRX, { order: expect.objectContaining({ status: "refunded" }), issuedAt: NOW });
+    expect(repository.insertAction).toHaveBeenCalledWith(
+      TRX,
+      expect.objectContaining({
+        type: "refund",
+        orderId: "order-1",
+        details: {
+          amount: 1180,
+          razorpayPaymentId: "pay_1",
+          leads: 10,
+          propertyId: "prop-1",
+          creditNoteNumber: "LOK-CN/2026-27/000001",
+        },
+      })
+    );
+    expect(notificationRepository.insertNotification).toHaveBeenCalledWith(
+      TRX,
+      expect.objectContaining({ type: "refund_issued", property_id: "prop-1", message: expect.stringContaining("10 extra leads") })
+    );
+    expect(result).toEqual({
+      orderId: "order-1",
+      status: "refunded",
+      cancelledCredits: 0,
+      removedLeads: 10,
+      creditNote: { id: "cn-1", number: "LOK-CN/2026-27/000001" },
+    });
+  });
+
+  it.each([
+    ["no lead was sent", 0],
+    ["the last sent lead is within the base limit", 2],
+  ])("allows the refund when %s", async (_label, highestSent) => {
+    subscriptionRepository.findHighestSentLeadPosition.mockResolvedValue(highestSent);
+
+    await expect(service.refundOrder(ADMIN, input, NOW)).resolves.toMatchObject({ status: "refunded" });
+  });
+
+  it("blocks the refund when a sent lead sits beyond the limit without the bought leads", async () => {
+    subscriptionRepository.findHighestSentLeadPosition.mockResolvedValue(3);
+
+    await expect(service.refundOrder(ADMIN, input, NOW)).rejects.toMatchObject({
+      statusCode: 409,
+      details: { code: "LEAD_PACK_ALREADY_USED" },
+    });
+  });
+
+  it("changes nothing and never reaches the gateway when the leads were used", async () => {
+    subscriptionRepository.findHighestSentLeadPosition.mockResolvedValue(8);
+
+    await expect(service.refundOrder(ADMIN, input, NOW)).rejects.toMatchObject({ statusCode: 409 });
+    expect(razorpayService.fetchPayment).not.toHaveBeenCalled();
+    expect(razorpayService.refundPayment).not.toHaveBeenCalled();
+    expect(orderRepository.updateOrder).not.toHaveBeenCalled();
+    expect(subscriptionRepository.adjustExtraLeads).not.toHaveBeenCalled();
+    expect(createCreditNoteForOrder).not.toHaveBeenCalled();
+  });
+
+  it("allows the refund for a property that became unlimited, since the leads no longer limit it", async () => {
+    subscriptionRepository.findLeadLimitForUpdate.mockResolvedValue(null);
+
+    await expect(service.refundOrder(ADMIN, input, NOW)).resolves.toMatchObject({ status: "refunded", removedLeads: 10 });
+    expect(subscriptionRepository.findHighestSentLeadPosition).not.toHaveBeenCalled();
+  });
+
+  it("leaves the property alone when the gateway refuses the refund", async () => {
+    razorpayService.refundPayment.mockRejectedValue(Object.assign(new Error("gateway"), { statusCode: 502 }));
+
+    await expect(service.refundOrder(ADMIN, input, NOW)).rejects.toMatchObject({ statusCode: 502 });
+    expect(orderRepository.updateOrder).not.toHaveBeenCalled();
+    expect(subscriptionRepository.adjustExtraLeads).not.toHaveBeenCalled();
+  });
+
+  it("leaves a parallel refund that finished first untouched", async () => {
+    orderRepository.findOrderByIdForUpdate.mockResolvedValue({ ...leadOrder, status: "refunded" });
+
+    await expect(service.refundOrder(ADMIN, input, NOW)).resolves.toMatchObject({ status: "refunded", removedLeads: 0, creditNote: null });
+    expect(subscriptionRepository.adjustExtraLeads).not.toHaveBeenCalled();
+    expect(razorpayService.refundPayment).not.toHaveBeenCalled();
+    expect(repository.insertAction).not.toHaveBeenCalled();
+  });
+});
+
 describe("listActions", () => {
   it("maps the audit trail with the admin who acted", async () => {
     repository.findActions.mockResolvedValue([

@@ -1,4 +1,5 @@
 const service = require("./user-subscription.service");
+const leadPack = require("./user-lead-pack.service");
 const overview = require("./user-subscription-overview.service");
 const invoiceService = require("../../../shared/subscription/services/invoice.service");
 const { downloadInvoice: invoiceDownload } = require("../../../shared/subscription/controllers/invoice-download.controller");
@@ -23,6 +24,8 @@ const respond = (action, successStatus = 200) => async (req, res) => {
 const listPackages = respond(() => service.listPackages());
 const getQuote = respond((req) => service.getQuote(req.body));
 const createOrder = respond((req) => service.createOrder(req.user.id, req.body), 201);
+const getLeadPackQuote = respond((req) => leadPack.getLeadPackQuote(req.user.id, req.body));
+const createLeadPackOrder = respond((req) => leadPack.createLeadPackOrder(req.user.id, req.body), 201);
 const verifyPayment = respond((req) => service.verifyPayment(req.user.id, req.params.id, req.body));
 const getOverview = respond((req) => overview.getOverview(req.user.id));
 const getCredits = respond((req) => overview.getCredits(req.user.id));
@@ -36,6 +39,8 @@ module.exports = {
   listPackages,
   getQuote,
   createOrder,
+  getLeadPackQuote,
+  createLeadPackOrder,
   verifyPayment,
   getOverview,
   getCredits,

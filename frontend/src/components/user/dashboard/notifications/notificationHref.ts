@@ -19,6 +19,7 @@ const SUBSCRIPTION_HREFS: Record<string, string> = {
   credits_low: BUY_PATH,
   lead_limit_near: PACKAGE_USAGE_PATH,
   lead_limit_reached: PACKAGE_USAGE_PATH,
+  lead_pack_purchased: PACKAGE_USAGE_PATH,
   property_expired: MANAGE_PROPERTIES_PATH,
 };
 

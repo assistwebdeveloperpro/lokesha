@@ -1,5 +1,6 @@
 const bar = "animate-pulse rounded bg-slate-200/80";
 
+const PACKAGE_COUNT = 3;
 const STAT_COUNT = 4;
 const BENEFIT_COUNT = 3;
 
@@ -58,8 +59,9 @@ function PackageCardSkeleton() {
 export default function PackagesSkeleton() {
   return (
     <ul className="grid gap-4 sm:gap-6 xl:grid-cols-2" aria-busy aria-hidden>
-      <PackageCardSkeleton />
-      <PackageCardSkeleton />
+      {Array.from({ length: PACKAGE_COUNT }, (_, index) => (
+        <PackageCardSkeleton key={index} />
+      ))}
     </ul>
   );
 }

@@ -6,9 +6,14 @@ const service = require("./subscription-transactions.service");
 const ROW = {
   id: "order-1",
   order_number: "ORD-20261120-AAAA1111",
+  order_type: "subscription",
   listings: 2,
   months: 3,
   price_per_listing_month: 1000,
+  leads: null,
+  price_per_lead: null,
+  property_title: null,
+  property_listing_number: null,
   gst_percent: "18.00",
   base_amount: 6000,
   gst_amount: 1080,
@@ -46,9 +51,13 @@ describe("listTransactions", () => {
       orderNumber: "ORD-20261120-AAAA1111",
       user: { id: "user-1", name: "Asha Rao", mobile: "9876543210" },
       packageName: "Standard",
+      orderType: "subscription",
       listings: 2,
       months: 3,
       pricePerListingMonth: 1000,
+      leads: null,
+      pricePerLead: null,
+      property: null,
       gstPercent: 18,
       baseAmount: 6000,
       gstAmount: 1080,
@@ -63,6 +72,35 @@ describe("listTransactions", () => {
       createdAt: ROW.created_at,
       invoice: { id: "inv-1", number: "LOK/2026-27/000001" },
       creditNote: null,
+    });
+  });
+
+  it("maps a lead purchase with its leads and property and no listings or months", async () => {
+    repository.findTransactions.mockResolvedValue([
+      {
+        ...ROW,
+        package_name: "Buy More Leads",
+        order_type: "lead_pack",
+        listings: null,
+        months: null,
+        price_per_listing_month: null,
+        leads: 10,
+        price_per_lead: 100,
+        property_title: "Sky Heights",
+        property_listing_number: "12",
+      },
+    ]);
+
+    const { items } = await service.listTransactions({ page: 1, limit: 10 });
+
+    expect(items[0]).toMatchObject({
+      orderType: "lead_pack",
+      listings: null,
+      months: null,
+      pricePerListingMonth: null,
+      leads: 10,
+      pricePerLead: 100,
+      property: { title: "Sky Heights", listingNumber: 12 },
     });
   });
 
@@ -105,8 +143,31 @@ describe("exportTransactions", () => {
     expect(header.split(",")[0]).toBe("Order number");
     expect(header).toContain("Total (Rs)");
     expect(line).toBe(
-      "ORD-20261120-AAAA1111,2026-11-20 15:25,2026-11-20 15:30,Asha Rao,9876543210,24AAACC1206D1ZM,Standard,2,3,1000.00,6000.00,18,1080.00,7080.00,paid,order_rzp_1,pay_1,LOK/2026-27/000001,,",
+      "ORD-20261120-AAAA1111,2026-11-20 15:25,2026-11-20 15:30,Asha Rao,9876543210,24AAACC1206D1ZM,Standard,subscription,2,3,1000.00,,,,6000.00,18,1080.00,7080.00,paid,order_rzp_1,pay_1,LOK/2026-27/000001,,",
     );
+  });
+
+  it("writes a lead purchase with its leads and property and empty listing cells", async () => {
+    repository.findTransactionsForExport.mockResolvedValue([
+      {
+        ...ROW,
+        package_name: "Buy More Leads",
+        order_type: "lead_pack",
+        listings: null,
+        months: null,
+        price_per_listing_month: null,
+        leads: 10,
+        price_per_lead: 100,
+        property_title: "Sky Heights",
+        base_amount: 1000,
+        gst_amount: 180,
+        total_amount: 1180,
+      },
+    ]);
+
+    const { csv } = await service.exportTransactions({}, NOW);
+
+    expect(csv.replace("﻿", "").split("\r\n")[1]).toContain("Buy More Leads,lead_pack,,,,10,100.00,Sky Heights,1000.00,18,180.00,1180.00,paid");
   });
 
   it("writes only the header when nothing matches", async () => {

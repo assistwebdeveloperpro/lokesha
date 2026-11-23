@@ -13,6 +13,7 @@ const SUBSCRIPTION_COLUMNS = [
   "s.created_at",
   "p.code as package_code",
   "p.name as package_name",
+  "p.display_title as package_title",
 ];
 
 const paginate = (query, { page, limit }) => query.limit(limit).offset((page - 1) * limit);
@@ -56,6 +57,7 @@ const countSubscriptionHistory = (userId) => countOf(historyQuery(userId));
 async function findOrders(userId, paging) {
   return paginate(
     db("subscription_orders as o")
+      .leftJoin("properties as pr", "pr.id", "o.property_id")
       .leftJoin("subscription_invoices as i", function joinInvoice() {
         this.on("i.order_id", "o.id").andOn("i.type", db.raw("?", ["invoice"]));
       })
@@ -67,9 +69,14 @@ async function findOrders(userId, paging) {
     "o.id",
     "o.order_number",
     "o.status",
+    "o.order_type",
     "o.listings",
     "o.months",
     "o.price_per_listing_month",
+    "o.leads",
+    "o.price_per_lead",
+    "pr.title as property_title",
+    "pr.listing_number as property_listing_number",
     "o.gst_percent",
     "o.base_amount",
     "o.gst_amount",
@@ -110,9 +117,11 @@ async function findPropertyLeadUsage(userId, paging) {
   return paginate(leadUsageQuery(userId).orderBy("p.credit_consumed_at", "desc").orderBy("p.id", "desc"), paging).select(
     "p.id",
     "p.title",
+    "p.project_name",
     "p.listing_number",
     "p.status",
     "p.lead_limit",
+    "p.extra_leads",
     "p.expires_at",
     db("property_leads")
       .whereRaw("property_leads.property_id = p.id")

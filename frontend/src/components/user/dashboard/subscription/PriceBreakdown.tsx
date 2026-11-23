@@ -5,13 +5,14 @@ type PriceBreakdownProps = {
   gstAmount: number;
   totalAmount: number;
   gstPercent: number;
+  baseLabel?: string;
 };
 
-export default function PriceBreakdown({ baseAmount, gstAmount, totalAmount, gstPercent }: PriceBreakdownProps) {
+export default function PriceBreakdown({ baseAmount, gstAmount, totalAmount, gstPercent, baseLabel = "Base price" }: PriceBreakdownProps) {
   return (
     <dl className="space-y-2.5 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm">
       <div className="flex items-center justify-between">
-        <dt className="font-medium text-slate-500">Base price</dt>
+        <dt className="font-medium text-slate-500">{baseLabel}</dt>
         <dd className="font-semibold text-slate-800">{formatRupees(baseAmount)}</dd>
       </div>
       <div className="flex items-center justify-between">

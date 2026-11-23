@@ -1,11 +1,19 @@
-import { ArrowUpRight, Building2 } from "lucide-react";
+import { ArrowUpRight, Building2, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import type { PropertyLeadUsage } from "@/services/userSubscription.service";
-import { formatDate } from "./subscriptionShared";
+import { canBuyMoreLeads, formatDate } from "./subscriptionShared";
 
 const UPGRADE_PATH = "/user/subscription/subscribed-services#buy-standard";
 
-function UsageItem({ property }: { property: PropertyLeadUsage }) {
+type PropertyLeadUsageListProps = {
+  properties: PropertyLeadUsage[];
+  isLeadPackAvailable: boolean;
+  onBuyLeads: (property: PropertyLeadUsage) => void;
+};
+
+type UsageItemProps = Pick<PropertyLeadUsageListProps, "isLeadPackAvailable" | "onBuyLeads"> & { property: PropertyLeadUsage };
+
+function UsageItem({ property, isLeadPackAvailable, onBuyLeads }: UsageItemProps) {
   const { leadLimit, leadsReceived, isLimitReached } = property;
   const usedPercent = leadLimit ? Math.min(100, Math.round((leadsReceived / leadLimit) * 100)) : 0;
 
@@ -63,24 +71,36 @@ function UsageItem({ property }: { property: PropertyLeadUsage }) {
           <p className="text-sm font-medium text-amber-900">
             Lead limit reached. This property will not receive new leads, your existing leads stay with you.
           </p>
-          <Link
-            href={UPGRADE_PATH}
-            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg bg-white px-3.5 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
-          >
-            Upgrade
-            <ArrowUpRight className="h-4 w-4" aria-hidden />
-          </Link>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {isLeadPackAvailable && canBuyMoreLeads(property) ? (
+              <button
+                type="button"
+                onClick={() => onBuyLeads(property)}
+                className="bg-linear-to-r-navy-blue inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold text-white shadow-sm"
+              >
+                <PlusCircle className="h-4 w-4" aria-hidden />
+                Buy more leads
+              </button>
+            ) : null}
+            <Link
+              href={UPGRADE_PATH}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-white px-3.5 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+            >
+              Upgrade
+              <ArrowUpRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
         </div>
       ) : null}
     </li>
   );
 }
 
-export default function PropertyLeadUsageList({ properties }: { properties: PropertyLeadUsage[] }) {
+export default function PropertyLeadUsageList({ properties, isLeadPackAvailable, onBuyLeads }: PropertyLeadUsageListProps) {
   return (
     <ul className="space-y-3">
       {properties.map((property) => (
-        <UsageItem key={property.id} property={property} />
+        <UsageItem key={property.id} property={property} isLeadPackAvailable={isLeadPackAvailable} onBuyLeads={onBuyLeads} />
       ))}
     </ul>
   );

@@ -65,6 +65,22 @@ describe("renderInvoicePdf", () => {
     ].forEach((expected) => expect(text).toContain(expected));
   });
 
+  it("prints a lead purchase as leads times rate for the property", async () => {
+    const snapshot = {
+      ...SNAPSHOT,
+      lineItem: { description: "Extra property leads", leads: 10, pricePerLead: 100, propertyTitle: "Sky Heights", listingNumber: 12 },
+      amounts: { baseAmount: 1000, gstPercent: 18, gstAmount: 180, totalAmount: 1180 },
+    };
+
+    const text = extractText(await toBuffer(renderInvoicePdf(snapshot, { compress: false })));
+
+    ["Extra property leads", "Sky Heights (#12)", "Leads", "Rs. 100.00", "Rs. 1,000.00", "Rs. 180.00", "Rs. 1,180.00"].forEach((expected) =>
+      expect(text).toContain(expected)
+    );
+    expect(text).not.toContain("Months");
+    expect(text).not.toContain("Valid");
+  });
+
   it("renders without optional buyer GSTIN and incomplete business details", async () => {
     const snapshot = {
       ...SNAPSHOT,

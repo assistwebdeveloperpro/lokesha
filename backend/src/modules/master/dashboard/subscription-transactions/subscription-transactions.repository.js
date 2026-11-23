@@ -4,9 +4,12 @@ const { toContainsPattern } = require("../../../shared/subscription/utils/search
 const COLUMNS = [
   "o.id",
   "o.order_number",
+  "o.order_type",
   "o.listings",
   "o.months",
   "o.price_per_listing_month",
+  "o.leads",
+  "o.price_per_lead",
   "o.gst_percent",
   "o.base_amount",
   "o.gst_amount",
@@ -23,6 +26,8 @@ const COLUMNS = [
   "u.name as user_name",
   "u.mobile_number as user_mobile",
   "p.name as package_name",
+  "pr.title as property_title",
+  "pr.listing_number as property_listing_number",
   "i.id as invoice_id",
   "i.invoice_number",
   "c.id as credit_note_id",
@@ -33,6 +38,7 @@ function buildTransactionsQuery({ search, status, from, to, userId }) {
   const query = db("subscription_orders as o")
     .join("users as u", "u.id", "o.user_id")
     .join("subscription_packages as p", "p.id", "o.package_id")
+    .leftJoin("properties as pr", "pr.id", "o.property_id")
     .leftJoin("subscription_invoices as i", function joinInvoice() {
       this.on("i.order_id", "o.id").andOn("i.type", db.raw("?", ["invoice"]));
     })

@@ -1,12 +1,15 @@
 "use client";
 
 import { ChartColumn } from "lucide-react";
-import { fetchCreditLedger, fetchPropertyLeadUsage } from "@/services/userSubscription.service";
+import { useState } from "react";
+import { fetchCreditLedger, fetchPropertyLeadUsage, type PropertyLeadUsage } from "@/services/userSubscription.service";
+import BuyMoreLeadsModal from "./BuyMoreLeadsModal";
 import CreditLedgerList from "./CreditLedgerList";
 import CreditSummaryTiles from "./CreditSummaryTiles";
 import PagedSection from "./PagedSection";
 import { CreditLedgerSkeleton, CreditSummaryTilesSkeleton, PropertyLeadUsageSkeleton } from "./PackageUsageSkeletons";
 import PropertyLeadUsageList from "./PropertyLeadUsageList";
+import { useLeadPackPackage } from "./useLeadPackPackage";
 import { usePagedList } from "./usePagedList";
 import { useSubscriptionOverview } from "./useSubscriptionOverview";
 
@@ -24,6 +27,8 @@ function SectionHeading({ title, text }: { title: string; text: string }) {
 
 function PropertyUsageSection() {
   const { page, items, total, isLoading, error, changePage, reload } = usePagedList(fetchPropertyLeadUsage, USAGE_ERROR);
+  const leadPackPackage = useLeadPackPackage();
+  const [propertyToTopUp, setPropertyToTopUp] = useState<PropertyLeadUsage | null>(null);
 
   return (
     <section aria-labelledby="usage-heading">
@@ -41,8 +46,17 @@ function PropertyUsageSection() {
         onRetry={reload}
         onPageChange={changePage}
       >
-        <PropertyLeadUsageList properties={items} />
+        <PropertyLeadUsageList properties={items} isLeadPackAvailable={Boolean(leadPackPackage)} onBuyLeads={setPropertyToTopUp} />
       </PagedSection>
+
+      {leadPackPackage && propertyToTopUp ? (
+        <BuyMoreLeadsModal
+          pkg={leadPackPackage}
+          property={propertyToTopUp}
+          onClose={() => setPropertyToTopUp(null)}
+          onCompleted={reload}
+        />
+      ) : null}
     </section>
   );
 }

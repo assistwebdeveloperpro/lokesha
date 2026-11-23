@@ -63,7 +63,7 @@ async function findLeads(filters) {
         `case when p.lead_limit is not null and p.user_id is not null and (
           select count(*) from property_leads sl
           where sl.property_id = l.property_id and (sl.created_at, sl.id) <= (l.created_at, l.id)
-        ) > p.lead_limit then true else false end as lead_limit_reached`
+        ) > p.lead_limit + p.extra_leads then true else false end as lead_limit_reached`
       )
     );
 }

@@ -29,6 +29,11 @@ const FREE_FIELDS: NumberField[] = [
   { field: "freePropertyValidityDays", label: "Listing validity (days)" },
 ];
 
+const LEAD_LIMIT_FIELDS: NumberField[] = [
+  { field: "minLeads", label: "Minimum leads per purchase" },
+  { field: "maxLeads", label: "Maximum leads per purchase" },
+];
+
 const LIMIT_FIELDS: NumberField[] = [
   { field: "minListings", label: "Minimum listings" },
   { field: "maxListings", label: "Maximum listings" },
@@ -107,7 +112,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
     setField("benefits", form.benefits.map((benefit, position) => (position === index ? value : benefit)));
 
   const handleSubmit = async () => {
-    const found = validatePackageForm(form, isFree);
+    const found = validatePackageForm(form, pkg.code);
     if (Object.keys(found).length) {
       setErrors(found);
       return;
@@ -136,6 +141,18 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
       value={String(form[field])}
       onChange={(value) => setField(field, value as never)}
       error={errors[field]}
+    />
+  );
+
+  const gstInput = (
+    <FloatingInput
+      id="package-gst"
+      label="GST (%)"
+      type="number"
+      inputMode="decimal"
+      value={form.gstPercent}
+      onChange={(value) => setField("gstPercent", value)}
+      error={errors.gstPercent}
     />
   );
 
@@ -295,6 +312,27 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
             <Section title="Free package grant" description="Given once to every new user">
               <div className="grid gap-4 sm:grid-cols-2">{FREE_FIELDS.map(renderNumber)}</div>
             </Section>
+          ) : pkg.code === "leads" ? (
+            <>
+              <Section title="Pricing" description="Charged per extra lead, with no duration">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FloatingInput
+                    id="package-price-per-lead"
+                    label="Price per lead (₹)"
+                    type="number"
+                    inputMode="decimal"
+                    value={form.pricePerLead}
+                    onChange={(value) => setField("pricePerLead", value)}
+                    error={errors.pricePerLead}
+                  />
+                  {gstInput}
+                </div>
+              </Section>
+
+              <Section title="Purchase limits" description="How many leads a user may buy in one purchase">
+                <div className="grid gap-4 sm:grid-cols-2">{LEAD_LIMIT_FIELDS.map(renderNumber)}</div>
+              </Section>
+            </>
           ) : (
             <>
               <Section title="Pricing" description="Charged per listing, per month">
@@ -308,15 +346,7 @@ export default function EditPackageDrawer({ pkg, onClose, onSave }: EditPackageD
                     onChange={(value) => setField("price", value)}
                     error={errors.price}
                   />
-                  <FloatingInput
-                    id="package-gst"
-                    label="GST (%)"
-                    type="number"
-                    inputMode="decimal"
-                    value={form.gstPercent}
-                    onChange={(value) => setField("gstPercent", value)}
-                    error={errors.gstPercent}
-                  />
+                  {gstInput}
                 </div>
               </Section>
 

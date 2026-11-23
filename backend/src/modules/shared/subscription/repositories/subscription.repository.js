@@ -74,11 +74,14 @@ async function countReservedProperties(trx, userId, now) {
   return Number(count);
 }
 
-// Locks the property, so two sends never take the last free lead slot together
-// The limit belongs to the property, a package bought later does not lift it
+
 async function findLeadLimitForUpdate(trx, propertyId) {
-  const property = await trx(PROPERTIES_TABLE).where({ id: propertyId }).forNoKeyUpdate().first("lead_limit");
-  return property?.lead_limit ?? null;
+  const property = await trx(PROPERTIES_TABLE)
+    .where({ id: propertyId })
+    .forNoKeyUpdate()
+    .first("lead_limit", "extra_leads");
+  if (property?.lead_limit == null) return null;
+  return property.lead_limit + property.extra_leads;
 }
 
 // 1-based place of the lead among all leads of its property, oldest first
@@ -91,10 +94,32 @@ async function findPropertyLeadPosition(trx, propertyId, leadId) {
   return Number(count);
 }
 
+// Highest 1-based place among the leads already sent, 0 when none was sent
+async function findHighestSentLeadPosition(trx, propertyId) {
+  const ranked = trx("property_leads")
+    .where({ property_id: propertyId })
+    .select("distribution_status", trx.raw("row_number() over (order by created_at asc, id asc) as position"))
+    .as("ranked");
+
+  const row = await trx.from(ranked).where("distribution_status", "sent").max({ position: "position" }).first();
+  return Number(row?.position ?? 0);
+}
+
+// Takes a signed amount, the row lock of the update serialises it with lead sends
+async function adjustExtraLeads(trx, propertyId, delta) {
+  const [property] = await trx(PROPERTIES_TABLE)
+    .where({ id: propertyId })
+    .update({ extra_leads: trx.raw("extra_leads + ?", [delta]) })
+    .returning(["id", "title", "extra_leads"]);
+  return property ?? null;
+}
+
 module.exports = {
   findPackageByCode,
   findLeadLimitForUpdate,
+  adjustExtraLeads,
   findPropertyLeadPosition,
+  findHighestSentLeadPosition,
   findActivePackageByCode,
   insertSubscriptionIfAbsent,
   insertSubscription,

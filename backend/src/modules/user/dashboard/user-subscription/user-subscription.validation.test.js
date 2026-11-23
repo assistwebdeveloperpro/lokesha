@@ -1,4 +1,45 @@
-const { quoteSchema, createOrderSchema, verifyPaymentSchema, pagingQuerySchema } = require("./user-subscription.validation");
+const {
+  quoteSchema,
+  createOrderSchema,
+  leadQuoteSchema,
+  createLeadOrderSchema,
+  verifyPaymentSchema,
+  pagingQuerySchema,
+} = require("./user-subscription.validation");
+
+const PROPERTY_ID = "3f2b8a52-6c5e-4d0e-9f53-0a1c2d3e4f50";
+
+describe("leadQuoteSchema", () => {
+  it("accepts a property and a whole lead count, converting numeric text", () => {
+    expect(leadQuoteSchema.validate({ propertyId: PROPERTY_ID, leads: "10" }).value).toEqual({ propertyId: PROPERTY_ID, leads: 10 });
+  });
+
+  it.each([
+    [{}],
+    [{ propertyId: PROPERTY_ID }],
+    [{ leads: 5 }],
+    [{ propertyId: "not-a-uuid", leads: 5 }],
+    [{ propertyId: PROPERTY_ID, leads: 0 }],
+    [{ propertyId: PROPERTY_ID, leads: 1.5 }],
+    [{ propertyId: PROPERTY_ID, leads: 1001 }],
+  ])("rejects %j", (body) => {
+    expect(leadQuoteSchema.validate(body).error).toBeDefined();
+  });
+});
+
+describe("createLeadOrderSchema", () => {
+  const base = { propertyId: PROPERTY_ID, leads: 5 };
+
+  it("accepts an order without a GSTIN, with an empty one or with a valid one", () => {
+    expect(createLeadOrderSchema.validate(base).error).toBeUndefined();
+    expect(createLeadOrderSchema.validate({ ...base, gstin: "" }).error).toBeUndefined();
+    expect(createLeadOrderSchema.validate({ ...base, gstin: "27aaapl1234c1z5" }).value.gstin).toBe("27AAAPL1234C1Z5");
+  });
+
+  it("rejects a malformed GSTIN", () => {
+    expect(createLeadOrderSchema.validate({ ...base, gstin: "123" }).error.message).toBe("Enter a valid 15 character GSTIN");
+  });
+});
 
 describe("pagingQuerySchema", () => {
   it("defaults to the first page of ten and converts numeric text", () => {

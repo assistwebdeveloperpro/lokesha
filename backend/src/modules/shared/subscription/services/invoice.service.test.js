@@ -66,6 +66,34 @@ describe("createInvoiceForOrder", () => {
     });
   });
 
+  it("issues a lead purchase invoice with the property and no subscription period", async () => {
+    const leadOrder = {
+      ...ORDER,
+      order_type: "lead_pack",
+      listings: null,
+      months: null,
+      price_per_listing_month: null,
+      leads: 10,
+      price_per_lead: 100,
+      base_amount: 1000,
+      gst_amount: 180,
+      total_amount: 1180,
+      snapshot: { quote: { property: { id: "prop-1", title: "Sky Heights", listingNumber: 12 } } },
+    };
+
+    const invoice = await createInvoiceForOrder(TRX, { order: leadOrder, payment: PAYMENT, issuedAt: ISSUED_AT });
+    const snapshot = JSON.parse(invoice.snapshot);
+
+    expect(snapshot.lineItem).toEqual({
+      description: "Extra property leads",
+      leads: 10,
+      pricePerLead: 100,
+      propertyTitle: "Sky Heights",
+      listingNumber: 12,
+    });
+    expect(snapshot.amounts).toEqual({ baseAmount: 1000, gstPercent: 18, gstAmount: 180, totalAmount: 1180 });
+  });
+
   it("restarts the number in the new financial year on 1 April IST", async () => {
     await createInvoiceForOrder(TRX, {
       order: ORDER,

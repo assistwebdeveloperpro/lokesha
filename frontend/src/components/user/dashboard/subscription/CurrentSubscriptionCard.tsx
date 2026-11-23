@@ -24,7 +24,7 @@ export default function CurrentSubscriptionCard({ subscription, footer }: Curren
             <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           </span>
           <div>
-            <h3 className="font-display text-base font-bold text-slate-800">{subscription.packageName} package</h3>
+            <h3 className="font-display text-base font-bold text-slate-800">{subscription.packageTitle}</h3>
             <p className="text-xs font-medium text-slate-500">{SOURCE_LABELS[subscription.source]}</p>
           </div>
         </div>

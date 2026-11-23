@@ -28,7 +28,7 @@ export default function StandardPackageCard({ pkg, flow }: StandardPackageCardPr
           </span>
           <div>
             <span className="rounded-full bg-sky-400/15 px-2.5 py-0.5 text-[11px] font-semibold text-sky-200 ring-1 ring-sky-300/40">
-              Choose your own plan
+              Available to buy
             </span>
             <h2 className="mt-1.5 font-display text-lg font-bold">{pkg.displayTitle}</h2>
           </div>

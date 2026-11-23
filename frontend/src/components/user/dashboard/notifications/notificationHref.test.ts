@@ -20,6 +20,7 @@ describe("getUserNotificationHref", () => {
     ["credits_low", "/user/subscription/subscribed-services#buy-standard"],
     ["lead_limit_near", "/user/subscription/package-usage"],
     ["lead_limit_reached", "/user/subscription/package-usage"],
+    ["lead_pack_purchased", "/user/subscription/package-usage"],
     ["property_expired", "/user/properties/manage-properties"],
   ])("opens the page where a %s notice can be acted on", (type, href) => {
     expect(getUserNotificationHref({ type, leadId: null })).toBe(href);

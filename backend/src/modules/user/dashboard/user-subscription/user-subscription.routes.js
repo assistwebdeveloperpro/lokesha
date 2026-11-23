@@ -3,7 +3,14 @@ const validate = require("../../../../middlewares/validate.middleware");
 const authMiddleware = require("../../../../middlewares/auth.middleware");
 const { uuidParamSchema } = require("../../../shared/property/validation/property.validation");
 const controller = require("./user-subscription.controller");
-const { quoteSchema, createOrderSchema, verifyPaymentSchema, pagingQuerySchema } = require("./user-subscription.validation");
+const {
+  quoteSchema,
+  createOrderSchema,
+  leadQuoteSchema,
+  createLeadOrderSchema,
+  verifyPaymentSchema,
+  pagingQuerySchema,
+} = require("./user-subscription.validation");
 
 const { validateParams, validateQuery } = validate;
 
@@ -20,6 +27,8 @@ router.get("/usage/properties", validateQuery(pagingQuerySchema), controller.lis
 router.get("/packages", controller.listPackages);
 router.post("/quote", validate(quoteSchema), controller.getQuote);
 router.post("/orders", validate(createOrderSchema), controller.createOrder);
+router.post("/lead-pack/quote", validate(leadQuoteSchema), controller.getLeadPackQuote);
+router.post("/lead-pack/orders", validate(createLeadOrderSchema), controller.createLeadPackOrder);
 router.post("/orders/:id/verify", validateParams(uuidParamSchema), validate(verifyPaymentSchema), controller.verifyPayment);
 router.get("/invoices/:id/download", validateParams(uuidParamSchema), controller.downloadInvoice);
 

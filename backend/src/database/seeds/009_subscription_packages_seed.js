@@ -48,6 +48,33 @@ const PACKAGES = [
     free_lead_limit: null,
     free_property_validity_days: null,
   },
+  {
+    code: "leads",
+    name: "Buy More Leads",
+    display_title: "Buy More Leads",
+    description:
+      "Reached the lead limit on a property? Buy extra leads for that property at a fixed price per lead, with no time limit on how long they last.",
+    benefits: [
+      "Add extra leads to a single property",
+      "Simple pay-per-lead pricing, no month selection",
+      "Extra leads never expire and stay with the property",
+    ],
+    display_order: 3,
+    price_per_listing_month: 0,
+    price_per_lead: 100,
+    gst_percent: 18,
+    min_listings: 1,
+    max_listings: 1,
+    min_months: 1,
+    max_months: 1,
+    min_leads: 1,
+    max_leads: 100,
+    allow_custom_quantity: false,
+    allow_custom_duration: false,
+    free_credits: null,
+    free_lead_limit: null,
+    free_property_validity_days: null,
+  },
 ];
 
 /** @param {import('knex').Knex} knex */

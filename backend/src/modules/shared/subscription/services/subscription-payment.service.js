@@ -3,12 +3,23 @@ const orderRepository = require("../repositories/subscription-order.repository")
 const subscriptionRepository = require("../repositories/subscription.repository");
 const ledgerRepository = require("../repositories/subscription-ledger.repository");
 const notificationRepository = require("../../../user/dashboard/user-notifications/user-notifications.repository");
-const { paymentSuccess, paymentFailed } = require("../../../user/dashboard/user-notifications/user-notifications.templates");
+const {
+  paymentSuccess,
+  paymentFailed,
+  leadPackPurchased,
+} = require("../../../user/dashboard/user-notifications/user-notifications.templates");
 const adminNotifications = require("../../../master/dashboard/admin-notifications/admin-notifications.service");
 const { createInvoiceForOrder } = require("./invoice.service");
 const { addMonths } = require("../utils/subscription-dates.util");
 const { toGatewayAmount } = require("../utils/subscription-pricing.util");
-const { ORDER_STATUSES, SUBSCRIPTION_SOURCES, SUBSCRIPTION_STATUSES, LEDGER_TYPES, ERROR_CODES } = require("../constants/subscription.constants");
+const {
+  ORDER_STATUSES,
+  ORDER_TYPES,
+  SUBSCRIPTION_SOURCES,
+  SUBSCRIPTION_STATUSES,
+  LEDGER_TYPES,
+  ERROR_CODES,
+} = require("../constants/subscription.constants");
 const { AppError } = require("../../property/utils/property.errors");
 
 const PAYMENT_CAPTURED = "captured";
@@ -37,6 +48,30 @@ function assertPaymentMatchesOrder(order, payment) {
   }
 }
 
+// No eligibility re-check: the user already paid, so the leads are added even if the property closed meanwhile
+async function settleLeadPackOrder(trx, { order, paidOrder, payment, now }) {
+  const property = await subscriptionRepository.adjustExtraLeads(trx, order.property_id, order.leads);
+  if (!property) {
+    // Rolls the payment back so the recovery job retries instead of keeping money without leads
+    throw new AppError("The property of this lead purchase was not found.", NOT_FOUND);
+  }
+
+  const invoice = await createInvoiceForOrder(trx, { order: paidOrder, payment, issuedAt: now });
+
+  await notificationRepository.insertNotification(
+    trx,
+    leadPackPurchased({ userId: order.user_id, propertyId: property.id, title: property.title, leads: order.leads })
+  );
+  await adminNotifications.notifyLeadPackPurchased(trx, {
+    userId: order.user_id,
+    propertyId: property.id,
+    leads: order.leads,
+    orderNumber: order.order_number,
+  });
+
+  return { order: paidOrder, subscription: null, invoice, alreadyPaid: false };
+}
+
 // Safe to call any number of times for one order: the browser return, the webhook and the recovery job all land here
 async function confirmPayment({ orderId, razorpayOrderId, payment }, now = new Date()) {
   return db.transaction(async (trx) => {
@@ -56,6 +91,10 @@ async function confirmPayment({ orderId, razorpayOrderId, payment }, now = new D
       failure_reason: null,
       paid_at: now,
     });
+
+    if (order.order_type === ORDER_TYPES.LEAD_PACK) {
+      return settleLeadPackOrder(trx, { order, paidOrder, payment, now });
+    }
 
     const subscription = await subscriptionRepository.insertSubscription(trx, {
       user_id: order.user_id,

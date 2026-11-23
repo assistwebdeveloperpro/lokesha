@@ -20,9 +20,15 @@ function toTransaction(row) {
     orderNumber: row.order_number,
     user: { id: row.user_id, name: row.user_name, mobile: row.user_mobile },
     packageName: row.package_name,
+    orderType: row.order_type,
     listings: row.listings,
     months: row.months,
     pricePerListingMonth: row.price_per_listing_month,
+    leads: row.leads,
+    pricePerLead: row.price_per_lead,
+    property: row.property_title
+      ? { title: row.property_title, listingNumber: Number(row.property_listing_number) }
+      : null,
     gstPercent: Number(row.gst_percent),
     baseAmount: row.base_amount,
     gstAmount: row.gst_amount,
@@ -51,7 +57,8 @@ async function listTransactions({ page, limit, ...filters }) {
 }
 
 // Accounts read rupees, so every amount column is written as rupees with two decimals
-const rupees = (amount) => amount.toFixed(2);
+// A lead purchase has no listing price, so the cell stays empty
+const rupees = (amount) => (amount === null || amount === undefined ? "" : amount.toFixed(2));
 
 const EXPORT_COLUMNS = [
   { header: "Order number", value: (t) => t.orderNumber },
@@ -61,9 +68,13 @@ const EXPORT_COLUMNS = [
   { header: "Mobile", value: (t) => t.user.mobile },
   { header: "User GSTIN", value: (t) => t.userGstin },
   { header: "Package", value: (t) => t.packageName },
+  { header: "Order type", value: (t) => t.orderType },
   { header: "Listings", value: (t) => t.listings },
   { header: "Months", value: (t) => t.months },
   { header: "Price per listing per month (Rs)", value: (t) => rupees(t.pricePerListingMonth) },
+  { header: "Leads", value: (t) => t.leads },
+  { header: "Price per lead (Rs)", value: (t) => rupees(t.pricePerLead) },
+  { header: "Property", value: (t) => t.property?.title },
   { header: "Base amount (Rs)", value: (t) => rupees(t.baseAmount) },
   { header: "GST %", value: (t) => t.gstPercent },
   { header: "GST amount (Rs)", value: (t) => rupees(t.gstAmount) },

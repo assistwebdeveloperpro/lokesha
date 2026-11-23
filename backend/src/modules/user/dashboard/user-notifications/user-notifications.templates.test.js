@@ -35,7 +35,23 @@ describe("subscription lifecycle notifications", () => {
   });
 });
 
-const { creditsAdded, subscriptionExtended, refundIssued } = require("./user-notifications.templates");
+const { creditsAdded, subscriptionExtended, refundIssued, leadPackPurchased } = require("./user-notifications.templates");
+
+describe("lead pack notification", () => {
+  it("tells the user the leads were added and held leads can now be sent", () => {
+    expect(leadPackPurchased({ userId: "u-1", propertyId: "prop-1", title: "Sky Heights", leads: 10 })).toEqual({
+      user_id: "u-1",
+      type: "lead_pack_purchased",
+      title: "Sky Heights",
+      message: "10 extra leads were added to this property. Leads that were held back can now be sent to you.",
+      property_id: "prop-1",
+    });
+  });
+
+  it("uses the singular for one lead", () => {
+    expect(leadPackPurchased({ userId: "u-1", propertyId: "prop-1", title: "Sky Heights", leads: 1 }).message).toContain("1 extra lead was added");
+  });
+});
 
 describe("admin action notifications", () => {
   it("tells the user about gifted credits with the IST end date", () => {
@@ -57,6 +73,14 @@ describe("admin action notifications", () => {
     expect(refundIssued({ userId: "u-1", orderNumber: "ORD-1" })).toMatchObject({
       type: "refund_issued",
       message: expect.stringContaining("Order ORD-1 was refunded"),
+    });
+    expect(refundIssued({ userId: "u-1", orderNumber: "ORD-1" }).message).toContain("Unused credits of that order were removed.");
+  });
+
+  it("tells the user the extra leads were removed when a lead purchase is refunded", () => {
+    expect(refundIssued({ userId: "u-1", orderNumber: "ORD-2", leads: 10, propertyId: "prop-1" })).toMatchObject({
+      property_id: "prop-1",
+      message: "Order ORD-2 was refunded to your original payment method. The 10 extra leads of that order were removed from the property.",
     });
   });
 });

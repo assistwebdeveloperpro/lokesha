@@ -36,6 +36,25 @@ async function notifySubscriptionPurchased(trx, { userId, listings, months, orde
   );
 }
 
+// Runs in the payment transaction, so admins hear only about a lead purchase that was saved
+async function notifyLeadPackPurchased(trx, { userId, propertyId, leads, orderNumber }) {
+  const [user, property] = await Promise.all([
+    trx("users").where({ id: userId }).first("name"),
+    trx("properties").where({ id: propertyId }).first("title"),
+  ]);
+
+  await repository.insertNotification(
+    trx,
+    templates.leadPackPurchased({
+      userName: user?.name ?? "A user",
+      propertyId,
+      title: property?.title ?? "A property",
+      leads,
+      orderNumber,
+    })
+  );
+}
+
 // Runs in the contact transaction, so admins hear only about a lead that was saved
 async function notifyLeadReceived(trx, { propertyId, leadId, leadName }) {
   const property = await trx("properties as p")
@@ -87,4 +106,13 @@ async function markAllAsRead() {
   return { unreadCount: 0 };
 }
 
-module.exports = { notifyPropertyPending, notifySubscriptionPurchased, notifyLeadReceived, listNotifications, getUnreadCount, markAsRead, markAllAsRead };
+module.exports = {
+  notifyPropertyPending,
+  notifySubscriptionPurchased,
+  notifyLeadPackPurchased,
+  notifyLeadReceived,
+  listNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+};

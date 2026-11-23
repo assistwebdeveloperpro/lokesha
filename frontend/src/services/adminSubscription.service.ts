@@ -2,6 +2,7 @@ import { apiFetch, apiFetchBlob } from "./apiClient";
 import type {
   LedgerEntry,
   OrderStatus,
+  OrderType,
   PagedResponse,
   PagingQuery,
   PaymentRecord,
@@ -9,7 +10,9 @@ import type {
   UserSubscription,
 } from "./userSubscription.service";
 
-export type SubscriptionPackageCode = "free" | "standard";
+export type SubscriptionPackageCode = "free" | "standard" | "leads";
+// A lead purchase creates no subscription, so users are only ever listed under these
+export type UserPackageCode = Exclude<SubscriptionPackageCode, "leads">;
 export type SubscriptionPackageStatus = "active" | "inactive";
 
 // Money is in whole rupees
@@ -23,7 +26,10 @@ export type SubscriptionPackage = {
   status: SubscriptionPackageStatus;
   displayOrder: number;
   pricePerListingMonth: number;
+  pricePerLead: number | null;
   gstPercent: number;
+  minLeads: number | null;
+  maxLeads: number | null;
   minListings: number;
   maxListings: number;
   minMonths: number;
@@ -90,7 +96,7 @@ export type AdminUserRow = {
   name: string;
   mobile: string;
   email: string | null;
-  packages: SubscriptionPackageCode[];
+  packages: UserPackageCode[];
   creditsBought: number;
   creditsUsed: number;
   startsAt: string;
@@ -102,7 +108,7 @@ export type AdminUserRow = {
 
 export type AdminUsersQuery = PagingQuery & {
   search?: string;
-  package?: SubscriptionPackageCode;
+  package?: UserPackageCode;
   status?: "active" | "expired" | "exhausted" | "cancelled" | "refunded";
 };
 
@@ -115,9 +121,13 @@ export type AdminTransaction = {
   orderNumber: string;
   user: { id: string; name: string; mobile: string };
   packageName: string;
-  listings: number;
-  months: number;
-  pricePerListingMonth: number;
+  orderType: OrderType;
+  listings: number | null;
+  months: number | null;
+  pricePerListingMonth: number | null;
+  leads: number | null;
+  pricePerLead: number | null;
+  property: { title: string; listingNumber: number } | null;
   gstPercent: number;
   baseAmount: number;
   gstAmount: number;
@@ -238,7 +248,13 @@ export const extendSubscription = (input: { subscriptionId: string; months: numb
   send<{ message: string; subscriptionId: string; endsAt: string }>("POST", `${SUBSCRIPTION_PATH}/actions/extend`, input, token);
 
 export const refundOrder = (input: { orderId: string; reason: string }, token: string) =>
-  send<{ message: string; orderId: string; cancelledCredits: number; creditNote: { id: string; number: string } | null }>(
+  send<{
+    message: string;
+    orderId: string;
+    cancelledCredits: number;
+    removedLeads: number;
+    creditNote: { id: string; number: string } | null;
+  }>(
     "POST",
     `${SUBSCRIPTION_PATH}/actions/refund`,
     input,

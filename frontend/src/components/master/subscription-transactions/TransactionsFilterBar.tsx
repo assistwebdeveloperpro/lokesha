@@ -42,8 +42,8 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="min-w-0 sm:col-span-2 md:col-span-3 xl:col-span-1">
           <label htmlFor="transactions-search" className="mb-1.5 block text-sm font-medium text-slate-700">
             Search
           </label>
@@ -61,7 +61,7 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
           </div>
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 sm:col-span-2 md:col-span-1">
           <CustomDropdown
             id="transactions-status"
             label="Status"
@@ -94,23 +94,23 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
         </p>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           disabled={isExporting}
           onClick={onExport}
-          className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl sm:w-auto border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isExporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
           {isExporting ? "Exporting..." : "Export CSV"}
         </button>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           {isFiltered(applied) ? (
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl sm:w-auto border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               <RotateCcw className="h-4 w-4" aria-hidden />
               Reset
@@ -119,7 +119,7 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
           <button
             type="submit"
             disabled={isLoading || Boolean(rangeError)}
-            className="bg-linear-to-r-navy-blue inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+            className="bg-linear-to-r-navy-blue inline-flex min-h-11 w-full cursor-pointer sm:w-auto items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Search className="h-4 w-4" aria-hidden />
             Apply filters

@@ -10,7 +10,10 @@ const FIELD_COLUMNS = {
   status: "status",
   displayOrder: "display_order",
   pricePerListingMonth: "price_per_listing_month",
+  pricePerLead: "price_per_lead",
   gstPercent: "gst_percent",
+  minLeads: "min_leads",
+  maxLeads: "max_leads",
   minListings: "min_listings",
   maxListings: "max_listings",
   minMonths: "min_months",
@@ -22,11 +25,9 @@ const FIELD_COLUMNS = {
   freePropertyValidityDays: "free_property_validity_days",
 };
 
-// The Free package has no price or purchase limits, the paid one has no free-grant settings
-const FREE_ONLY_FIELDS = ["freeCredits", "freeLeadLimit", "freePropertyValidityDays"];
-const PAID_ONLY_FIELDS = [
+const FREE_GRANT_FIELDS = ["freeCredits", "freeLeadLimit", "freePropertyValidityDays"];
+const LISTING_FIELDS = [
   "pricePerListingMonth",
-  "gstPercent",
   "minListings",
   "maxListings",
   "minMonths",
@@ -34,6 +35,23 @@ const PAID_ONLY_FIELDS = [
   "allowCustomQuantity",
   "allowCustomDuration",
 ];
+const LEAD_PACK_FIELDS = ["pricePerLead", "minLeads", "maxLeads"];
+
+// Each package only keeps the settings that apply to it
+const BLOCKED_FIELDS = {
+  [PACKAGE_CODES.FREE]: {
+    fields: [...LISTING_FIELDS, ...LEAD_PACK_FIELDS, "gstPercent"],
+    message: "The Free package has no price or purchase limits",
+  },
+  [PACKAGE_CODES.STANDARD]: {
+    fields: [...FREE_GRANT_FIELDS, ...LEAD_PACK_FIELDS],
+    message: "This setting does not apply to the Standard package",
+  },
+  [PACKAGE_CODES.LEADS]: {
+    fields: [...FREE_GRANT_FIELDS, ...LISTING_FIELDS],
+    message: "This setting does not apply to the Buy More Leads package",
+  },
+};
 
 function toPackage(row) {
   return {
@@ -46,7 +64,10 @@ function toPackage(row) {
     status: row.status,
     displayOrder: row.display_order,
     pricePerListingMonth: row.price_per_listing_month,
+    pricePerLead: row.price_per_lead,
     gstPercent: Number(row.gst_percent),
+    minLeads: row.min_leads,
+    maxLeads: row.max_leads,
     minListings: row.min_listings,
     maxListings: row.max_listings,
     minMonths: row.min_months,
@@ -71,9 +92,8 @@ function toAuditLog(row) {
 }
 
 function assertFieldsAllowed(code, input) {
-  const blocked = code === PACKAGE_CODES.FREE ? PAID_ONLY_FIELDS : FREE_ONLY_FIELDS;
-  const label = code === PACKAGE_CODES.FREE ? "The Free package has no price or purchase limits" : "Only the Free package has this setting";
-  const fields = Object.fromEntries(blocked.filter((field) => field in input).map((field) => [field, label]));
+  const { fields: blocked, message } = BLOCKED_FIELDS[code];
+  const fields = Object.fromEntries(blocked.filter((field) => field in input).map((field) => [field, message]));
 
   if (Object.keys(fields).length) throw validationError(fields);
 }
@@ -85,11 +105,16 @@ function assertConsistent(code, merged, input) {
   if (code === PACKAGE_CODES.FREE && input.status === "inactive") {
     fields.status = "The Free package cannot be deactivated";
   }
-  if (merged.maxListings < merged.minListings) {
-    fields.maxListings = "Maximum listings cannot be less than minimum listings";
-  }
-  if (merged.maxMonths < merged.minMonths) {
-    fields.maxMonths = "Maximum months cannot be less than minimum months";
+
+  if (code === PACKAGE_CODES.LEADS) {
+    if (merged.maxLeads < merged.minLeads) fields.maxLeads = "Maximum leads cannot be less than minimum leads";
+  } else {
+    if (merged.maxListings < merged.minListings) {
+      fields.maxListings = "Maximum listings cannot be less than minimum listings";
+    }
+    if (merged.maxMonths < merged.minMonths) {
+      fields.maxMonths = "Maximum months cannot be less than minimum months";
+    }
   }
 
   if (Object.keys(fields).length) throw validationError(fields);

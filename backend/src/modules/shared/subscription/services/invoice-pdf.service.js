@@ -5,11 +5,18 @@ const SLATE = "#475569";
 const LIGHT = "#E2E8F0";
 const PAGE_MARGIN = 50;
 const PAGE_WIDTH = 595.28 - PAGE_MARGIN * 2;
-const COLUMNS = [
+const SUBSCRIPTION_COLUMNS = [
   { key: "description", label: "Description", width: 195, align: "left" },
   { key: "sac", label: "SAC", width: 55, align: "left" },
   { key: "listings", label: "Listings", width: 50, align: "right" },
   { key: "months", label: "Months", width: 50, align: "right" },
+  { key: "rate", label: "Rate", width: 70, align: "right" },
+  { key: "amount", label: "Amount", width: 75.28, align: "right" },
+];
+const LEAD_PACK_COLUMNS = [
+  { key: "description", label: "Description", width: 245, align: "left" },
+  { key: "sac", label: "SAC", width: 55, align: "left" },
+  { key: "leads", label: "Leads", width: 50, align: "right" },
   { key: "rate", label: "Rate", width: 70, align: "right" },
   { key: "amount", label: "Amount", width: 75.28, align: "right" },
 ];
@@ -64,11 +71,11 @@ function drawDetails(doc, { buyer, invoice, payment }) {
   });
 }
 
-function drawRow(doc, y, values, { bold = false, fill } = {}) {
+function drawRow(doc, y, columns, values, { bold = false, fill } = {}) {
   if (fill) doc.rect(PAGE_MARGIN, y - 6, PAGE_WIDTH, 24).fill(fill);
 
   let x = PAGE_MARGIN;
-  COLUMNS.forEach(({ key, width, align }) => {
+  columns.forEach(({ key, width, align }) => {
     doc
       .font(bold ? "Helvetica-Bold" : "Helvetica")
       .fontSize(9)
@@ -78,19 +85,42 @@ function drawRow(doc, y, values, { bold = false, fill } = {}) {
   });
 }
 
-function drawLineItem(doc, { seller, lineItem }) {
-  const headerY = 250;
-  drawRow(doc, headerY, Object.fromEntries(COLUMNS.map(({ key, label }) => [key, label])), { bold: true, fill: NAVY });
+const isLeadPackLine = (lineItem) => lineItem.leads !== undefined;
 
-  const y = headerY + 30;
-  drawRow(doc, y, {
+function leadPackRow({ seller, lineItem }) {
+  const property = lineItem.propertyTitle
+    ? `\n${lineItem.propertyTitle}${lineItem.listingNumber ? ` (#${lineItem.listingNumber})` : ""}`
+    : "";
+
+  return {
+    description: `${lineItem.description}${property}`,
+    sac: seller.sacCode,
+    leads: String(lineItem.leads),
+    rate: formatMoney(lineItem.pricePerLead),
+    amount: formatMoney(lineItem.pricePerLead * lineItem.leads),
+  };
+}
+
+function subscriptionRow({ seller, lineItem }) {
+  return {
     description: `${lineItem.description}\nValid ${formatDate(lineItem.startsAt)} to ${formatDate(lineItem.endsAt)}`,
     sac: seller.sacCode,
     listings: String(lineItem.listings),
     months: String(lineItem.months),
     rate: formatMoney(lineItem.pricePerListingMonth),
     amount: formatMoney(lineItem.pricePerListingMonth * lineItem.listings * lineItem.months),
-  });
+  };
+}
+
+function drawLineItem(doc, snapshot) {
+  const isLeadPack = isLeadPackLine(snapshot.lineItem);
+  const columns = isLeadPack ? LEAD_PACK_COLUMNS : SUBSCRIPTION_COLUMNS;
+
+  const headerY = 250;
+  drawRow(doc, headerY, columns, Object.fromEntries(columns.map(({ key, label }) => [key, label])), { bold: true, fill: NAVY });
+
+  const y = headerY + 30;
+  drawRow(doc, y, columns, isLeadPack ? leadPackRow(snapshot) : subscriptionRow(snapshot));
   doc.moveTo(PAGE_MARGIN, y + 36).lineTo(PAGE_MARGIN + PAGE_WIDTH, y + 36).strokeColor(LIGHT).stroke();
 
   return y + 52;

@@ -25,7 +25,10 @@ function toUserPackage(row) {
     description: row.description ?? "",
     benefits: row.benefits,
     pricePerListingMonth: row.price_per_listing_month,
+    pricePerLead: row.price_per_lead,
     gstPercent: Number(row.gst_percent),
+    minLeads: row.min_leads,
+    maxLeads: row.max_leads,
     minListings: row.min_listings,
     maxListings: row.max_listings,
     minMonths: row.min_months,
@@ -43,8 +46,10 @@ function toOrderSummary(order) {
     id: order.id,
     orderNumber: order.order_number,
     status: order.status,
+    orderType: order.order_type,
     listings: order.listings,
     months: order.months,
+    leads: order.leads,
     baseAmount: order.base_amount,
     gstAmount: order.gst_amount,
     totalAmount: order.total_amount,
@@ -105,6 +110,36 @@ function generateOrderNumber(now = new Date()) {
   return `ORD-${formatIstDate(now).replaceAll("-", "")}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 }
 
+// Opens the gateway order for a saved order, shared by every kind of purchase
+async function startCheckout({ order, user, totalAmount, description }) {
+  let gatewayOrder;
+  try {
+    gatewayOrder = await razorpayService.createOrder({
+      amount: toGatewayAmount(totalAmount),
+      receipt: order.order_number,
+      notes: { orderId: order.id, userId: user.id },
+    });
+  } catch (error) {
+    await repository.updateOrder(order.id, { status: ORDER_STATUSES.FAILED, failure_reason: GATEWAY_ERROR_REASON });
+    throw error;
+  }
+
+  await repository.updateOrder(order.id, { razorpay_order_id: gatewayOrder.id, status: ORDER_STATUSES.PENDING });
+
+  return {
+    order: { ...toOrderSummary(order), status: ORDER_STATUSES.PENDING },
+    checkout: {
+      keyId: razorpayService.getKeyId(),
+      razorpayOrderId: gatewayOrder.id,
+      amount: toGatewayAmount(totalAmount),
+      currency: razorpayService.CURRENCY,
+      name: "Lokesha",
+      description,
+      prefill: { name: user.name, email: user.email, contact: user.mobile_number },
+    },
+  };
+}
+
 async function listPackages() {
   return { items: (await repository.findActivePackages()).map(toUserPackage) };
 }
@@ -138,33 +173,14 @@ async function createOrder(userId, { listings, months, gstin }) {
     snapshot: JSON.stringify({ package: toUserPackage(pkg), quote }),
   });
 
-  let gatewayOrder;
-  try {
-    gatewayOrder = await razorpayService.createOrder({
-      amount: toGatewayAmount(quote.totalAmount),
-      receipt: order.order_number,
-      notes: { orderId: order.id, userId },
-    });
-  } catch (error) {
-    await repository.updateOrder(order.id, { status: ORDER_STATUSES.FAILED, failure_reason: GATEWAY_ERROR_REASON });
-    throw error;
-  }
+  const checkout = await startCheckout({
+    order,
+    user,
+    totalAmount: quote.totalAmount,
+    description: `Standard package: ${quote.benefits[0]}, ${quote.benefits[2]}`,
+  });
 
-  await repository.updateOrder(order.id, { razorpay_order_id: gatewayOrder.id, status: ORDER_STATUSES.PENDING });
-
-  return {
-    order: { ...toOrderSummary(order), status: ORDER_STATUSES.PENDING },
-    quote,
-    checkout: {
-      keyId: razorpayService.getKeyId(),
-      razorpayOrderId: gatewayOrder.id,
-      amount: toGatewayAmount(quote.totalAmount),
-      currency: razorpayService.CURRENCY,
-      name: "Lokesha",
-      description: `Standard package: ${quote.benefits[0]}, ${quote.benefits[2]}`,
-      prefill: { name: user.name, email: user.email, contact: user.mobile_number },
-    },
-  };
+  return { ...checkout, quote };
 }
 
 // A fast path for the browser return; the webhook stays the source of truth, so anything unsure answers "pending"
@@ -187,4 +203,13 @@ async function verifyPayment(userId, orderId, { razorpay_payment_id: paymentId, 
   return { status: ORDER_STATUSES.PAID, order: toOrderSummary(confirmed) };
 }
 
-module.exports = { listPackages, getQuote, createOrder, verifyPayment, buildQuote, generateOrderNumber };
+module.exports = {
+  listPackages,
+  getQuote,
+  createOrder,
+  verifyPayment,
+  buildQuote,
+  generateOrderNumber,
+  startCheckout,
+  toUserPackage,
+};

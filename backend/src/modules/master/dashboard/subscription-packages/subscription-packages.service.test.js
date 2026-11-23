@@ -24,6 +24,9 @@ const standardRow = (overrides = {}) => ({
   max_months: 12,
   allow_custom_quantity: true,
   allow_custom_duration: true,
+  price_per_lead: null,
+  min_leads: null,
+  max_leads: null,
   free_credits: null,
   free_lead_limit: null,
   free_property_validity_days: null,
@@ -45,6 +48,22 @@ const freeRow = (overrides = {}) =>
     free_credits: 2,
     free_lead_limit: 2,
     free_property_validity_days: 30,
+    ...overrides,
+  });
+
+const leadsRow = (overrides = {}) =>
+  standardRow({
+    code: "leads",
+    name: "Buy More Leads",
+    display_order: 3,
+    price_per_listing_month: 0,
+    price_per_lead: 100,
+    min_leads: 1,
+    max_leads: 100,
+    max_listings: 1,
+    max_months: 1,
+    allow_custom_quantity: false,
+    allow_custom_duration: false,
     ...overrides,
   });
 
@@ -154,6 +173,58 @@ describe("updatePackage", () => {
         details: { fields: { status: "The Free package cannot be deactivated" } },
       });
       expect(repository.updateById).not.toHaveBeenCalled();
+    });
+  });
+
+  it("keeps lead-pack settings off the Standard package", async () => {
+    await expect(service.updatePackage(ADMIN, PACKAGE_ID, { pricePerLead: 50 })).rejects.toMatchObject({
+      statusCode: 400,
+      details: { fields: { pricePerLead: expect.any(String) } },
+    });
+  });
+
+  describe("the Buy More Leads package", () => {
+    beforeEach(() => {
+      repository.findByIdForUpdate.mockResolvedValue(leadsRow());
+      repository.updateById.mockImplementation(async (_trx, _id, columns) => ({ ...leadsRow(), ...columns }));
+    });
+
+    it("maps the lead-pack columns to the API shape", async () => {
+      repository.findById.mockResolvedValue(leadsRow());
+
+      expect(await service.getPackage(PACKAGE_ID)).toMatchObject({ code: "leads", pricePerLead: 100, minLeads: 1, maxLeads: 100 });
+    });
+
+    it("saves the price, GST and lead range and audits the old and new price", async () => {
+      const result = await service.updatePackage(ADMIN, PACKAGE_ID, { pricePerLead: 120, gstPercent: 12, maxLeads: 50 });
+
+      expect(repository.updateById).toHaveBeenCalledWith(TRX, PACKAGE_ID, { price_per_lead: 120, gst_percent: 12, max_leads: 50 });
+      expect(repository.insertAuditLog).toHaveBeenCalledWith(
+        TRX,
+        expect.objectContaining({ changes: expect.objectContaining({ pricePerLead: { from: 100, to: 120 } }) })
+      );
+      expect(result.pricePerLead).toBe(120);
+    });
+
+    it("rejects a lead range that the merged values break", async () => {
+      await expect(service.updatePackage(ADMIN, PACKAGE_ID, { minLeads: 101 })).rejects.toMatchObject({
+        details: { fields: { maxLeads: expect.any(String) } },
+      });
+      expect(repository.updateById).not.toHaveBeenCalled();
+    });
+
+    it.each([[{ minListings: 2 }], [{ maxMonths: 6 }], [{ pricePerListingMonth: 10 }], [{ freeCredits: 3 }]])(
+      "has no listing, month or free-grant settings: %j",
+      async (input) => {
+        await expect(service.updatePackage(ADMIN, PACKAGE_ID, input)).rejects.toMatchObject({ statusCode: 400 });
+        expect(repository.updateById).not.toHaveBeenCalled();
+      }
+    );
+
+    it("can be deactivated", async () => {
+      await service.updatePackage(ADMIN, PACKAGE_ID, { status: "inactive" });
+
+      expect(repository.updateById).toHaveBeenCalledWith(TRX, PACKAGE_ID, { status: "inactive" });
     });
   });
 

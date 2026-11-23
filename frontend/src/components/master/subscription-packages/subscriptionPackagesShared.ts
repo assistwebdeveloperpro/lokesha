@@ -1,6 +1,7 @@
 import { formatRupees } from "@/lib/currency";
 import type {
   SubscriptionPackage,
+  SubscriptionPackageCode,
   SubscriptionPackageStatus,
   UpdateSubscriptionPackageInput,
 } from "@/services/adminSubscription.service";
@@ -18,7 +19,10 @@ export type PackageFormState = {
   status: SubscriptionPackageStatus;
   displayOrder: string;
   price: string;
+  pricePerLead: string;
   gstPercent: string;
+  minLeads: string;
+  maxLeads: string;
   minListings: string;
   maxListings: string;
   minMonths: string;
@@ -65,7 +69,10 @@ export function toFormState(pkg: SubscriptionPackage): PackageFormState {
     status: pkg.status,
     displayOrder: String(pkg.displayOrder),
     price: formatRupeesInput(pkg.pricePerListingMonth),
+    pricePerLead: toText(pkg.pricePerLead),
     gstPercent: String(pkg.gstPercent),
+    minLeads: toText(pkg.minLeads),
+    maxLeads: toText(pkg.maxLeads),
     minListings: String(pkg.minListings),
     maxListings: String(pkg.maxListings),
     minMonths: String(pkg.minMonths),
@@ -88,14 +95,36 @@ const FREE_RULES: IntegerRule[] = [
   { field: "freePropertyValidityDays", label: "Listing validity", min: 1, max: 3650 },
 ];
 
-const PAID_RULES: IntegerRule[] = [
+const STANDARD_RULES: IntegerRule[] = [
   { field: "minListings", label: "Minimum listings", min: 1, max: 1000 },
   { field: "maxListings", label: "Maximum listings", min: 1, max: 1000 },
   { field: "minMonths", label: "Minimum months", min: 1, max: 60 },
   { field: "maxMonths", label: "Maximum months", min: 1, max: 60 },
 ];
 
-export function validatePackageForm(form: PackageFormState, isFree: boolean): PackageFormErrors {
+const LEAD_PACK_RULES: IntegerRule[] = [
+  { field: "minLeads", label: "Minimum leads", min: 1, max: 1000 },
+  { field: "maxLeads", label: "Maximum leads", min: 1, max: 1000 },
+];
+
+const RULES_BY_CODE: Record<SubscriptionPackageCode, IntegerRule[]> = {
+  free: FREE_RULES,
+  standard: STANDARD_RULES,
+  leads: LEAD_PACK_RULES,
+};
+
+const PRICE_ERROR = "Price must be a whole number from ₹0 to ₹1,00,000";
+
+// A range only gets the order check when both ends are valid on their own
+function checkRange(errors: PackageFormErrors, form: PackageFormState, minField: keyof PackageFormState, maxField: keyof PackageFormState, label: string) {
+  const min = parseInteger(String(form[minField]));
+  const max = parseInteger(String(form[maxField]));
+  if (!errors[maxField] && min !== null && max !== null && max < min) {
+    errors[maxField] = `Maximum ${label} cannot be less than minimum`;
+  }
+}
+
+export function validatePackageForm(form: PackageFormState, code: SubscriptionPackageCode): PackageFormErrors {
   const errors: PackageFormErrors = {};
 
   if (!form.name.trim()) errors.name = "Enter a package name";
@@ -107,30 +136,25 @@ export function validatePackageForm(form: PackageFormState, isFree: boolean): Pa
   if (form.description.trim().length > 1000) errors.description = "Description must be 1000 characters or fewer";
   if (form.benefits.some((benefit) => !benefit.trim())) errors.benefits = "Remove or fill the empty benefit points";
 
-  const rules = [...COMMON_RULES, ...(isFree ? FREE_RULES : PAID_RULES)];
-  for (const { field, label, min, max } of rules) {
+  for (const { field, label, min, max } of [...COMMON_RULES, ...RULES_BY_CODE[code]]) {
     const value = parseInteger(String(form[field]));
     if (value === null || value < min || value > max) errors[field] = `${label} must be a whole number from ${min} to ${max}`;
   }
 
-  if (!isFree) {
-    const price = parseRupees(form.price);
-    if (price === null || price < 0 || price > MAX_PRICE) errors.price = "Price must be a whole number from ₹0 to ₹1,00,000";
+  if (code === "free") return errors;
 
-    const gst = parseNumber(form.gstPercent);
-    if (gst === null || gst < 0 || gst > 100) errors.gstPercent = "GST must be from 0 to 100";
+  const priceField = code === "leads" ? "pricePerLead" : "price";
+  const price = parseRupees(form[priceField]);
+  if (price === null || price < 0 || price > MAX_PRICE) errors[priceField] = PRICE_ERROR;
 
-    const minListings = parseInteger(form.minListings);
-    const maxListings = parseInteger(form.maxListings);
-    if (!errors.maxListings && minListings !== null && maxListings !== null && maxListings < minListings) {
-      errors.maxListings = "Maximum listings cannot be less than minimum";
-    }
+  const gst = parseNumber(form.gstPercent);
+  if (gst === null || gst < 0 || gst > 100) errors.gstPercent = "GST must be from 0 to 100";
 
-    const minMonths = parseInteger(form.minMonths);
-    const maxMonths = parseInteger(form.maxMonths);
-    if (!errors.maxMonths && minMonths !== null && maxMonths !== null && maxMonths < minMonths) {
-      errors.maxMonths = "Maximum months cannot be less than minimum";
-    }
+  if (code === "leads") {
+    checkRange(errors, form, "minLeads", "maxLeads", "leads");
+  } else {
+    checkRange(errors, form, "minListings", "maxListings", "listings");
+    checkRange(errors, form, "minMonths", "maxMonths", "months");
   }
 
   return errors;
@@ -139,8 +163,37 @@ export function validatePackageForm(form: PackageFormState, isFree: boolean): Pa
 const isSame = (left: unknown, right: unknown) => JSON.stringify(left) === JSON.stringify(right);
 
 // Sends only the fields this package type owns and that actually changed; call after the form is valid
+const getPackageSettings = (code: SubscriptionPackageCode, form: PackageFormState): UpdateSubscriptionPackageInput => {
+  if (code === "free") {
+    return {
+      freeCredits: Number(form.freeCredits),
+      freeLeadLimit: Number(form.freeLeadLimit),
+      freePropertyValidityDays: Number(form.freePropertyValidityDays),
+    };
+  }
+
+  if (code === "leads") {
+    return {
+      pricePerLead: parseRupees(form.pricePerLead) ?? 0,
+      gstPercent: Number(form.gstPercent),
+      minLeads: Number(form.minLeads),
+      maxLeads: Number(form.maxLeads),
+    };
+  }
+
+  return {
+    pricePerListingMonth: parseRupees(form.price) ?? 0,
+    gstPercent: Number(form.gstPercent),
+    minListings: Number(form.minListings),
+    maxListings: Number(form.maxListings),
+    minMonths: Number(form.minMonths),
+    maxMonths: Number(form.maxMonths),
+    allowCustomQuantity: form.allowCustomQuantity,
+    allowCustomDuration: form.allowCustomDuration,
+  };
+};
+
 export function buildUpdateInput(pkg: SubscriptionPackage, form: PackageFormState): UpdateSubscriptionPackageInput {
-  const isFree = pkg.code === "free";
   const next: UpdateSubscriptionPackageInput = {
     name: form.name.trim(),
     displayTitle: form.displayTitle.trim(),
@@ -148,22 +201,7 @@ export function buildUpdateInput(pkg: SubscriptionPackage, form: PackageFormStat
     benefits: form.benefits.map((benefit) => benefit.trim()),
     status: form.status,
     displayOrder: Number(form.displayOrder),
-    ...(isFree
-      ? {
-          freeCredits: Number(form.freeCredits),
-          freeLeadLimit: Number(form.freeLeadLimit),
-          freePropertyValidityDays: Number(form.freePropertyValidityDays),
-        }
-      : {
-          pricePerListingMonth: parseRupees(form.price) ?? 0,
-          gstPercent: Number(form.gstPercent),
-          minListings: Number(form.minListings),
-          maxListings: Number(form.maxListings),
-          minMonths: Number(form.minMonths),
-          maxMonths: Number(form.maxMonths),
-          allowCustomQuantity: form.allowCustomQuantity,
-          allowCustomDuration: form.allowCustomDuration,
-        }),
+    ...getPackageSettings(pkg.code, form),
   };
 
   return Object.fromEntries(
@@ -179,6 +217,9 @@ const FIELD_LABELS: Record<string, string> = {
   status: "Status",
   displayOrder: "Display order",
   pricePerListingMonth: "Price per listing per month",
+  pricePerLead: "Price per lead",
+  minLeads: "Minimum leads",
+  maxLeads: "Maximum leads",
   gstPercent: "GST",
   minListings: "Minimum listings",
   maxListings: "Maximum listings",
@@ -195,7 +236,7 @@ export const getFieldLabel = (field: string) => FIELD_LABELS[field] ?? field;
 
 export function formatChangeValue(field: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
-  if (field === "pricePerListingMonth") return formatRupees(Number(value));
+  if (field === "pricePerListingMonth" || field === "pricePerLead") return formatRupees(Number(value));
   if (field === "gstPercent") return `${value}%`;
   if (field === "freePropertyValidityDays") return `${value} days`;
   if (typeof value === "boolean") return value ? "Yes" : "No";

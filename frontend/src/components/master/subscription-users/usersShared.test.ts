@@ -65,4 +65,13 @@ describe("describeAction", () => {
       "₹1,180 returned, 0 credits cancelled",
     );
   });
+
+  it("describes a lead purchase refund by the leads removed from the property", () => {
+    expect(
+      describeAction({ type: "refund", details: { amount: 1180, leads: 10, propertyId: "p-1", creditNoteNumber: "LOK-CN/2026-27/000002" } }),
+    ).toEqual({
+      title: "Order refunded",
+      summary: "₹1,180 returned, 10 leads removed, credit note LOK-CN/2026-27/000002",
+    });
+  });
 });

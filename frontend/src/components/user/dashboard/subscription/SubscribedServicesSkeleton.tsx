@@ -1,4 +1,6 @@
-const bar = "animate-pulse rounded bg-slate-200/80";
+import type { ReactNode } from "react";
+
+const bar ="animate-pulse rounded bg-slate-200/80";
 
 const TILE_COUNT = 4;
 
@@ -30,6 +32,21 @@ function SubscriptionCardSkeleton() {
   );
 }
 
+function SectionPanelSkeleton({ children }: { children: ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/70 shadow-sm">
+      <div className="flex items-center gap-3 border-b border-slate-200 border-l-4 border-l-slate-200 bg-white px-4 py-4 sm:px-6">
+        <span className={`${bar} h-10 w-10 shrink-0 rounded-xl`} />
+        <div className="space-y-2">
+          <div className={`${bar} h-4 w-40`} />
+          <div className={`${bar} h-3 w-80 max-w-full`} />
+        </div>
+      </div>
+      <div className="p-4 sm:p-6">{children}</div>
+    </div>
+  );
+}
+
 export default function SubscribedServicesSkeleton() {
   return (
     <div className="space-y-6" aria-busy aria-hidden>
@@ -48,12 +65,15 @@ export default function SubscribedServicesSkeleton() {
         ))}
       </div>
 
-      <ul className="grid gap-4 xl:grid-cols-2">
-        <SubscriptionCardSkeleton />
-        <SubscriptionCardSkeleton />
-      </ul>
+      <SectionPanelSkeleton>
+        <ul className="grid gap-4 xl:grid-cols-2">
+          <SubscriptionCardSkeleton />
+          <SubscriptionCardSkeleton />
+        </ul>
+      </SectionPanelSkeleton>
 
-      <div className="grid items-start gap-5 sm:gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+      <SectionPanelSkeleton>
+        <div className="grid items-start gap-5 sm:gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
           <div className="bg-linear-to-r-navy-blue flex items-center justify-between gap-3 px-5 py-5 sm:px-6">
             <div className="flex items-center gap-3">
@@ -102,7 +122,8 @@ export default function SubscribedServicesSkeleton() {
             <div className={`${bar} h-12 w-full rounded-xl`} />
           </div>
         </div>
-      </div>
+        </div>
+      </SectionPanelSkeleton>
     </div>
   );
 }

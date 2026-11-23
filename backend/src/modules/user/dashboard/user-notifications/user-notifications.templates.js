@@ -14,6 +14,7 @@ const NOTIFICATION_TYPES = {
   creditsAdded: "credits_added",
   subscriptionExtended: "subscription_extended",
   refundIssued: "refund_issued",
+  leadPackPurchased: "lead_pack_purchased",
 };
 
 function propertyApproved({ userId, propertyId, title }) {
@@ -165,13 +166,28 @@ function subscriptionExtended({ userId, endsAt }) {
   };
 }
 
-function refundIssued({ userId, orderNumber }) {
+// A lead purchase passes its lead count and property, a package purchase has unused credits instead
+function refundIssued({ userId, orderNumber, leads, propertyId = null }) {
+  const removed = leads
+    ? `The ${leads} extra ${leads === 1 ? "lead" : "leads"} of that order were removed from the property.`
+    : "Unused credits of that order were removed.";
+
   return {
     user_id: userId,
     type: NOTIFICATION_TYPES.refundIssued,
     title: "Your payment was refunded",
-    message: `Order ${orderNumber} was refunded to your original payment method. Unused credits of that order were removed.`,
-    property_id: null,
+    message: `Order ${orderNumber} was refunded to your original payment method. ${removed}`,
+    property_id: propertyId,
+  };
+}
+
+function leadPackPurchased({ userId, propertyId, title, leads }) {
+  return {
+    user_id: userId,
+    type: NOTIFICATION_TYPES.leadPackPurchased,
+    title,
+    message: `${leads} extra ${leads === 1 ? "lead was" : "leads were"} added to this property. Leads that were held back can now be sent to you.`,
+    property_id: propertyId,
   };
 }
 
@@ -192,4 +208,5 @@ module.exports = {
   creditsAdded,
   subscriptionExtended,
   refundIssued,
+  leadPackPurchased,
 };

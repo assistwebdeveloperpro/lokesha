@@ -21,4 +21,20 @@ function calculatePrice({ listings, months, pricePerListingMonth, gstPercent }) 
   return { baseAmount, gstAmount, totalAmount: baseAmount + gstAmount };
 }
 
-module.exports = { calculatePrice, toGatewayAmount };
+function calculateLeadPrice({ leads, pricePerLead, gstPercent }) {
+  if (!isPositiveInt(leads)) {
+    throw new RangeError("leads must be a positive integer");
+  }
+  if (!Number.isInteger(pricePerLead) || pricePerLead < 0) {
+    throw new RangeError("price must be a non-negative integer");
+  }
+  if (typeof gstPercent !== "number" || gstPercent < 0) {
+    throw new RangeError("gstPercent must be a non-negative number");
+  }
+
+  const baseAmount = leads * pricePerLead;
+  const gstAmount = Math.round((baseAmount * gstPercent) / 100);
+  return { baseAmount, gstAmount, totalAmount: baseAmount + gstAmount };
+}
+
+module.exports = { calculatePrice, calculateLeadPrice, toGatewayAmount };

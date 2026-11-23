@@ -1,10 +1,11 @@
 "use client";
 
-import { PackageCheck } from "lucide-react";
+import { BadgeCheck, PackageCheck, ShoppingCart } from "lucide-react";
 import CreditSummaryTiles from "./CreditSummaryTiles";
 import CurrentSubscriptionCard from "./CurrentSubscriptionCard";
 import OrderSummaryModal from "./OrderSummaryModal";
 import PurchaseCard from "./PurchaseCard";
+import SectionPanel from "./SectionPanel";
 import SubscribedServicesSkeleton from "./SubscribedServicesSkeleton";
 import SubscriptionStateBanner from "./SubscriptionStateBanner";
 import { usePurchaseFlow } from "./usePurchaseFlow";
@@ -59,20 +60,34 @@ export default function SubscribedServicesContent() {
             <CreditSummaryTiles summary={overview.summary} />
 
             {overview.subscriptions.length ? (
-              <ul className="grid gap-4 xl:grid-cols-2">
-                {overview.subscriptions.map((subscription) => (
-                  <CurrentSubscriptionCard key={subscription.id} subscription={subscription} />
-                ))}
-              </ul>
+              <SectionPanel
+                id="active-packages-heading"
+                icon={BadgeCheck}
+                title="Your Active Packages"
+                description="Packages currently active on your account, with their remaining listing credits and validity."
+              >
+                <ul className="grid gap-4 xl:grid-cols-2">
+                  {overview.subscriptions.map((subscription) => (
+                    <CurrentSubscriptionCard key={subscription.id} subscription={subscription} />
+                  ))}
+                </ul>
+              </SectionPanel>
             ) : null}
 
-            {standardPackage ? (
-              <PurchaseArea pkg={standardPackage} onCompleted={refresh} />
-            ) : (
-              <p className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm font-medium text-slate-500">
-                The Standard package is not available for purchase right now.
-              </p>
-            )}
+            <SectionPanel
+              id="buy-package-heading"
+              icon={ShoppingCart}
+              title="Buy a Package"
+              description="Need more listings? Choose the number of listings and duration, then pay securely online."
+            >
+              {standardPackage ? (
+                <PurchaseArea pkg={standardPackage} onCompleted={refresh} />
+              ) : (
+                <p className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-sm font-medium text-slate-500">
+                  The Standard package is not available for purchase right now.
+                </p>
+              )}
+            </SectionPanel>
           </div>
         )}
       </section>

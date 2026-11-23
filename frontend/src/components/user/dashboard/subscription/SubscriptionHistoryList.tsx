@@ -14,7 +14,7 @@ function HistoryItem({ subscription }: { subscription: UserSubscription }) {
           <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-slate-800">{subscription.packageName} package</p>
+          <p className="truncate text-sm font-bold text-slate-800">{subscription.packageTitle}</p>
           <p className="text-xs font-medium text-slate-500">{SOURCE_LABELS[subscription.source]}</p>
         </div>
       </div>

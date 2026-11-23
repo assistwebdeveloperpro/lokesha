@@ -6,6 +6,7 @@ const MAX_BENEFITS = 10;
 const MAX_PRICE = 100000;
 const MAX_LISTINGS = 1000;
 const MAX_MONTHS = 60;
+const MAX_LEADS = 1000;
 const MAX_FREE_VALUE = 1000;
 const MAX_VALIDITY_DAYS = 3650;
 
@@ -20,7 +21,10 @@ const updatePackageSchema = Joi.object({
   status: Joi.string().valid(...PACKAGE_STATUSES),
   displayOrder: Joi.number().integer().min(0).max(1000),
   pricePerListingMonth: Joi.number().integer().min(0).max(MAX_PRICE),
+  pricePerLead: Joi.number().integer().min(0).max(MAX_PRICE),
   gstPercent: Joi.number().min(0).max(100).precision(2),
+  minLeads: positiveInt(MAX_LEADS),
+  maxLeads: positiveInt(MAX_LEADS),
   minListings: positiveInt(MAX_LISTINGS),
   maxListings: positiveInt(MAX_LISTINGS),
   minMonths: positiveInt(MAX_MONTHS),

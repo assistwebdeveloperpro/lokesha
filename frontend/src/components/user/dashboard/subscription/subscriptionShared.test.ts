@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 import type { PurchasablePackage } from "@/services/userSubscription.service";
 import {
   calculatePreview,
+  canBuyMoreLeads,
   clampQuantity,
+  describeOrderQuantity,
   formatCreditChange,
   formatDaysLeft,
+  formatLeadPrice,
   getInvoiceFileName,
+  getLeadChoices,
   getListingChoices,
   getMonthChoices,
+  getOrderTitle,
+  getPayLabel,
   isValidGstin,
   plural,
 } from "./subscriptionShared";
@@ -20,6 +26,9 @@ const standard: PurchasablePackage = {
   description: "",
   benefits: [],
   pricePerListingMonth: 100000,
+  pricePerLead: null,
+  minLeads: null,
+  maxLeads: null,
   gstPercent: 18,
   minListings: 1,
   maxListings: 50,
@@ -90,5 +99,49 @@ describe("text helpers", () => {
     expect(isValidGstin("24AAACC1206D1ZM")).toBe(true);
     expect(isValidGstin("24aaacc1206d1zm")).toBe(false);
     expect(isValidGstin("12345")).toBe(false);
+  });
+});
+
+describe("lead pack helpers", () => {
+  const leadPack: PurchasablePackage = { ...standard, id: "pkg-leads", code: "leads", pricePerLead: 100, minLeads: 1, maxLeads: 100 };
+
+  it("takes the quantity range from the package", () => {
+    expect(getLeadChoices(leadPack)).toEqual({ min: 1, max: 100 });
+    expect(getLeadChoices({ ...leadPack, minLeads: 5, maxLeads: 20 })).toEqual({ min: 5, max: 20 });
+  });
+
+  it("collapses to one lead when the package range is not set up", () => {
+    expect(getLeadChoices({ ...leadPack, minLeads: null, maxLeads: null })).toEqual({ min: 1, max: 1 });
+    expect(getLeadChoices({ ...leadPack, minLeads: 5, maxLeads: 2 })).toEqual({ min: 5, max: 5 });
+  });
+
+  it("labels the price per lead", () => {
+    expect(formatLeadPrice(leadPack)).toBe("₹100 per lead");
+    expect(formatLeadPrice({ ...leadPack, pricePerLead: null })).toBe("");
+  });
+
+  it("offers more leads only for a live property that used its limit", () => {
+    expect(canBuyMoreLeads({ status: "published", isLimitReached: true })).toBe(true);
+    expect(canBuyMoreLeads({ status: "published", isLimitReached: false })).toBe(false);
+    expect(canBuyMoreLeads({ status: "closed", isLimitReached: true })).toBe(false);
+  });
+
+  it("labels the pay button by phase", () => {
+    expect(getPayLabel("idle", 1180)).toBe("Pay ₹1,180");
+    expect(getPayLabel("quoting", 1180)).toBe("Pay ₹1,180");
+    expect(getPayLabel("paying", 1180)).toBe("Opening payment...");
+    expect(getPayLabel("verifying", 1180)).toBe("Confirming payment...");
+  });
+
+  it("describes what an order bought", () => {
+    const base = { listings: null, months: null, leads: null, property: null };
+
+    expect(describeOrderQuantity({ ...base, orderType: "subscription", listings: 2, months: 3 })).toBe("2 listings · 3 months");
+    expect(describeOrderQuantity({ ...base, orderType: "lead_pack", leads: 10, property: { title: "Sky Heights" } })).toBe(
+      "10 leads · Sky Heights",
+    );
+    expect(describeOrderQuantity({ ...base, orderType: "lead_pack", leads: 1 })).toBe("1 lead");
+    expect(getOrderTitle("lead_pack")).toBe("Extra leads");
+    expect(getOrderTitle("subscription")).toBe("Standard package");
   });
 });

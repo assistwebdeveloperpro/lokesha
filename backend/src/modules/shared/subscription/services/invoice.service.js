@@ -1,11 +1,12 @@
 const invoiceRepository = require("../repositories/subscription-invoice.repository");
 const { getFinancialYear, formatInvoiceNumber } = require("../utils/financial-year.util");
-const { INVOICE_TYPES } = require("../constants/subscription.constants");
+const { INVOICE_TYPES, ORDER_TYPES } = require("../constants/subscription.constants");
 const { AppError } = require("../../property/utils/property.errors");
 
 const NOT_FOUND = 404;
 const REQUIRED_SELLER_FIELDS = ["legal_name", "address", "gstin", "sac_code"];
 const LINE_ITEM_DESCRIPTION = "Standard package subscription";
+const LEAD_PACK_LINE_ITEM_DESCRIPTION = "Extra property leads";
 
 const toSeller = (settings) => ({
   legalName: settings.legal_name,
@@ -14,20 +15,37 @@ const toSeller = (settings) => ({
   sacCode: settings.sac_code,
 });
 
+// A lead purchase has no subscription period, it names the property the leads were added to
+function buildLineItem({ order, subscription }) {
+  if (order.order_type === ORDER_TYPES.LEAD_PACK) {
+    const property = order.snapshot?.quote?.property;
+
+    return {
+      description: LEAD_PACK_LINE_ITEM_DESCRIPTION,
+      leads: order.leads,
+      pricePerLead: order.price_per_lead,
+      propertyTitle: property?.title ?? null,
+      listingNumber: property?.listingNumber ?? null,
+    };
+  }
+
+  return {
+    description: LINE_ITEM_DESCRIPTION,
+    listings: order.listings,
+    months: order.months,
+    pricePerListingMonth: order.price_per_listing_month,
+    startsAt: subscription.starts_at,
+    endsAt: subscription.ends_at,
+  };
+}
+
 // The invoice keeps its own copy of every detail, so later edits to price or business details never change it
 function buildSnapshot({ settings, buyer, order, subscription, payment, invoiceNumber, issuedAt }) {
   return {
     seller: toSeller(settings),
     buyer: { name: buyer.name, mobile: buyer.mobile_number, email: buyer.email, gstin: order.user_gstin },
     invoice: { number: invoiceNumber, type: INVOICE_TYPES.INVOICE, issuedAt, orderNumber: order.order_number },
-    lineItem: {
-      description: LINE_ITEM_DESCRIPTION,
-      listings: order.listings,
-      months: order.months,
-      pricePerListingMonth: order.price_per_listing_month,
-      startsAt: subscription.starts_at,
-      endsAt: subscription.ends_at,
-    },
+    lineItem: buildLineItem({ order, subscription }),
     amounts: {
       baseAmount: order.base_amount,
       gstPercent: Number(order.gst_percent),
@@ -39,7 +57,8 @@ function buildSnapshot({ settings, buyer, order, subscription, payment, invoiceN
 }
 
 // Runs inside the payment transaction; an existing invoice for the order is returned as it is
-async function createInvoiceForOrder(trx, { order, subscription, payment, issuedAt = new Date() }) {
+// The subscription is omitted for a lead purchase
+async function createInvoiceForOrder(trx, { order, subscription = null, payment, issuedAt = new Date() }) {
   const existing = await invoiceRepository.findInvoiceByOrder(trx, order.id, INVOICE_TYPES.INVOICE);
   if (existing) return existing;
 

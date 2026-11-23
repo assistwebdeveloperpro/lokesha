@@ -83,8 +83,14 @@ export function describeAction({ type, details }: Pick<AdminAction, "type" | "de
   }
 
   const creditNote = details.creditNoteNumber ? `, credit note ${String(details.creditNoteNumber)}` : "";
+  // A lead purchase refund removes leads from the property instead of cancelling credits
+  const removed =
+    details.leads === undefined
+      ? `${plural(asNumber(details.cancelledCredits), "credit")} cancelled`
+      : `${plural(asNumber(details.leads), "lead")} removed`;
+
   return {
     title: "Order refunded",
-    summary: `${formatRupees(asNumber(details.amount))} returned, ${plural(asNumber(details.cancelledCredits), "credit")} cancelled${creditNote}`,
+    summary: `${formatRupees(asNumber(details.amount))} returned, ${removed}${creditNote}`,
   };
 }

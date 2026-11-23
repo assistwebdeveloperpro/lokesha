@@ -14,6 +14,7 @@ describe("usersListQuerySchema", () => {
 
   it.each([
     [{ package: "gold" }],
+    [{ package: "leads" }],
     [{ status: "paused" }],
     [{ limit: 51 }],
     [{ page: 0 }],

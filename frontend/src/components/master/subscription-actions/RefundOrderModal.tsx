@@ -4,15 +4,26 @@ import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { formatRupees } from "@/lib/currency";
 import { refundOrder } from "@/services/adminSubscription.service";
+import type { OrderType } from "@/services/userSubscription.service";
 import { ActionModal, ReasonField } from "./ActionModal";
 import { validateRefund, type ActionErrors } from "./subscriptionActionsShared";
 import { useAdminActionRunner } from "./useAdminActionRunner";
 
 type RefundOrderModalProps = {
-  order: { id: string; orderNumber: string; totalAmount: number };
+  order: { id: string; orderNumber: string; totalAmount: number; orderType: OrderType };
   onClose: () => void;
   onDone: (message: string) => void;
 };
+
+const CREDIT_REFUND_NOTES = [
+  "Unused credits of this order are cancelled.",
+  "Credits already used stay with the live properties. Close those separately if needed.",
+];
+
+const LEAD_REFUND_NOTES = [
+  "The leads of this order are taken off the property.",
+  "A refund is blocked when any of these leads were already used.",
+];
 
 export default function RefundOrderModal({ order, onClose, onDone }: RefundOrderModalProps) {
   const { run, isRunning, error, fieldErrors, clearError } = useAdminActionRunner();
@@ -46,8 +57,9 @@ export default function RefundOrderModal({ order, onClose, onDone }: RefundOrder
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
         <ul className="space-y-1 text-sm font-medium text-amber-900">
           <li>The money is returned through Razorpay and this cannot be undone.</li>
-          <li>Unused credits of this order are cancelled.</li>
-          <li>Credits already used stay with the live properties. Close those separately if needed.</li>
+          {(order.orderType === "lead_pack" ? LEAD_REFUND_NOTES : CREDIT_REFUND_NOTES).map((note) => (
+            <li key={note}>{note}</li>
+          ))}
           <li>A credit note is issued against the invoice.</li>
         </ul>
       </div>

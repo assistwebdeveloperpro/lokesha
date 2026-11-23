@@ -19,9 +19,12 @@ const TRANSACTIONS_PATH = "/backend/subscription-transactions";
 const SUBSCRIPTION_PURCHASED_TYPE = "subscription_purchased";
 
 const LEAD_RECEIVED_TYPE = "lead_received";
+// Held leads of the property are sent from the Leads screen
+const LEAD_PACK_PURCHASED_TYPE = "lead_pack_purchased";
 
 function getAdminNotificationHref(notification: UserNotification) {
   if (notification.type === LEAD_RECEIVED_TYPE) return getLeadsHref(notification.leadId);
+  if (notification.type === LEAD_PACK_PURCHASED_TYPE) return getLeadsHref();
   if (notification.type === SUBSCRIPTION_PURCHASED_TYPE) return TRANSACTIONS_PATH;
   if (!notification.propertyId || !REVIEW_NOTIFICATION_TYPES.has(notification.type)) return null;
   return `${REVIEW_PROPERTIES_PATH}?property=${encodeURIComponent(notification.propertyId)}`;

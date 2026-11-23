@@ -3,12 +3,15 @@ import { apiFetch, apiFetchBlob } from "./apiClient";
 // Money is in whole rupees; checkout.amount alone is in paise for Razorpay
 export type PurchasablePackage = {
   id: string;
-  code: "free" | "standard";
+  code: "free" | "standard" | "leads";
   name: string;
   displayTitle: string;
   description: string;
   benefits: string[];
   pricePerListingMonth: number;
+  pricePerLead: number | null;
+  minLeads: number | null;
+  maxLeads: number | null;
   gstPercent: number;
   minListings: number;
   maxListings: number;
@@ -32,12 +35,27 @@ export type SubscriptionQuote = {
   benefits: string[];
 };
 
+export type LeadPackQuote = {
+  packageId: string;
+  property: { id: string; title: string; listingNumber: number };
+  leads: number;
+  pricePerLead: number;
+  gstPercent: number;
+  baseAmount: number;
+  gstAmount: number;
+  totalAmount: number;
+};
+
+export type OrderType = "subscription" | "lead_pack";
+
 export type OrderSummary = {
   id: string;
   orderNumber: string;
   status: OrderStatus;
-  listings: number;
-  months: number;
+  orderType: OrderType;
+  listings: number | null;
+  months: number | null;
+  leads: number | null;
   baseAmount: number;
   gstAmount: number;
   totalAmount: number;
@@ -58,6 +76,8 @@ export type CheckoutDetails = {
 
 export type CreatedOrder = { order: OrderSummary; quote: SubscriptionQuote; checkout: CheckoutDetails };
 
+export type CreatedLeadPackOrder = { order: OrderSummary; quote: LeadPackQuote; checkout: CheckoutDetails };
+
 export type VerifyPaymentResult = { status: "paid" | "pending"; order: OrderSummary };
 
 export type SubscriptionState = "active" | "low" | "ended" | "none";
@@ -66,6 +86,7 @@ export type UserSubscription = {
   id: string;
   packageCode: "free" | "standard";
   packageName: string;
+  packageTitle: string;
   source: "free_signup" | "purchase" | "admin_gift" | "launch_backfill";
   status: "active" | "exhausted" | "expired" | "cancelled" | "refunded";
   totalCredits: number;
@@ -100,9 +121,13 @@ export type PaymentRecord = {
   id: string;
   orderNumber: string;
   status: OrderStatus;
-  listings: number;
-  months: number;
-  pricePerListingMonth: number;
+  orderType: OrderType;
+  listings: number | null;
+  months: number | null;
+  pricePerListingMonth: number | null;
+  leads: number | null;
+  pricePerLead: number | null;
+  property: { title: string; listingNumber: number } | null;
   gstPercent: number;
   baseAmount: number;
   gstAmount: number;
@@ -128,6 +153,7 @@ export type PropertyLeadUsage = {
   listingNumber: number;
   status: string;
   leadLimit: number | null;
+  extraLeads: number;
   leadsReceived: number;
   isLimitReached: boolean;
   expiresAt: string | null;
@@ -178,6 +204,12 @@ export const requestQuote = (input: { listings: number; months: number }, token:
 
 export const createSubscriptionOrder = (input: { listings: number; months: number; gstin?: string }, token: string) =>
   post<CreatedOrder>(`${BASE_PATH}/orders`, input, token);
+
+export const quoteLeadPack = (input: { propertyId: string; leads: number }, token: string) =>
+  post<LeadPackQuote>(`${BASE_PATH}/lead-pack/quote`, input, token);
+
+export const createLeadPackOrder = (input: { propertyId: string; leads: number; gstin?: string }, token: string) =>
+  post<CreatedLeadPackOrder>(`${BASE_PATH}/lead-pack/orders`, input, token);
 
 export const verifySubscriptionPayment = (
   orderId: string,

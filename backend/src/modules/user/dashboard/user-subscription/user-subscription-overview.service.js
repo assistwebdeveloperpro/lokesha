@@ -20,6 +20,7 @@ function toSubscription(row, now) {
     id: row.id,
     packageCode: row.package_code,
     packageName: row.package_name,
+    packageTitle: row.package_title || row.package_name,
     source: row.source,
     status: row.status,
     totalCredits: row.total_credits,
@@ -37,9 +38,13 @@ function toOrder(row) {
     id: row.id,
     orderNumber: row.order_number,
     status: row.status,
+    orderType: row.order_type,
     listings: row.listings,
     months: row.months,
     pricePerListingMonth: row.price_per_listing_month,
+    leads: row.leads,
+    pricePerLead: row.price_per_lead,
+    property: row.property_title ? { title: row.property_title, listingNumber: Number(row.property_listing_number) } : null,
     gstPercent: Number(row.gst_percent),
     baseAmount: row.base_amount,
     gstAmount: row.gst_amount,
@@ -60,16 +65,23 @@ const toLedgerEntry = (row) => ({
   property: row.property_id ? { id: row.property_id, title: row.property_title, listingNumber: Number(row.listing_number) } : null,
 });
 
-const toPropertyUsage = (row) => ({
-  id: row.id,
-  title: row.title,
-  listingNumber: Number(row.listing_number),
-  status: row.status,
-  leadLimit: row.lead_limit,
-  leadsReceived: Number(row.leads_count),
-  isLimitReached: row.lead_limit !== null && Number(row.leads_count) >= row.lead_limit,
-  expiresAt: row.expires_at,
-});
+// Unlimited properties have no base limit, so they stay unlimited whatever was bought
+function toPropertyUsage(row) {
+  const leadsReceived = Number(row.leads_count);
+  const leadLimit = row.lead_limit === null ? null : row.lead_limit + row.extra_leads;
+
+  return {
+    id: row.id,
+    title: row.project_name || row.title,
+    listingNumber: Number(row.listing_number),
+    status: row.status,
+    leadLimit,
+    extraLeads: row.extra_leads,
+    leadsReceived,
+    isLimitReached: leadLimit !== null && leadsReceived >= leadLimit,
+    expiresAt: row.expires_at,
+  };
+}
 
 // A payment still being confirmed, or one that failed, is shown until a newer order replaces it
 function toNotice(order, now) {

@@ -16,6 +16,10 @@ describe("buildTransactionsQuery", () => {
     expect(bindings).toEqual(["invoice", "credit_note"]);
   });
 
+  it("joins the property of a lead purchase and keeps orders that have none", () => {
+    expect(compile().sql).toContain('left join "properties" as "pr" on "pr"."id" = "o"."property_id"');
+  });
+
   it("filters by status and user", () => {
     const { sql, bindings } = compile({ status: "failed", userId: "user-1" });
 

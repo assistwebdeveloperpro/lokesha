@@ -4,7 +4,7 @@ jest.mock("../../../shared/property/repositories/property-read.repository");
 
 const repository = require("./admin-notifications.repository");
 const readRepository = require("../../../shared/property/repositories/property-read.repository");
-const { listNotifications, getUnreadCount, markAsRead, markAllAsRead } = require("./admin-notifications.service");
+const { notifyLeadPackPurchased, listNotifications, getUnreadCount, markAsRead, markAllAsRead } = require("./admin-notifications.service");
 
 const row = (overrides = {}) => ({
   id: "n1",
@@ -20,6 +20,37 @@ const row = (overrides = {}) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe("notifyLeadPackPurchased", () => {
+  const trxWith = ({ user, property }) => {
+    const first = (value) => ({ where: () => ({ first: async () => value }) });
+    return (table) => (table === "users" ? first(user) : first(property));
+  };
+
+  it("tells admins who bought how many leads for which property", async () => {
+    const trx = trxWith({ user: { name: "Asha" }, property: { title: "Sky Towers" } });
+
+    await notifyLeadPackPurchased(trx, { userId: "u1", propertyId: "p1", leads: 10, orderNumber: "ORD-1" });
+
+    expect(repository.insertNotification).toHaveBeenCalledWith(trx, {
+      type: "lead_pack_purchased",
+      title: "Sky Towers",
+      message: "Asha bought 10 extra leads for this property (order ORD-1). Held leads can now be sent.",
+      property_id: "p1",
+    });
+  });
+
+  it("falls back to neutral names when the rows are gone", async () => {
+    const trx = trxWith({ user: undefined, property: undefined });
+
+    await notifyLeadPackPurchased(trx, { userId: "u1", propertyId: "p1", leads: 1, orderNumber: "ORD-1" });
+
+    expect(repository.insertNotification).toHaveBeenCalledWith(
+      trx,
+      expect.objectContaining({ title: "A property", message: expect.stringContaining("A user bought 1 extra lead for") })
+    );
+  });
 });
 
 describe("listNotifications", () => {

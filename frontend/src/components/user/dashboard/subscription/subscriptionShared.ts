@@ -1,11 +1,22 @@
+import { formatRupees } from "@/lib/currency";
 import type {
   LedgerEntry,
   OrderStatus,
+  OrderType,
+  PropertyLeadUsage,
   PurchasablePackage,
   UserSubscription,
 } from "@/services/userSubscription.service";
 
 export const SUBSCRIPTION_PAGE_SIZE = 8;
+
+type OrderQuantity = {
+  orderType: OrderType;
+  listings: number | null;
+  months: number | null;
+  leads: number | null;
+  property: { title: string } | null;
+};
 
 export type PriceBreakdown = { baseAmount: number; gstAmount: number; totalAmount: number };
 
@@ -27,6 +38,37 @@ export const getMonthChoices = (pkg: PurchasablePackage) =>
 
 export const plural = (count: number, singular: string, pluralForm = `${singular}s`) =>
   `${count} ${count === 1 ? singular : pluralForm}`;
+
+// A missing bound only means the package is not set up, so the range collapses to one lead
+export const getLeadChoices = (pkg: PurchasablePackage) => {
+  const min = pkg.minLeads ?? 1;
+  return { min, max: Math.max(min, pkg.maxLeads ?? min) };
+};
+
+export const formatLeadPrice = (pkg: PurchasablePackage) =>
+  pkg.pricePerLead === null ? "" : `${formatRupees(pkg.pricePerLead)} per lead`;
+
+// Only a live property that has used its limit has something to buy
+export const canBuyMoreLeads = (property: Pick<PropertyLeadUsage, "status" | "isLimitReached">) =>
+  property.isLimitReached && property.status === "published";
+
+export const getPayLabel =(phase: "idle" | "quoting" | "paying" | "verifying", totalAmount: number) => {
+  if (phase === "verifying") return "Confirming payment...";
+  if (phase === "paying") return "Opening payment...";
+  return `Pay ${formatRupees(totalAmount)}`;
+};
+
+export const getOrderTitle =(orderType: OrderType) => (orderType === "lead_pack" ? "Extra leads" : "Standard package");
+
+// What the order bought: leads for a property, or listings for a period
+export function describeOrderQuantity({ orderType, listings, months, leads, property }: OrderQuantity): string {
+  if (orderType === "lead_pack") {
+    const bought = plural(leads ?? 0, "lead");
+    return property ? `${bought} · ${property.title}` : bought;
+  }
+
+  return `${plural(listings ?? 0, "listing")} · ${plural(months ?? 0, "month")}`;
+}
 
 export function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-IN", {
@@ -74,8 +116,8 @@ export const SUBSCRIPTION_STATUS_TONES: Record<UserSubscription["status"], Tone>
 };
 
 export const SOURCE_LABELS: Record<UserSubscription["source"], string> = {
-  free_signup: "Free package",
-  launch_backfill: "Free package",
+  free_signup: "Included with your account",
+  launch_backfill: "Included with your account",
   purchase: "Purchased online",
   admin_gift: "Added by Lokesha",
 };

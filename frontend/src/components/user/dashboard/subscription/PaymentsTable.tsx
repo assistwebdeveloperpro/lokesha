@@ -2,7 +2,7 @@ import { formatRupees } from "@/lib/currency";
 import type { PaymentRecord } from "@/services/userSubscription.service";
 import InvoiceDownloadButton from "./InvoiceDownloadButton";
 import { PAYMENT_GRID_CLASS, PAYMENT_TABLE_COLUMNS, PAYMENT_TABLE_MIN_WIDTH_CLASS } from "./paymentsTableLayout";
-import { ORDER_STATUS_TONES, formatDateTime, plural } from "./subscriptionShared";
+import { ORDER_STATUS_TONES, describeOrderQuantity, formatDateTime, getOrderTitle } from "./subscriptionShared";
 
 function PaymentRow({ payment }: { payment: PaymentRecord }) {
   const tone = ORDER_STATUS_TONES[payment.status];
@@ -15,10 +15,8 @@ function PaymentRow({ payment }: { payment: PaymentRecord }) {
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-slate-800">Standard package</p>
-        <p className="text-xs font-medium text-slate-500">
-          {plural(payment.listings, "listing")} · {plural(payment.months, "month")}
-        </p>
+        <p className="text-sm font-semibold text-slate-800">{getOrderTitle(payment.orderType)}</p>
+        <p className="text-xs font-medium text-slate-500">{describeOrderQuantity(payment)}</p>
       </div>
 
       <div>

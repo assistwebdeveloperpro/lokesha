@@ -58,7 +58,7 @@ export default function SubscriptionTransactionsContent() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
             <p className="font-display text-base font-bold text-slate-700">{isFiltered(filters) ? "No transactions match these filters" : "No transactions yet"}</p>
             <p className="mt-1 text-sm font-medium text-slate-500">
-              {isFiltered(filters) ? "Try a different search, status or date range." : "Standard package purchases will appear here."}
+              {isFiltered(filters) ? "Try a different search, status or date range." : "Package and lead purchases will appear here."}
             </p>
           </div>
         ) : (

@@ -1,6 +1,6 @@
 import { Undo2 } from "lucide-react";
 import AdminDocumentDownloadButton from "@/components/master/subscription-actions/AdminDocumentDownloadButton";
-import { ORDER_STATUS_TONES, formatDateTime, plural } from "@/components/user/dashboard/subscription/subscriptionShared";
+import { ORDER_STATUS_TONES, describeOrderQuantity, formatDateTime } from "@/components/user/dashboard/subscription/subscriptionShared";
 import { formatRupees } from "@/lib/currency";
 import type { PaymentRecord } from "@/services/userSubscription.service";
 
@@ -24,9 +24,7 @@ function PaymentItem({ payment, onRefund }: { payment: PaymentRecord; onRefund: 
 
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-800">
-            {plural(payment.listings, "listing")} · {plural(payment.months, "month")}
-          </p>
+          <p className="text-sm font-semibold text-slate-800">{describeOrderQuantity(payment)}</p>
           <p className="text-xs font-medium text-slate-500">
             {formatRupees(payment.totalAmount)} ({formatRupees(payment.baseAmount)} + {formatRupees(payment.gstAmount)} GST)
           </p>

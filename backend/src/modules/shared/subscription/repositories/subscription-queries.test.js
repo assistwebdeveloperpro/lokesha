@@ -23,6 +23,7 @@ const webhookRepository = require("../../../landing/razorpay-webhook/razorpay-we
 const usersRepository = require("../../../master/dashboard/subscription-users/subscription-users.repository");
 const transactionsRepository = require("../../../master/dashboard/subscription-transactions/subscription-transactions.repository");
 const reportsRepository = require("../../../master/dashboard/subscription-reports/subscription-reports.repository");
+const leadsRepository = require("../../../master/dashboard/leads/leads.repository");
 
 const NOW = new Date("2026-11-20T10:00:00.000Z");
 const PAGING = { page: 2, limit: 10 };
@@ -47,6 +48,8 @@ describe("every repository query can be built", () => {
       subscriptionRepository.markPropertyBilled(db, "p", { subscriptionId: "s", expiresAt: NOW, leadLimit: 2 }),
     "subscription.countReservedProperties": () => subscriptionRepository.countReservedProperties(db, "u", NOW),
     "subscription.findLeadLimitForUpdate": () => subscriptionRepository.findLeadLimitForUpdate(db, "p"),
+    "subscription.findHighestSentLeadPosition": () => subscriptionRepository.findHighestSentLeadPosition(db, "p"),
+    "subscription.adjustExtraLeads": () => subscriptionRepository.adjustExtraLeads(db, "p", 10),
     "subscription.findPropertyLeadPosition": () => subscriptionRepository.findPropertyLeadPosition(db, "p", "l"),
     "ledger.insertEntry": () => ledgerRepository.insertEntry(db, { subscriptionId: "s", userId: "u", type: "used", credits: -1 }),
     "order.insertOrder": () => orderRepository.insertOrder(db, { order_number: "O" }),
@@ -92,6 +95,8 @@ describe("every repository query can be built", () => {
     "overview.countPropertyLeadUsage": () => overviewRepository.countPropertyLeadUsage("u"),
     "userSubscription.findActivePackages": () => userSubscriptionRepository.findActivePackages(),
     "userSubscription.findPurchasablePackage": () => userSubscriptionRepository.findPurchasablePackage(),
+    "userSubscription.findLeadPackPackage": () => userSubscriptionRepository.findLeadPackPackage(),
+    "userSubscription.findEligibleProperty": () => userSubscriptionRepository.findEligibleProperty("u", "p", NOW),
     "userSubscription.findCheckoutUser": () => userSubscriptionRepository.findCheckoutUser("u"),
     "userSubscription.insertOrder": () => userSubscriptionRepository.insertOrder({ order_number: "O" }),
     "userSubscription.updateOrder": () => userSubscriptionRepository.updateOrder("o", { status: "pending" }),
@@ -186,6 +191,44 @@ describe("the delicate queries", () => {
     const sql = await sqlOf(() => subscriptionRepository.findLeadLimitForUpdate(db, "p"));
 
     expect(sql).toContain("for no key update");
+  });
+
+  it("reads the base limit with the bought leads and keeps unlimited properties unlimited", async () => {
+    const sql = await sqlOf(() => subscriptionRepository.findLeadLimitForUpdate(db, "p"));
+
+    expect(sql).toContain('"lead_limit", "extra_leads"');
+
+    const trxReturning = (row) => () => ({ where: () => ({ forNoKeyUpdate: () => ({ first: async () => row }) }) });
+
+    expect(await subscriptionRepository.findLeadLimitForUpdate(trxReturning({ lead_limit: 2, extra_leads: 10 }), "p")).toBe(12);
+    expect(await subscriptionRepository.findLeadLimitForUpdate(trxReturning({ lead_limit: null, extra_leads: 10 }), "p")).toBeNull();
+    expect(await subscriptionRepository.findLeadLimitForUpdate(trxReturning(undefined), "p")).toBeNull();
+  });
+
+  it("flags a held lead against the base limit plus bought leads", async () => {
+    const sql = await sqlOf(() => leadsRepository.findLeads({ page: 1, limit: 10 }));
+
+    expect(sql).toContain("p.lead_limit is not null");
+    expect(sql).toContain("> p.lead_limit + p.extra_leads");
+  });
+
+  it("ranks every lead of the property before picking the highest sent one", async () => {
+    const sql = await sqlOf(() => subscriptionRepository.findHighestSentLeadPosition(db, "p"));
+
+    expect(sql).toContain("row_number() over (order by created_at asc, id asc)");
+    expect(sql).toContain('"distribution_status" = $');
+    expect(sql).toContain("max(");
+    expect(capture.last().bindings).toEqual(expect.arrayContaining(["p", "sent"]));
+  });
+
+  it("offers extra leads only for an owned, published, limited and unexpired property", async () => {
+    const sql = await sqlOf(() => userSubscriptionRepository.findEligibleProperty("u", "p", NOW));
+
+    expect(sql).toContain('"user_id" = $');
+    expect(sql).toContain('"status" = $');
+    expect(sql).toContain('"lead_limit" is not null');
+    expect(sql).toContain('"expires_at" is null or "expires_at" > $');
+    expect(capture.last().bindings).toEqual(expect.arrayContaining(["p", "u", "published"]));
   });
 
   it("cancels an order only while it is still open", async () => {
