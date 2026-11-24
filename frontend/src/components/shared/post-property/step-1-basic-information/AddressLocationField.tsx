@@ -13,6 +13,7 @@ import type {
   AddressLocationValues,
 } from "../config/postPropertyForm.shared";
 import { usePostPropertyReadOnly } from "../config/postPropertyReadOnly";
+import LocationPickerField from "./LocationPickerField";
 
 const DROPDOWN_PLACEHOLDER_CLASS = "font-medium text-slate-700";
 
@@ -209,6 +210,18 @@ export default function AddressLocationField({
             onChange={(value) =>
               onChange("pinCode", value.replace(/\D/g, "").slice(0, 6))
             }
+          />
+        </div>
+
+        <div>
+          <p className="mb-2.5 text-sm font-semibold text-slate-700">Pin exact location on map</p>
+          <LocationPickerField
+            latitude={values.latitude}
+            longitude={values.longitude}
+            onChange={(latitude, longitude) => {
+              onChange("latitude", latitude);
+              onChange("longitude", longitude);
+            }}
           />
         </div>
 

@@ -352,6 +352,8 @@ export type AddressLocationValues = {
   locality: string;
   addressLine2: string;
   landmark: string;
+  latitude: number | null;
+  longitude: number | null;
   pinCode: string;
   city: string;
   state: IndianState | "";

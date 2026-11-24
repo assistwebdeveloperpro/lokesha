@@ -236,7 +236,11 @@ const PROJECT = {
   approvedBanks: text(1000),
 };
 
+const coordinate = (limit) => Joi.number().min(-limit).max(limit).precision(6).empty(ABSENT);
+
 const ADDRESS = {
+  latitude: coordinate(90),
+  longitude: coordinate(180),
   projectName: text(150),
   blockNo: text(50),
   flatNumber: text(50),

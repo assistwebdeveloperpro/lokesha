@@ -479,6 +479,8 @@ export function buildPropertyPayload(input: PropertyPayloadInput): PropertyPaylo
       locality: toText(address.locality),
       addressLine2: toText(address.addressLine2),
       landmark: toText(address.landmark),
+      latitude: address.latitude,
+      longitude: address.longitude,
       pinCode: toText(address.pinCode),
       city: toText(address.city),
       state: address.state,

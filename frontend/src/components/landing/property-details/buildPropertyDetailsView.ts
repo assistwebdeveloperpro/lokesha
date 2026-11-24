@@ -262,6 +262,7 @@ function buildBase(dto: PublicPropertyDetails, currentLabel: string, pageTitle: 
     headlineSubtitle: listing.subtitle,
     aboutSectionTitle: `About The ${listing.title}`,
     address: dto.address,
+    location: dto.location,
     description: dto.description,
     amenities: dto.amenities,
     nearbyPlaces: buildNearbyPlaces(dto.project?.highlights),

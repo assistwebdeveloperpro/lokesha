@@ -86,7 +86,7 @@ function buildEnvelopeSchema(isBuilderPost, hasOwnerContact) {
       : Joi.forbidden().messages({
           "any.unknown": "Owner contact is only allowed for Lokesha staff and admin listings",
         }),
-    address: Joi.object(f.ADDRESS).required(),
+    address: Joi.object(f.ADDRESS).and("latitude", "longitude").required(),
     project: isBuilderPost
       ? projectSchema.required()
       : locationProjectSchema.optional().messages({

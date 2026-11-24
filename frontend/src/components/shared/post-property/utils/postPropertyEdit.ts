@@ -112,6 +112,11 @@ const toBhkLabel = (value: unknown) => {
   return bhk >= BHK_PLUS_THRESHOLD ? BHK_OPTIONS[BHK_OPTIONS.length - 1] : `${bhk} BHK`;
 };
 
+function toCoordinate(value: unknown): number | null {
+  const parsed = Number(value);
+  return value === null || value === undefined || value === "" || !Number.isFinite(parsed) ? null : parsed;
+}
+
 function mapAddress(payload: PropertyPayload, description: string): AddressLocationValues {
   const address = payload.address;
 
@@ -123,6 +128,8 @@ function mapAddress(payload: PropertyPayload, description: string): AddressLocat
     locality: text(address.locality),
     addressLine2: text(address.addressLine2),
     landmark: text(address.landmark),
+    latitude: toCoordinate(address.latitude),
+    longitude: toCoordinate(address.longitude),
     pinCode: text(address.pinCode),
     city: text(address.city),
     state: (text(address.state) || DEFAULT_STATE) as AddressLocationValues["state"],

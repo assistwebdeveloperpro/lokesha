@@ -21,6 +21,7 @@ import {
 } from "./PropertyDetailsFloorPlans";
 import { PropertyDetailsGallery } from "./PropertyDetailsGallery";
 import { PropertyDetailsHeaderActions } from "./PropertyDetailsHeaderActions";
+import { PropertyDetailsMap } from "./PropertyDetailsMap";
 import { PropertyDetailsMapPlaceholder } from "./PropertyDetailsMapPlaceholder";
 import { PropertyDetailsNearbyPlaces } from "./PropertyDetailsNearbyPlaces";
 import { PropertyDetailsProjectUsps } from "./PropertyDetailsProjectUsps";
@@ -159,7 +160,16 @@ export function PropertyDetailsPageContent({ details }: PropertyDetailsPageConte
 
           {showLocationSection ? (
             <PropertyDetailsSection title="Location" icon={MapPin}>
-              <PropertyDetailsMapPlaceholder title={listing.title} address={details.address} />
+              {details.location ? (
+                <PropertyDetailsMap
+                  title={listing.title}
+                  address={details.address}
+                  latitude={details.location.latitude}
+                  longitude={details.location.longitude}
+                />
+              ) : (
+                <PropertyDetailsMapPlaceholder title={listing.title} address={details.address} />
+              )}
             </PropertyDetailsSection>
           ) : null}
 

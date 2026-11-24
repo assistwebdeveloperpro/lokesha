@@ -16,6 +16,8 @@ export const INITIAL_ADDRESS_LOCATION: AddressLocationValues = {
   locality: "",
   addressLine2: "",
   landmark: "",
+  latitude: null,
+  longitude: null,
   pinCode: "",
   city: "",
   state: DEFAULT_STATE,

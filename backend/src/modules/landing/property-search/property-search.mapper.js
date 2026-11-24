@@ -170,6 +170,11 @@ function toAddress(property) {
   return [property.project_name, property.locality, property.city, property.state].filter(Boolean).join(", ");
 }
 
+function toLocation({ latitude, longitude }) {
+  if (latitude === null || latitude === undefined || longitude === null || longitude === undefined) return null;
+  return { latitude: Number(latitude), longitude: Number(longitude) };
+}
+
 function groupSelections(rows) {
   return rows.reduce((groups, { option_group: group, option_key: key }) => {
     (groups[toCamelCase(group)] ??= []).push(key);
@@ -254,6 +259,7 @@ function toPropertyDetails(data) {
     images: toGalleryImagePaths(media, listing.imageUrl),
     imageCategories: toGalleryImageCategories(media),
     address: toAddress(property),
+    location: toLocation(property),
     description: property.description,
     facing: property.facing,
     availableFrom: property.available_from,

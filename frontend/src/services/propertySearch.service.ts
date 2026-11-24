@@ -77,6 +77,7 @@ export type PublicPropertyDetails = {
   images: string[];
   imageCategories?: PublicPropertyImageCategory[];
   address: string;
+  location: { latitude: number; longitude: number } | null;
   description: string;
   facing: string | null;
   availableFrom: string | null;

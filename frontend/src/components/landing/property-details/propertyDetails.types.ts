@@ -67,6 +67,7 @@ export type PropertyDetailsBase = {
   headlineSubtitle: string;
   aboutSectionTitle: string;
   address: string;
+  location: { latitude: number; longitude: number } | null;
   description: string;
   amenities: PublicAmenityItem[];
   nearbyPlaces: PropertyDetailsNearbyPlace[];
