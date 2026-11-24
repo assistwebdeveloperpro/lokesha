@@ -11,7 +11,7 @@ export const SAVED_GRID_CLASS =
 export const SAVED_CARD_IMAGE_ASPECT_CLASS = "aspect-[4/3]";
 
 export const SAVED_EMPTY_STATE = {
-  title: "No saved properties yet",
+  title: "No Shortlisted properties yet",
   description: "Tap the heart on any property to keep it here and come back to it anytime.",
 };
 

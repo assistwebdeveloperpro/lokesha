@@ -18,7 +18,7 @@ export default function SavedPropertyCard({ item, onRemove }: SavedPropertyCardP
       action={
         <button
           type="button"
-          aria-label="Remove from saved properties"
+          aria-label="Remove from Shortlisted properties"
           onClick={() => onRemove(item)}
           className={`${CARD_ICON_BUTTON_CLASS_NAME} border-rose-200 bg-rose-50/80 text-rose-600 hover:bg-rose-100`}
         >

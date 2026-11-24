@@ -86,7 +86,7 @@ function BannerCard({ banner }: { banner: Banner }) {
   const { Icon, title, text, className, showBuyLink } = banner;
 
   return (
-    <div role="status" className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border px-4 py-3.5 sm:px-5 ${className}`}>
+    <div role="status" className={`flex flex-col sm:flex-row flex-wrap sm:items-center gap-x-4 gap-y-3 rounded-2xl border px-4 py-3.5 sm:px-5 ${className}`}>
       <Icon className="h-5 w-5 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold">{title}</p>
@@ -95,7 +95,7 @@ function BannerCard({ banner }: { banner: Banner }) {
       {showBuyLink ? (
         <a
           href="#buy-standard"
-          className="inline-flex min-h-10 shrink-0 items-center rounded-xl bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
+          className="inline-flex max-w-32.5 min-h-10 shrink-0 items-center rounded-xl bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
         >
           Buy Standard
         </a>

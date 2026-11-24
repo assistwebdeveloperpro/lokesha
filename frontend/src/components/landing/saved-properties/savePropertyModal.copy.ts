@@ -7,7 +7,7 @@ export const SAVE_PROPERTY_MODAL_COPY = {
 
 export const SAVE_PROPERTY_MESSAGES = {
   saved: "Property saved successfully.",
-  unsaved: "Property removed from saved properties.",
+  unsaved: "Property removed from Shortlisted properties.",
   saveFailed: "Unable to save the property. Please try again.",
   unsaveFailed: "Unable to remove the property. Please try again.",
   otpSent: "OTP sent successfully.",

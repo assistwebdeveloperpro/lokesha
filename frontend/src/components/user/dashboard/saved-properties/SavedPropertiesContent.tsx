@@ -19,14 +19,14 @@ export default function SavedPropertiesContent() {
             <Heart className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           </span>
           <div className="min-w-0">
-            <h1 className="font-display truncate text-lg font-bold text-slate-800 lg:text-xl">Saved Properties</h1>
+            <h1 className="font-display truncate text-lg font-bold text-slate-800 lg:text-xl">Shortlisted Properties</h1>
             <p className="truncate text-xs text-slate-500 sm:text-sm">Properties you have shortlisted</p>
           </div>
         </div>
         {!isLoading && !error && (
           <span
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm sm:px-4 sm:text-sm"
-            aria-label={`${total} saved properties`}
+            aria-label={`${total} Shortlisted properties`}
           >
             <span className="bg-linear-to-r-navy-blue flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white sm:h-6 sm:min-w-6 sm:text-xs">
               {total}

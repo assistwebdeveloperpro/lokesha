@@ -29,7 +29,7 @@ export function SavePropertyButton({ propertyId, className = "", size = "md" }: 
         disabled={isPending}
         aria-pressed={isSaved}
         aria-busy={isPending}
-        aria-label={isSaved ? "Remove from saved properties" : "Save property"}
+        aria-label={isSaved ? "Remove from Shortlisted properties" : "Shortlisted property"}
         className={`${BASE_CLASS_NAME} ${SIZE_CLASS_NAMES[size]} ${isSaved ? SAVED_CLASS_NAME : DEFAULT_CLASS_NAME} ${className}`}
       >
         {isPending ? (

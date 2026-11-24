@@ -5,7 +5,7 @@ function handleError(res, error) {
     return res.status(error.statusCode).json({ message: error.message });
   }
 
-  console.error("User saved properties module error:", error);
+  console.error("User shortlisted properties module error:", error);
   return res.status(500).json({ message: "Something went wrong" });
 }
 

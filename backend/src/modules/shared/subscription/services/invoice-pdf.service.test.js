@@ -74,7 +74,7 @@ describe("renderInvoicePdf", () => {
 
     const text = extractText(await toBuffer(renderInvoicePdf(snapshot, { compress: false })));
 
-    ["Extra property leads", "Sky Heights (#12)", "Leads", "Rs. 100.00", "Rs. 1,000.00", "Rs. 180.00", "Rs. 1,180.00"].forEach((expected) =>
+    ["Additional buyer leads for your listing", "For property: Sky Heights", "Leads", "Rs. 100.00", "Rs. 1,000.00", "Rs. 180.00", "Rs. 1,180.00"].forEach((expected) =>
       expect(text).toContain(expected)
     );
     expect(text).not.toContain("Months");

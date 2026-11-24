@@ -43,7 +43,7 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     href: "/user/activities/saved-properties",
     icon: ContactRound,
     children: [
-      { label: "Saved Properties", href: "/user/activities/saved-properties", icon: Heart },
+      { label: "Shortlisted Properties", href: "/user/activities/shortlisted-properties", icon: Heart },
       { label: "Contacted Properties", href: "/user/activities/contacted-properties", icon: PhoneCall },
       { label: "Seen Properties", href: "/user/activities/seen-properties", icon: Eye },
       { label: "Recent Searches", href: "/user/activities/recent-searches", icon: History },

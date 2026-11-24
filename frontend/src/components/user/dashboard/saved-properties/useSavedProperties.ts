@@ -14,8 +14,8 @@ import { getToken } from "@/services/session";
 import { getPageAfterRemoval, SAVED_PAGE_SIZE } from "./savedPropertiesShared";
 
 const LOGIN_PATH = "/login";
-const LOAD_ERROR = "We could not load your saved properties. Please try again.";
-const REMOVE_SUCCESS = "Property removed from saved properties.";
+const LOAD_ERROR = "We could not load your Shortlisted properties. Please try again.";
+const REMOVE_SUCCESS = "Property removed from Shortlisted properties.";
 const REMOVE_ERROR = "Unable to remove the property. Please try again.";
 
 export function useSavedProperties() {

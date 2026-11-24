@@ -76,7 +76,7 @@ function SavedPropertiesLink() {
     <Link
       href={SAVED_PROPERTIES_HREF}
       className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/10 sm:h-10 sm:w-10"
-      aria-label={`Saved properties (${count})`}
+      aria-label={`Shortlisted properties (${count})`}
     >
       <Heart className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={2} aria-hidden />
       {count > 0 && (

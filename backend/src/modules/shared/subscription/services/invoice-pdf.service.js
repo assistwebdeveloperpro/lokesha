@@ -5,6 +5,8 @@ const SLATE = "#475569";
 const LIGHT = "#E2E8F0";
 const PAGE_MARGIN = 50;
 const PAGE_WIDTH = 595.28 - PAGE_MARGIN * 2;
+const DETAIL_ROW_GAP = 16;
+const LEAD_PACK_DESCRIPTION = "Additional buyer leads for your listing";
 const SUBSCRIPTION_COLUMNS = [
   { key: "description", label: "Description", width: 195, align: "left" },
   { key: "sac", label: "SAC", width: 55, align: "left" },
@@ -34,14 +36,14 @@ const buildInvoiceFileName = (invoiceNumber) => `Invoice-${invoiceNumber.replace
 const isCreditNote = (invoice) => invoice.type === "credit_note";
 
 function drawHeader(doc, { seller, invoice }) {
-  doc.font("Helvetica-Bold").fontSize(20).fillColor(NAVY).text(seller.legalName || "Lokesha", PAGE_MARGIN, PAGE_MARGIN);
+  doc.font("Helvetica-Bold").fontSize(14).fillColor(NAVY).text(seller.legalName || "Lokesha", PAGE_MARGIN, PAGE_MARGIN);
   doc.font("Helvetica").fontSize(9).fillColor(SLATE);
   if (seller.address) doc.text(seller.address, { width: 300 });
   if (seller.gstin) doc.text(`GSTIN: ${seller.gstin}`);
 
   doc
     .font("Helvetica-Bold")
-    .fontSize(16)
+    .fontSize(12)
     .fillColor(NAVY)
     .text(isCreditNote(invoice) ? "CREDIT NOTE" : "TAX INVOICE", PAGE_MARGIN, PAGE_MARGIN, { width: PAGE_WIDTH, align: "right" });
   doc.font("Helvetica").fontSize(9).fillColor(SLATE).text(`No. ${invoice.number}`, { width: PAGE_WIDTH, align: "right" });
@@ -51,24 +53,31 @@ function drawDetails(doc, { buyer, invoice, payment }) {
   const top = 150;
   doc.moveTo(PAGE_MARGIN, top - 12).lineTo(PAGE_MARGIN + PAGE_WIDTH, top - 12).strokeColor(LIGHT).stroke();
 
-  doc.font("Helvetica-Bold").fontSize(9).fillColor(SLATE).text("BILLED TO", PAGE_MARGIN, top);
-  doc.font("Helvetica-Bold").fontSize(11).fillColor(NAVY).text(buyer.name || "-");
-  doc.font("Helvetica").fontSize(9).fillColor(SLATE);
-  if (buyer.mobile) doc.text(`Mobile: ${buyer.mobile}`);
-  if (buyer.email) doc.text(`Email: ${buyer.email}`);
-  if (buyer.gstin) doc.text(`GSTIN: ${buyer.gstin}`);
-
-  const rows = [
+  const buyerRows = [
+    ["Billed to", buyer.name || "-"],
+    ["Mobile", buyer.mobile],
+    ["Email", buyer.email],
+    ["GSTIN", buyer.gstin],
+  ];
+  const invoiceRows = [
     [isCreditNote(invoice) ? "Credit note date" : "Invoice date", formatDate(invoice.issuedAt)],
     ["Order no.", invoice.orderNumber],
     ...(isCreditNote(invoice) ? [["Against invoice", invoice.originalInvoiceNumber]] : []),
     ["Payment ref.", payment.razorpayPaymentId],
   ];
-  rows.forEach(([label, value], index) => {
-    const y = top + index * 16;
-    doc.font("Helvetica").fontSize(9).fillColor(SLATE).text(label, 330, y, { width: 80 });
-    doc.font("Helvetica-Bold").fillColor(NAVY).text(value, 415, y, { width: PAGE_WIDTH + PAGE_MARGIN - 415 });
-  });
+
+  drawDetailRows(doc, buyerRows, { top, labelX: PAGE_MARGIN, valueX: 120, valueWidth: 200 });
+  drawDetailRows(doc, invoiceRows, { top, labelX: 330, valueX: 415, valueWidth: PAGE_WIDTH + PAGE_MARGIN - 415 });
+}
+
+function drawDetailRows(doc, rows, { top, labelX, valueX, valueWidth }) {
+  rows
+    .filter(([, value]) => value)
+    .forEach(([label, value], index) => {
+      const y = top + index * DETAIL_ROW_GAP;
+      doc.font("Helvetica").fontSize(9).fillColor(SLATE).text(label, labelX, y, { width: valueX - labelX - 5, lineBreak: false });
+      doc.font("Helvetica-Bold").fillColor(NAVY).text(value, valueX, y, { width: valueWidth, lineBreak: false, ellipsis: true });
+    });
 }
 
 function drawRow(doc, y, columns, values, { bold = false, fill } = {}) {
@@ -88,12 +97,10 @@ function drawRow(doc, y, columns, values, { bold = false, fill } = {}) {
 const isLeadPackLine = (lineItem) => lineItem.leads !== undefined;
 
 function leadPackRow({ seller, lineItem }) {
-  const property = lineItem.propertyTitle
-    ? `\n${lineItem.propertyTitle}${lineItem.listingNumber ? ` (#${lineItem.listingNumber})` : ""}`
-    : "";
+  const property = lineItem.propertyTitle ? `\nFor property: ${lineItem.propertyTitle}` : "";
 
   return {
-    description: `${lineItem.description}${property}`,
+    description: `${LEAD_PACK_DESCRIPTION}${property}`,
     sac: seller.sacCode,
     leads: String(lineItem.leads),
     rate: formatMoney(lineItem.pricePerLead),
