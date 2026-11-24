@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useId, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 type ShareModalShellProps = {
   title: string;
@@ -31,8 +32,8 @@ export function ShareModalShell({ title, onClose, children, size = "md" }: Share
     };
   }, [onClose]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <button
         type="button"
         aria-label="Close share dialog"
@@ -60,6 +61,7 @@ export function ShareModalShell({ title, onClose, children, size = "md" }: Share
         </div>
         <div className="overflow-y-auto px-5 py-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
