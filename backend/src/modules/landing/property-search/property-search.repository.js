@@ -221,6 +221,11 @@ async function findPublishedProperty(id) {
     );
 }
 
+async function findPublishedIdByListingNumber(listingNumber) {
+  const row = await db("properties").where({ listing_number: listingNumber, status: "published" }).first("id");
+  return row?.id ?? null;
+}
+
 // Published projects of the same developer, split by how far they are
 async function countDeveloperProjects(project) {
   const owner = project.user_id ? { "bp.user_id": project.user_id } : { "bp.admin_id": project.admin_id };
@@ -271,6 +276,7 @@ module.exports = {
   countListings,
   findCardExtras,
   findPublishedProperty,
+  findPublishedIdByListingNumber,
   findAmenityNames,
   countDeveloperProjects,
   findSuggestedProjects,

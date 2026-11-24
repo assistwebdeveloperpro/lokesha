@@ -146,12 +146,7 @@ export function getSearchSuggestions(
   );
 }
 
-export async function getPublicPropertyDetails(id: string) {
-  const { property } = await apiFetch<{ property: PublicPropertyDetails }>(`/property-search/${id}`, {
-    method: "GET",
-    cache: "no-store",
-  });
-
+function toPublicPropertyDetails(property: PublicPropertyDetails): PublicPropertyDetails {
   return {
     ...property,
     listing: withImageUrl(property.listing),
@@ -164,6 +159,24 @@ export async function getPublicPropertyDetails(id: string) {
     brochure: property.brochure ? getAssetUrl(property.brochure) : null,
     floorPlans: property.floorPlans.map((plan) => ({ ...plan, path: getAssetUrl(plan.path) })),
   };
+}
+
+export async function getPublicPropertyDetails(id: string) {
+  const { property } = await apiFetch<{ property: PublicPropertyDetails }>(`/property-search/${id}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return toPublicPropertyDetails(property);
+}
+
+export async function getPublicPropertyDetailsByShortCode(shortCode: string) {
+  const { property } = await apiFetch<{ property: PublicPropertyDetails }>(
+    `/property-search/short/${encodeURIComponent(shortCode)}`,
+    { method: "GET", cache: "no-store" },
+  );
+
+  return toPublicPropertyDetails(property);
 }
 
 export function submitPropertyRequirement(payload: PropertyRequirementPayload, token: string) {

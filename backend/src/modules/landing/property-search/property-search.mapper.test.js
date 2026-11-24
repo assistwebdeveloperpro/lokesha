@@ -1,7 +1,9 @@
 const { toListing, toPropertyDetails } = require("./property-search.mapper");
+const { encodeShortCode } = require("../../shared/property/utils/property-short-code.util");
 
 const baseRow = {
   id: "p1",
+  listing_number: 100000,
   member_ids: ["p1"],
   listing_type: "rent-lease",
   property_type: "pg",
@@ -47,6 +49,12 @@ describe("toListing posted by", () => {
 
   it("maps pg to the form property type", () => {
     expect(toListing({ ...baseRow, posted_by: "agent" }, extras).propertyType).toBe("pg-co-living");
+  });
+});
+
+describe("toListing short code", () => {
+  it("derives the share code from the listing number", () => {
+    expect(toListing(baseRow, extras).shortCode).toBe(encodeShortCode(100000));
   });
 });
 

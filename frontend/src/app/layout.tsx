@@ -3,6 +3,8 @@ import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { RecentSearchesSync } from "@/components/landing/recent-searches/RecentSearchesSync";
 import { SeenHistorySync } from "@/components/landing/seen-properties/SeenHistorySync";
 import { ToastProvider } from "@/components/shared/ui/ToastProvider";
+import { DEFAULT_OG_IMAGE_PATH, SITE_DESCRIPTION } from "@/lib/seo/pageMetadata";
+import { SITE_NAME, SITE_URL } from "@/lib/siteUrl";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,11 +27,24 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Lokesha",
-  description:
-    "Lokesha is a trusted real estate platform to buy, sell, rent, and discover residential and commercial properties across India. Connect with property owners, builders, and agents effortlessly.",
+  description: SITE_DESCRIPTION,
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: "Lokesha",
+    description: SITE_DESCRIPTION,
+    images: [{ url: DEFAULT_OG_IMAGE_PATH, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lokesha",
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE_PATH],
   },
 };
 

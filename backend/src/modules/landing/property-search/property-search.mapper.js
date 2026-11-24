@@ -1,5 +1,6 @@
 const { PROPERTY_TYPE_TO_DB } = require("../../shared/property/constants/property.constants");
 const { pickMainImage, toFloorPlanDto } = require("../../shared/property/mappers/property.mapper");
+const { encodeShortCode } = require("../../shared/property/utils/property-short-code.util");
 const { POSTED_BY_LABEL } = require("./property-search.constants");
 
 const FORM_TYPE_BY_DB_TYPE = Object.fromEntries(
@@ -105,6 +106,7 @@ function toListing(row, extras) {
 
   return {
     id: row.id,
+    shortCode: encodeShortCode(row.listing_number),
     title: row.project_name ?? row.society_name ?? row.title,
     subtitle: buildSubtitle(row, bedrooms),
     categoryLabel: bedrooms.length ? `${bedrooms.join(", ")} BHK ${row.sub_type_name}` : row.sub_type_name,
@@ -282,4 +284,23 @@ function toPropertyDetails(data) {
   };
 }
 
-module.exports = { FORM_TYPE_BY_DB_TYPE, toListing, toPropertyDetails, toGalleryImagePaths };
+const SHARE_DESCRIPTION_LIMIT = 160;
+
+function toShareDescription(description) {
+  const text = (description ?? "").replace(/\s+/g, " ").trim();
+  return text.length > SHARE_DESCRIPTION_LIMIT ? `${text.slice(0, SHARE_DESCRIPTION_LIMIT - 1).trimEnd()}…` : text;
+}
+
+// Public share card of one listing; carries no owner or customer details
+function toShare(listing, description) {
+  return {
+    id: listing.id,
+    shortCode: listing.shortCode,
+    title: listing.title,
+    location: [listing.locality, listing.city].filter(Boolean).join(", "),
+    description: toShareDescription(description),
+    imageUrl: listing.imageUrl,
+  };
+}
+
+module.exports = { FORM_TYPE_BY_DB_TYPE, toListing, toPropertyDetails, toGalleryImagePaths, toShare };

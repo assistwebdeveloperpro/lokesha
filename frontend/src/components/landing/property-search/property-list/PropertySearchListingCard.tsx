@@ -1,9 +1,10 @@
 "use client";
 
-import { BadgeCheck, Building2, Share2 } from "lucide-react";
+import { BadgeCheck, Building2 } from "lucide-react";
 import Link from "next/link";
 import { createElement, useState } from "react";
 import { PropertyContactButton } from "@/components/landing/property-contact/PropertyContactButton";
+import { SharePropertyButton } from "@/components/landing/property-share/SharePropertyButton";
 import { SavePropertyButton } from "@/components/landing/saved-properties/SavePropertyButton";
 import { buildPropertyDetailsUrl } from "@/lib/property-search-url/propertyDetailsUrl";
 import { buildSearchListingFacts, formatSearchListingPrice } from "./buildSearchListingFacts";
@@ -161,13 +162,10 @@ export function PropertySearchListingCard({
 
             <div className="ml-auto flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
               <SavePropertyButton propertyId={listing.id} />
-              <button
-                type="button"
-                aria-label="Share property"
+              <SharePropertyButton
+                propertyId={listing.id}
                 className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:cursor-pointer hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
-              >
-                <Share2 className="h-4 w-4" aria-hidden />
-              </button>
+              />
               {listing.hasBrochure ? (
                 <button
                   type="button"

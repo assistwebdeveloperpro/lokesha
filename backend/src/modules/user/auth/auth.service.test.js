@@ -23,10 +23,12 @@ describe("signup", () => {
     repository.findUserByEmail.mockResolvedValue(null);
     repository.findUserByMobile.mockResolvedValue(null);
     repository.createUser.mockResolvedValue({ id: 1 });
+    repository.runInTransaction.mockImplementation((callback) => callback(TRX));
 
     await expect(service.signup(signupInput)).resolves.toEqual({ id: 1 });
     expect(repository.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ email: "asha@example.com", mobile_number: "9876543210" }),
+      TRX,
     );
   });
 
@@ -174,11 +176,13 @@ describe("verifyOtp for a pending registration", () => {
   it("creates the user only after the otp matches", async () => {
     repository.findPendingRegistration.mockResolvedValue(pending());
     repository.createUser.mockResolvedValue({ id: 9, role: "buyer_owner_tenant", name: "Asha Rao" });
+    repository.runInTransaction.mockImplementation((callback) => callback(TRX));
 
     const result = await service.verifyOtp({ mobile_number: "9876543210", otp: "1234" });
 
     expect(repository.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ role: "buyer_owner_tenant", mobile_number: "9876543210" }),
+      TRX,
     );
     expect(repository.deletePendingRegistration).toHaveBeenCalledWith("9876543210");
     expect(jwt.verify(result.token, "test-secret")).toMatchObject({ id: 9 });

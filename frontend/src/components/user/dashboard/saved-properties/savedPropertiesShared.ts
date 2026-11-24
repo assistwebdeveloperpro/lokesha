@@ -1,5 +1,6 @@
 import { formatSearchListingPrice } from "@/components/landing/property-search/property-list/buildSearchListingFacts";
 import type { PublicSearchListing } from "@/components/landing/property-search/property-list/publicSearchListing.types";
+import type { ShareListItem } from "@/components/landing/property-share/SharePropertiesModal";
 import type { SavedProperty, SavedPropertyListing } from "@/services/savedProperties.service";
 
 export const SAVED_PAGE_SIZE = 12;
@@ -44,4 +45,12 @@ export function getSavedImages(listing: SavedPropertyListing): string[] {
 // Last page that still holds rows after one is removed
 export function getPageAfterRemoval(page: number, itemsOnPage: number): number {
   return itemsOnPage <= 1 && page > 1 ? page - 1 : page;
+}
+
+// Only available listings can be shared; closed ones have no public page
+export function toShareListItem(item: SavedProperty): ShareListItem | null {
+  if (!item.isAvailable || !isSavedListing(item.property)) return null;
+
+  const { id, shortCode, title, locality, city, imageUrl } = item.property;
+  return { id, shortCode, title, location: [locality, city].filter(Boolean).join(", "), imageUrl };
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { MapPin, Share2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SharePropertyButton } from "@/components/landing/property-share/SharePropertyButton";
 import type { SavedProperty } from "@/services/savedProperties.service";
 import { getViewPropertyHref, humanizeSlug } from "../shared/propertyActivityShared";
 import SavedPropertyImageSlider from "./SavedPropertyImageSlider";
@@ -18,13 +19,19 @@ type PropertyActivityCardProps = {
   item: Pick<SavedProperty, "isAvailable" | "property">;
   action: ReactNode;
   isNew?: boolean;
+  selection?: { checked: boolean; onToggle: () => void };
 };
 
 export const CARD_ICON_BUTTON_CLASS_NAME =
   "inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition";
 
 // Property card shared by the saved and seen pages; the page supplies the heart action
-export default function PropertyActivityCard({ item, action, isNew = false }: PropertyActivityCardProps) {
+export default function PropertyActivityCard({
+  item,
+  action,
+  isNew = false,
+  selection,
+}: PropertyActivityCardProps) {
   const { property } = item;
   const listing = isSavedListing(property) ? property : null;
   const href = listing ? getViewPropertyHref(listing) : null;
@@ -32,7 +39,11 @@ export default function PropertyActivityCard({ item, action, isNew = false }: Pr
   const categoryLabel = listing?.categoryLabel ?? humanizeSlug(property.propertyType);
 
   return (
-    <li className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+    <li
+      className={`flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
+        selection?.checked ? "border-sky-500 ring-2 ring-sky-200" : "border-slate-200/90"
+      }`}
+    >
       <div className="relative">
         {listing && href ? (
           <SavedPropertyImageSlider images={getSavedImages(listing)} alt={listing.title} href={href} />
@@ -55,6 +66,17 @@ export default function PropertyActivityCard({ item, action, isNew = false }: Pr
             </span>
           )}
         </div>
+        {selection && listing ? (
+          <label className="absolute right-3 top-3 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md bg-white/95 shadow">
+            <input
+              type="checkbox"
+              checked={selection.checked}
+              onChange={selection.onToggle}
+              aria-label={`Select ${listing.title}`}
+              className="h-4 w-4 cursor-pointer accent-sky-600"
+            />
+          </label>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -70,13 +92,12 @@ export default function PropertyActivityCard({ item, action, isNew = false }: Pr
             <p className="mt-0.5 truncate text-sm text-slate-500">{listing ? listerName : "Listing closed"}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              aria-label="Share property"
-              className={`${CARD_ICON_BUTTON_CLASS_NAME} border-slate-200 text-slate-500 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700`}
-            >
-              <Share2 className="h-4 w-4" aria-hidden />
-            </button>
+            {listing ? (
+              <SharePropertyButton
+                propertyId={listing.id}
+                className={`${CARD_ICON_BUTTON_CLASS_NAME} border-slate-200 text-slate-500 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700`}
+              />
+            ) : null}
             {action}
           </div>
         </div>

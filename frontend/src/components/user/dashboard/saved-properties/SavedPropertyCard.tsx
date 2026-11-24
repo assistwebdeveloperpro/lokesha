@@ -8,13 +8,15 @@ import { isNewSave } from "./savedPropertiesShared";
 type SavedPropertyCardProps = {
   item: SavedProperty;
   onRemove: (item: SavedProperty) => void;
+  selection?: { checked: boolean; onToggle: () => void };
 };
 
-export default function SavedPropertyCard({ item, onRemove }: SavedPropertyCardProps) {
+export default function SavedPropertyCard({ item, onRemove, selection }: SavedPropertyCardProps) {
   return (
     <PropertyActivityCard
       item={item}
       isNew={isNewSave(item.savedAt)}
+      selection={selection}
       action={
         <button
           type="button"

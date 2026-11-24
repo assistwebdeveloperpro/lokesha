@@ -5,12 +5,19 @@ jest.mock("../../shared/property/repositories/property-read.repository");
 const repository = require("./property-search.repository");
 const readRepository = require("../../shared/property/repositories/property-read.repository");
 const { searchQuerySchema } = require("./property-search.validation");
-const { searchProperties, getPropertyDetails } = require("./property-search.service");
+const { encodeShortCode } = require("../../shared/property/utils/property-short-code.util");
+const {
+  searchProperties,
+  getPropertyDetails,
+  getPropertyDetailsByShortCode,
+  getPropertyShare,
+} = require("./property-search.service");
 
 const parse = (query) => searchQuerySchema.validate(query).value;
 
 const row = {
   id: "p1",
+  listing_number: 100000,
   member_ids: ["p1"],
   listing_type: "sale",
   property_type: "residential",
@@ -108,5 +115,38 @@ describe("getPropertyDetails", () => {
       expect(repository.findListings).toHaveBeenCalledTimes(2);
       expect(repository.findListings.mock.calls[1][0].localities).toEqual([]);
     });
+  });
+});
+
+describe("short code sharing", () => {
+  const shortCode = encodeShortCode(100000);
+
+  it("answers 404 for a code that was never issued", async () => {
+    await expect(getPropertyDetailsByShortCode("!!")).rejects.toMatchObject({ statusCode: 404 });
+    expect(repository.findPublishedIdByListingNumber).not.toHaveBeenCalled();
+  });
+
+  it("answers 404 when the property is not published", async () => {
+    repository.findPublishedIdByListingNumber.mockResolvedValue(null);
+
+    await expect(getPropertyDetailsByShortCode(shortCode)).rejects.toMatchObject({ statusCode: 404 });
+    expect(repository.findPublishedIdByListingNumber).toHaveBeenCalledWith(100000);
+  });
+
+  it("builds a public share card without owner details", async () => {
+    repository.findPublishedProperty.mockResolvedValue({ ...row, description: `  ${"Spacious home. ".repeat(20)}` });
+    repository.findCard.mockResolvedValue({ ...row, poster_name: "Private Owner" });
+
+    const share = await getPropertyShare("p1");
+
+    expect(share).toMatchObject({ id: "p1", shortCode, title: "Sunrise", location: "Bopal, Ahmedabad", imageUrl: null });
+    expect(share.description.length).toBeLessThanOrEqual(160);
+    expect(JSON.stringify(share)).not.toContain("Private Owner");
+  });
+
+  it("answers 404 when sharing an unpublished property", async () => {
+    repository.findPublishedProperty.mockResolvedValue(undefined);
+
+    await expect(getPropertyShare("missing")).rejects.toMatchObject({ statusCode: 404 });
   });
 });

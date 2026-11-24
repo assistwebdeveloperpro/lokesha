@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Header from "@/components/shared/layout/Header";
+import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
 import { getCanonicalSearchRedirect } from "@/lib/property-search-url/canonicalSearchUrl";
 import { parseSearchUrl } from "@/lib/property-search-url/parseSearchUrl";
 import {
@@ -11,6 +12,7 @@ import type {
   SearchParamRecord,
   TransactionSlug,
 } from "@/lib/property-search-url/searchUrl.types";
+import { buildPageMetadata } from "@/lib/seo/pageMetadata";
 import { PropertySearchHeaderSearch } from "./header-search/PropertySearchHeaderSearch";
 import { PropertySearchResultsContent } from "./PropertySearchResultsContent";
 import { buildSearchHeading } from "./searchPageText";
@@ -52,10 +54,12 @@ export async function generateSearchMetadata(
   if (!criteria) return {};
 
   const heading = buildSearchHeading(criteria);
-  return {
+  return buildPageMetadata({
     title: `${heading} | Lokesha`,
+    ogTitle: heading,
     description: `${heading}. Filter by BHK, budget, property type and construction status.`,
-  };
+    path: buildSearchUrl(criteria),
+  });
 }
 
 export async function PropertySearchResultsPage({

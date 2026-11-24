@@ -7,6 +7,7 @@ import {
   getSavedPriceLabel,
   isNewSave,
   isSavedListing,
+  toShareListItem,
 } from "./savedPropertiesShared";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -99,5 +100,37 @@ describe("getPageAfterRemoval", () => {
 
   it("never goes below the first page", () => {
     expect(getPageAfterRemoval(1, 1)).toBe(1);
+  });
+});
+
+describe("toShareListItem", () => {
+  const listing = buildListing({
+    id: "p1",
+    shortCode: "Al65",
+    title: "Sunrise",
+    locality: "Bopal",
+    city: "Ahmedabad",
+  });
+  const saved = (overrides: Partial<SavedProperty>): SavedProperty => ({
+    id: "s1",
+    propertyId: "p1",
+    savedAt: new Date().toISOString(),
+    isAvailable: true,
+    property: listing,
+    ...overrides,
+  });
+
+  it("maps an available listing to a share item", () => {
+    expect(toShareListItem(saved({}))).toEqual({
+      id: "p1",
+      shortCode: "Al65",
+      title: "Sunrise",
+      location: "Bopal, Ahmedabad",
+      imageUrl: "main.jpg",
+    });
+  });
+
+  it("skips properties that are no longer available", () => {
+    expect(toShareListItem(saved({ isAvailable: false, property: unavailable }))).toBeNull();
   });
 });

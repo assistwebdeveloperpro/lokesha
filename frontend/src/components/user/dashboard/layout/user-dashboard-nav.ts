@@ -40,7 +40,7 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
   { label: "Dashboard", href: "/user/dashboard", icon: LayoutDashboard },
   {
     label: "My Activity",
-    href: "/user/activities/saved-properties",
+    href: "/user/activities/shortlisted-properties",
     icon: ContactRound,
     children: [
       { label: "Shortlisted Properties", href: "/user/activities/shortlisted-properties", icon: Heart },

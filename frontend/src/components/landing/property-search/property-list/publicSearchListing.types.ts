@@ -2,6 +2,7 @@ export type PublicSearchPostedBy = "builder" | "owner" | "dealer";
 
 export type PublicSearchListing = {
   id: string;
+  shortCode: string;
   title: string;
   subtitle: string;
   categoryLabel: string;

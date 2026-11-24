@@ -39,7 +39,7 @@ export const LOGGED_IN_PROFILE_LINK: HeaderMenuLink = {
   href: "/user/profile/account-details",
 };
 
-export const SAVED_PROPERTIES_HREF = "/user/activities/saved-properties";
+export const SAVED_PROPERTIES_HREF = "/user/activities/shortlisted-properties";
 
 export const LOGGED_IN_PREMIUM_LINK: HeaderMenuLink = {
   label: "Lokesha Prime",

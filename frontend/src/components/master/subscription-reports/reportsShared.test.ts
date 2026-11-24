@@ -4,7 +4,7 @@ import { buildReportGroups, describeRange } from "./reportsShared";
 
 const overview: ReportsOverview = {
   range: { from: null, to: null },
-  revenue: { paidOrders: 3, baseAmount: 1200000, gstCollected: 216000, totalAmount: 1416000, refundedOrders: 1, refundedAmount: 118000 },
+  revenue: { paidOrders: 3, baseAmount: 12000, gstCollected: 2160, totalAmount: 14160, refundedOrders: 1, refundedAmount: 1180 },
   payments: { failed: 4, pending: 0 },
   users: { activeStandard: 7, exhaustedFree: 12 },
 };

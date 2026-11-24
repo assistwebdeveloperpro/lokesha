@@ -3,12 +3,15 @@ import type { Metadata } from "next";
 import RequireAuth from "@/components/user/auth/RequireAuth";
 import Header from "@/components/shared/layout/Header";
 import PostPropertyContent from "@/components/shared/post-property/PostPropertyContent";
+import { buildPageMetadata } from "@/lib/seo/pageMetadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Post Property | Lokesha - Property Listings",
+  ogTitle: "Post Property",
   description:
     "Post your residential or commercial property on Lokesha and connect with potential buyers and tenants across India.",
-};
+  path: "/post-property",
+});
 
 export default function PostPropertyPage() {
   return (

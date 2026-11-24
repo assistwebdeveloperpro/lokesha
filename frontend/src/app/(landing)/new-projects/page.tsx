@@ -1,5 +1,15 @@
-import Header from "@/components/shared/layout/Header";
+import type { Metadata } from "next";
 import Link from "next/link";
+import Header from "@/components/shared/layout/Header";
+import { buildPageMetadata } from "@/lib/seo/pageMetadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "New Projects | Lokesha",
+  ogTitle: "New Projects",
+  description:
+    "Explore upcoming and under-construction projects across Ahmedabad and Gandhinagar.",
+  path: "/new-projects",
+});
 
 export default function NewProjectsPage() {
   return (

@@ -6,6 +6,7 @@ const { SIMILAR_LIMIT, OTHER_LOCALITIES_LIMIT, SUGGESTIONS_PER_KIND } = require(
 const readRepository = require("../../shared/property/repositories/property-read.repository");
 const { getRule } = require("../../shared/property/constants/property.constants");
 const { AppError } = require("../../shared/property/utils/property.errors");
+const { decodeShortCode } = require("../../shared/property/utils/property-short-code.util");
 
 
 const buildFilters = (values) => searchQuerySchema.validate(values).value;
@@ -121,6 +122,36 @@ async function getPropertyDetails(id) {
   };
 }
 
+async function findPropertyIdByShortCode(code) {
+  const listingNumber = decodeShortCode(code);
+  const id = listingNumber ? await repository.findPublishedIdByListingNumber(listingNumber) : null;
+  if (!id) {
+    throw new AppError("Property not found", 404);
+  }
+
+  return id;
+}
+
+async function getPropertyDetailsByShortCode(code) {
+  return getPropertyDetails(await findPropertyIdByShortCode(code));
+}
+
+async function getPropertyShare(id) {
+  const property = await repository.findPublishedProperty(id);
+  if (!property) {
+    throw new AppError("Property not found", 404);
+  }
+
+  const card = await repository.findCard(property);
+  if (!card) {
+    throw new AppError("Property not found", 404);
+  }
+
+  const [listing] = await toListings([card]);
+
+  return mapper.toShare(listing, property.description);
+}
+
 async function getSearchSuggestions({ q, city }) {
   const options = { text: q, city, limit: SUGGESTIONS_PER_KIND };
   const [projects, builders] = await Promise.all([
@@ -131,4 +162,10 @@ async function getSearchSuggestions({ q, city }) {
   return { projects, builders };
 }
 
-module.exports = { searchProperties, getPropertyDetails, getSearchSuggestions };
+module.exports = {
+  searchProperties,
+  getPropertyDetails,
+  getPropertyDetailsByShortCode,
+  getPropertyShare,
+  getSearchSuggestions,
+};

@@ -57,11 +57,11 @@ describe("describeAction", () => {
   });
 
   it("describes a refund with the amount, the cancelled credits and the credit note", () => {
-    expect(describeAction({ type: "refund", details: { amount: 708000, cancelledCredits: 3, creditNoteNumber: "LOK-CN/2026-27/000001" } })).toEqual({
+    expect(describeAction({ type: "refund", details: { amount: 7080, cancelledCredits: 3, creditNoteNumber: "LOK-CN/2026-27/000001" } })).toEqual({
       title: "Order refunded",
       summary: "₹7,080 returned, 3 credits cancelled, credit note LOK-CN/2026-27/000001",
     });
-    expect(describeAction({ type: "refund", details: { amount: 118000, cancelledCredits: 0, creditNoteNumber: null } }).summary).toBe(
+    expect(describeAction({ type: "refund", details: { amount: 1180, cancelledCredits: 0, creditNoteNumber: null } }).summary).toBe(
       "₹1,180 returned, 0 credits cancelled",
     );
   });

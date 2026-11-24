@@ -1,7 +1,8 @@
 "use client";
 
-import { FileDown, Share2 } from "lucide-react";
+import { FileDown } from "lucide-react";
 import { PropertyContactButton } from "@/components/landing/property-contact/PropertyContactButton";
+import { SharePropertyButton } from "@/components/landing/property-share/SharePropertyButton";
 import { SavePropertyButton } from "@/components/landing/saved-properties/SavePropertyButton";
 import type { PublicSearchPostedBy } from "@/components/landing/property-search/property-list/publicSearchListing.types";
 
@@ -18,13 +19,10 @@ export function PropertyDetailsHeaderActions({
 }: PropertyDetailsHeaderActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 lg:shrink-0 lg:flex-nowrap">
-      <button
-        type="button"
+      <SharePropertyButton
+        propertyId={propertyId}
         className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-sky-200 hover:bg-sky-50/80 hover:text-sky-700"
-        aria-label="Share property"
-      >
-        <Share2 className="h-4 w-4" />
-      </button>
+      />
       <SavePropertyButton propertyId={propertyId} />
       <PropertyContactButton
         propertyId={propertyId}

@@ -25,6 +25,22 @@ async function getPropertyDetails(req, res) {
   }
 }
 
+async function getPropertyDetailsByShortCode(req, res) {
+  try {
+    return res.status(200).json({ property: await service.getPropertyDetailsByShortCode(req.params.code) });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
+async function getPropertyShare(req, res) {
+  try {
+    return res.status(200).json({ share: await service.getPropertyShare(req.params.id) });
+  } catch (error) {
+    return handleError(res, error);
+  }
+}
+
 async function getSearchSuggestions(req, res) {
   try {
     return res.status(200).json(await service.getSearchSuggestions(req.validatedQuery));
@@ -33,4 +49,10 @@ async function getSearchSuggestions(req, res) {
   }
 }
 
-module.exports = { searchProperties, getPropertyDetails, getSearchSuggestions };
+module.exports = {
+  searchProperties,
+  getPropertyDetails,
+  getPropertyDetailsByShortCode,
+  getPropertyShare,
+  getSearchSuggestions,
+};

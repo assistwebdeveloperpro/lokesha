@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const c = require("./property-search.constants");
+const { SHORT_CODE_PATTERN } = require("../../shared/property/utils/property-short-code.util");
 
 // Query values arrive as comma separated strings
 function csvList(itemSchema) {
@@ -73,9 +74,13 @@ const propertyIdParamSchema = Joi.object({
   id: Joi.string().guid().required(),
 });
 
+const shortCodeParamSchema = Joi.object({
+  code: Joi.string().pattern(SHORT_CODE_PATTERN).required(),
+});
+
 const suggestionsQuerySchema = Joi.object({
   q: Joi.string().trim().min(c.MIN_SUGGESTION_CHARS).max(100).required(),
   city: Joi.string().trim().max(100),
 });
 
-module.exports = { searchQuerySchema, propertyIdParamSchema, suggestionsQuerySchema };
+module.exports = { searchQuerySchema, propertyIdParamSchema, shortCodeParamSchema, suggestionsQuerySchema };
