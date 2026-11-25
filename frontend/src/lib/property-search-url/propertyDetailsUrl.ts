@@ -52,7 +52,7 @@ function buildDescriptor(source: PropertyDetailsSource): string {
     .join("-");
 }
 
-// 4-BHK-5500-Sq-ft-Penthouse-for-Sale-South-Bopal-in-Ahmedabad&id={id}
+// 4-bhk-5500-sq-ft-penthouse-for-sale-south-bopal-in-ahmedabad&id={id}
 export function buildPropertyDetailsSlug(source: PropertyDetailsSource): string {
   return `${buildDescriptor(source)}&id=${source.id}`;
 }

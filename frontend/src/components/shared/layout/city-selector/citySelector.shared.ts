@@ -1,3 +1,6 @@
+import { LANDING_ALL_INDIA_SEGMENT } from "@/lib/property-search-url/landingUrl.config";
+import { toUrlSegment } from "@/lib/property-search-url/slug";
+
 export const CITY_STORAGE_KEY = "lokesha_location";
 
 export const ALL_INDIA_LABEL = "All India";
@@ -6,35 +9,48 @@ export const DEFAULT_SELECTED_CITY = "Ahmedabad";
 
 export const CITY_CHANGE_EVENT = "lokesha-city-change";
 
-export type LocationSource = "auto" | "manual";
+export type LocationSource = "default" | "browser" | "manual";
 
 export type SavedLocation = {
-  cityId: string;
   city: string;
-  state: string;
-  country: string;
+  citySlug: string;
   source: LocationSource;
 };
 
-export function toCityId(city: string): string {
-  return city.trim().toLowerCase().replace(/\s+/g, "-");
+export function toCitySlug(city: string): string {
+  return city === ALL_INDIA_LABEL ? LANDING_ALL_INDIA_SEGMENT : toUrlSegment(city);
+}
+
+export function createLocation(city: string, source: LocationSource): SavedLocation {
+  return { city, citySlug: toCitySlug(city), source };
 }
 
 function isSavedLocation(value: unknown): value is SavedLocation {
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Record<string, unknown>;
   return (
-    typeof candidate.cityId === "string" &&
     typeof candidate.city === "string" &&
-    (candidate.source === "auto" || candidate.source === "manual")
+    typeof candidate.citySlug === "string" &&
+    (candidate.source === "default" ||
+      candidate.source === "browser" ||
+      candidate.source === "manual")
   );
+}
+
+// Records saved before the source rename: "auto" meant browser detection
+function migrateLegacyLocation(value: unknown): unknown {
+  if (typeof value !== "object" || value === null) return value;
+  const { city, source } = value as Record<string, unknown>;
+  if (typeof city !== "string") return value;
+  if (source !== "auto" && source !== "manual") return value;
+  return createLocation(city, source === "auto" ? "browser" : "manual");
 }
 
 export function readStoredLocation(): SavedLocation | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(CITY_STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    const parsed = migrateLegacyLocation(raw ? JSON.parse(raw) : null);
     return isSavedLocation(parsed) ? parsed : null;
   } catch {
     return null;
@@ -52,14 +68,14 @@ export function readStoredCity(): string {
 
 // Any city chosen by the user or from a url is a manual choice
 export function storeCity(city: string): void {
-  const isAllIndia = city === ALL_INDIA_LABEL;
-  storeLocation({
-    cityId: toCityId(city),
-    city,
-    state: "",
-    country: isAllIndia ? "" : "India",
-    source: "manual",
-  });
+  storeLocation(createLocation(city, "manual"));
+}
+
+// First visit: keep the default city until detection or the user decides otherwise
+export function ensureDefaultLocation(): boolean {
+  if (readStoredLocation() !== null) return false;
+  storeLocation(createLocation(DEFAULT_SELECTED_CITY, "default"));
+  return true;
 }
 
 export type PopularCity = {

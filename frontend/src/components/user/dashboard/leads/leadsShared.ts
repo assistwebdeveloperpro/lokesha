@@ -8,7 +8,7 @@ export const LEADS_TABLE_COLUMNS = [
   "Price & Area",
   "Enquirer Details",
   "Enquiry Date",
-  "Enquiry Details",
+  "Contact Status",
   "Action",
 ] as const;
 

@@ -15,7 +15,7 @@ type BuildLandingUrlInput = {
   transaction: LandingTransaction | null;
 };
 
-// /property-for-sale-rent-in-Ahmedabad/residential-real-estate-Ahmedabad?category=S
+// /property-for-sale-rent-in-ahmedabad/residential-real-estate-ahmedabad?category=s
 export function buildLandingUrl({
   category,
   cityName,

@@ -13,11 +13,11 @@ describe("buildLandingUrl", () => {
         transaction: "buy",
       }),
     ).toBe(
-      "/property-for-sale-rent-in-Ahmedabad/residential-real-estate-Ahmedabad?category=S",
+      "/property-for-sale-rent-in-ahmedabad/residential-real-estate-ahmedabad?category=s",
     );
   });
 
-  it("uses category=R for rent", () => {
+  it("uses category=r for rent", () => {
     expect(
       buildLandingUrl({
         category: "residential",
@@ -25,7 +25,7 @@ describe("buildLandingUrl", () => {
         transaction: "rent",
       }),
     ).toBe(
-      "/property-for-sale-rent-in-Gandhinagar/residential-real-estate-Gandhinagar?category=R",
+      "/property-for-sale-rent-in-gandhinagar/residential-real-estate-gandhinagar?category=r",
     );
   });
 
@@ -37,11 +37,11 @@ describe("buildLandingUrl", () => {
         transaction: "lease",
       }),
     ).toBe(
-      "/property-for-sale-rent-in-Navi-Mumbai/commercial-real-estate-Navi-Mumbai?category=L",
+      "/property-for-sale-rent-in-navi-mumbai/commercial-real-estate-navi-mumbai?category=l",
     );
     expect(
       buildLandingUrl({ category: "plot", cityName: null, transaction: "buy" }),
-    ).toBe("/property-for-sale-rent-in-India/plot-India?category=S");
+    ).toBe("/property-for-sale-rent-in-india/plot-india?category=s");
   });
 
   it("omits the param when there is no transaction", () => {
@@ -51,7 +51,7 @@ describe("buildLandingUrl", () => {
         cityName: "Pune",
         transaction: null,
       }),
-    ).toBe("/property-for-sale-rent-in-Pune/pg-co-living-Pune");
+    ).toBe("/property-for-sale-rent-in-pune/pg-co-living-pune");
   });
 });
 
@@ -84,7 +84,7 @@ describe("parseLandingUrl", () => {
     }
   });
 
-  it("round-trips built urls, case-insensitively", () => {
+  it("round-trips built urls and still accepts legacy mixed case", () => {
     const [path] = buildLandingUrl({
       category: "land",
       cityName: "Navi Mumbai",
@@ -94,8 +94,8 @@ describe("parseLandingUrl", () => {
 
     expect(
       parseLandingUrl({
-        locationSlug: locationSlug.toLowerCase(),
-        categorySlug: categorySlug.toLowerCase(),
+        locationSlug,
+        categorySlug,
         knownCities,
       }),
     ).toEqual({ category: "land", cityName: "Navi Mumbai", transaction: "buy" });

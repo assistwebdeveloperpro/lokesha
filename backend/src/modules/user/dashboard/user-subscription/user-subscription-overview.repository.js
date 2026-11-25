@@ -94,14 +94,37 @@ const countOrders = (userId) => countOf(db("subscription_orders").where({ user_i
 const ledgerQuery = (userId) =>
   db("subscription_credit_ledger as l").leftJoin("properties as p", "p.id", "l.property_id").where("l.user_id", userId);
 
+// Step number and running balance are computed over the whole history, before paging
+const numberedLedger = (userId) =>
+  db("subscription_credit_ledger")
+    .where("user_id", userId)
+    .select(
+      "id",
+      "type",
+      "credits",
+      "reason",
+      "created_at",
+      "property_id",
+      db.raw("row_number() over (order by created_at, id) as step_no"),
+      db.raw("sum(credits) over (order by created_at, id) as balance_after")
+    );
+
 async function findLedger(userId, paging) {
-  return paginate(ledgerQuery(userId).orderBy("l.created_at", "desc").orderBy("l.id", "desc"), paging).select(
+  return paginate(
+    db
+      .from(numberedLedger(userId).as("l"))
+      .leftJoin("properties as p", "p.id", "l.property_id")
+      .orderBy("l.step_no", "asc"),
+    paging
+  ).select(
     "l.id",
     "l.type",
     "l.credits",
     "l.reason",
     "l.created_at",
     "l.property_id",
+    "l.step_no",
+    "l.balance_after",
     "p.title as property_title",
     "p.listing_number"
   );

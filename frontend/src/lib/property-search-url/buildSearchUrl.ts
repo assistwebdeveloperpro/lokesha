@@ -14,7 +14,9 @@ import type { PropertySearchCriteria } from "./searchUrl.types";
 import { slugify, toUrlSegment } from "./slug";
 
 const joinSegments = (segments: string[] | undefined) =>
-  (segments ?? []).map(encodeURIComponent).join(",");
+  (segments ?? [])
+    .map((segment) => encodeURIComponent(segment.toLowerCase()))
+    .join(",");
 
 const formatOptional = (
   value: number | undefined,

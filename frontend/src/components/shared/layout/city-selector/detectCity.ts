@@ -1,6 +1,6 @@
 import { INDIAN_CITIES } from "@/data/indianCities";
 import { reverseGeocode } from "@/lib/openStreetMap";
-import { toCityId, type SavedLocation } from "./citySelector.shared";
+import { createLocation, type SavedLocation } from "./citySelector.shared";
 
 export type DetectCityErrorCode =
   | "unsupported"
@@ -19,6 +19,15 @@ function createDetectError(code: DetectCityErrorCode): DetectCityError {
 function isDetectError(error: unknown): error is DetectCityError {
   return error instanceof Error && "code" in error;
 }
+
+export const DETECT_ERROR_MESSAGES: Record<DetectCityErrorCode, string> = {
+  unsupported: "Location is not supported on this device. Please select your city.",
+  denied: "Location permission denied. Please select your city.",
+  unavailable: "We could not find your location. Please select your city.",
+  timeout: "Finding your location took too long. Please select your city.",
+  geocode_failed: "We could not detect your city. Please select your city.",
+  city_not_supported: "Lokesha is not available in your area yet. Please select a city.",
+};
 
 export function getDetectErrorCode(error: unknown): DetectCityErrorCode {
   return isDetectError(error) ? error.code : "geocode_failed";
@@ -71,10 +80,10 @@ async function resolveLocation(latitude: number, longitude: number): Promise<Sav
   const timer = setTimeout(() => controller.abort(), GEOCODE_TIMEOUT_MS);
 
   try {
-    const { cityCandidates, state, country } = await reverseGeocode(latitude, longitude, controller.signal);
+    const { cityCandidates } = await reverseGeocode(latitude, longitude, controller.signal);
     const city = matchCityMaster(cityCandidates);
     if (!city) throw createDetectError("city_not_supported");
-    return { cityId: toCityId(city), city, state, country, source: "auto" };
+    return createLocation(city, "browser");
   } catch (error) {
     if (isDetectError(error)) throw error;
     throw createDetectError("geocode_failed");

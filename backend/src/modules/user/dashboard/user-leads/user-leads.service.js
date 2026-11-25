@@ -2,6 +2,7 @@ const repository = require("./user-leads.repository");
 const {
   PUBLISHED_STATUS,
   findListingsByPropertyId,
+  findUnavailableListingsByPropertyId,
   toUnavailableProperty,
 } = require("../shared/published-listings");
 const { isNewActivity } = require("../shared/new-activity");
@@ -13,7 +14,9 @@ function toEnquirer(lead) {
 
 function toLeadItem(lead, listings, now) {
   const isAvailable = lead.status === PUBLISHED_STATUS;
-  const property = isAvailable ? listings.get(lead.property_id) : null;
+  const listing = listings.get(lead.property_id);
+  // Unavailable rows keep their own title and number but still show the image and price
+  const property = isAvailable ? listing : listing && { ...listing, ...toUnavailableProperty(lead) };
 
   return {
     id: lead.id,
@@ -42,7 +45,11 @@ async function listLeads(userId, query) {
     repository.findSentLeads(userId, { page, limit: query.limit }),
     repository.countSentLeads(userId),
   ]);
-  const listings = await findListingsByPropertyId(leads);
+  const [published, unavailable] = await Promise.all([
+    findListingsByPropertyId(leads),
+    findUnavailableListingsByPropertyId(leads),
+  ]);
+  const listings = new Map([...published, ...unavailable]);
   const now = Date.now();
 
   return { items: leads.map((lead) => toLeadItem(lead, listings, now)), page, limit: query.limit, total };

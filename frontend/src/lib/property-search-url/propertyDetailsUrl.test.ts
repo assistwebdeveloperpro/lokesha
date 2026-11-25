@@ -21,7 +21,7 @@ const source: PropertyDetailsSource = {
   city: "Ahmedabad",
 };
 
-const DESCRIPTOR = "4-BHK-5500-Sq-ft-Penthouse-for-Sale-South-Bopal-in-Ahmedabad";
+const DESCRIPTOR = "4-bhk-5500-sq-ft-penthouse-for-sale-south-bopal-in-ahmedabad";
 
 describe("buildPropertyDetailsUrl", () => {
   it("builds the spec style url", () => {
@@ -33,7 +33,7 @@ describe("buildPropertyDetailsUrl", () => {
   it("joins multiple bedroom counts in ascending order", () => {
     expect(
       buildPropertyDetailsSlug({ ...source, bedrooms: [5, 4] }),
-    ).toBe(`4-5-BHK-5500-Sq-ft-Penthouse-for-Sale-South-Bopal-in-Ahmedabad&id=${ID}`);
+    ).toBe(`4-5-bhk-5500-sq-ft-penthouse-for-sale-south-bopal-in-ahmedabad&id=${ID}`);
   });
 
   it("skips missing parts and maps rent-lease to rent", () => {
@@ -46,7 +46,7 @@ describe("buildPropertyDetailsUrl", () => {
         listingType: "rent-lease",
         city: null,
       }),
-    ).toBe(`Residential-for-Rent-South-Bopal&id=${ID}`);
+    ).toBe(`residential-for-rent-south-bopal&id=${ID}`);
   });
 });
 

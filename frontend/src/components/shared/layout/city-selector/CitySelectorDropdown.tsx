@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, LocateFixed, Search } from "lucide-react";
 import Image from "next/image";
 import {
   useLayoutEffect,
@@ -22,6 +22,7 @@ import {
 type CitySelectorDropdownProps = {
   selectedCity: string;
   onSelectCity: (city: string) => void;
+  onDetectLocation: () => Promise<void>;
   onClose: () => void;
   variant?: "desktop" | "mobile";
   triggerRef: RefObject<HTMLElement | null>;
@@ -33,6 +34,7 @@ type CitySelectorDropdownProps = {
 export default function CitySelectorDropdown({
   selectedCity,
   onSelectCity,
+  onDetectLocation,
   onClose,
   variant = "desktop",
   triggerRef,
@@ -77,6 +79,12 @@ export default function CitySelectorDropdown({
   const handleSelect = (city: string) => {
     onSelectCity(city);
     onClose();
+  };
+
+  const handleDetect = () => {
+    // Detection can wait on the browser prompt, so the panel closes first
+    onClose();
+    void onDetectLocation();
   };
 
   const handleAllIndia = () => {
@@ -136,6 +144,14 @@ export default function CitySelectorDropdown({
                 autoFocus
               />
             </label>
+            <button
+              type="button"
+              onClick={handleDetect}
+              className="mt-2 inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium text-navy-blue transition hover:text-sky-700"
+            >
+              <LocateFixed className="h-4 w-4" aria-hidden />
+              Detect my location
+            </button>
           </div>
 
           <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${isMobile ? "px-3 py-3" : "px-4 py-4"}`}>

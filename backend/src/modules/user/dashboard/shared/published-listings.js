@@ -37,6 +37,32 @@ async function findListingsByPropertyId(rows, enrich = (listing) => listing) {
   );
 }
 
+// Search cards of the rows that are no longer published, keyed by the row's property id
+async function findUnavailableListingsByPropertyId(rows) {
+  const unavailable = rows.filter(({ status }) => status !== PUBLISHED_STATUS);
+  const byType = groupBy(unavailable, ({ property_type: type }) => type);
+
+  const cardGroups = await Promise.all(
+    Object.entries(byType).map(([dbType, typeRows]) =>
+      searchRepository.findCardsOfPropertyIds(
+        typeRows.map(({ property_id: id }) => id),
+        dbType
+      )
+    )
+  );
+  const cards = cardGroups.flat();
+  if (!cards.length) return new Map();
+
+  const extras = await searchRepository.findCardExtras(cards.flatMap((card) => card.member_ids));
+
+  return new Map(
+    unavailable.flatMap(({ property_id: id }) => {
+      const card = cards.find((item) => item.member_ids.includes(id));
+      return card ? [[id, searchMapper.toListing(card, extras)]] : [];
+    })
+  );
+}
+
 // Adds the slider images of every sub type in the card's group
 function withGalleryImages(listing, card, extras) {
   const media = extras.media.filter(({ property_id: id }) => card.member_ids.includes(id));
@@ -59,6 +85,7 @@ function toUnavailableProperty(row) {
 module.exports = {
   PUBLISHED_STATUS,
   findListingsByPropertyId,
+  findUnavailableListingsByPropertyId,
   withGalleryImages,
   toUnavailableProperty,
 };

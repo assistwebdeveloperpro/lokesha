@@ -142,6 +142,8 @@ export type LedgerEntry = {
   id: string;
   type: "granted" | "used" | "expired" | "admin_added" | "cancelled";
   credits: number;
+  step: number;
+  balanceAfter: number;
   reason: string | null;
   createdAt: string;
   property: { id: string; title: string; listingNumber: number } | null;

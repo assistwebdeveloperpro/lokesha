@@ -23,7 +23,7 @@ export function CreditSummaryTilesSkeleton() {
 
 export function PropertyLeadUsageSkeleton() {
   return (
-    <ul className="space-y-3" aria-busy aria-hidden>
+    <ul className="space-y-4" aria-busy aria-hidden>
       {Array.from({ length: USAGE_ROW_COUNT }, (_, index) => (
         <li key={index} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-start justify-between gap-3">
@@ -36,13 +36,18 @@ export function PropertyLeadUsageSkeleton() {
             </div>
             <div className={`${bar} h-6 w-16 rounded-full`} />
           </div>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between">
-              <div className={`${bar} h-4 w-28`} />
-              <div className={`${bar} h-4 w-16`} />
-            </div>
-            <div className={`${bar} h-2.5 w-full rounded-full`} />
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+            {Array.from({ length: 3 }, (_, statIndex) => (
+              <div key={statIndex} className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/60 p-2.5">
+                <div className={`${bar} h-8 w-8 shrink-0 rounded-lg`} />
+                <div className="space-y-1.5">
+                  <div className={`${bar} h-3 w-12`} />
+                  <div className={`${bar} h-4 w-8`} />
+                </div>
+              </div>
+            ))}
           </div>
+          <div className={`${bar} mt-4 h-2.5 w-full rounded-full`} />
         </li>
       ))}
     </ul>

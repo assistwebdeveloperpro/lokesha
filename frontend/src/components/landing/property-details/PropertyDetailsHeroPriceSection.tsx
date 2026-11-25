@@ -1,6 +1,6 @@
 import { IndianRupee } from "lucide-react";
 import type { PublicSearchListing } from "@/components/landing/property-search/property-list/publicSearchListing.types";
-import PropertyListPrice from "@/components/user/dashboard/manage-properties/PropertyListPrice";
+import { formatSearchListingPrice } from "@/components/landing/property-search/property-list/buildSearchListingFacts";
 import { propertyDetailsHeroPriceLabel } from "./propertyDetailsPriceLabel";
 
 type PropertyDetailsHeroPriceSectionProps = {
@@ -21,7 +21,9 @@ export function PropertyDetailsHeroPriceSection({ listing }: PropertyDetailsHero
 
       <div className="min-w-0">
         <p className="text-xs font-medium text-slate-500 sm:text-sm">{priceLabel}</p>
-        <PropertyListPrice item={listing} tone="hero" />
+        <p className="mt-0.5 min-w-0 wrap-break-word text-base font-bold tabular-nums leading-snug text-navy-blue sm:text-lg md:text-xl">
+          {formatSearchListingPrice(listing)}
+        </p>
       </div>
     </div>
   );

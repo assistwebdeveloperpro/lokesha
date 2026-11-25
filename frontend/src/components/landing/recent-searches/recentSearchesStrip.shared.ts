@@ -18,7 +18,13 @@ export const STRIP_SKELETON_CARD_CLASS = "w-36 lg:w-40";
 
 export const STRIP_CARD_CLASS = `${STRIP_CARD_SIZE_CLASS} flex items-center whitespace-nowrap bg-white lg:w-40 lg:whitespace-normal px-3 text-sm lg:text-xs font-medium leading-snug text-slate-800 shadow-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400`;
 
+// Arrows sit beside the list, never over the cards
+export const STRIP_SCROLLER_ROW_CLASS = "flex min-w-0 flex-1 items-center gap-2";
+
 export const STRIP_ARROW_CLASS =
-  "absolute top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition ";
+  "flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition disabled:cursor-default disabled:opacity-40";
+
+// Keeps the arrow slot reserved so the list width stays stable
+export const STRIP_ARROW_SLOT_CLASS = "h-7 w-7 shrink-0";
 
 export const STRIP_SKELETON_COUNT = 4;

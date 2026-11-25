@@ -2,8 +2,10 @@
 
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/shared/ui/ToastProvider";
 import CitySelectorDropdown from "./CitySelectorDropdown";
-import { ALL_INDIA_LABEL, storeCity } from "./citySelector.shared";
+import { ALL_INDIA_LABEL, storeCity, storeLocation } from "./citySelector.shared";
+import { DETECT_ERROR_MESSAGES, detectCity, getDetectErrorCode } from "./detectCity";
 import { useHeaderCity } from "./useHeaderCity";
 
 type HeaderCitySelectorProps = {
@@ -12,6 +14,7 @@ type HeaderCitySelectorProps = {
 
 export default function HeaderCitySelector({ variant = "desktop" }: HeaderCitySelectorProps) {
   const selectedCity = useHeaderCity();
+  const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -22,6 +25,16 @@ export default function HeaderCitySelector({ variant = "desktop" }: HeaderCitySe
   const persistCity = storeCity;
 
   const close = useCallback(() => setOpen(false), []);
+
+  const handleDetectLocation = useCallback(async () => {
+    try {
+      const location = await detectCity();
+      storeLocation(location);
+      showToast(`Showing properties in ${location.city}`);
+    } catch (error) {
+      showToast(DETECT_ERROR_MESSAGES[getDetectErrorCode(error)], "error");
+    }
+  }, [showToast]);
 
   const isInsideSelector = useCallback((target: EventTarget | null) => {
     if (!(target instanceof Node)) return false;
@@ -101,6 +114,7 @@ export default function HeaderCitySelector({ variant = "desktop" }: HeaderCitySe
           variant={variant}
           selectedCity={selectedCity}
           onSelectCity={persistCity}
+          onDetectLocation={handleDetectLocation}
           onClose={close}
           triggerRef={triggerRef}
           panelRef={panelRef}

@@ -45,10 +45,7 @@ function SkeletonRow() {
         <div className={`${bar} h-3 w-28`} />
       </div>
 
-      <div className="space-y-2">
-        <div className={`${bar} h-5 w-16 rounded-full`} />
-        <div className={`${bar} h-3 w-20`} />
-      </div>
+      <div className={`${bar} h-3 w-24`} />
 
       <div className={`${bar} h-9 w-28 rounded-xl`} />
     </li>

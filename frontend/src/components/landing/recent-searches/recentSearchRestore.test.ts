@@ -75,7 +75,7 @@ describe("getRecentSearchHref", () => {
       }),
     });
 
-    expect(href).toBe("/property-for-sale-rent-in-Ahmedabad/residential-real-estate-Ahmedabad");
+    expect(href).toBe("/property-for-sale-rent-in-ahmedabad/residential-real-estate-ahmedabad");
   });
 
   it("falls back home for an unknown category", () => {

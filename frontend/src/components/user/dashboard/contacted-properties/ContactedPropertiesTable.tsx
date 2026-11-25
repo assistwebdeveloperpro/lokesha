@@ -130,7 +130,7 @@ function ContactedPropertyRow({ item }: { item: ContactedProperty }) {
       </div>
 
       <div className="min-w-0">
-        {listing ? (
+        {listing && item.isAvailable ? (
           <Link
             href={getViewPropertyHref(listing)}
             className={`${ACTION_BASE_CLASS} bg-linear-to-r-navy-blue text-white shadow-md hover:shadow-lg`}

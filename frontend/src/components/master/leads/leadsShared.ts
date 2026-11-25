@@ -8,7 +8,7 @@ export const LEAD_QUERY_PARAM = "lead";
 
 export const LEADS_PAGE_SIZE = 10;
 
-export const HIGHLIGHT_ROW_CLASS = "bg-sky-50 ring-2 ring-inset ring-sky-300";
+export const HIGHLIGHT_ROW_CLASS = "bg-sky-50 ring-2 ring-inset ring-sky-300";  
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -92,7 +92,7 @@ export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Ph
 
 // Shared by header, rows and skeleton so the columns always line up
 export const LEAD_GRID_CLASS =
-  "grid grid-cols-[minmax(0,1.2fr)_minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1.2fr)_44px] items-center gap-3";
+  "grid grid-cols-[minmax(0,1.2fr)_minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.85fr)_minmax(0,0.7fr)_minmax(0,1.45fr)_44px] items-center gap-3";
 
 // Keeps the desktop column widths, smaller screens scroll sideways instead of wrapping
 export const LEAD_TABLE_MIN_WIDTH_CLASS = "min-w-[1400px]";

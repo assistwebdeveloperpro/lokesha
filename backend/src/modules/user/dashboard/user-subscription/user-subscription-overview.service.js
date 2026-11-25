@@ -60,6 +60,8 @@ const toLedgerEntry = (row) => ({
   id: row.id,
   type: row.type,
   credits: row.credits,
+  step: Number(row.step_no),
+  balanceAfter: Number(row.balance_after),
   reason: row.reason,
   createdAt: row.created_at,
   property: row.property_id ? { id: row.property_id, title: row.property_title, listingNumber: Number(row.listing_number) } : null,

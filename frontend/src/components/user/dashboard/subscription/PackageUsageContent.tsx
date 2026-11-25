@@ -1,14 +1,20 @@
 "use client";
 
-import { ChartColumn } from "lucide-react";
-import { useState } from "react";
-import { fetchCreditLedger, fetchPropertyLeadUsage, type PropertyLeadUsage } from "@/services/userSubscription.service";
+import { Building2, ChartColumn } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import {
+  fetchCreditLedger,
+  fetchPropertyLeadUsage,
+  type PropertyLeadUsage,
+  type SubscriptionOverview,
+} from "@/services/userSubscription.service";
 import BuyMoreLeadsModal from "./BuyMoreLeadsModal";
 import CreditLedgerList from "./CreditLedgerList";
 import CreditSummaryTiles from "./CreditSummaryTiles";
 import PagedSection from "./PagedSection";
 import { CreditLedgerSkeleton, CreditSummaryTilesSkeleton, PropertyLeadUsageSkeleton } from "./PackageUsageSkeletons";
 import PropertyLeadUsageList from "./PropertyLeadUsageList";
+import SectionPanel from "./SectionPanel";
 import { useLeadPackPackage } from "./useLeadPackPackage";
 import { usePagedList } from "./usePagedList";
 import { useSubscriptionOverview } from "./useSubscriptionOverview";
@@ -16,12 +22,24 @@ import { useSubscriptionOverview } from "./useSubscriptionOverview";
 const USAGE_ERROR = "We could not load your property usage. Please try again.";
 const LEDGER_ERROR = "We could not load your credit activity. Please try again.";
 
-function SectionHeading({ title, text }: { title: string; text: string }) {
+function SectionHeading({ title, text, aside }: { title: string; text: string; aside?: ReactNode }) {
   return (
-    <div className="mb-3">
-      <h2 className="font-display text-base font-bold text-slate-800">{title}</h2>
-      <p className="text-sm text-slate-500">{text}</p>
+    <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 className="font-display text-base font-bold text-slate-800">{title}</h2>
+        <p className="text-sm text-slate-500">{text}</p>
+      </div>
+      {aside}
     </div>
+  );
+}
+
+function CreditTotals({ summary }: { summary: SubscriptionOverview["summary"] }) {
+  return (
+    <dl className="rounded-xl bg-sky-50 px-3 py-1.5 text-right">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-sky-700">Credits left</dt>
+      <dd className="font-display text-lg font-bold tabular-nums text-sky-700">{summary.remainingCredits}</dd>
+    </dl>
   );
 }
 
@@ -31,10 +49,12 @@ function PropertyUsageSection() {
   const [propertyToTopUp, setPropertyToTopUp] = useState<PropertyLeadUsage | null>(null);
 
   return (
-    <section aria-labelledby="usage-heading">
-      <div id="usage-heading">
-        <SectionHeading title="Leads per property" text="How many leads each listing has received against its limit" />
-      </div>
+    <SectionPanel
+      id="usage-heading"
+      icon={Building2}
+      title="Leads per property"
+      description="How many leads each listing has received against its limit"
+    >
       <PagedSection
         isLoading={isLoading}
         error={error}
@@ -57,17 +77,21 @@ function PropertyUsageSection() {
           onCompleted={reload}
         />
       ) : null}
-    </section>
+    </SectionPanel>
   );
 }
 
-function LedgerSection() {
+function LedgerSection({ summary }: { summary?: SubscriptionOverview["summary"] }) {
   const { page, items, total, isLoading, error, changePage, reload } = usePagedList(fetchCreditLedger, LEDGER_ERROR);
 
   return (
     <section aria-labelledby="ledger-heading">
       <div id="ledger-heading">
-        <SectionHeading title="Credit activity" text="Every credit added to or used from your account" />
+        <SectionHeading
+          title="Credit activity"
+          text="Every credit added to or used from your account"
+          aside={summary ? <CreditTotals summary={summary} /> : null}
+        />
       </div>
       <PagedSection
         isLoading={isLoading}
@@ -104,7 +128,7 @@ export default function PackageUsageContent() {
       <div className="mt-6 space-y-8">
         {isLoading ? <CreditSummaryTilesSkeleton /> : error || !overview ? null : <CreditSummaryTiles summary={overview.summary} />}
         <PropertyUsageSection />
-        <LedgerSection />
+        <LedgerSection summary={overview?.summary} />
       </div>
     </div>
   );

@@ -90,6 +90,18 @@ export function formatDateTime(value: string): string {
   });
 }
 
+export function formatDateTimeWithSeconds(value: string): string {
+  return new Date(value).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "Asia/Kolkata",
+  });
+}
+
 export function formatDaysLeft(days: number | null): string {
   if (days === null) return "No end date";
   if (days === 0) return "Ends today";

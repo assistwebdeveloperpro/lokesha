@@ -45,7 +45,7 @@ export function HeroCategoryTabs({
               role="tab"
               aria-selected={isActive}
               onClick={() => onSelect(category.id)}
-              className={`relative min-w-max flex-1 shrink-0 whitespace-nowrap hover:cursor-pointer border-b-2 px-4 py-3 text-center text-[0.9375rem] font-semibold transition ${FOCUS_RING} ${
+              className={`relative min-w-max flex-1 shrink-0 whitespace-nowrap hover:cursor-pointer border-b-2 px-4 py-3 text-center text-[0.8375rem] sm:text-[0.9375rem] font-semibold transition ${FOCUS_RING} ${
                 index < CATEGORIES.length - 1
                   ? "border-r border-slate-200"
                   : ""

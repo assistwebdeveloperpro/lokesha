@@ -25,7 +25,7 @@ export type LandingSelection = {
 function parseTransaction(code: string | undefined): LandingTransaction {
   const match = (
     Object.keys(LANDING_TRANSACTION_CODES) as LandingTransaction[]
-  ).find((id) => LANDING_TRANSACTION_CODES[id] === code?.toUpperCase());
+  ).find((id) => LANDING_TRANSACTION_CODES[id] === code?.toLowerCase());
   return match ?? "buy";
 }
 

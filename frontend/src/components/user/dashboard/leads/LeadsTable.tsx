@@ -8,7 +8,6 @@ import PropertyListPrice from "@/components/user/dashboard/manage-properties/Pro
 import { formatTimeAgo } from "@/components/user/dashboard/notifications/formatTimeAgo";
 import PropertyThumbnail from "@/components/user/dashboard/shared/PropertyThumbnail";
 import {
-  CONTACT_ROLE_LABEL,
   formatActivityDateTime,
   getListingTypeLabel,
   getPropertyLocation,
@@ -126,16 +125,13 @@ function LeadRow({ item, isHighlighted }: { item: UserLead; isHighlighted: boole
       </div>
 
       <div className="min-w-0">
-        <span className="inline-flex w-fit rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
-          {CONTACT_ROLE_LABEL[item.contactRole]}
-        </span>
-        <p className={`mt-1.5 text-xs font-medium ${item.phoneRevealed ? "text-emerald-600" : "text-slate-500"}`}>
+        <p className={`text-xs font-medium ${item.phoneRevealed ? "text-emerald-600" : "text-slate-500"}`}>
           {getPhoneStatusLabel(item.phoneRevealed)}
         </p>
       </div>
 
       <div className="min-w-0">
-        {listing ? (
+        {listing && item.isAvailable ? (
           <Link
             href={getViewPropertyHref(listing)}
             className={`${ACTION_BASE_CLASS} bg-linear-to-r-navy-blue text-white shadow-md hover:shadow-lg`}

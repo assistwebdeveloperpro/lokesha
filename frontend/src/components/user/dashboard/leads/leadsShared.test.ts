@@ -45,7 +45,7 @@ describe("leads table config", () => {
       "Price & Area",
       "Enquirer Details",
       "Enquiry Date",
-      "Enquiry Details",
+      "Contact Status",
       "Action",
     ]);
     expect(LEADS_PAGE_SIZE).toBe(10);

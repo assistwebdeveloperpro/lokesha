@@ -14,33 +14,39 @@ const redirect = (
 describe("getCanonicalSearchRedirect", () => {
   it("returns null for an already canonical url", () => {
     expect(
-      redirect({ bedroom: "3", "city-name": "Ahmedabad", "max-price": "30000000" }),
+      redirect({ bedroom: "3", "city-name": "ahmedabad", "max-price": "30000000" }),
     ).toBeNull();
     expect(redirect({ bedroom: "" })).toBeNull();
   });
 
   it("ignores empty params, so bedroom= is optional", () => {
-    expect(redirect({ "city-name": "Ahmedabad" })).toBeNull();
-    expect(redirect({ "city-name": "Ahmedabad", bedroom: "" })).toBeNull();
+    expect(redirect({ "city-name": "ahmedabad" })).toBeNull();
+    expect(redirect({ "city-name": "ahmedabad", bedroom: "" })).toBeNull();
   });
 
   it("redirects renamed keys and unknown keys to the canonical url", () => {
     expect(
-      redirect({ "city-name": "Ahmedabad", propertyType: "Penthouse", utm: "x" }),
+      redirect({ "city-name": "ahmedabad", propertyType: "penthouse", utm: "x" }),
     ).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&proptype=Penthouse&city-name=Ahmedabad",
+      "/property-for-sale/residential-real-estate?bedroom=&proptype=penthouse&city-name=ahmedabad",
+    );
+  });
+
+  it("redirects uppercase values to lowercase", () => {
+    expect(redirect({ "city-name": "Navi-Mumbai" })).toBe(
+      "/property-for-sale/residential-real-estate?bedroom=&city-name=navi-mumbai",
     );
   });
 
   it("redirects a non-canonical category casing", () => {
-    expect(redirect({ "city-name": "Pune" }, "Residential-Real-Estate")).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&city-name=Pune",
+    expect(redirect({ "city-name": "pune" }, "Residential-Real-Estate")).toBe(
+      "/property-for-sale/residential-real-estate?bedroom=&city-name=pune",
     );
   });
 
   it("redirects legacy plot, land and pg paths to keyword paths", () => {
-    expect(redirect({ "city-name": "Pune" }, "plot")).toBe(
-      "/plots-for-sale?city-name=Pune",
+    expect(redirect({ "city-name": "pune" }, "plot")).toBe(
+      "/plots-for-sale?city-name=pune",
     );
     expect(
       getCanonicalSearchRedirect({
@@ -57,13 +63,13 @@ describe("getCanonicalSearchRedirect", () => {
         transaction: "property-for-rent",
         category: "pg-co-living",
         pathname: "/pg-for-rent",
-        searchParams: { "city-name": "Pune" },
+        searchParams: { "city-name": "pune" },
       }),
     ).toBeNull();
   });
 
   it("does not loop on decoded non-ascii values", () => {
-    expect(redirect({ locality: "Café-Road" })).toBeNull();
+    expect(redirect({ locality: "café-road"})).toBeNull();
   });
 
   it("returns null for an unparsable url", () => {

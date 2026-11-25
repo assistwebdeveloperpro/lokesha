@@ -167,6 +167,13 @@ async function findCardsByPropertyIds(propertyIds, dbType) {
   return selectCards(query, dbType);
 }
 
+// Cards of exactly the given rows whatever their status, e.g. properties no longer published
+async function findCardsOfPropertyIds(propertyIds, dbType) {
+  if (!propertyIds.length) return [];
+
+  return selectCards(baseQuery(dbType).whereIn("p.id", propertyIds), dbType);
+}
+
 async function countListings(filters) {
   const [{ count }] = await filteredQuery(filters).select(db.raw(`count(distinct ${GROUP_KEY}) as count`));
   return Number(count);
@@ -273,6 +280,7 @@ module.exports = {
   findListings,
   findCard,
   findCardsByPropertyIds,
+  findCardsOfPropertyIds,
   countListings,
   findCardExtras,
   findPublishedProperty,

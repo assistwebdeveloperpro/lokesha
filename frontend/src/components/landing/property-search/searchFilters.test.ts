@@ -147,12 +147,12 @@ describe("togglePropertyType", () => {
 
   it("narrows from all-selected", () => {
     expect(togglePropertyType([], all, "penthouse")).toEqual(
-      all.filter((value) => value !== "Penthouse"),
+      all.filter((value) => value !== "penthouse"),
     );
   });
 
   it("lists every type again when everything is reselected", () => {
-    const withoutPenthouse = all.filter((value) => value !== "Penthouse");
+    const withoutPenthouse = all.filter((value) => value !== "penthouse");
     expect(togglePropertyType(withoutPenthouse, all, "penthouse")).toEqual(all);
   });
 

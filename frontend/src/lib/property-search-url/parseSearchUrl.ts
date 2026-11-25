@@ -14,7 +14,7 @@ import type {
   SearchParamRecord,
   TransactionSlug,
 } from "./searchUrl.types";
-import { fromUrlSegment } from "./slug";
+import { fromUrlSegment, fromUrlSegmentTitle } from "./slug";
 
 type ParseSearchUrlInput = {
   transaction: string;
@@ -106,7 +106,7 @@ export function parseSearchUrl({
 
   const params = readParams(searchParams);
   const flatParams = flattenSearchParams(searchParams);
-  const cityName = fromUrlSegment(params["city-name"] ?? "");
+  const cityName = fromUrlSegmentTitle(params["city-name"] ?? "");
   const page = Number.parseInt(params.page ?? "", 10);
   const budget = orderRange(
     parsePositiveInt(params["min-price"]),
@@ -121,7 +121,7 @@ export function parseSearchUrl({
     transaction: transactionSlug,
     category: categorySlug,
     cityName: cityName || undefined,
-    localities: splitList(params.locality).map(fromUrlSegment),
+    localities: splitList(params.locality).map(fromUrlSegmentTitle),
     projects: splitList(params["project-socity"]).map(fromUrlSegment),
     builders: splitList(params.builder).map(fromUrlSegment),
     bedrooms: parseBedrooms(params.bedroom),
