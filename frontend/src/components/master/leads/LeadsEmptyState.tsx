@@ -6,7 +6,7 @@ type LeadsEmptyStateProps = {
 
 export default function LeadsEmptyState({ isFiltered }: LeadsEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-slate-200/90 bg-white px-6 py-16 text-center sm:py-20">
+    <div className="flex flex-col items-center rounded-2xl border border-slate-200/90  bg-white px-6 py-16 text-center sm:py-20">
       <span className="flex h-18 w-18 items-center justify-center rounded-2xl bg-sky-50 shadow-sm">
         <Users className="h-9 w-9 text-sky-600" strokeWidth={1.75} aria-hidden />
       </span>
