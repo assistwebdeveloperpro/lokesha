@@ -4,34 +4,55 @@ function escapeIlikePattern(value) {
   return value.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
-function applyFilters(query, { search, role, phoneRevealed }) {
-  if (role) query.where("l.lister_role", role);
-  if (phoneRevealed !== undefined) query.where("l.phone_revealed", phoneRevealed);
+const SEARCH_COLUMNS = [
+  // Lead
+  "l.lead_name",
+  "l.lead_mobile",
+  "l.lead_email",
+  // Property
+  "p.title",
+  "bp.project_name",
+  "p.property_type",
+  "p.listing_type",
+  "p.locality",
+  "p.city",
+  // Property listed by
+  "l.lister_name",
+  "l.lister_mobile",
+  "l.lister_listed_by",
+];
 
-  if (search) {
-    const pattern = `%${escapeIlikePattern(search)}%`;
-    query.where((builder) => {
-      builder
-        .where("l.lead_name", "ilike", pattern)
-        .orWhere("l.lead_mobile", "ilike", pattern)
-        .orWhere("l.lead_email", "ilike", pattern)
-        .orWhere("l.lister_name", "ilike", pattern)
-        .orWhereRaw("p.listing_number::text ilike ?", [pattern]);
-    });
-  }
+function applySearch(query, search) {
+  const pattern = `%${escapeIlikePattern(search)}%`;
+
+  query.where((builder) => {
+    SEARCH_COLUMNS.forEach((column) => builder.orWhere(column, "ilike", pattern));
+    builder.orWhereRaw("p.listing_number::text ilike ?", [pattern]);
+  });
+}
+
+function applyFilters(query, { search, role, listedBy, phoneRevealed, verificationStatus, propertyType, listingType }) {
+  if (role) query.where("l.lister_role", role);
+  if (listedBy) query.where("l.lister_listed_by", listedBy);
+  if (phoneRevealed !== undefined) query.where("l.phone_revealed", phoneRevealed);
+  if (verificationStatus) query.where("l.verification_status", verificationStatus);
+  if (propertyType) query.where("p.property_type", propertyType);
+  if (listingType) query.where("p.listing_type", listingType);
+  if (search) applySearch(query, search);
 
   return query;
 }
 
 function baseQuery() {
-  return db("property_leads as l").join("properties as p", "p.id", "l.property_id");
+  return db("property_leads as l")
+    .join("properties as p", "p.id", "l.property_id")
+    .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id");
 }
 
 async function findLeads(filters) {
   const { page, limit } = filters;
 
   return applyFilters(baseQuery(), filters)
-    .leftJoin("builder_projects as bp", "bp.id", "p.builder_project_id")
     .orderBy("l.created_at", "desc")
     .orderBy("l.id", "desc")
     .limit(limit)

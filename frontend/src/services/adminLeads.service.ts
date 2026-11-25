@@ -38,7 +38,11 @@ export type AdminLeadsQuery = {
   limit: number;
   search?: string;
   role?: PropertyContactRole;
+  listedBy?: string;
   phoneRevealed?: boolean;
+  verificationStatus?: LeadVerificationStatus;
+  propertyType?: string;
+  listingType?: string;
   leadId?: string;
 };
 

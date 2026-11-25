@@ -51,7 +51,7 @@ export default function LeadsContent({ highlightLeadId = null }: LeadsContentPro
         ) : null}
       </header>
 
-      <LeadsFilterBar applied={filters} onApply={applyFilters} isLoading={isLoading} />
+      <LeadsFilterBar applied={filters} onApply={applyFilters} />
 
       <section className="mt-6" aria-live="polite">
         {isLoading ? (

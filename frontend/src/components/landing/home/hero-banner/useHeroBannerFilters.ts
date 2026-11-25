@@ -13,6 +13,7 @@ import {
 import { recordRecentSearch } from "@/components/landing/recent-searches/recordRecentSearch";
 import {
   ALL_INDIA_LABEL,
+  readStoredLocation,
   storeCity,
 } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
@@ -153,9 +154,11 @@ export function useHeroBannerFilters({
 
   useEffect(() => {
     if (activeCategory === "new-projects") return;
+    // No saved city yet: the header city is only a placeholder, keep it out of the url
+    const hasSavedCity = readStoredLocation() !== null;
     const url = buildLandingUrl({
       category: activeCategory,
-      cityName: headerCity === ALL_INDIA_LABEL ? null : headerCity,
+      cityName: !hasSavedCity || headerCity === ALL_INDIA_LABEL ? null : headerCity,
       transaction: activeCategory === "pg-co-living" ? null : transaction,
     });
     window.history.replaceState(window.history.state, "", url);

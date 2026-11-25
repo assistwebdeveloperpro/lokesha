@@ -65,10 +65,10 @@ export default function PostingAsSection({ value, onChange }: PostingAsSectionPr
 
       {selectedLabel ? null : (
         <section
-          className="relative mt-6 flex min-h-[16rem] flex-col items-center justify-center rounded-2xl border-1 border-dashed border-slate-300 bg-gradient-to-br from-white via-white to-sky-50/35 px-4 py-12 text-center sm:mt-8 sm:min-h-[18rem] sm:px-6 sm:py-14"
+          className="relative mt-6 flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-linear-to-brrom-white via-white to-sky-50/35 px-4 py-12 text-center sm:mt-8 sm:min-h-72x-6 sm:py-14"
           role="status"
         >
-          <span className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl bg-sky-50 shadow-sm ring-1 ring-black/5">
+          <span className="flex h-18 w-18 items-center justify-center rounded-2xl bg-sky-50 shadow-sm ring-1 ring-black/5">
             <Users className="h-9 w-9 text-navy-blue" strokeWidth={1.75} aria-hidden />
           </span>
           <h3 className="font-display mt-6 text-lg font-bold tracking-tight text-slate-800 sm:text-xl">

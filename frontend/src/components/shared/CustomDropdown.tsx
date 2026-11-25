@@ -72,8 +72,8 @@ export default function CustomDropdown({
     accentColor === "teal" ? "focus:border-teal-600" : "focus:border-sky-600";
   const focusRing =
     accentColor === "teal"
-      ? "focus:border-teal-500 focus:ring-teal-500/20"
-      : "focus:border-sky-500 focus:ring-sky-500/20";
+      ? "focus:border-transparent focus:ring-teal-300"
+      : "focus:border-transparent focus:ring-sky-300";
   const underlineLabelClasses = prominentLabel
     ? blackText
       ? compactProminentLabel

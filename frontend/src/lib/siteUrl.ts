@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "http://localhost:3001";
+const DEFAULT_SITE_URL = "http://192.168.1.20:3001";
 
 // Public origin of the website, e.g. https://lokesha.com
 export const SITE_URL = (

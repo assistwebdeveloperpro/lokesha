@@ -9,7 +9,7 @@ export type ShareProperty = {
   description?: string;
 };
 
-export type ShareChannel = "whatsapp" | "facebook" | "instagram" | "gmail";
+export type ShareChannel = "whatsapp" | "facebook" | "twitter" | "gmail";
 
 export const buildShortPath = (shortCode: string) =>
   `${SHORT_URL_BASE}/${shortCode}`;
@@ -69,11 +69,21 @@ export const buildAllLinksText = (properties: ShareProperty[]) =>
 export const buildWhatsAppShareUrl = (properties: ShareProperty[]) =>
   `https://wa.me/?text=${encodeURIComponent(buildWhatsAppMessage(properties))}`;
 
-export const buildFacebookShareUrl = (shortCode: string) =>
-  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(buildShortUrl(shortCode))}`;
-
 export const buildGmailShareUrl = (properties: ShareProperty[]) =>
   `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(buildEmailSubject(properties))}&body=${encodeURIComponent(buildEmailBody(properties))}`;
 
+export const buildFacebookShareUrl = (shortCode: string) =>
+  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(buildShortUrl(shortCode))}`;
+
+export const buildTwitterShareUrl = (properties: ShareProperty[]) => {
+  const [first] = properties;
+  const text =
+    properties.length === 1
+      ? `Check out this property on Lokesha: ${first.title}`
+      : `Check out these ${properties.length} properties on Lokesha:\n${buildAllLinksText(properties)}`;
+  const params = new URLSearchParams({ text });
+  if (properties.length === 1) params.set("url", buildShortUrl(first.shortCode));
+  return `https://twitter.com/intent/tweet?${params.toString()}`;
+};
+
 export const FACEBOOK_HOME_URL = "https://www.facebook.com/";
-export const INSTAGRAM_HOME_URL = "https://www.instagram.com/";

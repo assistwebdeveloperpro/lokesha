@@ -24,10 +24,10 @@ export function PropertyDetailsSpecGrid({ rows, columns = 2 }: PropertyDetailsSp
           <dd
             className={cn(
               "mt-0.5 font-semibold text-slate-900",
-              row.label === "ReraId" ? "text-small" : "text-sm sm:text-base",
+              row.label === "Rera Id" ? "text-small" : "text-sm sm:text-base",
             )}
           >
-            {row.label === "ReraId" ? (
+            {row.label === "Rera Id" ? (
               <PropertyDetailsReraIdValue value={row.value} />
             ) : (
               row.value

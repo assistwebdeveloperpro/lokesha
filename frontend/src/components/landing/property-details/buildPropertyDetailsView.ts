@@ -480,7 +480,7 @@ function buildProjectView(dto: PublicPropertyDetails): PropertyDetailsProjectVie
         ]
       : []),
     { label: "Project Area", value: formatProjectArea(project?.projectAreaAcres) },
-    { label: "ReraId", value: reraNumber ?? "Not Available" },
+    { label: "Rera Id", value: reraNumber ?? "Not Available" },
     ...(plotFloorsAllowed ? [plotFloorsAllowed] : []),
   ];
 

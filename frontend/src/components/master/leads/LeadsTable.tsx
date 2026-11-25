@@ -4,7 +4,6 @@ import type { AdminLead } from "@/services/adminLeads.service";
 import LeadSendAction from "./LeadSendAction";
 import LeadStatusBadge from "./LeadStatusBadge";
 import {
-  CONTACT_ROLE_LABEL,
   formatAbsoluteTime,
   formatRelativeTime,
   getInitials,
@@ -128,10 +127,7 @@ function LeadRow({
       </div>
 
       <div className="min-w-0">
-        <span className="inline-flex w-fit rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
-          {CONTACT_ROLE_LABEL[lead.contactRole]}
-        </span>
-        <p className={`mt-1.5 text-xs font-medium ${lead.phoneRevealed ? "text-emerald-600" : "text-slate-500"}`}>
+        <p className={`text-xs font-medium ${lead.phoneRevealed ? "text-emerald-600" : "text-slate-500"}`}>
           {lead.phoneRevealed ? "Lister phone shared" : "Lister phone hidden"}
         </p>
       </div>
@@ -165,7 +161,7 @@ export default function LeadsTable({ leads, highlightLeadId, sendingId, sendErro
     <div className="overflow-x-auto rounded-2xl border border-slate-200/90 scrollbar-hidden bg-white shadow-sm">
       <div className={LEAD_TABLE_MIN_WIDTH_CLASS}>
         <div
-          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${LEAD_GRID_CLASS}`}
+          className={`border-b border-slate-200 bg-slate-50 px-5 py-3.5 text-[11.5px] font-bold uppercase tracking-wider text-slate-600 ${LEAD_GRID_CLASS}`}
           aria-hidden
         >
           {LEAD_TABLE_COLUMNS.map((column) => (

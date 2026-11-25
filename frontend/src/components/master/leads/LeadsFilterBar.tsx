@@ -1,42 +1,78 @@
 "use client";
 
-import { Search } from "lucide-react";
-import { useState, type FormEvent } from "react";
-import CustomDropdown from "@/components/shared/CustomDropdown";
+import { Filter, Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
 import {
+  DEFAULT_LEAD_FILTERS,
+  LEAD_LISTED_BY_OPTIONS,
+  LEAD_LISTING_TYPE_OPTIONS,
   LEAD_PHONE_OPTIONS,
-  LEAD_ROLE_OPTIONS,
+  LEAD_PROPERTY_TYPE_OPTIONS,
+  LEAD_SEARCH_MIN_CHARS,
+  LEAD_VERIFICATION_OPTIONS,
   type LeadFilters,
   type LeadPhoneFilter,
-  type LeadRoleFilter,
 } from "./leadsShared";
 
 type LeadsFilterBarProps = {
   applied: LeadFilters;
   onApply: (filters: LeadFilters) => void;
-  isLoading?: boolean;
 };
+
+const SEARCH_DEBOUNCE_MS = 400;
+const SEARCH_PLACEHOLDER = "Search Lead, Property, Property Listed By";
 
 const fieldClassName =
   "w-full min-h-11 appearance-none rounded-xl border border-slate-200/90 bg-white px-3.5 py-2.5 pl-10 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20";
 
-export default function LeadsFilterBar({ applied, onApply, isLoading = false }: LeadsFilterBarProps) {
-  const [search, setSearch] = useState(applied.search);
-  const [role, setRole] = useState<LeadRoleFilter>(applied.role);
-  const [phone, setPhone] = useState<LeadPhoneFilter>(applied.phone);
+type SelectFilterKey = "phone" | "verification" | "listedBy" | "propertyType" | "listingType";
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    onApply({ search: search.trim(), role, phone });
+const SELECT_FILTERS: { key: SelectFilterKey; label: string; options: DropdownOption[] }[] = [
+  { key: "verification", label: "Lead status", options: LEAD_VERIFICATION_OPTIONS },
+  { key: "phone", label: "Phone status", options: LEAD_PHONE_OPTIONS },
+  { key: "listedBy", label: "Property listed by", options: LEAD_LISTED_BY_OPTIONS },
+  { key: "propertyType", label: "Property type", options: LEAD_PROPERTY_TYPE_OPTIONS },
+  { key: "listingType", label: "Listing type", options: LEAD_LISTING_TYPE_OPTIONS },
+];
+
+export default function LeadsFilterBar({ applied, onApply }: LeadsFilterBarProps) {
+  const [searchText, setSearchText] = useState(applied.search);
+  const trimmedSearch = searchText.trim();
+  const isTooShort = trimmedSearch.length > 0 && trimmedSearch.length < LEAD_SEARCH_MIN_CHARS;
+  const isFiltered =
+    searchText !== "" ||
+    Object.keys(DEFAULT_LEAD_FILTERS).some(
+      (key) => applied[key as keyof LeadFilters] !== DEFAULT_LEAD_FILTERS[key as keyof LeadFilters],
+    );
+
+  useEffect(() => {
+    const canApply = trimmedSearch === "" || trimmedSearch.length >= LEAD_SEARCH_MIN_CHARS;
+    if (!canApply || trimmedSearch === applied.search) return;
+
+    const timer = setTimeout(() => onApply({ ...applied, search: trimmedSearch }), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [trimmedSearch, applied, onApply]);
+
+  const handleClear = () => {
+    setSearchText("");
+    onApply(DEFAULT_LEAD_FILTERS);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5"
-    >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">
-        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+    <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-linear-to-br from-white via-slate-50/80 to-sky-50/40 p-4 shadow-[0_1px_3px_rgba(15,23,42,.06),0_8px_24px_rgba(15,23,42,.04)] sm:p-5">
+      <div className="mb-4 flex items-center gap-2.5">
+        <span className="bg-linear-to-r-navy-blue flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-md">
+          <Filter className="h-4 w-4" aria-hidden />
+        </span>
+        <div>
+          <h2 className="font-display text-base font-bold text-slate-900 sm:text-lg">Filters</h2>
+          <p className="text-xs text-slate-500 sm:text-sm">Narrow leads by status, phone, property, or listing type</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="min-w-0">
           <label htmlFor="leads-filter-search" className="mb-1.5 block text-sm font-medium text-slate-700">
             Search
           </label>
@@ -48,50 +84,45 @@ export default function LeadsFilterBar({ applied, onApply, isLoading = false }: 
             <input
               id="leads-filter-search"
               type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Name, mobile, email, lister or listing no."
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder={SEARCH_PLACEHOLDER}
               className={fieldClassName}
               autoComplete="off"
             />
           </div>
+          {isTooShort ? (
+            <p className="mt-1.5 text-xs text-slate-500">Type at least {LEAD_SEARCH_MIN_CHARS} characters to search.</p>
+          ) : null}
         </div>
 
-        <div className="min-w-0">
-          <CustomDropdown
-            id="leads-filter-role"
-            label="Contacted as"
-            staticLabel
-            variant="boxed"
-            value={role}
-            options={LEAD_ROLE_OPTIONS}
-            onChange={(next) => setRole(next as LeadRoleFilter)}
-          />
-        </div>
+        {SELECT_FILTERS.map(({ key, label, options }) => (
+          <div key={key} className="min-w-0">
+            <CustomDropdown
+              id={`leads-filter-${key}`}
+              label={label}
+              staticLabel
+              variant="boxed"
+              value={applied[key]}
+              options={options}
+              onChange={(next) => onApply({ ...applied, [key]: key === "phone" ? (next as LeadPhoneFilter) : next })}
+            />
+          </div>
+        ))}
+      </div>
 
-        <div className="min-w-0">
-          <CustomDropdown
-            id="leads-filter-phone"
-            label="Phone"
-            staticLabel
-            variant="boxed"
-            value={phone}
-            options={LEAD_PHONE_OPTIONS}
-            onChange={(next) => setPhone(next as LeadPhoneFilter)}
-          />
-        </div>
-
-        <div className="sm:col-span-2 lg:col-span-1 lg:flex lg:justify-end">
+      {isFiltered ? (
+        <div className="mt-4 flex justify-end">
           <button
-            type="submit"
-            disabled={isLoading}
-            className="bg-linear-to-r-navy-blue inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto lg:min-w-34"
+            type="button"
+            onClick={handleClear}
+            className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
           >
-            <Search className="h-4 w-4" aria-hidden />
-            Search
+            <X className="h-4 w-4" aria-hidden />
+            Clear filters
           </button>
         </div>
-      </div>
-    </form>
+      ) : null}
+    </div>
   );
 }

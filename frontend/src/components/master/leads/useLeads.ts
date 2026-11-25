@@ -24,13 +24,18 @@ const PHONE_QUERY: Record<LeadFilters["phone"], boolean | undefined> = {
   hidden: false,
 };
 
+const allToUndefined = (value: string) => (value === "all" || value === "" ? undefined : value);
+
 function toQuery(filters: LeadFilters, page: number): AdminLeadsQuery {
   return {
     page,
     limit: LEADS_PAGE_SIZE,
     search: filters.search || undefined,
-    role: filters.role === "all" ? undefined : filters.role,
     phoneRevealed: PHONE_QUERY[filters.phone],
+    verificationStatus: allToUndefined(filters.verification) as AdminLeadsQuery["verificationStatus"],
+    listedBy: allToUndefined(filters.listedBy),
+    propertyType: allToUndefined(filters.propertyType),
+    listingType: allToUndefined(filters.listingType),
   };
 }
 

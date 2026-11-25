@@ -26,10 +26,10 @@ function FacebookIcon() {
   );
 }
 
-function InstagramIcon() {
+function TwitterIcon() {
   return (
     <svg {...iconProps}>
-      <path d="M12 7.4A4.6 4.6 0 1 0 12 16.6 4.6 4.6 0 0 0 12 7.4Zm0 7.6a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm5.9-7.8a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0ZM21 8.2c-.05-1.1-.3-2.1-1.1-2.9-.8-.8-1.8-1.05-2.9-1.1C15.9 4.1 8.1 4.1 7 4.2c-1.1.05-2.1.3-2.9 1.1-.8.8-1.05 1.8-1.1 2.9-.1 1.2-.1 7.6 0 8.8.05 1.1.3 2.1 1.1 2.9.8.8 1.8 1.05 2.9 1.1 1.1.07 8.9.07 10 0 1.1-.05 2.1-.3 2.9-1.1.8-.8 1.05-1.8 1.1-2.9.07-1.2.07-7.6 0-8.8ZM19.2 17.9a2.3 2.3 0 0 1-1.3 1.3c-.9.35-3 .27-5.9.27s-5 .08-5.9-.27a2.3 2.3 0 0 1-1.3-1.3c-.35-.9-.27-3-.27-5.9s-.08-5 .27-5.9a2.3 2.3 0 0 1 1.3-1.3c.9-.35 3-.27 5.9-.27s5-.08 5.9.27a2.3 2.3 0 0 1 1.3 1.3c.35.9.27 3 .27 5.9s.08 5-.27 5.9Z" />
+      <path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.78L17.75 3Zm-1.08 16.16h1.7L7.4 4.75H5.57l11.1 14.41Z" />
     </svg>
   );
 }
@@ -38,12 +38,12 @@ const CHANNELS: { channel: ShareChannel; label: string; className: string; icon:
   { channel: "whatsapp", label: "WhatsApp", className: "bg-[#25D366]", icon: <WhatsAppIcon /> },
   { channel: "facebook", label: "Facebook", className: "bg-[#1877F2]", icon: <FacebookIcon /> },
   {
-    channel: "instagram",
-    label: "Instagram",
-    className: "bg-linear-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF]",
-    icon: <InstagramIcon />,
+    channel: "twitter",
+    label: "Twitter",
+    className: "bg-black",
+    icon: <TwitterIcon />,
   },
-  { channel: "gmail", label: "Gmail", className: "bg-slate-500", icon: <Mail className="h-5 w-5" aria-hidden /> },
+  { channel: "gmail", label: "Gmail", className: "bg-red-100", icon: <Mail className="h-5 w-5 text-red-600" aria-hidden /> },
 ];
 
 export function ShareChannelButtons({ onShare }: ShareChannelButtonsProps) {

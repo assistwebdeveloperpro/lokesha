@@ -1,4 +1,4 @@
-export const CITY_STORAGE_KEY = "lokesha-selected-city";
+export const CITY_STORAGE_KEY = "lokesha_location";
 
 export const ALL_INDIA_LABEL = "All India";
 
@@ -6,14 +6,60 @@ export const DEFAULT_SELECTED_CITY = "Ahmedabad";
 
 export const CITY_CHANGE_EVENT = "lokesha-city-change";
 
-export function readStoredCity(): string {
-  if (typeof window === "undefined") return DEFAULT_SELECTED_CITY;
-  return window.localStorage.getItem(CITY_STORAGE_KEY) ?? DEFAULT_SELECTED_CITY;
+export type LocationSource = "auto" | "manual";
+
+export type SavedLocation = {
+  cityId: string;
+  city: string;
+  state: string;
+  country: string;
+  source: LocationSource;
+};
+
+export function toCityId(city: string): string {
+  return city.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
-export function storeCity(city: string): void {
-  window.localStorage.setItem(CITY_STORAGE_KEY, city);
+function isSavedLocation(value: unknown): value is SavedLocation {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.cityId === "string" &&
+    typeof candidate.city === "string" &&
+    (candidate.source === "auto" || candidate.source === "manual")
+  );
+}
+
+export function readStoredLocation(): SavedLocation | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CITY_STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    return isSavedLocation(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function storeLocation(location: SavedLocation): void {
+  window.localStorage.setItem(CITY_STORAGE_KEY, JSON.stringify(location));
   window.dispatchEvent(new Event(CITY_CHANGE_EVENT));
+}
+
+export function readStoredCity(): string {
+  return readStoredLocation()?.city ?? DEFAULT_SELECTED_CITY;
+}
+
+// Any city chosen by the user or from a url is a manual choice
+export function storeCity(city: string): void {
+  const isAllIndia = city === ALL_INDIA_LABEL;
+  storeLocation({
+    cityId: toCityId(city),
+    city,
+    state: "",
+    country: isAllIndia ? "" : "India",
+    source: "manual",
+  });
 }
 
 export type PopularCity = {

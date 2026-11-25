@@ -5,7 +5,6 @@ import {
   CircleUserRound,
   ContactRound,
   Eye,
-  FolderKanban,
   Heart,
   History,
   House,
@@ -56,8 +55,6 @@ export const userDashboardNavItems: UserDashboardNavItem[] = [
     children: [
       { label: "Post New Properties", href: "/user/properties/post-new-properties", icon: SquarePlus },
       { label: "Manage Properties", href: "/user/properties/manage-properties", icon: House },
-      { label: "Manage Projects", href: "/user/properties/manage-projects", icon: FolderKanban },
-
     ],
   },
   { label: "Leads", href: "/user/leads", icon: Users },

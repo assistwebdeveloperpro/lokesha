@@ -1,4 +1,5 @@
 import Header from "@/components/shared/layout/Header";
+import LocationAutoDetect from "@/components/shared/layout/city-selector/LocationAutoDetect";
 import HeroBanner from "./hero-banner/HeroBanner";
 import type { HeroBannerInitialSelection } from "./hero-banner/useHeroBannerFilters";
 
@@ -9,6 +10,7 @@ export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
       <main className="flex flex-1 flex-col">
         <HeroBanner {...initialSelection} />
       </main>
+      <LocationAutoDetect />
     </div>
   );
 }

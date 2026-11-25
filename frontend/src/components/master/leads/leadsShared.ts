@@ -1,6 +1,5 @@
 import type { DropdownOption } from "@/components/shared/CustomDropdown";
 import type { AdminLead, SentLeadResult } from "@/services/adminLeads.service";
-import type { PropertyContactRole } from "@/services/propertyContact.service";
 
 export const LEADS_PATH = "/backend/leads";
 export const LEAD_QUERY_PARAM = "lead";
@@ -21,23 +20,27 @@ export function getHighlightLeadId(searchParams: SearchParams): string | null {
   return typeof value === "string" && value ? value : null;
 }
 
-export type LeadRoleFilter = PropertyContactRole | "all";
+export const LEAD_SEARCH_MIN_CHARS = 3;
+
 export type LeadPhoneFilter = "all" | "shared" | "hidden";
 
 export type LeadFilters = {
   search: string;
-  role: LeadRoleFilter;
   phone: LeadPhoneFilter;
+  verification: string;
+  listedBy: string;
+  propertyType: string;
+  listingType: string;
 };
 
-export const DEFAULT_LEAD_FILTERS: LeadFilters = { search: "", role: "all", phone: "all" };
-
-export const LEAD_ROLE_OPTIONS: DropdownOption[] = [
-  { value: "all", label: "All roles" },
-  { value: "owner", label: "Owner" },
-  { value: "agent", label: "Agent" },
-  { value: "builder", label: "Builder" },
-];
+export const DEFAULT_LEAD_FILTERS: LeadFilters = {
+  search: "",
+  phone: "all",
+  verification: "all",
+  listedBy: "all",
+  propertyType: "all",
+  listingType: "all",
+};
 
 export const LEAD_PHONE_OPTIONS: DropdownOption[] = [
   { value: "all", label: "All" },
@@ -45,11 +48,35 @@ export const LEAD_PHONE_OPTIONS: DropdownOption[] = [
   { value: "hidden", label: "Lister phone hidden" },
 ];
 
-export const CONTACT_ROLE_LABEL: Record<PropertyContactRole, string> = {
-  owner: "Owner",
-  agent: "Agent",
-  builder: "Builder",
-};
+export const LEAD_VERIFICATION_OPTIONS: DropdownOption[] = [
+  { value: "all", label: "All" },
+  { value: "verified", label: "Verified" },
+  { value: "not_verified", label: "Not verified" },
+];
+
+export const LEAD_LISTED_BY_OPTIONS: DropdownOption[] = [
+  { value: "all", label: "All" },
+  { value: "buyer_owner_tenant", label: "Owner" },
+  { value: "agent", label: "Agent" },
+  { value: "builder", label: "Builder" },
+  { value: "lokesha_staff", label: "Lokesha Staff" },
+  { value: "admin", label: "Admin" },
+];
+
+export const LEAD_PROPERTY_TYPE_OPTIONS: DropdownOption[] = [
+  { value: "all", label: "All" },
+  { value: "residential", label: "Residential" },
+  { value: "commercial", label: "Commercial" },
+  { value: "pg", label: "PG / Co-living" },
+  { value: "plot", label: "Plot" },
+  { value: "land", label: "Land" },
+];
+
+export const LEAD_LISTING_TYPE_OPTIONS: DropdownOption[] = [
+  { value: "all", label: "All" },
+  { value: "sale", label: "Sale" },
+  { value: "rent-lease", label: "Rent / Lease" },
+];
 
 export const LISTED_BY_LABEL: Record<string, string> = {
   buyer_owner_tenant: "Owner",
@@ -59,7 +86,7 @@ export const LISTED_BY_LABEL: Record<string, string> = {
   admin: "Admin",
 };
 
-export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Enquiry", "Date", "Status", "Action"] as const;
+export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Phone Status", "Date", "Status", "Action"] as const;
 
 // Shared by header, rows and skeleton so the columns always line up
 export const LEAD_GRID_CLASS = "grid grid-cols-[1.2fr_1.8fr_1.1fr_1fr_0.9fr_0.8fr_1.3fr] items-center gap-4";

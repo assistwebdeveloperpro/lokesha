@@ -3,6 +3,8 @@ export const OSM_ATTRIBUTION = "&copy; OpenStreetMap contributors";
 export const OSM_MAX_ZOOM = 19;
 
 const SEARCH_URL = "https://nominatim.openstreetmap.org/search";
+const REVERSE_URL = "https://nominatim.openstreetmap.org/reverse";
+const CITY_ZOOM_LEVEL = "10";
 const COUNTRY_CODE = "in";
 const RESULT_LIMIT = "6";
 
@@ -28,4 +30,38 @@ export async function searchPlaces(query: string, signal: AbortSignal): Promise<
     latitude: Number(row.lat),
     longitude: Number(row.lon),
   }));
+}
+
+export type ReverseGeocodeResult = {
+  cityCandidates: string[];
+  state: string;
+  country: string;
+};
+
+type ReverseGeocodeResponse = {
+  address?: Record<string, string | undefined>;
+};
+
+// Nominatim returns the locality under different keys depending on its size
+const CITY_ADDRESS_KEYS = ["city", "town", "municipality", "village", "city_district", "state_district", "county"];
+
+export async function reverseGeocode(
+  latitude: number,
+  longitude: number,
+  signal: AbortSignal,
+): Promise<ReverseGeocodeResult> {
+  const params = new URLSearchParams({
+    lat: String(latitude),
+    lon: String(longitude),
+    format: "jsonv2",
+    zoom: CITY_ZOOM_LEVEL,
+    addressdetails: "1",
+    "accept-language": "en",
+  });
+  const response = await fetch(`${REVERSE_URL}?${params}`, { signal });
+  if (!response.ok) throw new Error("Reverse geocoding failed");
+
+  const { address = {} }: ReverseGeocodeResponse = await response.json();
+  const cityCandidates = CITY_ADDRESS_KEYS.flatMap((key) => (address[key] ? [address[key] as string] : []));
+  return { cityCandidates, state: address.state ?? "", country: address.country ?? "" };
 }

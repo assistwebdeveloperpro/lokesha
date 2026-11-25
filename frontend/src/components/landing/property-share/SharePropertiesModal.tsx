@@ -42,7 +42,7 @@ export function SharePropertiesModal({ properties, onClose }: SharePropertiesMod
         <p className="text-center text-sm font-medium text-slate-700">Share to your favorite platform!</p>
         <ShareChannelButtons onShare={share} />
         <p className="text-center text-xs text-slate-500">
-          Facebook and Instagram copy all links so you can paste them into your post or message.
+          Facebook copies all links so you can paste them into your post or message.
         </p>
 
         <button

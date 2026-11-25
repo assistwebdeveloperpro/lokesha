@@ -407,3 +407,10 @@ body:has(.post-property-page-bg) {
     box-shadow: 0 0 0 3px rgb(14 165 233 / 0.9), 0 0 0 8px rgb(14 165 233 / 0.18);
   }
 }
+
+
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="button"], [type="submit"]):not([class*="border-red"], [class*="border-b "]):focus,
+textarea:not([class*="border-red"], [class*="border-b "]):focus {
+  border-color: transparent !important;
+  box-shadow: 0 0 0 2px var(--color-sky-300) !important;
+}
