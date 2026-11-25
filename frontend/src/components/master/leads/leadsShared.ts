@@ -1,4 +1,6 @@
 import type { DropdownOption } from "@/components/shared/CustomDropdown";
+import { PROPERTY_DETAILS_BASE } from "@/lib/property-search-url/propertyDetailsUrl";
+import { toUrlSegment } from "@/lib/property-search-url/slug";
 import type { AdminLead, SentLeadResult } from "@/services/adminLeads.service";
 
 export const LEADS_PATH = "/backend/leads";
@@ -86,12 +88,17 @@ export const LISTED_BY_LABEL: Record<string, string> = {
   admin: "Admin",
 };
 
-export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Phone Status", "Date", "Status", "Action"] as const;
+export const LEAD_TABLE_COLUMNS = ["Lead", "Property", "Property Listed By", "Phone Status", "Date", "Status", "Lead Status", "View"] as const;
 
 // Shared by header, rows and skeleton so the columns always line up
-export const LEAD_GRID_CLASS = "grid grid-cols-[1.2fr_1.8fr_1.1fr_1fr_0.9fr_0.8fr_1.3fr] items-center gap-4";
+export const LEAD_GRID_CLASS =
+  "grid grid-cols-[minmax(0,1.2fr)_minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1.2fr)_44px] items-center gap-3";
 
-export const LEAD_TABLE_MIN_WIDTH_CLASS = "min-w-[1450px]";
+// Keeps the desktop column widths, smaller screens scroll sideways instead of wrapping
+export const LEAD_TABLE_MIN_WIDTH_CLASS = "min-w-[1400px]";
+
+export const getPropertyDetailsHref = (propertyId: string, title: string) =>
+  `${PROPERTY_DETAILS_BASE}/${toUrlSegment(title)}&id=${propertyId}`;
 
 // Returns the list with the sent lead updated in place, other rows keep their reference
 export function applySentLead(leads: AdminLead[], sent: SentLeadResult): AdminLead[] {
@@ -100,18 +107,18 @@ export function applySentLead(leads: AdminLead[], sent: SentLeadResult): AdminLe
   );
 }
 
-export type LeadSendState = "none" | "can_send" | "sent" | "no_account" | "limit_reached";
+export type LeadSendState = "not_verified" | "can_send" | "sent" | "no_account" | "limit_reached";
 
 export const LEAD_LIMIT_REACHED_LABEL = "Free Limit Reached";
 
 export const LEAD_LIMIT_REACHED_MESSAGE = "Lead limit reached. The lister must upgrade this property to receive more leads.";
 
-// Decides what the Action column shows for a lead
+// Decides what the Lead Status column shows for a lead
 export function getLeadSendState(
   lead: Pick<AdminLead, "verificationStatus" | "distributionStatus" | "canSendToLister" | "leadLimitReached">,
 ): LeadSendState {
   if (lead.distributionStatus === "sent") return "sent";
-  if (lead.verificationStatus !== "verified") return "none";
+  if (lead.verificationStatus !== "verified") return "not_verified";
   if (!lead.canSendToLister) return "no_account";
   return lead.leadLimitReached ? "limit_reached" : "can_send";
 }

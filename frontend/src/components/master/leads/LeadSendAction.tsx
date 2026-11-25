@@ -1,4 +1,4 @@
-import { CheckCheck, Loader2, Lock, Send } from "lucide-react";
+import { CheckCheck, Clock, Loader2, Lock, Send } from "lucide-react";
 import type { AdminLead } from "@/services/adminLeads.service";
 import { LEAD_LIMIT_REACHED_LABEL, LEAD_LIMIT_REACHED_MESSAGE, formatRelativeTime, getLeadSendState } from "./leadsShared";
 
@@ -13,7 +13,14 @@ type LeadSendActionProps = {
 export default function LeadSendAction({ lead, isSending, isDisabled, error, onSend }: LeadSendActionProps) {
   const state = getLeadSendState(lead);
 
-  if (state === "none") return null;
+  if (state === "not_verified") {
+    return (
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+        <Clock className="h-3.5 w-3.5" aria-hidden />
+        Lead Not Sent to Owner
+      </span>
+    );
+  }
 
   if (state === "no_account") {
     return <p className="text-xs font-medium text-slate-400">Posted by admin</p>;
@@ -47,7 +54,7 @@ export default function LeadSendAction({ lead, isSending, isDisabled, error, onS
       <div className="space-y-1">
         <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
           <CheckCheck className="h-3.5 w-3.5" aria-hidden />
-          Sent to lister
+          Lead Sent to Owner
         </span>
         {lead.sentAt ? <p className="text-xs text-slate-500">{formatRelativeTime(lead.sentAt)}</p> : null}
       </div>

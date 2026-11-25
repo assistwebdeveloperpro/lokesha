@@ -60,14 +60,14 @@ export default function LeadsFilterBar({ applied, onApply }: LeadsFilterBarProps
   };
 
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-linear-to-br from-white via-slate-50/80 to-sky-50/40 p-4 shadow-[0_1px_3px_rgba(15,23,42,.06),0_8px_24px_rgba(15,23,42,.04)] sm:p-5">
+    <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-linear-to-br from-white via-slate-50/80 to-sky-50/40 p-5 shadow-[0_1px_3px_rgba(15,23,42,.06),0_8px_24px_rgba(15,23,42,.04)]">
       <div className="mb-4 flex items-center gap-2.5">
         <span className="bg-linear-to-r-navy-blue flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-md">
           <Filter className="h-4 w-4" aria-hidden />
         </span>
         <div>
-          <h2 className="font-display text-base font-bold text-slate-900 sm:text-lg">Filters</h2>
-          <p className="text-xs text-slate-500 sm:text-sm">Narrow leads by status, phone, property, or listing type</p>
+          <h2 className="font-display text-lg font-bold text-slate-900">Filters</h2>
+          <p className="text-sm text-slate-500">Narrow leads by status, phone, property, or listing type</p>
         </div>
       </div>
 

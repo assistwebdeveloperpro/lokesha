@@ -13,7 +13,7 @@ export function PropertyDetailsProjectUsps({ items }: PropertyDetailsProjectUsps
             className="mt-1 h-3.5 w-3.5 shrink-0 fill-sky-600 text-sky-600"
             aria-hidden
           />
-          <span className="text-sm leading-snug text-slate-700 lg:text-sm">{text}</span>
+          <span className="text-sm leading-snug text-slate-700 lg:text-medium">{text}</span>
         </li>
       ))}
     </ul>

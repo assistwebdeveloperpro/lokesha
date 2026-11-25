@@ -40,7 +40,7 @@ export default function LeadsContent({ highlightLeadId = null }: LeadsContentPro
             <Users className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           </span>
           <div>
-            <h1 className="font-display text-lg font-bold text-slate-800 lg:text-xl">Leads</h1>
+            <h1 className="font-display text-xl font-bold text-slate-800">Leads</h1>
             <p className="text-sm text-slate-500">Enquiries received on property listings</p>
           </div>
         </div>

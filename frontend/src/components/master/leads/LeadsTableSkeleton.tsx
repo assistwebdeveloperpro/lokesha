@@ -7,10 +7,10 @@ const bar = "animate-pulse rounded bg-slate-200/80";
 function SkeletonRow() {
   return (
     <li
-      className={`grid gap-4 border-b border-slate-100 px-4 py-4 last:border-b-0 sm:px-5 ${LEAD_GRID_CLASS}`}
+      className={`grid gap-4 border-b border-slate-100 px-5 py-4 last:border-b-0 ${LEAD_GRID_CLASS}`}
     >
       <div className="flex items-start gap-3">
-        <span className="h-11 w-11 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
+        <span className="h-10 w-10 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
         <div className="min-w-0 flex-1 space-y-2">
           <div className={`${bar} h-4 w-3/4`} />
           <div className="flex items-center gap-2">
@@ -25,7 +25,7 @@ function SkeletonRow() {
       </div>
 
       <div className="flex items-start gap-3">
-        <span className="h-11 w-11 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
+        <span className="h-10 w-10 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
         <div className="min-w-0 flex-1 space-y-2">
           <div className={`${bar} h-4 w-4/5`} />
           <div className="flex gap-1.5">
@@ -61,6 +61,8 @@ function SkeletonRow() {
       <div className="space-y-2">
         <div className={`${bar} h-9 w-36 rounded-xl`} />
       </div>
+
+      <div className={`${bar} h-10 w-10 rounded-xl`} />
     </li>
   );
 }

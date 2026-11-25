@@ -1,12 +1,15 @@
-import { Building2, Hash, Mail, MapPin, Phone } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Building2, Eye, Hash, Mail, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AdminLead } from "@/services/adminLeads.service";
+import LeadPropertyDrawer from "./LeadPropertyDrawer";
 import LeadSendAction from "./LeadSendAction";
 import LeadStatusBadge from "./LeadStatusBadge";
 import {
   formatAbsoluteTime,
   formatRelativeTime,
   getInitials,
+  getPropertyDetailsHref,
   HIGHLIGHT_ROW_CLASS,
   LEAD_GRID_CLASS,
   LEAD_TABLE_COLUMNS,
@@ -41,7 +44,8 @@ function LeadRow({
   sendingId,
   sendError,
   onSend,
-}: { lead: AdminLead; isHighlighted: boolean } & LeadSendProps) {
+  onView,
+}: { lead: AdminLead; isHighlighted: boolean; onView: (lead: AdminLead) => void } & LeadSendProps) {
   const rowRef = useRef<HTMLLIElement>(null);
   const { property, lister } = lead;
 
@@ -52,7 +56,7 @@ function LeadRow({
   return (
     <li
       ref={rowRef}
-      className={`grid gap-4 border-b border-slate-100 px-5 py-4 transition last:border-b-0 sm:px-5 ${
+      className={`grid gap-4 border-b border-slate-100 px-5 py-4 transition last:border-b-0 ${
         isHighlighted ? HIGHLIGHT_ROW_CLASS : "hover:bg-slate-50"
       } ${LEAD_GRID_CLASS}`}
     >
@@ -95,7 +99,14 @@ function LeadRow({
         </span>
         <div className="min-w-0 space-y-1.5">
           <p className="truncate text-sm font-bold text-slate-900" title={property.title}>
-            {property.title}
+            <Link
+              href={getPropertyDetailsHref(property.id, property.title)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cursor-pointer"
+            >
+              {property.title}
+            </Link>
           </p>
           <div className="flex flex-nowrap items-center gap-1.5 whitespace-nowrap">
             <span className="inline-flex items-center gap-0.5 rounded-md bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-white">
@@ -150,6 +161,18 @@ function LeadRow({
           onSend={onSend}
         />
       </div>
+
+      <div className="min-w-0">
+        <button
+          type="button"
+          aria-label={`View details of ${property.title}`}
+          title="View property details"
+          onClick={() => onView(lead)}
+          className="group inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100 transition hover:-translate-y-0.5 hover:bg-sky-600 hover:text-white hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+        >
+          <Eye className="h-4.5 w-4.5" aria-hidden />
+        </button>
+      </div>
     </li>
   );
 }
@@ -157,7 +180,11 @@ function LeadRow({
 type LeadsTableProps = { leads: AdminLead[]; highlightLeadId: string | null } & LeadSendProps;
 
 export default function LeadsTable({ leads, highlightLeadId, sendingId, sendError, onSend }: LeadsTableProps) {
+  const [viewingLead, setViewingLead] = useState<AdminLead | null>(null);
+  const closeDrawer = useCallback(() => setViewingLead(null), []);
+
   return (
+    <>
     <div className="overflow-x-auto rounded-2xl border border-slate-200/90 scrollbar-hidden bg-white shadow-sm">
       <div className={LEAD_TABLE_MIN_WIDTH_CLASS}>
         <div
@@ -174,10 +201,16 @@ export default function LeadsTable({ leads, highlightLeadId, sendingId, sendErro
               key={lead.id}
               lead={lead}
               isHighlighted={lead.id === highlightLeadId}
-              sendingId={sendingId} sendError={sendError} onSend={onSend} />
+              sendingId={sendingId}
+              sendError={sendError}
+              onSend={onSend}
+              onView={setViewingLead}
+            />
           ))}
         </ul>
       </div>
     </div>
+    {viewingLead ? <LeadPropertyDrawer lead={viewingLead} onClose={closeDrawer} /> : null}
+    </>
   );
 }

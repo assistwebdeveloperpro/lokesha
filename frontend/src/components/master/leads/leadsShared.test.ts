@@ -15,8 +15,8 @@ describe("getLeadSendState", () => {
     expect(getLeadSendState(lead())).toBe("can_send");
   });
 
-  it("shows nothing for a lead that is not verified", () => {
-    expect(getLeadSendState(lead({ verificationStatus: "not_verified" }))).toBe("none");
+  it("shows the not verified state for a lead that is not verified", () => {
+    expect(getLeadSendState(lead({ verificationStatus: "not_verified" }))).toBe("not_verified");
   });
 
   it("shows the sent state once the lead was distributed", () => {
