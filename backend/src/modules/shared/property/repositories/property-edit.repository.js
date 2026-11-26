@@ -84,6 +84,46 @@ async function deleteListingChildren(trx, propertyId) {
   }
 }
 
+const VARIANT_TABLES = [
+  "residential_property_variants",
+  "commercial_property_variants",
+  "pg_property_variants",
+  "plot_property_variants",
+  "land_property_variants",
+  "property_variant_charges",
+];
+const VOLATILE_COLUMNS = new Set(["id", "variant_id", "created_at", "updated_at"]);
+
+const stripVolatile = (row) => Object.fromEntries(Object.entries(row).filter(([key]) => !VOLATILE_COLUMNS.has(key)));
+const toComparableRows = (rows) => rows.map((row) => JSON.stringify(stripVolatile(row))).sort();
+
+// Editable content of a listing and its project, without ids and timestamps that change on every rewrite
+async function findContentSnapshot(trx, propertyId, projectId) {
+  const snapshot = {};
+
+  snapshot.property = toComparableRows(await trx("properties").where({ id: propertyId }));
+  for (const table of [...LISTING_CHILD_TABLES, "property_owner_contacts"]) {
+    snapshot[table] = toComparableRows(await trx(table).where({ property_id: propertyId }));
+  }
+
+  const variantIds = (await trx("property_variants").where({ property_id: propertyId }).select("id")).map(({ id }) => id);
+  for (const table of VARIANT_TABLES) {
+    snapshot[table] = toComparableRows(await trx(table).whereIn("variant_id", variantIds));
+  }
+
+  if (projectId) {
+    snapshot.builder_projects = toComparableRows(await trx("builder_projects").where({ id: projectId }));
+    for (const table of ["builder_highlights", "builder_faqs"]) {
+      snapshot[table] = toComparableRows(await trx(table).where({ builder_project_id: projectId }));
+    }
+  }
+  return JSON.stringify(snapshot);
+}
+
+async function restoreUpdatedAt(trx, id, updatedAt) {
+  await trx("properties").where({ id }).update({ updated_at: updatedAt });
+}
+
 async function countProjectProperties(trx, projectId) {
   const [{ count }] = await trx("properties").where({ builder_project_id: projectId }).count("id as count");
   return Number(count);
@@ -141,6 +181,8 @@ module.exports = {
   findGroupForUpdate,
   updateProperty,
   deleteListingChildren,
+  findContentSnapshot,
+  restoreUpdatedAt,
   countProjectProperties,
   deleteProperty,
   deleteProject,

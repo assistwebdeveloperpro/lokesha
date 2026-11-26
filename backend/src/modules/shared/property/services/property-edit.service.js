@@ -85,9 +85,20 @@ async function updateProperty(user, propertyId, { payload }) {
   return db.transaction(async (trx) => {
     const group = await lockOwnedGroup(trx, propertyId, user);
     const [{ builder_project_id: projectId }] = group;
+    const snapshotOf = (targetId, effectiveProjectId) =>
+      editRepository.findContentSnapshot(trx, targetId, effectiveProjectId);
+
+    // A save without any change must not send the listing back to review
+    const before = new Map();
+    for (const listing of value.listings) {
+      const targetId = targetIdOf(listing);
+      before.set(targetId, await snapshotOf(targetId, projectId));
+    }
+    let currentProjectId = projectId;
 
     if (value.project) {
       const effectiveProjectId = projectId ?? (await writer.insertProject(trx, user, value.project));
+      currentProjectId = effectiveProjectId;
       if (!projectId) {
         await Promise.all(
           group.map((member) => editRepository.updateProperty(trx, member.id, { builder_project_id: effectiveProjectId }))
@@ -113,6 +124,12 @@ async function updateProperty(user, propertyId, { payload }) {
       await writer.insertListingDetails(trx, { value, lookups }, listing, targetId);
 
       const locked = group.find((member) => member.id === targetId);
+      const isUnchanged = before.get(targetId) === (await snapshotOf(targetId, currentProjectId));
+      if (isUnchanged) {
+        await editRepository.restoreUpdatedAt(trx, targetId, locked.updated_at);
+        if (targetId === propertyId) status = locked.status;
+        continue;
+      }
       const memberStatus = await markEdited(trx, locked, toActor(user), { notify: index === 0 });
       if (targetId === propertyId) status = memberStatus;
     }
