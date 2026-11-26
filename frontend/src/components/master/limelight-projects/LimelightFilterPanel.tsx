@@ -58,7 +58,7 @@ export default function LimelightFilterPanel({
         </span>
         <div>
           <h2 className="font-display text-lg font-bold text-slate-900">Find Projects</h2>
-          <p className="text-sm text-slate-500">Only published builder projects can be added to Limelight</p>
+          <p className="text-sm text-slate-500">Only published projects can be added to Limelight</p>
         </div>
       </div>
 
