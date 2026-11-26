@@ -17,16 +17,18 @@ export default function LimelightCurrentGrid({ entriesState, onRequestRemove }: 
 
   return (
     <section
-      aria-label="Currently in Limelight"
-      className="rounded-3xl border-2 border-orange-200 bg-linear-to-br from-orange-50/70 via-white to-amber-50/40 p-5 shadow-sm sm:p-6"
+      aria-labelledby="limelight-current-heading"
+      className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/70 shadow-sm"
     >
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 border-l-4 border-l-sky-500 bg-white px-4 py-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-            <Sparkles className="h-4 w-4" aria-hidden />
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+            <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           </span>
-          <div>
-            <h2 className="font-display text-lg font-bold text-slate-900">Currently In Limelight</h2>
+          <div className="min-w-0">
+            <h2 id="limelight-current-heading" className="font-display text-base font-bold text-slate-800 lg:text-lg">
+              Currently In Limelight
+            </h2>
             <p className="text-sm text-slate-500">Use the arrows on each card to set the display order</p>
           </div>
         </div>
@@ -49,7 +51,7 @@ export default function LimelightCurrentGrid({ entriesState, onRequestRemove }: 
         </div>
       </header>
 
-      <div className="mt-5" aria-live="polite">
+      <div className="p-4 sm:p-6" aria-live="polite">
         {isLoading ? (
           <LimelightEntriesSkeleton />
         ) : error ? (

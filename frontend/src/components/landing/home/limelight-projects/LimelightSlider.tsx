@@ -98,7 +98,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
         <div
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-y-0 right-0 z-[5] w-12 bg-linear-to-l from-white via-white/80 to-transparent transition-opacity sm:w-20",
+            "pointer-events-none absolute inset-y-0 right-0 z-5 w-12 bg-linear-to-l from-white via-white/80 to-transparent transition-opacity sm:w-20",
             canScrollNext ? "opacity-100" : "opacity-0",
           )}
         />

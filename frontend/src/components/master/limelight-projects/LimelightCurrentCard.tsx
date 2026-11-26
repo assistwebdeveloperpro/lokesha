@@ -26,7 +26,7 @@ export default function LimelightCurrentCard({
   onRemove,
 }: LimelightCurrentCardProps) {
   return (
-    <li className="group flex flex-col overflow-hidden rounded-2xl border-2 border-orange-100 bg-white shadow-sm transition duration-200 hover:shadow-lg">
+    <li className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition duration-200 hover:shadow-lg">
       <div className="relative">
         <LimelightProjectThumb src={entry.mainImage} alt={entry.projectName} className="aspect-16/10 w-full" />
         <span className="absolute left-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-navy-blue px-2 text-xs font-bold text-white shadow-sm">

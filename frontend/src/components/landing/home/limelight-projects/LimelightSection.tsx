@@ -22,7 +22,7 @@ function buildViewAllHref({ listingType, category, city }: LimelightProjectsFilt
 
 function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {
   return (
-    <header className="grid grid-cols-[1fr_auto] items-center px-2 gap-x-4 gap-y-2">
+    <header className="grid grid-cols-[1fr_auto] items-center px-2 gap-x-4 gap-y-1">
       <h2 className="font-display flex min-w-0 items-center gap-3 text-xl font-bold text-slate-900 sm:text-2xl">
         <span
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-500"
@@ -32,7 +32,7 @@ function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {
         </span>
         {SECTION_TITLE}
       </h2>
-      <p className="col-span-2 row-start-2 text-sm text-slate-600">
+      <p className="col-span-2 row-start-2 text-[12px] sm:text-[15px] text-slate-700">
         Experience the best of living - find your place with us.
       </p>
       <Link
@@ -52,11 +52,11 @@ export function LimelightSection() {
   if (!isVisible || (!isLoading && projects.length === 0)) return null;
 
   return (
-    <section aria-label={SECTION_TITLE} className="w-full bg-white">
+    <section aria-label={SECTION_TITLE} className="w-full bg-slate-50/60">
       <div className="mx-auto w-full max-w-360 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <LimelightHeader filters={filters} />
 
-        <div className="mt-5" aria-busy={isLoading}>
+        <div className="mt-3" aria-busy={isLoading}>
           {isLoading ? (
             <LimelightSlider label={`${SECTION_TITLE} loading`}>
               {Array.from({ length: SKELETON_COUNT }, (_, index) => (

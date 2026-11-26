@@ -1,16 +1,17 @@
 const { db } = require("../../../../config/db");
 const { PRICE_MIN_SQL, PRICE_MAX_SQL } = require("../../../landing/property-search/property-search.filters");
-const { BUILDER_LISTED_BY } = require("./limelight-projects.constants");
+const { BUILDER_LISTED_BY, LIMELIGHT_PROPERTY_TYPE } = require("./limelight-projects.constants");
 const { havingAllConditions } = require("./limelight-projects.filters");
 
 const firstOf = (column, alias) => db.raw(`(array_agg(${column} order by p.listing_number))[1] as ${alias}`);
 
-// Published builder properties, the only ones a project can be featured through
+// Published residential builder properties, the only ones a project can be featured through
 function eligibleQuery() {
   return db("properties as p")
     .join("builder_projects as bp", "bp.id", "p.builder_project_id")
     .leftJoin("builder_listing_details as bld", "bld.property_id", "p.id")
     .where("p.status", "published")
+    .where("p.property_type", LIMELIGHT_PROPERTY_TYPE)
     .whereIn("p.listed_by", BUILDER_LISTED_BY);
 }
 
