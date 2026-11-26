@@ -29,10 +29,10 @@ const throughStorage = (criteria: RecentSearchCriteria): RecentSearchCriteria =>
 
 function parseHref(href: string) {
   const url = new URL(href, "https://lokesha.test");
-  const [transaction, category] = url.pathname.split("/").filter(Boolean);
+  const [, slug] = url.pathname.split("/").filter(Boolean);
   const searchParams = Object.fromEntries(url.searchParams);
 
-  return parseSearchUrl({ transaction, category, searchParams });
+  return parseSearchUrl({ slug, searchParams });
 }
 
 describe("getRecentSearchHref", () => {
@@ -59,12 +59,12 @@ describe("getRecentSearchHref", () => {
     expect(href).not.toContain("page=");
   });
 
-  it("uses the keyword path for plots", () => {
+  it("uses the plots path for plots", () => {
     const href = getRecentSearchHref({
       searchCriteria: buildCriteria({ category: "plot", bedrooms: [], propertyTypes: [] }),
     });
 
-    expect(href.startsWith("/plots-for-sale")).toBe(true);
+    expect(href.startsWith("/properties/plots-for-sale-in-ahmedabad")).toBe(true);
   });
 
   it("falls back to the category landing page for an unsearchable combination", () => {
@@ -75,7 +75,7 @@ describe("getRecentSearchHref", () => {
       }),
     });
 
-    expect(href).toBe("/property-for-sale-rent-in-ahmedabad/residential-real-estate-ahmedabad");
+    expect(href).toBe("/buy/residential-property-for-sale-in-ahmedabad");
   });
 
   it("falls back home for an unknown category", () => {

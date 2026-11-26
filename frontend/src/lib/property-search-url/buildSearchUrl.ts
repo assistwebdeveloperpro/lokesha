@@ -3,13 +3,15 @@ import {
   formatMoreFiltersToParams,
 } from "./moreFiltersParam";
 import { formatPostedByParam } from "./postedByParam";
+import { fillCityTemplate } from "./cityTemplate";
 import {
   CATEGORIES_WITH_BEDROOM_PARAM,
-  KEYWORD_SEARCH_PATHS,
   SEARCH_PARAM_KEYS,
-  type KeywordSearchSlug,
+  SEARCH_PATH_PREFIX,
+  SEARCH_SLUG_ROUTES,
 } from "./searchUrl.config";
 import { normalizeSearchCriteria } from "./normalizeSearchCriteria";
+import { buildTypesSegment } from "./propertyTypePath";
 import type { PropertySearchCriteria } from "./searchUrl.types";
 import { slugify, toUrlSegment } from "./slug";
 
@@ -27,14 +29,13 @@ function collectParamValues(
   criteria: PropertySearchCriteria,
 ): Record<string, string | undefined> {
   const normalized = normalizeSearchCriteria(criteria);
-  const { cityName, budgetMin, budgetMax, areaMin, areaMax } = normalized;
+  const { budgetMin, budgetMax, areaMin, areaMax } = normalized;
   const bedrooms = [...new Set(normalized.bedrooms)].sort((a, b) => a - b);
 
   return {
     bedroom: bedrooms.join(","),
     proptype: joinSegments(normalized.propertyTypes),
     locality: joinSegments(normalized.localities.map(toUrlSegment)),
-    "city-name": cityName ? toUrlSegment(cityName) : undefined,
     "project-socity": joinSegments(normalized.projects.map(slugify)),
     builder: joinSegments((normalized.builders ?? []).map(slugify)),
     "min-price": formatOptional(budgetMin, String),
@@ -72,15 +73,22 @@ export function buildSearchQuery(criteria: PropertySearchCriteria): string {
 export function buildSearchPath({
   transaction,
   category,
-}: Pick<PropertySearchCriteria, "transaction" | "category">): string {
-  const keywordSlug = (
-    Object.keys(KEYWORD_SEARCH_PATHS) as KeywordSearchSlug[]
-  ).find(
-    (slug) =>
-      KEYWORD_SEARCH_PATHS[slug].transaction === transaction &&
-      KEYWORD_SEARCH_PATHS[slug].category === category,
+  cityName,
+  propertyTypes,
+}: Pick<
+  PropertySearchCriteria,
+  "transaction" | "category" | "cityName" | "propertyTypes"
+>): string {
+  const categoryRoutes = SEARCH_SLUG_ROUTES.filter(
+    (candidate) => candidate.category === category,
   );
-  return keywordSlug ? `/${keywordSlug}` : `/${transaction}/${category}`;
+  // An unsearchable pair, e.g. pg for sale, falls back to the category's first route
+  const route =
+    categoryRoutes.find((candidate) => candidate.transaction === transaction) ??
+    categoryRoutes[0];
+
+  const typesSegment = buildTypesSegment(propertyTypes ?? []);
+  return `${SEARCH_PATH_PREFIX}/${fillCityTemplate(route.template, cityName, typesSegment)}`;
 }
 
 export function buildSearchUrl(criteria: PropertySearchCriteria): string {

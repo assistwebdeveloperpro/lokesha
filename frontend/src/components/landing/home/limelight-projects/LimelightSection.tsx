@@ -47,9 +47,9 @@ function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {
 }
 
 export function LimelightSection() {
-  const { projects, isLoading, filters } = useLimelightProjects();
+  const { isVisible, projects, isLoading, filters } = useLimelightProjects();
 
-  if (!isLoading && projects.length === 0) return null;
+  if (!isVisible || (!isLoading && projects.length === 0)) return null;
 
   return (
     <section aria-label={SECTION_TITLE} className="w-full bg-white">

@@ -15,6 +15,7 @@ import {
 
 const city: SearchTag = { kind: "city", label: "Ahmedabad" };
 
+const AHMEDABAD_BUY_PATH = "/properties/buy-flats-in-ahmedabad";
 const DEFAULT_RESIDENTIAL_TYPES = "proptype=flat-apartment";
 const ALL_COMMERCIAL_TYPES =
   "proptype=shop,office,showroom,cold-storage,industrial-shed,guest-house,hotel-resort,warehouse-godown,co-working-space-business-centre";
@@ -48,7 +49,7 @@ const urlFor = (overrides: Partial<HeroSearchInput>) => {
 describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
   it("search without any search item beyond the default city", () => {
     expect(urlFor({})).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&city-name=ahmedabad`,
+      `${AHMEDABAD_BUY_PATH}?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}`,
     );
   });
 
@@ -58,7 +59,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         searchTags: [city, { kind: "project", label: "Shyam Swastik" }],
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&city-name=ahmedabad&project-socity=shyam-swastik`,
+      `${AHMEDABAD_BUY_PATH}?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&project-socity=shyam-swastik`,
     );
   });
 
@@ -66,7 +67,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
     expect(
       urlFor({ searchTags: [city, { kind: "locality", label: "Bopal" }] }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&locality=bopal&city-name=ahmedabad`,
+      `${AHMEDABAD_BUY_PATH}?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&locality=bopal`,
     );
   });
 
@@ -80,7 +81,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         ],
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&locality=hathijan&city-name=ahmedabad&project-socity=shyam-swastik`,
+      `${AHMEDABAD_BUY_PATH}?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&locality=hathijan&project-socity=shyam-swastik`,
     );
   });
 
@@ -91,7 +92,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         selectedBedrooms: ["+3BHK"],
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=3&${DEFAULT_RESIDENTIAL_TYPES}&city-name=gandhinagar`,
+      `/properties/buy-flats-in-gandhinagar?bedroom=3&${DEFAULT_RESIDENTIAL_TYPES}`,
     );
   });
 
@@ -104,7 +105,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         budgetMax: 30_000_000,
       }),
     ).toBe(
-      `/property-for-sale/residential-real-estate?bedroom=3&${DEFAULT_RESIDENTIAL_TYPES}&city-name=gandhinagar&max-price=30000000`,
+      `/properties/buy-flats-in-gandhinagar?bedroom=3&${DEFAULT_RESIDENTIAL_TYPES}&max-price=30000000`,
     );
   });
 
@@ -117,7 +118,7 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
         budgetMax: 30_000_000,
       }),
     ).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&proptype=flat-apartment,penthouse&city-name=gandhinagar&min-price=600000&max-price=30000000",
+      "/properties/buy-flats-penthouse-in-gandhinagar?bedroom=&proptype=flat-apartment,penthouse&min-price=600000&max-price=30000000",
     );
   });
 });
@@ -125,13 +126,13 @@ describe("buildHeroSearchCriteria (spec url-path-design.md)", () => {
 describe("buildHeroSearchCriteria extras", () => {
   it("omits proptype when no type is selected", () => {
     expect(urlFor({ selectedPropertyTypes: [] })).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&city-name=ahmedabad",
+      `${AHMEDABAD_BUY_PATH}?bedroom=`,
     );
   });
 
   it("uses the rent route", () => {
     expect(urlFor({ transaction: "rent" })).toBe(
-      `/property-for-rent/residential-real-estate?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}&city-name=ahmedabad`,
+      `/properties/rent-flats-in-ahmedabad?bedroom=&${DEFAULT_RESIDENTIAL_TYPES}`,
     );
   });
 
@@ -152,7 +153,7 @@ describe("buildHeroSearchCriteria extras", () => {
         areaMax: 5000,
       }),
     ).toBe(
-      "/property-for-lease/commercial-real-estate?proptype=shop,co-working-space-business-centre&city-name=ahmedabad&area-min=500&area-max=5000",
+      "/properties/commercial-properties-for-lease-in-ahmedabad?proptype=shop,co-working-space-business-centre&area-min=500&area-max=5000",
     );
   });
 
@@ -164,7 +165,7 @@ describe("buildHeroSearchCriteria extras", () => {
         selectedPropertyTypes: PROPERTY_TYPES.commercial,
       }),
     ).toBe(
-      `/property-for-sale/commercial-real-estate?${ALL_COMMERCIAL_TYPES}&city-name=ahmedabad`,
+      `/properties/commercial-properties-for-sale-in-ahmedabad?${ALL_COMMERCIAL_TYPES}`,
     );
   });
 
@@ -188,7 +189,7 @@ describe("buildHeroSearchCriteria extras", () => {
         selectedSaleTypes: ["New"],
       }),
     ).toBe(
-      "/plots-for-sale?proptype=residential-plot&city-name=ahmedabad&property-transaction=new",
+      "/properties/plots-for-sale-in-ahmedabad?proptype=residential-plot&property-transaction=new",
     );
   });
 
@@ -199,7 +200,7 @@ describe("buildHeroSearchCriteria extras", () => {
         propertyTypeOptions: PROPERTY_TYPES.plot,
         selectedPropertyTypes: ["Residential Plot"],
       }),
-    ).toBe("/plots-for-sale?proptype=residential-plot&city-name=ahmedabad");
+    ).toBe("/properties/plots-for-sale-in-ahmedabad?proptype=residential-plot");
     expect(
       urlFor({
         category: "land",
@@ -207,7 +208,7 @@ describe("buildHeroSearchCriteria extras", () => {
         propertyTypeOptions: PROPERTY_TYPES.land,
         selectedPropertyTypes: PROPERTY_TYPES.land,
       }),
-    ).toBe(`/land-for-rent?${ALL_LAND_TYPES}&city-name=ahmedabad`);
+    ).toBe(`/properties/lands-for-rent-in-ahmedabad?${ALL_LAND_TYPES}`);
   });
 
   it("builds pg searches on the rent route using the pg budget", () => {
@@ -223,7 +224,7 @@ describe("buildHeroSearchCriteria extras", () => {
         budgetMax: 1,
       }),
     ).toBe(
-      "/pg-for-rent?city-name=ahmedabad&min-price=5000&occupancy=single,triple-plus&gender=male,both",
+      "/properties/pg-in-ahmedabad?min-price=5000&occupancy=single,triple-plus&gender=male,both",
     );
   });
 
@@ -237,7 +238,7 @@ describe("buildHeroSearchCriteria extras", () => {
         selectedConstruction: ["Ready to Move"],
       }),
     ).toBe(
-      `/property-for-sale/commercial-real-estate?${ALL_COMMERCIAL_TYPES}&city-name=ahmedabad`,
+      `/properties/commercial-properties-for-sale-in-ahmedabad?${ALL_COMMERCIAL_TYPES}`,
     );
   });
 

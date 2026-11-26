@@ -1,125 +1,98 @@
 import { describe, expect, it } from "vitest";
 import { buildLandingUrl } from "./buildLandingUrl";
+import { LANDING_ROUTES } from "./landingUrl.config";
 import { parseLandingUrl } from "./parseLandingUrl";
 
 const knownCities = ["Ahmedabad", "Navi Mumbai"];
 
 describe("buildLandingUrl", () => {
-  it("builds the default city landing url for buy", () => {
+  it("builds the residential buy and rent urls", () => {
     expect(
-      buildLandingUrl({
-        category: "residential",
-        cityName: "Ahmedabad",
-        transaction: "buy",
-      }),
-    ).toBe(
-      "/property-for-sale-rent-in-ahmedabad/residential-real-estate-ahmedabad?category=s",
-    );
+      buildLandingUrl({ category: "residential", cityName: "Ahmedabad", transaction: "buy" }),
+    ).toBe("/buy/residential-property-for-sale-in-ahmedabad");
+    expect(
+      buildLandingUrl({ category: "residential", cityName: "Gandhinagar", transaction: "rent" }),
+    ).toBe("/rent/residential-property-for-rent-in-gandhinagar");
   });
 
-  it("uses category=r for rent", () => {
-    expect(
-      buildLandingUrl({
-        category: "residential",
-        cityName: "Gandhinagar",
-        transaction: "rent",
-      }),
-    ).toBe(
-      "/property-for-sale-rent-in-gandhinagar/residential-real-estate-gandhinagar?category=r",
-    );
+  it("uses one commercial url for buy and lease", () => {
+    for (const transaction of ["buy", "lease"] as const) {
+      expect(
+        buildLandingUrl({ category: "commercial", cityName: "Navi Mumbai", transaction }),
+      ).toBe("/commercial/commercial-property-for-sale-lease-rent-in-navi-mumbai");
+    }
   });
 
-  it("hyphenates multi-word cities and handles All India", () => {
+  it("follows the transaction for plots and lands", () => {
     expect(
-      buildLandingUrl({
-        category: "commercial",
-        cityName: "Navi Mumbai",
-        transaction: "lease",
-      }),
-    ).toBe(
-      "/property-for-sale-rent-in-navi-mumbai/commercial-real-estate-navi-mumbai?category=l",
-    );
+      buildLandingUrl({ category: "plot", cityName: "Pune", transaction: "buy" }),
+    ).toBe("/plots/plots-for-sale-in-pune");
     expect(
-      buildLandingUrl({ category: "plot", cityName: null, transaction: "buy" }),
-    ).toBe("/property-for-sale-rent-in-india/plot-india?category=s");
+      buildLandingUrl({ category: "plot", cityName: "Pune", transaction: "rent" }),
+    ).toBe("/plots/plots-for-rent-in-pune");
+    expect(
+      buildLandingUrl({ category: "land", cityName: "Pune", transaction: "buy" }),
+    ).toBe("/lands/lands-for-sale-in-pune");
+    expect(
+      buildLandingUrl({ category: "land", cityName: "Pune", transaction: "rent" }),
+    ).toBe("/lands/lands-for-rent-in-pune");
   });
 
-  it("omits the param when there is no transaction", () => {
+  it("ignores the transaction for pg and maps All India to india", () => {
     expect(
-      buildLandingUrl({
-        category: "pg-co-living",
-        cityName: "Pune",
-        transaction: null,
-      }),
-    ).toBe("/property-for-sale-rent-in-pune/pg-co-living-pune");
+      buildLandingUrl({ category: "pg-co-living", cityName: null, transaction: "buy" }),
+    ).toBe("/pg-and-hostel/pg-hostels-for-rent-in-india");
   });
 });
 
 describe("parseLandingUrl", () => {
-  it("parses the spec url", () => {
+  it("parses the residential urls", () => {
     expect(
       parseLandingUrl({
-        locationSlug: "property-for-sale-rent-in-Ahmedabad",
-        categorySlug: "residential-real-estate-Ahmedabad",
-        transactionCode: "R",
+        group: "rent",
+        slug: "residential-property-for-rent-in-Ahmedabad",
         knownCities,
       }),
-    ).toEqual({
-      category: "residential",
-      cityName: "Ahmedabad",
-      transaction: "rent",
-    });
+    ).toEqual({ category: "residential", cityName: "Ahmedabad", transaction: "rent" });
   });
 
-  it("defaults to buy for a missing or unknown code", () => {
-    for (const transactionCode of [undefined, "X"]) {
-      expect(
-        parseLandingUrl({
-          locationSlug: "property-for-sale-rent-in-Ahmedabad",
-          categorySlug: "residential-real-estate-Ahmedabad",
-          transactionCode,
-          knownCities,
-        })?.transaction,
-      ).toBe("buy");
+  it("round-trips every route", () => {
+    for (const route of LANDING_ROUTES) {
+      const transaction = route.transactions[0];
+      const [, group, slug] = buildLandingUrl({
+        category: route.category,
+        cityName: "Navi Mumbai",
+        transaction,
+      }).split("/");
+
+      expect(parseLandingUrl({ group, slug, knownCities })).toEqual({
+        category: route.category,
+        cityName: "Navi Mumbai",
+        transaction,
+      });
     }
   });
 
-  it("round-trips built urls and still accepts legacy mixed case", () => {
-    const [path] = buildLandingUrl({
-      category: "land",
-      cityName: "Navi Mumbai",
-      transaction: "buy",
-    }).split("?");
-    const [, locationSlug, categorySlug] = path.split("/");
-
+  it("maps india to All India", () => {
     expect(
       parseLandingUrl({
-        locationSlug,
-        categorySlug,
+        group: "pg-and-hostel",
+        slug: "pg-hostels-for-rent-in-india",
         knownCities,
       }),
-    ).toEqual({ category: "land", cityName: "Navi Mumbai", transaction: "buy" });
+    ).toEqual({ category: "pg-co-living", cityName: null, transaction: "rent" });
   });
 
-  it("maps India to All India", () => {
-    expect(
-      parseLandingUrl({
-        locationSlug: "property-for-sale-rent-in-India",
-        categorySlug: "pg-co-living-India",
-        knownCities,
-      }),
-    ).toEqual({ category: "pg-co-living", cityName: null, transaction: "buy" });
-  });
-
-  it("rejects mismatched, unknown or unrelated slugs", () => {
+  it("rejects a slug under the wrong group, an unknown city or unrelated paths", () => {
     const cases: [string, string][] = [
-      ["property-for-sale-rent-in-Ahmedabad", "residential-real-estate-Pune"],
-      ["property-for-sale-rent-in-Nowhere", "residential-real-estate-Nowhere"],
-      ["property-for-sale-rent-in-Ahmedabad", "villas-Ahmedabad"],
+      ["buy", "residential-property-for-rent-in-ahmedabad"],
+      ["rent", "residential-property-for-rent-in-nowhere"],
+      ["plots", "lands-for-sale-in-ahmedabad"],
+      ["buy", "residential-property-for-sale-in-"],
       ["about-us", "team"],
     ];
-    for (const [locationSlug, categorySlug] of cases) {
-      expect(parseLandingUrl({ locationSlug, categorySlug, knownCities })).toBeNull();
+    for (const [group, slug] of cases) {
+      expect(parseLandingUrl({ group, slug, knownCities })).toBeNull();
     }
   });
 });

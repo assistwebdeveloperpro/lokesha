@@ -6,7 +6,6 @@ import {
   type LimelightProject,
   type LimelightProjectsFilters,
 } from "@/services/limelightProjects.service";
-import { CATEGORY_ID_BY_SLUG } from "@/lib/property-search-url/searchUrl.config";
 import { useLandingUrlCriteria } from "./useLandingUrlCriteria";
 
 type LimelightResult = {
@@ -14,24 +13,28 @@ type LimelightResult = {
   projects: LimelightProject[];
 };
 
+// Limelight is only shown for residential properties on sale
+const LIMELIGHT_LISTING_TYPE = "sale";
+const LIMELIGHT_CATEGORY = "residential";
+
 // Failures only hide the section, so the rest of the landing page is never affected
 export function useLimelightProjects() {
   const criteria = useLandingUrlCriteria();
-  const listingType: LimelightProjectsFilters["listingType"] =
-    criteria?.transaction === "property-for-sale"
-      ? "sale"
-      : criteria
-        ? "rent-lease"
-        : undefined;
-  const category = criteria ? CATEGORY_ID_BY_SLUG[criteria.category] : undefined;
+  const isVisible =
+    criteria?.category === "residential-real-estate" &&
+    criteria.transaction === "property-for-sale";
   const city = criteria?.cityName;
-  const requestKey = `${listingType ?? ""}:${category ?? ""}:${city ?? ""}`;
+  const requestKey = `${LIMELIGHT_LISTING_TYPE}:${LIMELIGHT_CATEGORY}:${city ?? ""}`;
   const [result, setResult] = useState<LimelightResult | null>(null);
 
   useEffect(() => {
+    if (!isVisible) return;
     const controller = new AbortController();
 
-    fetchAllLimelightProjects({ listingType, category, city }, controller.signal)
+    fetchAllLimelightProjects(
+      { listingType: LIMELIGHT_LISTING_TYPE, category: LIMELIGHT_CATEGORY, city },
+      controller.signal,
+    )
       .then((projects) => setResult({ key: requestKey, projects }))
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
@@ -40,12 +43,19 @@ export function useLimelightProjects() {
       });
 
     return () => controller.abort();
-  }, [listingType, category, city, requestKey]);
+  }, [isVisible, city, requestKey]);
 
   const isCurrent = result?.key === requestKey;
+  const filters: LimelightProjectsFilters = {
+    listingType: LIMELIGHT_LISTING_TYPE,
+    category: LIMELIGHT_CATEGORY,
+    city,
+  };
+
   return {
+    isVisible,
     projects: isCurrent ? result.projects : [],
-    isLoading: !isCurrent,
-    filters: { listingType, category, city },
+    isLoading: isVisible && !isCurrent,
+    filters,
   };
 }

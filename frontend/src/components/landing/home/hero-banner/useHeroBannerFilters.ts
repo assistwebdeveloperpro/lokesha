@@ -13,6 +13,8 @@ import {
 import { recordRecentSearch } from "@/components/landing/recent-searches/recordRecentSearch";
 import {
   ALL_INDIA_LABEL,
+  CITY_CHANGE_EVENT,
+  readStoredLocation,
   storeCity,
 } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
@@ -22,7 +24,10 @@ import {
 } from "./heroFiltersStorage";
 import { buildLandingUrl } from "@/lib/property-search-url/buildLandingUrl";
 import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
-import { LANDING_URL_CHANGE_EVENT } from "@/lib/property-search-url/landingUrl.config";
+import {
+  HOME_PATH,
+  LANDING_URL_CHANGE_EVENT,
+} from "@/lib/property-search-url/landingUrl.config";
 import { SEARCH_ERROR_MESSAGE } from "@/lib/property-search-url/searchUrl.config";
 import {
   AREA_RANGE,
@@ -69,6 +74,7 @@ export function useHeroBannerFilters({
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
   const hasUrlSelection = useRef(urlCategory !== undefined);
+  const hasUserSelection = useRef(urlCategory !== undefined);
   const [isHydrated, setIsHydrated] = useState(false);
 
   const [activeCategory, setActiveCategory] =
@@ -77,7 +83,7 @@ export function useHeroBannerFilters({
     activeCategory === "commercial"
       ? COMMERCIAL_TRANSACTION_OPTIONS
       : DEFAULT_TRANSACTION_OPTIONS;
-  const [selectedTransaction, setTransaction] =
+  const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionType>(initialTransaction);
   const transaction = transactionOptions.includes(selectedTransaction)
     ? selectedTransaction
@@ -163,26 +169,21 @@ export function useHeroBannerFilters({
   useEffect(() => {
     const saved = readStoredHeroFilters();
     // Back navigation replays old props while the address bar holds the latest selection
-    const propsUrl =
-      initialCategory === "new-projects"
-        ? null
+    const propsPath =
+      !hasUrlSelection.current || initialCategory === "new-projects"
+        ? HOME_PATH
         : buildLandingUrl({
             category: initialCategory,
             cityName:
               initialCity && initialCity !== ALL_INDIA_LABEL ? initialCity : null,
-            transaction:
-              initialCategory === "pg-co-living" ? null : initialTransaction,
+            transaction: initialTransaction,
           });
-    const isStaleRestore =
-      hasUrlSelection.current &&
-      propsUrl !== null &&
-      window.location.pathname + window.location.search !== propsUrl;
-    const useSaved = !hasUrlSelection.current || isStaleRestore;
+    const useSaved = window.location.pathname !== propsPath;
 
     if (saved && (useSaved || saved.category === initialCategory)) {
       const category = useSaved ? saved.category : initialCategory;
       setActiveCategory(category);
-      if (useSaved) setTransaction(saved.transaction);
+      if (useSaved) setSelectedTransaction(saved.transaction);
       setSelectedPropertyTypes(saved.propertyTypes);
       setExpandedSection(defaultExpandedSection(category));
     }
@@ -200,12 +201,21 @@ export function useHeroBannerFilters({
     });
   }, [isHydrated, activeCategory, transaction, selectedPropertyTypes]);
 
+  // The homepage keeps its url until the user changes the category, transaction or city
   useEffect(() => {
-    if (activeCategory === "new-projects") return;
+    const markCityChosen = () => {
+      if (readStoredLocation()?.source === "manual") hasUserSelection.current = true;
+    };
+    window.addEventListener(CITY_CHANGE_EVENT, markCityChosen);
+    return () => window.removeEventListener(CITY_CHANGE_EVENT, markCityChosen);
+  }, []);
+
+  useEffect(() => {
+    if (activeCategory === "new-projects" || !hasUserSelection.current) return;
     const url = buildLandingUrl({
       category: activeCategory,
       cityName: headerCity === ALL_INDIA_LABEL ? null : headerCity,
-      transaction: activeCategory === "pg-co-living" ? null : transaction,
+      transaction,
     });
     window.history.replaceState(window.history.state, "", url);
     window.dispatchEvent(new Event(LANDING_URL_CHANGE_EVENT));
@@ -312,9 +322,15 @@ export function useHeroBannerFilters({
       router.push(NEW_PROJECTS_HREF);
       return;
     }
+    hasUserSelection.current = true;
     setActiveCategory(category);
     resetFiltersForCategory(category);
     setOpenDropdown(null);
+  };
+
+  const setTransaction = (value: TransactionType) => {
+    hasUserSelection.current = true;
+    setSelectedTransaction(value);
   };
 
   const togglePropertyType = (type: string) => {

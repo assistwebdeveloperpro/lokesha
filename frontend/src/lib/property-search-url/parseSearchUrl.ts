@@ -1,25 +1,20 @@
 import { parseMoreFiltersFromParams } from "./moreFiltersParam";
 import { parsePostedByParam } from "./postedByParam";
+import { findKnownCity, isAllIndiaSegment, matchCityTemplate } from "./cityTemplate";
+import { LANDING_KNOWN_CITIES } from "./landingKnownCities";
 import {
-  CATEGORY_SLUGS,
   SEARCH_PARAM_ALIASES,
   SEARCH_PARAM_KEYS,
-  TRANSACTION_SLUGS,
-  isSearchableCombination,
+  SEARCH_SLUG_ROUTES,
   type SearchParamKey,
 } from "./searchUrl.config";
-import type {
-  CategorySlug,
-  PropertySearchCriteria,
-  SearchParamRecord,
-  TransactionSlug,
-} from "./searchUrl.types";
+import type { PropertySearchCriteria, SearchParamRecord } from "./searchUrl.types";
 import { fromUrlSegment, fromUrlSegmentTitle } from "./slug";
 
 type ParseSearchUrlInput = {
-  transaction: string;
-  category: string;
+  slug: string;
   searchParams: SearchParamRecord;
+  knownCities?: readonly string[];
 };
 
 type ParamMap = Partial<Record<SearchParamKey, string>>;
@@ -80,33 +75,31 @@ function parsePositiveInt(value: string | undefined): number | undefined {
   return number > 0 ? number : undefined;
 }
 
-const matchSlug = <T extends string>(options: readonly T[], value: string) =>
-  options.find((option) => option === value.toLowerCase());
+// The path carries transaction, category and city; unknown slugs resolve to null
+function parseSearchSlug(slug: string, knownCities: readonly string[]) {
+  for (const route of SEARCH_SLUG_ROUTES) {
+    const citySegment = matchCityTemplate(route.template, slug);
+    if (!citySegment) continue;
+
+    const cityName = isAllIndiaSegment(citySegment)
+      ? undefined
+      : (findKnownCity(citySegment, knownCities) ??
+        fromUrlSegmentTitle(citySegment));
+    return { transaction: route.transaction, category: route.category, cityName };
+  }
+  return null;
+}
 
 export function parseSearchUrl({
-  transaction,
-  category,
+  slug,
   searchParams,
+  knownCities = LANDING_KNOWN_CITIES,
 }: ParseSearchUrlInput): PropertySearchCriteria | null {
-  const transactionSlug: TransactionSlug | undefined = matchSlug(
-    TRANSACTION_SLUGS,
-    transaction,
-  );
-  const categorySlug: CategorySlug | undefined = matchSlug(
-    CATEGORY_SLUGS,
-    category,
-  );
-  if (
-    !transactionSlug ||
-    !categorySlug ||
-    !isSearchableCombination(transactionSlug, categorySlug)
-  ) {
-    return null;
-  }
+  const route = parseSearchSlug(slug, knownCities);
+  if (!route) return null;
 
   const params = readParams(searchParams);
   const flatParams = flattenSearchParams(searchParams);
-  const cityName = fromUrlSegmentTitle(params["city-name"] ?? "");
   const page = Number.parseInt(params.page ?? "", 10);
   const budget = orderRange(
     parsePositiveInt(params["min-price"]),
@@ -118,9 +111,7 @@ export function parseSearchUrl({
   );
 
   return {
-    transaction: transactionSlug,
-    category: categorySlug,
-    cityName: cityName || undefined,
+    ...route,
     localities: splitList(params.locality).map(fromUrlSegmentTitle),
     projects: splitList(params["project-socity"]).map(fromUrlSegment),
     builders: splitList(params.builder).map(fromUrlSegment),

@@ -4,28 +4,29 @@ import { parseSearchUrl } from "./parseSearchUrl";
 import { EMPTY_MORE_FILTERS } from "./moreFilters.types";
 import type { PropertySearchCriteria } from "./searchUrl.types";
 
+const SLUG = "buy-flats-in-ahmedabad";
+
 const parse = (searchParams: Record<string, string | string[] | undefined>) =>
-  parseSearchUrl({
-    transaction: "property-for-sale",
-    category: "residential-real-estate",
-    searchParams,
-  });
+  parseSearchUrl({ slug: SLUG, searchParams });
 
 describe("parseSearchUrl", () => {
-  it("rejects unknown transaction or category", () => {
-    expect(
-      parseSearchUrl({ transaction: "x", category: "residential-real-estate", searchParams: {} }),
-    ).toBeNull();
-    expect(
-      parseSearchUrl({ transaction: "property-for-sale", category: "x", searchParams: {} }),
-    ).toBeNull();
+  it("rejects unknown or incomplete slugs", () => {
+    for (const slug of [
+      "x",
+      "buy-flats-in-",
+      "buy-in-ahmedabad",
+      "buy-flats-ahmedabad",
+      "sell-flats-in-pune",
+    ]) {
+      expect(parseSearchUrl({ slug, searchParams: {} })).toBeNull();
+    }
   });
 
   it("returns defaults for an empty query", () => {
     expect(parse({})).toEqual({
       transaction: "property-for-sale",
       category: "residential-real-estate",
-      cityName: undefined,
+      cityName: "Ahmedabad",
       localities: [],
       projects: [],
       builders: [],
@@ -45,35 +46,54 @@ describe("parseSearchUrl", () => {
     });
   });
 
-  it("accepts every category under its allowed transactions", () => {
-    const cases: [string, string][] = [
-      ["property-for-sale", "commercial-real-estate"],
-      ["property-for-lease", "commercial-real-estate"],
-      ["property-for-rent", "pg-co-living"],
-      ["property-for-sale", "plot"],
-      ["property-for-rent", "land"],
+  it("resolves every slug to its transaction and category", () => {
+    const cases: [string, string, string][] = [
+      ["rent-flats-in-pune","property-for-rent", "residential-real-estate"],
+      ["commercial-properties-for-sale-in-pune", "property-for-sale", "commercial-real-estate"],
+      ["commercial-properties-for-lease-in-pune", "property-for-lease", "commercial-real-estate"],
+      ["pg-in-pune", "property-for-rent", "pg-co-living"],
+      ["plots-for-sale-in-pune", "property-for-sale", "plot"],
+      ["plots-for-rent-in-pune", "property-for-rent", "plot"],
+      ["lands-for-sale-in-pune", "property-for-sale", "land"],
+      ["lands-for-rent-in-pune", "property-for-rent", "land"],
     ];
-    for (const [transaction, category] of cases) {
-      expect(parseSearchUrl({ transaction, category, searchParams: {} })).not.toBeNull();
+    for (const [slug, transaction, category] of cases) {
+      expect(parseSearchUrl({ slug, searchParams: {} })).toMatchObject({
+        transaction,
+        category,
+        cityName: "Pune",
+      });
     }
   });
 
-  it("rejects transactions a category does not support", () => {
-    const cases: [string, string][] = [
-      ["property-for-lease", "residential-real-estate"],
-      ["property-for-rent", "commercial-real-estate"],
-      ["property-for-sale", "pg-co-living"],
-    ];
-    for (const [transaction, category] of cases) {
-      expect(parseSearchUrl({ transaction, category, searchParams: {} })).toBeNull();
-    }
+  it("reads the city after the property type words", () => {
+    expect(
+      parseSearchUrl({
+        slug: "buy-flats-bungalows-penthouse-in-navi-mumbai",
+        searchParams: {},
+      })?.cityName,
+    ).toBe("Navi Mumbai");
+  });
+
+  it("maps india to no city", () => {
+    expect(
+      parseSearchUrl({ slug: "pg-in-india", searchParams: {} })?.cityName,
+    ).toBeUndefined();
+  });
+
+  it("restores multi-word cities and falls back to title case for unknown ones", () => {
+    expect(
+      parseSearchUrl({ slug: "pg-in-navi-mumbai", searchParams: {} })?.cityName,
+    ).toBe("Navi Mumbai");
+    expect(
+      parseSearchUrl({ slug: "pg-in-some-town", searchParams: {} })?.cityName,
+    ).toBe("Some Town");
   });
 
   it("parses area, occupancy and gender, swapping an inverted area range", () => {
     expect(
       parseSearchUrl({
-        transaction: "property-for-rent",
-        category: "pg-co-living",
+        slug: "pg-in-pune",
         searchParams: {
           occupancy: "single,triple-plus",
           gender: "male,both",
@@ -94,7 +114,6 @@ describe("parseSearchUrl", () => {
       bedroom: "",
       proptype: "Multistorey-Apartment,Penthouse",
       locality: "Hathijan",
-      "city-name": "Ahmedabad",
       "project-socity": "shyam-swastik",
       "min-price": "500000",
       "max-price": "30000000",
@@ -108,10 +127,6 @@ describe("parseSearchUrl", () => {
       budgetMin: 500_000,
       budgetMax: 30_000_000,
     });
-  });
-
-  it("restores multi-word cities", () => {
-    expect(parse({ "city-name": "Navi-Mumbai" })?.cityName).toBe("Navi Mumbai");
   });
 
   it("swaps an inverted budget range", () => {
@@ -165,11 +180,7 @@ describe("parseSearchUrl", () => {
 
   it("is case-insensitive on the path", () => {
     expect(
-      parseSearchUrl({
-        transaction: "Property-For-Sale",
-        category: "Residential-Real-Estate",
-        searchParams: {},
-      }),
+      parseSearchUrl({ slug: "Buy-Flats-In-Ahmedabad-For-Sale", searchParams: {} }),
     ).not.toBeNull();
   });
 
@@ -196,12 +207,11 @@ describe("parseSearchUrl", () => {
       page: 2,
     };
     const url = new URL(buildSearchUrl(criteria), "http://localhost");
-    const [, transaction, category] = url.pathname.split("/");
+    const [, , slug] = url.pathname.split("/");
 
     expect(
       parseSearchUrl({
-        transaction,
-        category,
+        slug,
         searchParams: Object.fromEntries(url.searchParams),
       }),
     ).toEqual(criteria);

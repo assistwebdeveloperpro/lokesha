@@ -4,53 +4,26 @@ import Header from "@/components/shared/layout/Header";
 import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
 import { getCanonicalSearchRedirect } from "@/lib/property-search-url/canonicalSearchUrl";
 import { parseSearchUrl } from "@/lib/property-search-url/parseSearchUrl";
-import {
-  KEYWORD_SEARCH_PATHS,
-  type KeywordSearchSlug,
-} from "@/lib/property-search-url/searchUrl.config";
-import type {
-  SearchParamRecord,
-  TransactionSlug,
-} from "@/lib/property-search-url/searchUrl.types";
+import type { SearchParamRecord } from "@/lib/property-search-url/searchUrl.types";
 import { buildPageMetadata } from "@/lib/seo/pageMetadata";
 import { PropertySearchHeaderSearch } from "./header-search/PropertySearchHeaderSearch";
 import { PropertySearchResultsContent } from "./PropertySearchResultsContent";
 import { buildSearchHeading } from "./searchPageText";
 
 export type SearchRouteProps = {
-  params: Promise<{ category?: string }>;
+  params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParamRecord>;
 };
 
-export type SearchRoute =
-  | { transaction: TransactionSlug }
-  | { keywordSlug: KeywordSearchSlug };
-
-async function readSearchInput(
-  route: SearchRoute,
-  { params, searchParams }: SearchRouteProps,
-) {
-  if ("keywordSlug" in route) {
-    return {
-      ...KEYWORD_SEARCH_PATHS[route.keywordSlug],
-      pathname: `/${route.keywordSlug}`,
-      searchParams: await searchParams,
-    };
-  }
-
-  const { category = "" } = await params;
-  return {
-    transaction: route.transaction,
-    category,
-    searchParams: await searchParams,
-  };
+async function readSearchInput({ params, searchParams }: SearchRouteProps) {
+  const { slug } = await params;
+  return { slug, searchParams: await searchParams };
 }
 
 export async function generateSearchMetadata(
-  route: SearchRoute,
   props: SearchRouteProps,
 ): Promise<Metadata> {
-  const criteria = parseSearchUrl(await readSearchInput(route, props));
+  const criteria = parseSearchUrl(await readSearchInput(props));
   if (!criteria) return {};
 
   const heading = buildSearchHeading(criteria);
@@ -62,11 +35,8 @@ export async function generateSearchMetadata(
   });
 }
 
-export async function PropertySearchResultsPage({
-  route,
-  ...props
-}: SearchRouteProps & { route: SearchRoute }) {
-  const input = await readSearchInput(route, props);
+export async function PropertySearchResultsPage(props: SearchRouteProps) {
+  const input = await readSearchInput(props);
   const criteria = parseSearchUrl(input);
   if (!criteria) notFound();
 

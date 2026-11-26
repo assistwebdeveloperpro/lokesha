@@ -21,7 +21,7 @@ export function getRecentSearchHref({ searchCriteria }: Pick<RecentSearch, "sear
     return buildLandingUrl({
       category: CATEGORY_ID_BY_SLUG[criteria.category],
       cityName: criteria.cityName ?? null,
-      transaction: null,
+      transaction: "buy",
     });
   }
 

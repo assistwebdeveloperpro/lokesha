@@ -3,73 +3,60 @@ import { getCanonicalSearchRedirect } from "./canonicalSearchUrl";
 
 const redirect = (
   searchParams: Record<string, string | string[] | undefined>,
-  category = "residential-real-estate",
-) =>
-  getCanonicalSearchRedirect({
-    transaction: "property-for-sale",
-    category,
-    searchParams,
-  });
+  slug = "buy-flats-in-ahmedabad",
+) => getCanonicalSearchRedirect({ slug, searchParams });
 
 describe("getCanonicalSearchRedirect", () => {
   it("returns null for an already canonical url", () => {
-    expect(
-      redirect({ bedroom: "3", "city-name": "ahmedabad", "max-price": "30000000" }),
-    ).toBeNull();
+    expect(redirect({ bedroom: "3", "max-price": "30000000" })).toBeNull();
     expect(redirect({ bedroom: "" })).toBeNull();
   });
 
   it("ignores empty params, so bedroom= is optional", () => {
-    expect(redirect({ "city-name": "ahmedabad" })).toBeNull();
-    expect(redirect({ "city-name": "ahmedabad", bedroom: "" })).toBeNull();
+    expect(redirect({})).toBeNull();
+    expect(redirect({ bedroom: "" })).toBeNull();
   });
 
   it("redirects renamed keys and unknown keys to the canonical url", () => {
-    expect(
-      redirect({ "city-name": "ahmedabad", propertyType: "penthouse", utm: "x" }),
-    ).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&proptype=penthouse&city-name=ahmedabad",
+    expect(redirect({ propertyType: "penthouse", utm: "x" })).toBe(
+      "/properties/buy-penthouse-in-ahmedabad?bedroom=&proptype=penthouse",
+    );
+  });
+
+  it("drops the legacy city-name param, since the city is in the path", () => {
+    expect(redirect({ "city-name": "pune" })).toBe(
+      "/properties/buy-flats-in-ahmedabad?bedroom=",
     );
   });
 
   it("redirects uppercase values to lowercase", () => {
-    expect(redirect({ "city-name": "Navi-Mumbai" })).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&city-name=navi-mumbai",
+    expect(redirect({ locality: "Bopal" })).toBe(
+      "/properties/buy-flats-in-ahmedabad?bedroom=&locality=bopal",
     );
   });
 
-  it("redirects a non-canonical category casing", () => {
-    expect(redirect({ "city-name": "pune" }, "Residential-Real-Estate")).toBe(
-      "/property-for-sale/residential-real-estate?bedroom=&city-name=pune",
+  it("redirects a non-canonical path casing", () => {
+    expect(redirect({ bedroom: "" }, "Buy-Flats-In-Navi-Mumbai")).toBe(
+      "/properties/buy-flats-in-navi-mumbai?bedroom=",
     );
   });
 
-  it("redirects legacy plot, land and pg paths to keyword paths", () => {
-    expect(redirect({ "city-name": "pune" }, "plot")).toBe(
-      "/plots-for-sale?city-name=pune",
+  it("keeps a multi type path canonical and redirects a mismatched one", () => {
+    const params = { bedroom: "", proptype: "flat-apartment,bungalow-villa" };
+
+    expect(redirect(params, "buy-flats-bungalows-in-ahmedabad")).toBeNull();
+    expect(redirect(params)).toBe(
+      "/properties/buy-flats-bungalows-in-ahmedabad?bedroom=&proptype=flat-apartment,bungalow-villa",
     );
-    expect(
-      getCanonicalSearchRedirect({
-        transaction: "property-for-rent",
-        category: "pg-co-living",
-        searchParams: {},
-      }),
-    ).toBe("/pg-for-rent");
   });
 
-  it("keeps a keyword path canonical", () => {
-    expect(
-      getCanonicalSearchRedirect({
-        transaction: "property-for-rent",
-        category: "pg-co-living",
-        pathname: "/pg-for-rent",
-        searchParams: { "city-name": "pune" },
-      }),
-    ).toBeNull();
+  it("keeps plot, land and pg paths canonical without a bedroom param", () => {
+    expect(redirect({}, "plots-for-sale-in-pune")).toBeNull();
+    expect(redirect({}, "pg-in-india")).toBeNull();
   });
 
   it("does not loop on decoded non-ascii values", () => {
-    expect(redirect({ locality: "café-road"})).toBeNull();
+    expect(redirect({ locality: "café-road" })).toBeNull();
   });
 
   it("returns null for an unparsable url", () => {

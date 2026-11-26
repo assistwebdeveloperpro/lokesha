@@ -4,14 +4,6 @@ import {
 } from "./landingUrl.config";
 import type { CategorySlug, TransactionSlug } from "./searchUrl.types";
 
-export const TRANSACTION_SLUGS: readonly TransactionSlug[] = [
-  "property-for-sale",
-  "property-for-rent",
-  "property-for-lease",
-];
-
-export const CATEGORY_SLUGS = Object.values(LANDING_CATEGORY_SLUGS);
-
 export const CATEGORY_ID_BY_SLUG = Object.fromEntries(
   Object.entries(LANDING_CATEGORY_SLUGS).map(([id, slug]) => [slug, id]),
 ) as Record<CategorySlug, LandingCategory>;
@@ -30,31 +22,74 @@ export const isSearchableCombination = (
   category: CategorySlug,
 ) => CATEGORY_TRANSACTIONS[category].includes(transaction);
 
-// Single-segment, keyword-style paths used instead of /{transaction}/{category}.
-export const KEYWORD_SEARCH_PATHS = {
-  "pg-for-rent": { transaction: "property-for-rent", category: "pg-co-living" },
-  "plots-for-sale": { transaction: "property-for-sale", category: "plot" },
-  "plots-for-rent": { transaction: "property-for-rent", category: "plot" },
-  "land-for-sale": { transaction: "property-for-sale", category: "land" },
-  "land-for-rent": { transaction: "property-for-rent", category: "land" },
-} as const satisfies Record<
-  string,
-  { transaction: TransactionSlug; category: CategorySlug }
->;
+export const SEARCH_PATH_PREFIX = "/properties";
 
-export type KeywordSearchSlug = keyof typeof KEYWORD_SEARCH_PATHS;
+export type SearchSlugRoute = {
+  transaction: TransactionSlug;
+  category: CategorySlug;
+  template: string;
+};
+
+// Url: /properties/{template}, e.g. /properties/buy-flats-penthouse-in-ahmedabad
+// {types} lists the selected residential property types
+export const SEARCH_SLUG_ROUTES: readonly SearchSlugRoute[] = [
+  {
+    transaction: "property-for-sale",
+    category: "residential-real-estate",
+    template: "buy-{types}-in-{city}",
+  },
+  {
+    transaction: "property-for-rent",
+    category: "residential-real-estate",
+    template: "rent-{types}-in-{city}",
+  },
+  {
+    transaction: "property-for-sale",
+    category: "commercial-real-estate",
+    template: "commercial-properties-for-sale-in-{city}",
+  },
+  {
+    transaction: "property-for-lease",
+    category: "commercial-real-estate",
+    template: "commercial-properties-for-lease-in-{city}",
+  },
+  {
+    transaction: "property-for-sale",
+    category: "plot",
+    template: "plots-for-sale-in-{city}",
+  },
+  {
+    transaction: "property-for-rent",
+    category: "plot",
+    template: "plots-for-rent-in-{city}",
+  },
+  {
+    transaction: "property-for-sale",
+    category: "land",
+    template: "lands-for-sale-in-{city}",
+  },
+  {
+    transaction: "property-for-rent",
+    category: "land",
+    template: "lands-for-rent-in-{city}",
+  },
+  {
+    transaction: "property-for-rent",
+    category: "pg-co-living",
+    template: "pg-in-{city}",
+  },
+];
 
 // These categories keep an empty `bedroom=` in the url.
 export const CATEGORIES_WITH_BEDROOM_PARAM: readonly CategorySlug[] = [
   "residential-real-estate",
 ];
 
-// Names and order follow .claude/specs/url-path-design.md exactly; extras go last.
+// The city lives in the path, not in the query; extras go last.
 export const SEARCH_PARAM_KEYS = [
   "bedroom",
   "proptype",
   "locality",
-  "city-name",
   "project-socity",
   "builder",
   "min-price",
