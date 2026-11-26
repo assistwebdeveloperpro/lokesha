@@ -3,6 +3,7 @@
 import { Filter, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
+import { getDropdownFilterStyle } from "@/components/shared/ui/filterWidth";
 import {
   DEFAULT_LEAD_FILTERS,
   LEAD_LISTED_BY_OPTIONS,
@@ -71,8 +72,8 @@ export default function LeadsFilterBar({ applied, onApply }: LeadsFilterBarProps
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="min-w-0">
+      <div className="flex flex-wrap items-start gap-4">
+        <div className="min-w-0 w-full sm:w-auto sm:min-w-72 sm:flex-1">
           <label htmlFor="leads-filter-search" className="mb-1.5 block text-sm font-medium text-slate-700">
             Search
           </label>
@@ -87,7 +88,7 @@ export default function LeadsFilterBar({ applied, onApply }: LeadsFilterBarProps
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               placeholder={SEARCH_PLACEHOLDER}
-              className={fieldClassName}
+              className={`${fieldClassName} focus:border-slate-200/90! focus:ring-0!`}
               autoComplete="off"
             />
           </div>
@@ -97,7 +98,7 @@ export default function LeadsFilterBar({ applied, onApply }: LeadsFilterBarProps
         </div>
 
         {SELECT_FILTERS.map(({ key, label, options }) => (
-          <div key={key} className="min-w-0">
+          <div key={key} className="min-w-0" style={getDropdownFilterStyle(label, options)}>
             <CustomDropdown
               id={`leads-filter-${key}`}
               label={label}

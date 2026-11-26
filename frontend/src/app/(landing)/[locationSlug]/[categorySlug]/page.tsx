@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { HomePageContent } from "@/components/landing/home/HomePageContent";
-import {
-  ALL_INDIA_LABEL,
-  POPULAR_CITIES,
-} from "@/components/shared/layout/city-selector/citySelector.shared";
-import { INDIAN_CITIES } from "@/data/indianCities";
+import { ALL_INDIA_LABEL } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { buildLandingUrl } from "@/lib/property-search-url/buildLandingUrl";
+import { LANDING_KNOWN_CITIES } from "@/lib/property-search-url/landingKnownCities";
 import { LANDING_TRANSACTION_PARAM } from "@/lib/property-search-url/landingUrl.config";
 import { parseLandingUrl } from "@/lib/property-search-url/parseLandingUrl";
 import { buildPageMetadata } from "@/lib/seo/pageMetadata";
@@ -15,10 +12,6 @@ type CityLandingPageProps = {
   params: Promise<{ locationSlug: string; categorySlug: string }>;
   searchParams: Promise<{ category?: string | string[] }>;
 };
-
-const KNOWN_CITIES = [
-  ...new Set([...INDIAN_CITIES, ...POPULAR_CITIES.map((city) => city.name)]),
-];
 
 async function readSelection({ params, searchParams }: CityLandingPageProps) {
   const { locationSlug, categorySlug } = await params;
@@ -33,7 +26,7 @@ async function readSelection({ params, searchParams }: CityLandingPageProps) {
       transactionCode: Array.isArray(transactionCode)
         ? transactionCode[0]
         : transactionCode,
-      knownCities: KNOWN_CITIES,
+      knownCities: LANDING_KNOWN_CITIES,
     }),
   };
 }

@@ -16,8 +16,13 @@ import {
   storeCity,
 } from "@/components/shared/layout/city-selector/citySelector.shared";
 import { useHeaderCity } from "@/components/shared/layout/city-selector/useHeaderCity";
+import {
+  readStoredHeroFilters,
+  storeHeroFilters,
+} from "./heroFiltersStorage";
 import { buildLandingUrl } from "@/lib/property-search-url/buildLandingUrl";
 import { buildSearchUrl } from "@/lib/property-search-url/buildSearchUrl";
+import { LANDING_URL_CHANGE_EVENT } from "@/lib/property-search-url/landingUrl.config";
 import { SEARCH_ERROR_MESSAGE } from "@/lib/property-search-url/searchUrl.config";
 import {
   AREA_RANGE,
@@ -56,12 +61,15 @@ export type HeroBannerInitialSelection = {
 };
 
 export function useHeroBannerFilters({
-  initialCategory = "residential",
+  initialCategory: urlCategory,
   initialCity,
   initialTransaction = "buy",
 }: HeroBannerInitialSelection = {}) {
+  const initialCategory = urlCategory ?? "residential";
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
+  const hasUrlSelection = useRef(urlCategory !== undefined);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const [activeCategory, setActiveCategory] =
     useState<PropertyCategory>(initialCategory);
@@ -151,6 +159,47 @@ export function useHeroBannerFilters({
     if (initialCity) storeCity(initialCity);
   }, [initialCity]);
 
+  // Restore the saved category and property types once after mount (keeps SSR markup identical)
+  useEffect(() => {
+    const saved = readStoredHeroFilters();
+    // Back navigation replays old props while the address bar holds the latest selection
+    const propsUrl =
+      initialCategory === "new-projects"
+        ? null
+        : buildLandingUrl({
+            category: initialCategory,
+            cityName:
+              initialCity && initialCity !== ALL_INDIA_LABEL ? initialCity : null,
+            transaction:
+              initialCategory === "pg-co-living" ? null : initialTransaction,
+          });
+    const isStaleRestore =
+      hasUrlSelection.current &&
+      propsUrl !== null &&
+      window.location.pathname + window.location.search !== propsUrl;
+    const useSaved = !hasUrlSelection.current || isStaleRestore;
+
+    if (saved && (useSaved || saved.category === initialCategory)) {
+      const category = useSaved ? saved.category : initialCategory;
+      setActiveCategory(category);
+      if (useSaved) setTransaction(saved.transaction);
+      setSelectedPropertyTypes(saved.propertyTypes);
+      setExpandedSection(defaultExpandedSection(category));
+    }
+    setIsHydrated(true);
+    // Runs once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    storeHeroFilters({
+      category: activeCategory,
+      transaction,
+      propertyTypes: selectedPropertyTypes,
+    });
+  }, [isHydrated, activeCategory, transaction, selectedPropertyTypes]);
+
   useEffect(() => {
     if (activeCategory === "new-projects") return;
     const url = buildLandingUrl({
@@ -159,6 +208,7 @@ export function useHeroBannerFilters({
       transaction: activeCategory === "pg-co-living" ? null : transaction,
     });
     window.history.replaceState(window.history.state, "", url);
+    window.dispatchEvent(new Event(LANDING_URL_CHANGE_EVENT));
   }, [activeCategory, headerCity, transaction]);
 
   // The city tag follows the header city, adjusted while rendering instead of in an effect

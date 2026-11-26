@@ -26,7 +26,8 @@ export function PropertyDetailsBreadcrumbs({ items }: PropertyDetailsBreadcrumbs
                 </Link>
               ) : (
                 <span
-                  className={`truncate font-medium ${isLast ? "text-slate-700" : "text-slate-500"}`}
+                  aria-current={isLast ? "page" : undefined}
+                  className={`truncate font-medium ${isLast ? "text-sky-600" : "text-slate-500"}`}
                 >
                   {crumb.label}
                 </span>

@@ -3,6 +3,7 @@
 import { RotateCcw, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import CustomDropdown from "@/components/shared/CustomDropdown";
+import { getDropdownFilterStyle } from "@/components/shared/ui/filterWidth";
 import { DEFAULT_USER_FILTERS, PACKAGE_FILTER_OPTIONS, STATUS_FILTER_OPTIONS, isFiltered, type UserFilters } from "./usersShared";
 
 type UsersFilterBarProps = {
@@ -36,8 +37,8 @@ export default function UsersFilterBar({ applied, onApply }: UsersFilterBarProps
 
   return (
     <div className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">
-        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="min-w-0 w-full sm:w-auto sm:min-w-64 sm:flex-1">
           <label htmlFor="users-search" className="mb-1.5 block text-sm font-medium text-slate-700">
             Search
           </label>
@@ -50,12 +51,12 @@ export default function UsersFilterBar({ applied, onApply }: UsersFilterBarProps
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Name or mobile number"
               autoComplete="off"
-              className={fieldClassName}
+              className={`${fieldClassName} focus:border-slate-200/90! focus:ring-0!`}
             />
           </div>
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0" style={getDropdownFilterStyle("Package", PACKAGE_FILTER_OPTIONS)}>
           <CustomDropdown
             id="users-package"
             label="Package"
@@ -67,7 +68,7 @@ export default function UsersFilterBar({ applied, onApply }: UsersFilterBarProps
           />
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0" style={getDropdownFilterStyle("Subscription status", STATUS_FILTER_OPTIONS)}>
           <CustomDropdown
             id="users-status"
             label="Subscription status"
@@ -83,7 +84,7 @@ export default function UsersFilterBar({ applied, onApply }: UsersFilterBarProps
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:col-span-2 lg:col-span-1"
+            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             <RotateCcw className="h-4 w-4" aria-hidden />
             Reset

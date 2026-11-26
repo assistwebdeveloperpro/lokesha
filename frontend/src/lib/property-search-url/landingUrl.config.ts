@@ -14,6 +14,9 @@ export type LandingCategory = keyof typeof LANDING_CATEGORY_SLUGS;
 
 export const LANDING_TRANSACTION_PARAM = "category";
 
+// Fired after the hero rewrites the url with history.replaceState
+export const LANDING_URL_CHANGE_EVENT = "lokesha-landing-url-change";
+
 export const LANDING_TRANSACTION_CODES = {
   buy: "s",
   rent: "r",

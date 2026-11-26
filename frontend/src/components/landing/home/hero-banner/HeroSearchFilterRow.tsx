@@ -134,7 +134,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
             aria-hidden
           />
           <div
-            className={`${BAR_HEIGHT} flex w-full items-center gap-1.5 overflow-hidden bg-white py-2 pl-2 pr-2 scrollbar-none lg:overflow-x-auto lg:pl-10 lg:pr-3 focus-within:bg-slate-50/50 ${
+            className={`${BAR_HEIGHT} flex w-full items-center gap-1.5 overflow-hidden bg-white py-2 pl-2 pr-2 scrollbar-none lg:overflow-x-auto lg:pl-10 lg:pr-3 ${
               isPg ? "rounded-l-[7px]" : ""
             }`}
           >
@@ -185,7 +185,7 @@ export function HeroSearchFilterRow(filters: HeroSearchFilterRowProps) {
               aria-controls="hero-search-hints"
               aria-invalid={searchError !== null}
               aria-describedby={searchError ? "hero-search-error" : undefined}
-              className="h-full min-w-10 flex-1 border-0 bg-transparent px-1 text-xs text-slate-800 lg:min-w-24 lg:px-0 lg:text-sm placeholder:text-slate-400 focus-visible:outline-none"
+              className="h-full min-w-10 flex-1 border-0 bg-transparent px-1 text-xs text-slate-800 lg:min-w-24 lg:px-0 lg:text-sm placeholder:text-slate-400 focus:border-transparent! focus:shadow-none! focus:ring-0! focus-visible:outline-none"
             />
           </div>
           {searchHintsOpen && !searchError && (

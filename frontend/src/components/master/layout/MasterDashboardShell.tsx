@@ -140,7 +140,7 @@ export default function MasterDashboardShell({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider defaultOpen className="h-screen overflow-hidden">
+    <SidebarProvider defaultOpen className="fixed inset-0 min-h-0 overflow-hidden">
       <MasterDashboardShellInner>{children}</MasterDashboardShellInner>
     </SidebarProvider>
   );

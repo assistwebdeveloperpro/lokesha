@@ -1,0 +1,25 @@
+/** @param {import('knex').Knex} knex */
+exports.up = async function up(knex) {
+  await knex.schema.createTable("limelight_projects", (table) => {
+    table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
+    table
+      .uuid("builder_project_id")
+      .notNullable()
+      .unique()
+      .references("id")
+      .inTable("builder_projects")
+      .onDelete("CASCADE");
+    table.integer("sort_order").notNullable();
+    table.uuid("added_by_admin_id").nullable().references("id").inTable("admins").onDelete("SET NULL");
+    table.timestamp("created_at").notNullable().defaultTo(knex.fn.now());
+    table.timestamp("updated_at").notNullable().defaultTo(knex.fn.now());
+    table.index("sort_order");
+  });
+
+  await knex.raw("ALTER TABLE limelight_projects ADD CONSTRAINT limelight_projects_sort_order_check CHECK (sort_order > 0)");
+};
+
+/** @param {import('knex').Knex} knex */
+exports.down = async function down(knex) {
+  await knex.schema.dropTableIfExists("limelight_projects");
+};

@@ -172,7 +172,7 @@ export default function LocationPickerField({ latitude, longitude, onChange }: L
             placeholder="Search society, area, landmark or address"
             aria-label="Search location on map"
             onChange={(event) => setQuery(event.target.value)}
-            className="w-full border-0 border-b border-slate-300 bg-transparent py-2.5 pl-6 pr-8 text-sm font-medium text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-600"
+            className="w-full border-0 border-b border-slate-300 bg-transparent py-2.5 pl-6 pr-8 text-sm font-medium text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-300"
           />
           {searching ? (
             <LoaderCircle

@@ -3,6 +3,7 @@
 import { Download, Loader2, RotateCcw, Search } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import CustomDropdown from "@/components/shared/CustomDropdown";
+import { getDropdownFilterStyle } from "@/components/shared/ui/filterWidth";
 import {
   DEFAULT_TRANSACTION_FILTERS,
   STATUS_FILTER_OPTIONS,
@@ -42,8 +43,8 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div className="min-w-0 sm:col-span-2 md:col-span-3 xl:col-span-1">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="min-w-0 w-full sm:w-auto sm:min-w-72 sm:flex-1">
           <label htmlFor="transactions-search" className="mb-1.5 block text-sm font-medium text-slate-700">
             Search
           </label>
@@ -56,12 +57,12 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
               onChange={(event) => change("search", event.target.value)}
               placeholder="Order no., name, mobile or Razorpay id"
               autoComplete="off"
-              className={`${fieldClassName} pl-10`}
+              className={`${fieldClassName} pl-10 focus:border-slate-200/90! focus:ring-0!`}
             />
           </div>
         </div>
 
-        <div className="min-w-0 sm:col-span-2 md:col-span-1">
+        <div className="min-w-0" style={getDropdownFilterStyle("Status", STATUS_FILTER_OPTIONS)}>
           <CustomDropdown
             id="transactions-status"
             label="Status"
@@ -73,14 +74,14 @@ export default function TransactionsFilterBar({ applied, isLoading, isExporting,
           />
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 w-full sm:w-44">
           <label htmlFor="transactions-from" className="mb-1.5 block text-sm font-medium text-slate-700">
             From
           </label>
           <input id="transactions-from" type="date" value={form.from} max={form.to || undefined} onChange={(event) => change("from", event.target.value)} className={fieldClassName} />
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 w-full sm:w-44">
           <label htmlFor="transactions-to" className="mb-1.5 block text-sm font-medium text-slate-700">
             To
           </label>

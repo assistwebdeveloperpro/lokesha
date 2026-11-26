@@ -2,6 +2,7 @@
 
 import { Filter, Search } from "lucide-react";
 import CustomDropdown from "@/components/shared/CustomDropdown";
+import { getDropdownFilterStyle } from "@/components/shared/ui/filterWidth";
 import { useResetState } from "@/hooks/useResetState";
 import {
   MANAGE_ROLE_FILTER_OPTIONS,
@@ -48,8 +49,8 @@ export default function ManagePropertiesFilterPanel({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
-        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="min-w-0 w-full sm:w-auto sm:min-w-72 sm:flex-1">
           <label htmlFor="manage-filter-project" className="mb-1.5 block text-sm font-medium text-slate-700">
             Project name
           </label>
@@ -64,13 +65,13 @@ export default function ManagePropertiesFilterPanel({
               value={projectName}
               onChange={(event) => setProjectName(event.target.value)}
               placeholder="Search society, building, or project"
-              className={`${fieldClassName} pl-10`}
+              className={`${fieldClassName} pl-10 focus:border-slate-200/90! focus:ring-0!`}
               autoComplete="off"
             />
           </div>
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0" style={getDropdownFilterStyle("Role", MANAGE_ROLE_FILTER_OPTIONS)}>
           <CustomDropdown
             id="manage-filter-role"
             label="Role"
@@ -82,7 +83,7 @@ export default function ManagePropertiesFilterPanel({
           />
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0" style={getDropdownFilterStyle("Status", MANAGE_STATUS_FILTER_OPTIONS)}>
           <CustomDropdown
             id="manage-filter-status"
             label="Status"
@@ -94,7 +95,7 @@ export default function ManagePropertiesFilterPanel({
           />
         </div>
 
-        <div className="sm:col-span-2 lg:col-span-1 lg:flex lg:justify-end">
+        <div className="w-full sm:w-auto">
           <button
             type="submit"
             disabled={isLoading}

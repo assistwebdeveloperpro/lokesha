@@ -7,6 +7,9 @@ type ConfirmDeleteModalProps = {
   title: string;
   children: ReactNode;
   isDeleting: boolean;
+  confirmLabel?: string;
+  pendingLabel?: string;
+  confirmClassName?: string;
   onCancel: () => void;
   onConfirm: () => void;
 };
@@ -15,6 +18,9 @@ export default function ConfirmDeleteModal({
   title,
   children,
   isDeleting,
+  confirmLabel = "Delete",
+  pendingLabel = "Deleting...",
+  confirmClassName = "bg-red-600 hover:bg-red-700",
   onCancel,
   onConfirm,
 }: ConfirmDeleteModalProps) {
@@ -82,9 +88,9 @@ export default function ConfirmDeleteModal({
             type="button"
             disabled={isDeleting}
             onClick={onConfirm}
-            className="min-h-10 cursor-pointer rounded-xl bg-red-600 px-5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`min-h-10 cursor-pointer rounded-xl px-5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${confirmClassName}`}
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? pendingLabel : confirmLabel}
           </button>
         </div>
       </div>

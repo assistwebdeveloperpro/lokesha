@@ -28,7 +28,12 @@ export function PropertySearchListBreadcrumbs({ criteria }: PropertySearchListBr
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="truncate font-medium text-slate-500">{crumb.label}</span>
+                <span
+                  aria-current={isLast ? "page" : undefined}
+                  className={`truncate font-medium ${isLast ? "text-sky-600" : "text-slate-500"}`}
+                >
+                  {crumb.label}
+                </span>
               )}
             </li>
           );

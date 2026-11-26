@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { Building2, LayoutDashboard, Package, Users } from "lucide-react";
+import { Building2, LayoutDashboard, LayoutTemplate, Package, Users } from "lucide-react";
 
 export type MasterDashboardNavChild = {
   label: string;
@@ -29,6 +29,12 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     ],
   },
   { label: "Leads", href: "/backend/leads", icon: Users },
+  {
+    label: "Homepage Management",
+    href: "/backend/landing-page-sections/limelight-projects",
+    icon: LayoutTemplate,
+    children: [{ label: "Limelight Projects", href: "/backend/landing-page-sections/limelight-projects" }],
+  },
   {
     label: "Subscription Manage...",
     href: "/backend/subscription-packages",

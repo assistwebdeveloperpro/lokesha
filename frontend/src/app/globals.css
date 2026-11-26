@@ -409,7 +409,7 @@ body:has(.post-property-page-bg) {
 }
 
 
-input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="button"], [type="submit"]):not([class*="border-red"], [class*="border-b "]):focus,
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="button"], [type="submit"], [type="search"]):not([class*="border-red"], [class*="border-b "], [class*="border-0"]):focus,
 textarea:not([class*="border-red"], [class*="border-b "]):focus {
   border-color: transparent !important;
   box-shadow: 0 0 0 2px var(--color-sky-300) !important;

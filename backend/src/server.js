@@ -36,6 +36,8 @@ const subscriptionReportsRoutes = require("./modules/master/dashboard/subscripti
 const subscriptionActionsRoutes = require("./modules/master/dashboard/subscription-actions/subscription-actions.routes");
 const subscriptionSettingsRoutes = require("./modules/master/dashboard/subscription-settings/subscription-settings.routes");
 const subscriptionInvoicesRoutes = require("./modules/master/dashboard/subscription-invoices/subscription-invoices.routes");
+const limelightProjectsRoutes = require("./modules/landing/limelight-projects/limelight-projects.routes");
+const adminLimelightProjectsRoutes = require("./modules/master/dashboard/limelight-projects/limelight-projects.routes");
 const razorpayWebhookRoutes = require("./modules/landing/razorpay-webhook/razorpay-webhook.routes");
 const { LIMITS } = require("./modules/shared/property/constants/property.constants");
 const { scheduleDraftCleanup } = require("./modules/shared/property/services/property-cleanup.service");
@@ -80,6 +82,7 @@ app.use("/api/property-search", seenPropertyViewRoutes);
 app.use("/api/property-search", propertySearchRoutes);
 app.use("/api/property-requirements", propertyRequirementRoutes);
 app.use("/api/property-contact", propertyContactRoutes);
+app.use("/api/limelight-projects", limelightProjectsRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
 app.use("/api/master/post-property", adminPostPropertyRoutes);
@@ -87,6 +90,7 @@ app.use("/api/master/manage-properties", managePropertiesRoutes);
 app.use("/api/master/property-review", propertyReviewRoutes);
 app.use("/api/master/notifications", adminNotificationsRoutes);
 app.use("/api/master/leads", leadsRoutes);
+app.use("/api/master/limelight-projects", adminLimelightProjectsRoutes);
 app.use("/api/master/subscription/packages", subscriptionPackagesRoutes);
 app.use("/api/master/subscription/users", subscriptionUsersRoutes);
 app.use("/api/master/subscription/transactions", subscriptionTransactionsRoutes);

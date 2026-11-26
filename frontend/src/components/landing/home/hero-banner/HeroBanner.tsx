@@ -21,11 +21,6 @@ export default function HeroBanner(initialSelection: HeroBannerInitialSelection)
         backgroundImage: "url(/assets/images/homepage/hero-banner.png)",
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-slate-900/40"
-        aria-hidden
-      />
-
       <div className="relative mx-auto w-full max-w-5xl">
         <div className="mb-5 text-center sm:mb-6">
           <h1 className="font-display text-2xl font-bold leading-snug text-white drop-shadow-md sm:text-3xl md:text-[2rem]">
