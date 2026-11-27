@@ -47,11 +47,11 @@ export function FeaturedCard({ project, isPriority = false }: FeaturedCardProps)
         {project.possessionDate && <FeaturedPossessionBadge possessionDate={project.possessionDate} />}
       </div>
 
-      <div className="flex flex-1 flex-col justify-between gap-4 px-1 pb-1 pt-4">
+      <div className="flex flex-1 flex-col justify-between gap-4 px-1 md:px-4 pb-1 pt-4">
         <div className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
             <h3 className="font-display truncate text-base font-bold leading-snug md:text-xl text-slate-900">{project.title}</h3>
-            <p className="mt-0.5 truncate text-xs font-medium text-slate-600">by {project.builderName ?? "Lokesha"}</p>
+            <p className="mt-0.5 truncate text-xs font-medium text-slate-500">by {project.builderName ?? "Lokesha"}</p>
           </div>
           <p className="font-display max-w-[45%] shrink-0 truncate text-sm font-bold text-navy-blue md:text-base">
             {formatLimelightPrice(project)}

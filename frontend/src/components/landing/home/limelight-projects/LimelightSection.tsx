@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { LimelightProjectsFilters } from "@/services/limelightProjects.service";
 import { LimelightCard } from "./LimelightCard";
 import { LimelightCardSkeleton } from "./LimelightCardSkeleton";
-import { LimelightSlider } from "./LimelightSlider";
+import { ProjectSlider } from "@/components/shared/ui/ProjectSlider";
 import { useLimelightProjects } from "./useLimelightProjects";
 
 const SKELETON_COUNT = 2;
@@ -60,17 +60,17 @@ export function LimelightSection() {
 
         <div className="mt-3" aria-busy={isLoading}>
           {isLoading ? (
-            <LimelightSlider label={`${SECTION_TITLE} loading`}>
+            <ProjectSlider label={`${SECTION_TITLE} loading`}>
               {Array.from({ length: SKELETON_COUNT }, (_, index) => (
                 <LimelightCardSkeleton key={index} />
               ))}
-            </LimelightSlider>
+            </ProjectSlider>
           ) : (
-            <LimelightSlider label={`${SECTION_TITLE} projects`}>
+            <ProjectSlider label={`${SECTION_TITLE} projects`}>
               {projects.map((project, index) => (
                 <LimelightCard key={project.id} project={project} isPriority={index === 0} />
               ))}
-            </LimelightSlider>
+            </ProjectSlider>
           )}
         </div>
       </div>

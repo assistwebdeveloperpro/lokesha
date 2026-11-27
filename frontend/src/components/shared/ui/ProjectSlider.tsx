@@ -13,7 +13,7 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 
-type LimelightSliderProps = {
+type ProjectSliderProps = {
   label: string;
   children: ReactNode;
   slideClassName?: string;
@@ -26,7 +26,7 @@ const DRAG_THRESHOLD = 5;
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function LimelightSlider({ label, children, slideClassName }: LimelightSliderProps) {
+export function ProjectSlider({ label, children, slideClassName }: ProjectSliderProps) {
   const trackRef = useRef<HTMLUListElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);

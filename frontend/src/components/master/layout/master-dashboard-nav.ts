@@ -36,6 +36,7 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     children: [
       { label: "Limelight Projects", href: "/backend/landing-page-sections/limelight-projects" },
       { label: "Featured Projects", href: "/backend/landing-page-sections/featured-projects" },
+      { label: "Iconic Projects", href: "/backend/landing-page-sections/iconic-projects" },
     ],
   },
   {

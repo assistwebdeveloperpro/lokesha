@@ -13,11 +13,14 @@ export function LimelightCardSkeleton() {
             <div className="h-6 w-32 rounded bg-slate-300" />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {Array.from({ length: 4 }, (_, index) => (
-              <div key={index} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-                <div className="h-9 w-9 shrink-0 rounded-xl bg-slate-200" />
-                <div className="flex-1 space-y-2">
+              <div
+                key={index}
+                className="flex flex-col items-start gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-row sm:items-center sm:gap-3 sm:p-3"
+              >
+                <div className="h-8 w-8 shrink-0 rounded-xl bg-slate-200 sm:h-9 sm:w-9" />
+                <div className="w-full flex-1 space-y-2">
                   <div className="h-3 w-16 rounded bg-slate-200" />
                   <div className="h-4 w-20 rounded bg-slate-300" />
                 </div>

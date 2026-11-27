@@ -40,7 +40,9 @@ const limelightProjectsRoutes = require("./modules/landing/limelight-projects/li
 const adminLimelightProjectsRoutes = require("./modules/master/dashboard/limelight-projects/limelight-projects.routes");
 const featuredProjectsRoutes = require("./modules/landing/featured-projects/featured-projects.routes");
 const adminFeaturedProjectsRoutes = require("./modules/master/dashboard/featured-projects/featured-projects.routes");
-const razorpayWebhookRoutes = require("./modules/landing/razorpay-webhook/razorpay-webhook.routes");
+const iconicProjectsRoutes = require("./modules/landing/iconic-projects/iconic-projects.routes");
+const adminIconicProjectsRoutes = require("./modules/master/dashboard/iconic-projects/iconic-projects.routes");
+const razorpayWebhookRoutes =require("./modules/landing/razorpay-webhook/razorpay-webhook.routes");
 const { LIMITS } = require("./modules/shared/property/constants/property.constants");
 const { scheduleDraftCleanup } = require("./modules/shared/property/services/property-cleanup.service");
 const { scheduleSubscriptionJobs } = require("./modules/shared/subscription/services/subscription-jobs.service");
@@ -86,6 +88,7 @@ app.use("/api/property-requirements", propertyRequirementRoutes);
 app.use("/api/property-contact", propertyContactRoutes);
 app.use("/api/limelight-projects", limelightProjectsRoutes);
 app.use("/api/featured-projects", featuredProjectsRoutes);
+app.use("/api/iconic-projects", iconicProjectsRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
 app.use("/api/master/post-property", adminPostPropertyRoutes);
@@ -95,6 +98,7 @@ app.use("/api/master/notifications", adminNotificationsRoutes);
 app.use("/api/master/leads", leadsRoutes);
 app.use("/api/master/limelight-projects", adminLimelightProjectsRoutes);
 app.use("/api/master/featured-projects", adminFeaturedProjectsRoutes);
+app.use("/api/master/iconic-projects", adminIconicProjectsRoutes);
 app.use("/api/master/subscription/packages", subscriptionPackagesRoutes);
 app.use("/api/master/subscription/users", subscriptionUsersRoutes);
 app.use("/api/master/subscription/transactions", subscriptionTransactionsRoutes);

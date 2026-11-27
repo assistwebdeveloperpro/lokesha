@@ -4,7 +4,7 @@ import { ArrowRight, Star } from "lucide-react";
 import Link from "next/link";
 import { fetchAllFeaturedProjects } from "@/services/featuredProjects.service";
 import type { LimelightProjectsFilters } from "@/services/limelightProjects.service";
-import { LimelightSlider } from "../limelight-projects/LimelightSlider";
+import { ProjectSlider } from "@/components/shared/ui/ProjectSlider";
 import { useSelectedProjects } from "../limelight-projects/useLimelightProjects";
 import { FeaturedCard } from "./FeaturedCard";
 import { FeaturedCardSkeleton } from "./FeaturedCardSkeleton";
@@ -54,17 +54,17 @@ export function FeaturedSection() {
 
         <div className="mt-3" aria-busy={isLoading}>
           {isLoading ? (
-            <LimelightSlider label={`${SECTION_TITLE} loading`} slideClassName={SLIDE_CLASS_NAME}>
+            <ProjectSlider label={`${SECTION_TITLE} loading`} slideClassName={SLIDE_CLASS_NAME}>
               {Array.from({ length: SKELETON_COUNT }, (_, index) => (
                 <FeaturedCardSkeleton key={index} />
               ))}
-            </LimelightSlider>
+            </ProjectSlider>
           ) : (
-            <LimelightSlider label={`${SECTION_TITLE} projects`} slideClassName={SLIDE_CLASS_NAME}>
+            <ProjectSlider label={`${SECTION_TITLE} projects`} slideClassName={SLIDE_CLASS_NAME}>
               {projects.map((project, index) => (
                 <FeaturedCard key={project.id} project={project} isPriority={index === 0} />
               ))}
-            </LimelightSlider>
+            </ProjectSlider>
           )}
         </div>
       </div>

@@ -72,20 +72,27 @@ export function LimelightCard({ project, isPriority = false }: LimelightCardProp
             </p>
           </div>
 
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <dl className="grid grid-cols-2 gap-2 sm:gap-3">
             {buildLimelightDetails(project).map(({ label, value }) => {
               const Icon = DETAIL_ICONS[label] ?? Building2;
               return (
-                <div key={label} className="flex min-w-0 items-center gap-3 rounded-2xl bg-slate-50 p-3">
+                <div
+                  key={label}
+                  className="flex min-w-0 flex-col items-start gap-2 rounded-2xl border border-slate-100 bg-linear-to-br from-slate-50 to-sky-50/60 p-2.5 sm:flex-row sm:items-center sm:gap-3 sm:p-3"
+                >
                   <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-navy-blue shadow-sm"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-navy-blue shadow-sm ring-1 ring-sky-100 sm:h-9 sm:w-9"
                     aria-hidden
                   >
                     <Icon className="h-4 w-4" />
                   </span>
-                  <div className="min-w-0">
-                    <dt className="text-sm font-medium text-slate-700">{label}</dt>
-                    <dd className="mt-1.5 truncate text-sm font-semibold text-slate-900">{value}</dd>
+                  <div className="min-w-0 max-w-full">
+                    <dt className="text-[11px] font-medium uppercase tracking-wide text-slate-500 sm:text-sm sm:normal-case sm:tracking-normal sm:text-slate-700">
+                      {label}
+                    </dt>
+                    <dd className="mt-0.5 line-clamp-2 wrap-break-word text-[13px] font-semibold leading-snug text-slate-900 sm:mt-1.5 sm:truncate sm:text-sm">
+                      {value}
+                    </dd>
                   </div>
                 </div>
               );

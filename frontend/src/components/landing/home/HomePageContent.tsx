@@ -3,6 +3,7 @@ import LocationAutoDetect from "@/components/shared/layout/city-selector/Locatio
 import HeroBanner from "./hero-banner/HeroBanner";
 import type { HeroBannerInitialSelection } from "./hero-banner/useHeroBannerFilters";
 import { FeaturedSection } from "./featured-projects/FeaturedSection";
+import { IconicSection } from "./iconic-projects/IconicSection";
 import { LimelightSection } from "./limelight-projects/LimelightSection";
 
 export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
@@ -13,6 +14,7 @@ export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
         <HeroBanner {...initialSelection} />
         <LimelightSection />
         <FeaturedSection />
+        <IconicSection />
       </main>
       <LocationAutoDetect />
     </div>
