@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { RecentSearchesSync } from "@/components/landing/recent-searches/RecentSearchesSync";
 import { SeenHistorySync } from "@/components/landing/seen-properties/SeenHistorySync";
@@ -46,6 +46,11 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [DEFAULT_OG_IMAGE_PATH],
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

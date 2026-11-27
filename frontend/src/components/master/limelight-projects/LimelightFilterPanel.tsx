@@ -4,11 +4,7 @@ import { Filter, RotateCcw, Search } from "lucide-react";
 import type { FormEvent } from "react";
 import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
 import { getDropdownFilterStyle } from "@/components/shared/ui/filterWidth";
-import {
-  POSSESSION_OPTIONS,
-  PROPERTY_TYPE_OPTIONS,
-  type LimelightFilters,
-} from "./limelightShared";
+import { POSSESSION_OPTIONS, type LimelightFilters } from "./limelightShared";
 
 type LimelightFilterPanelProps = {
   filters: LimelightFilters;
@@ -19,7 +15,7 @@ type LimelightFilterPanelProps = {
 };
 
 type TextKey = "keyword" | "city" | "locality";
-type SelectKey = "propertyType" | "possessionStatus";
+type SelectKey = "possessionStatus";
 
 const inputClassName =
   "w-full min-h-11 rounded-xl border border-slate-200/90 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition placeholder:font-normal placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20";
@@ -31,7 +27,6 @@ const TEXT_FIELDS: { key: TextKey; label: string; placeholder: string }[] = [
 ];
 
 const SELECT_FIELDS: { key: SelectKey; label: string; options: DropdownOption[] }[] = [
-  { key: "propertyType", label: "Property type", options: PROPERTY_TYPE_OPTIONS },
   { key: "possessionStatus", label: "Possession status", options: POSSESSION_OPTIONS },
 ];
 

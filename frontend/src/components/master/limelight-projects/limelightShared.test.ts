@@ -29,7 +29,6 @@ describe("toSearchQuery", () => {
       city: undefined,
       locality: undefined,
       builder: undefined,
-      propertyType: undefined,
       bhk: undefined,
       priceMin: undefined,
       priceMax: undefined,

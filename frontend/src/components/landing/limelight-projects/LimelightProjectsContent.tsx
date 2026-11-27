@@ -196,7 +196,7 @@ export function LimelightProjectsContent({ filters }: { filters: LimelightProjec
     if (filters.listingType) params.set("listingType", filters.listingType);
     if (filters.category) params.set("category", filters.category);
     params.set("city", nextCity);
-    router.replace(`/limelight-projects?${params}`, { scroll: false });
+    router.replace(`/property/limelight-projects?${params}`, { scroll: false });
   };
 
   // Keyed by city so a new city never shows the previous city's projects or page number

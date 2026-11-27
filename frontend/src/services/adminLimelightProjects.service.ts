@@ -30,7 +30,6 @@ export type LimelightSearchQuery = {
   city?: string;
   locality?: string;
   builder?: string;
-  propertyType?: string;
   bhk?: string;
   priceMin?: string;
   priceMax?: string;

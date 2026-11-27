@@ -13,7 +13,6 @@ export type LimelightFilters = {
   city: string;
   locality: string;
   builder: string;
-  propertyType: string;
   bhk: string;
   priceMin: string;
   priceMax: string;
@@ -26,22 +25,12 @@ export const DEFAULT_LIMELIGHT_FILTERS: LimelightFilters = {
   city: "",
   locality: "",
   builder: "",
-  propertyType: ALL,
   bhk: ALL,
   priceMin: "",
   priceMax: "",
   possessionStatus: ALL,
   listedBy: ALL,
 };
-
-export const PROPERTY_TYPE_OPTIONS: DropdownOption[] = [
-  { value: ALL, label: "All" },
-  { value: "residential", label: "Residential" },
-  { value: "commercial", label: "Commercial" },
-  { value: "pg-co-living", label: "PG / Co-living" },
-  { value: "plot", label: "Plot" },
-  { value: "land", label: "Land" },
-];
 
 export const BHK_OPTIONS: DropdownOption[] = [
   { value: ALL, label: "All" },
@@ -73,7 +62,6 @@ export function toSearchQuery(filters: LimelightFilters, page: number): Limeligh
     city: emptyToUndefined(filters.city),
     locality: emptyToUndefined(filters.locality),
     builder: emptyToUndefined(filters.builder),
-    propertyType: allToUndefined(filters.propertyType),
     bhk: allToUndefined(filters.bhk),
     priceMin: toLacRupees(filters.priceMin),
     priceMax: toLacRupees(filters.priceMax),

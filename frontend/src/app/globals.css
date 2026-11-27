@@ -14,11 +14,8 @@
   --color-navy-sidebar-active-ring: rgba(148, 163, 184, 0.22);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {

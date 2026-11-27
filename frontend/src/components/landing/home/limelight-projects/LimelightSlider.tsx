@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type PointerEvent,
   type ReactNode,
 } from "react";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,8 @@ type LimelightSliderProps = {
 const arrowClassName =
   "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 opacity-0 shadow-lg transition hover:bg-slate-50 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-navy-blue group-hover/slider:enabled:opacity-100 disabled:pointer-events-none md:flex";
 
+const DRAG_THRESHOLD = 5;
+
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function LimelightSlider({ label, children }: LimelightSliderProps) {
@@ -27,6 +30,8 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const dragRef = useRef<{ startX: number; startScroll: number; active: boolean } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const slides = Children.toArray(children);
 
   const getStride = useCallback(() => {
@@ -65,6 +70,30 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
     [getStride, slides.length],
   );
 
+  const handlePointerDown = (event: PointerEvent<HTMLUListElement>) => {
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+    dragRef.current = { startX: event.clientX, startScroll: event.currentTarget.scrollLeft, active: false };
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLUListElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+
+    const delta = event.clientX - drag.startX;
+    if (!drag.active) {
+      if (Math.abs(delta) < DRAG_THRESHOLD) return;
+      drag.active = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setIsDragging(true);
+    }
+    event.currentTarget.scrollLeft = drag.startScroll - delta;
+  };
+
+  const endDrag = () => {
+    dragRef.current = null;
+    setIsDragging(false);
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
 
@@ -78,7 +107,17 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
         <ul
           ref={trackRef}
           onScroll={syncPosition}
-          className="flex snap-x snap-mandatory scroll-px-2 gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-2 py-3 scrollbar-none motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onDragStart={(event) => event.preventDefault()}
+          className={cn(
+            "flex scroll-px-2 gap-4 overflow-x-auto overscroll-x-contain px-2 py-3 scrollbar-none motion-reduce:scroll-auto [&::-webkit-scrollbar]:hidden",
+            isDragging
+              ? "cursor-grabbing select-none"
+              : "cursor-grab snap-x snap-mandatory scroll-smooth",
+          )}
         >
           {slides.map((slide, index) => (
             <li
@@ -98,7 +137,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
         <div
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-y-0 right-0 z-5 w-12 bg-linear-to-l from-white via-white/80 to-transparent transition-opacity sm:w-20",
+            "pointer-events-none absolute inset-y-0 right-0 z-5 hidden w-20 bg-linear-to-l from-white via-white/80 to-transparent transition-opacity sm:block",
             canScrollNext ? "opacity-100" : "opacity-0",
           )}
         />

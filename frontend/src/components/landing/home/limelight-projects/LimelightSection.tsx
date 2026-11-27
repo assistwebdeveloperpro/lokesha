@@ -17,7 +17,9 @@ function buildViewAllHref({ listingType, category, city }: LimelightProjectsFilt
   if (category) params.set("category", category);
   if (city) params.set("city", city);
   const query = params.toString();
-  return query ? `/limelight-projects?${query}` : "/limelight-projects";
+  return query
+    ? `/property/limelight-projects?${query}`
+    : "/property/limelight-projects";
 }
 
 function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {

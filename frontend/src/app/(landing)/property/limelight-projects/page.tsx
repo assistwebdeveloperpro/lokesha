@@ -13,7 +13,7 @@ export const metadata: Metadata = buildPageMetadata({
   ogTitle: "Limelight Projects",
   description:
     "Explore the best builder projects handpicked on Lokesha. Experience the best of living and find your place with us.",
-  path: "/limelight-projects",
+  path: "/property/limelight-projects",
 });
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
