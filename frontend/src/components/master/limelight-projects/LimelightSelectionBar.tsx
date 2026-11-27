@@ -2,12 +2,19 @@ import { pluralizeProjects } from "./limelightShared";
 
 type LimelightSelectionBarProps = {
   count: number;
+  addLabel: string;
   isAdding: boolean;
   onAdd: () => void;
   onClear: () => void;
 };
 
-export default function LimelightSelectionBar({ count, isAdding, onAdd, onClear }: LimelightSelectionBarProps) {
+export default function LimelightSelectionBar({
+  count,
+  addLabel,
+  isAdding,
+  onAdd,
+  onClear,
+}: LimelightSelectionBarProps) {
   if (count === 0) return null;
 
   return (
@@ -34,7 +41,7 @@ export default function LimelightSelectionBar({ count, isAdding, onAdd, onClear 
           disabled={isAdding}
           className="bg-linear-to-r-navy-blue min-h-10 cursor-pointer rounded-xl px-5 text-sm font-semibold text-white shadow-md transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Add to Limelight
+          {addLabel}
         </button>
       </div>
     </div>

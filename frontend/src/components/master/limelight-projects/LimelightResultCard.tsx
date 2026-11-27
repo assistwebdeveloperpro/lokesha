@@ -65,7 +65,7 @@ export default function LimelightResultCard({ project, isSelected, onToggle }: L
           <h3 className="font-display truncate text-base font-bold text-slate-900">{project.projectName}</h3>
           <p className="truncate text-sm text-slate-600">{project.builderName ?? "Builder not available"}</p>
           <p className="flex items-center gap-1.5 text-sm text-slate-500">
-            <MapPin className="h-4 w-4 shrink-0 text-red-500" aria-hidden />
+            <MapPin className="h-4 w-4 shrink-0 text-sky-500" aria-hidden />
             <span className="truncate">{formatProjectLocation(project)}</span>
           </p>
           <div className="mt-auto flex items-center justify-between gap-3 pt-2">

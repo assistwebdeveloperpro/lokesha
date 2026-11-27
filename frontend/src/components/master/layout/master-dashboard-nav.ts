@@ -33,7 +33,10 @@ export const masterDashboardNavItems: MasterDashboardNavItem[] = [
     label: "Homepage Management",
     href: "/backend/landing-page-sections/limelight-projects",
     icon: LayoutTemplate,
-    children: [{ label: "Limelight Projects", href: "/backend/landing-page-sections/limelight-projects" }],
+    children: [
+      { label: "Limelight Projects", href: "/backend/landing-page-sections/limelight-projects" },
+      { label: "Featured Projects", href: "/backend/landing-page-sections/featured-projects" },
+    ],
   },
   {
     label: "Subscription Manage...",

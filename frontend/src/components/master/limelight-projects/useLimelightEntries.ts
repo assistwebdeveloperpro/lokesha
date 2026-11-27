@@ -2,17 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/shared/ui/ToastProvider";
-import {
-  fetchLimelightEntries,
-  removeLimelightProject,
-  saveLimelightOrder,
-  type LimelightEntry,
-} from "@/services/adminLimelightProjects.service";
+import type { LimelightEntry } from "@/services/adminLimelightProjects.service";
 import { ApiError } from "@/services/apiClient";
 import { moveItem } from "./limelightShared";
+import type { ProjectSelectionConfig } from "./projectSelectionConfig";
 import { useAdminRequest } from "./useAdminRequest";
 
-const LOAD_ERROR = "We could not load the Limelight projects. Please try again.";
 const SAVE_ERROR = "We could not save the order. Please try again.";
 const REMOVE_ERROR = "We could not remove the project. Please try again.";
 
@@ -21,7 +16,8 @@ const errorMessage = (failure: unknown, fallback: string) =>
 
 const toIds = (entries: LimelightEntry[]) => entries.map((entry) => entry.projectId);
 
-export function useLimelightEntries(refreshKey: number, onRemoved: () => void) {
+export function useLimelightEntries(config: ProjectSelectionConfig, refreshKey: number, onRemoved: () => void) {
+  const { name, api } = config;
   const { showToast } = useToast();
   const runRequest = useAdminRequest();
   const [saved, setSaved] = useState<LimelightEntry[]>([]);
@@ -35,7 +31,7 @@ export function useLimelightEntries(refreshKey: number, onRemoved: () => void) {
   useEffect(() => {
     let cancelled = false;
 
-    runRequest((token) => fetchLimelightEntries(token))
+    runRequest((token) => api.fetchEntries(token))
       .then((response) => {
         if (cancelled || !response) return;
         setSaved(response.items);
@@ -43,7 +39,7 @@ export function useLimelightEntries(refreshKey: number, onRemoved: () => void) {
         setError("");
       })
       .catch(() => {
-        if (!cancelled) setError(LOAD_ERROR);
+        if (!cancelled) setError(`We could not load the ${name} projects. Please try again.`);
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -52,7 +48,7 @@ export function useLimelightEntries(refreshKey: number, onRemoved: () => void) {
     return () => {
       cancelled = true;
     };
-  }, [reloadToken, refreshKey, runRequest]);
+  }, [api, name, reloadToken, refreshKey, runRequest]);
 
   const reload = useCallback(() => setReloadToken((current) => current + 1), []);
 
@@ -65,11 +61,11 @@ export function useLimelightEntries(refreshKey: number, onRemoved: () => void) {
 
     setIsSaving(true);
     try {
-      const done = await runRequest((token) => saveLimelightOrder(toIds(entries), token));
+      const done = await runRequest((token) => api.saveOrder(toIds(entries), token));
       if (done === undefined) return;
 
       setSaved(entries);
-      showToast("Limelight order saved");
+      showToast(`${name} order saved`);
     } catch (failure: unknown) {
       showToast(errorMessage(failure, SAVE_ERROR), "error");
       if (failure instanceof ApiError && failure.status === 409) reload();
@@ -83,13 +79,13 @@ export function useLimelightEntries(refreshKey: number, onRemoved: () => void) {
 
     setIsRemoving(true);
     try {
-      const done = await runRequest((token) => removeLimelightProject(projectId, token));
+      const done = await runRequest((token) => api.removeProject(projectId, token));
       if (done === undefined) return false;
 
       const withoutProject = (items: LimelightEntry[]) => items.filter((item) => item.projectId !== projectId);
       setSaved(withoutProject);
       setEntries(withoutProject);
-      showToast("Project removed from Limelight");
+      showToast(`Project removed from ${name}`);
       onRemoved();
       return true;
     } catch (failure: unknown) {

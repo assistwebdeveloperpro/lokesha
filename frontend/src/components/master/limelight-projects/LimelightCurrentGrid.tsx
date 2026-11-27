@@ -1,19 +1,22 @@
 "use client";
 
-import { Save, Sparkles } from "lucide-react";
+import { Save } from "lucide-react";
 import type { LimelightEntry } from "@/services/adminLimelightProjects.service";
 import LimelightCurrentCard from "./LimelightCurrentCard";
 import { LIMELIGHT_GRID_CLASS, LimelightEntriesSkeleton } from "./LimelightSkeletons";
 import { pluralizeProjects } from "./limelightShared";
+import type { ProjectSelectionConfig } from "./projectSelectionConfig";
 import type { useLimelightEntries } from "./useLimelightEntries";
 
 type LimelightCurrentGridProps = {
+  config: ProjectSelectionConfig;
   entriesState: ReturnType<typeof useLimelightEntries>;
   onRequestRemove: (entry: LimelightEntry) => void;
 };
 
-export default function LimelightCurrentGrid({ entriesState, onRequestRemove }: LimelightCurrentGridProps) {
+export default function LimelightCurrentGrid({ config, entriesState, onRequestRemove }: LimelightCurrentGridProps) {
   const { entries, isLoading, error, isSaving, isOrderChanged, move, saveOrder, reload } = entriesState;
+  const { name, currentTitle, icon: Icon } = config;
 
   return (
     <section
@@ -23,11 +26,11 @@ export default function LimelightCurrentGrid({ entriesState, onRequestRemove }: 
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 border-l-4 border-l-sky-500 bg-white px-4 py-4 sm:px-6">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
-            <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           </span>
           <div className="min-w-0">
             <h2 id="limelight-current-heading" className="font-display text-base font-bold text-slate-800 lg:text-lg">
-              Currently In Limelight
+              {currentTitle}
             </h2>
             <p className="text-sm text-slate-500">Use the arrows on each card to set the display order</p>
           </div>
@@ -36,7 +39,7 @@ export default function LimelightCurrentGrid({ entriesState, onRequestRemove }: 
         <div className="flex items-center gap-3">
           {!isLoading && !error ? (
             <span className="inline-flex items-center rounded-full bg-sky-50 px-3.5 py-1.5 text-sm font-semibold text-sky-700 ring-1 ring-sky-200">
-              {pluralizeProjects(entries.length)} in Limelight
+              {pluralizeProjects(entries.length)} in {name}
             </span>
           ) : null}
           <button
@@ -69,7 +72,7 @@ export default function LimelightCurrentGrid({ entriesState, onRequestRemove }: 
           </div>
         ) : entries.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-sm text-slate-500">
-            No projects in Limelight yet. Use the filters above to find and add projects.
+            No projects in {name} yet. Use the filters above to find and add projects.
           </div>
         ) : (
           <ul className={LIMELIGHT_GRID_CLASS}>

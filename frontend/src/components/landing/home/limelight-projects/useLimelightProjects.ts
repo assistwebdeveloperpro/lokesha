@@ -17,8 +17,15 @@ type LimelightResult = {
 const LIMELIGHT_LISTING_TYPE = "sale";
 const LIMELIGHT_CATEGORY = "residential";
 
+type FetchAllProjects = (
+  filters: LimelightProjectsFilters,
+  signal: AbortSignal,
+) => Promise<LimelightProject[]>;
+
+export const useLimelightProjects = () => useSelectedProjects(fetchAllLimelightProjects);
+
 // Failures only hide the section, so the rest of the landing page is never affected
-export function useLimelightProjects() {
+export function useSelectedProjects(fetchAll: FetchAllProjects) {
   const criteria = useLandingUrlCriteria();
   const isVisible =
     criteria?.category === "residential-real-estate" &&
@@ -31,19 +38,16 @@ export function useLimelightProjects() {
     if (!isVisible) return;
     const controller = new AbortController();
 
-    fetchAllLimelightProjects(
-      { listingType: LIMELIGHT_LISTING_TYPE, category: LIMELIGHT_CATEGORY, city },
-      controller.signal,
-    )
+    fetchAll({ listingType: LIMELIGHT_LISTING_TYPE, category: LIMELIGHT_CATEGORY, city }, controller.signal)
       .then((projects) => setResult({ key: requestKey, projects }))
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        console.error("Unable to load limelight projects", error);
+        console.error("Unable to load landing projects", error);
         setResult({ key: requestKey, projects: [] });
       });
 
     return () => controller.abort();
-  }, [isVisible, city, requestKey]);
+  }, [fetchAll, isVisible, city, requestKey]);
 
   const isCurrent = result?.key === requestKey;
   const filters: LimelightProjectsFilters = {

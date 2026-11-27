@@ -33,7 +33,7 @@ export function LimelightCard({ project, isPriority = false }: LimelightCardProp
     <Link
       href={buildLimelightDetailsHref(project)}
       aria-label={`View details of ${project.title}`}
-      className="group block h-full rounded-3xl border border-slate-200 bg-white p-3 transition duration-300 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="group block h-full rounded-3xl border border-slate-200 bg-white p-3 transition duration-300 hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-blue motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       <article className="flex h-full flex-col gap-3 md:flex-row md:gap-4">
         <div className="relative aspect-16/10 w-full shrink-0 overflow-hidden rounded-2xl bg-slate-100 md:aspect-auto md:min-h-96 md:w-[40%]">
@@ -57,17 +57,17 @@ export function LimelightCard({ project, isPriority = false }: LimelightCardProp
         <div className="flex min-w-0 flex-1 flex-col justify-between gap-5 px-1 pb-1 md:py-3 md:pr-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <h3 className="font-display line-clamp-2 text-xl font-bold leading-snug text-slate-900">
+              <h3 className="font-display line-clamp-2 text-base font-bold sm:text-xl leading-snug text-slate-900">
                 {project.title}
               </h3>
               {location ? (
                 <p className="mt-1.5 flex items-center gap-1.5 text-sm text-slate-500">
-                  <MapPin className="h-4 w-4 shrink-0 text-red-500" aria-hidden />
+                  <MapPin className="h-4 w-4 shrink-0 text-sky-500" aria-hidden />
                   <span className="truncate">{location}</span>
                 </p>
               ) : null}
             </div>
-            <p className="font-display shrink-0 text-lg font-bold text-navy-blue sm:text-right">
+            <p className="font-display shrink-0 text-base font-bold text-navy-blue sm:text-lg sm:text-right">
               {formatLimelightPrice(project)}
             </p>
           </div>

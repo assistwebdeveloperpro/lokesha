@@ -11,38 +11,46 @@ function publishedProperties(filters = {}) {
   return query;
 }
 
-// Entries whose project still has a matching published property, in the admin-set order
-function visibleEntries(filters) {
-  return db("limelight_projects as lp")
-    .join("builder_projects as bp", "bp.id", "lp.builder_project_id")
-    .whereExists(publishedProperties(filters).whereRaw("p.builder_project_id = bp.id"));
+// One repository per selection table, so Limelight and Featured projects share the same queries
+function createProjectSelectionRepository(table) {
+  // Entries whose project still has a matching published property, in the admin-set order
+  function visibleEntries(filters) {
+    return db(`${table} as sp`)
+      .join("builder_projects as bp", "bp.id", "sp.builder_project_id")
+      .whereExists(publishedProperties(filters).whereRaw("p.builder_project_id = bp.id"));
+  }
+
+  async function findVisibleEntries({ limit, offset }, filters) {
+    const query = visibleEntries(filters)
+      .select("sp.builder_project_id", "bp.project_area_acres")
+      .orderBy("sp.sort_order", "asc")
+      .orderBy("sp.created_at", "asc");
+
+    if (limit !== undefined) query.limit(limit).offset(offset);
+    return query;
+  }
+
+  async function countVisibleEntries(filters) {
+    const [{ count }] = await visibleEntries(filters).count({ count: "*" });
+    return Number(count);
+  }
+
+  // One matching published property per project, used to build the project card
+  async function findRepresentativeProperties(projectIds, filters) {
+    if (!projectIds.length) return [];
+
+    return publishedProperties(filters)
+      .whereIn("p.builder_project_id", projectIds)
+      .distinctOn("p.builder_project_id")
+      .select("p.id", "p.property_type", "p.builder_project_id")
+      .orderBy("p.builder_project_id")
+      .orderBy("p.listing_number", "asc");
+  }
+
+  return { findVisibleEntries, countVisibleEntries, findRepresentativeProperties };
 }
 
-async function findVisibleEntries({ limit, offset }, filters) {
-  const query = visibleEntries(filters)
-    .select("lp.builder_project_id", "bp.project_area_acres")
-    .orderBy("lp.sort_order", "asc")
-    .orderBy("lp.created_at", "asc");
-
-  if (limit !== undefined) query.limit(limit).offset(offset);
-  return query;
-}
-
-async function countVisibleEntries(filters) {
-  const [{ count }] = await visibleEntries(filters).count({ count: "*" });
-  return Number(count);
-}
-
-// One matching published property per project, used to build the project card
-async function findRepresentativeProperties(projectIds, filters) {
-  if (!projectIds.length) return [];
-
-  return publishedProperties(filters)
-    .whereIn("p.builder_project_id", projectIds)
-    .distinctOn("p.builder_project_id")
-    .select("p.id", "p.property_type", "p.builder_project_id")
-    .orderBy("p.builder_project_id")
-    .orderBy("p.listing_number", "asc");
-}
-
-module.exports = { findVisibleEntries, countVisibleEntries, findRepresentativeProperties };
+module.exports = {
+  ...createProjectSelectionRepository("limelight_projects"),
+  createProjectSelectionRepository,
+};

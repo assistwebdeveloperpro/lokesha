@@ -58,48 +58,58 @@ const withImage = <T extends LimelightProjectSummary>(project: T): T => ({
   mainImage: project.mainImage ? getAssetUrl(project.mainImage) : null,
 });
 
-export async function searchLimelightProjects(query: LimelightSearchQuery, token: string) {
-  const params = new URLSearchParams();
-  Object.entries(query).forEach(([key, value]) => {
-    if (value !== undefined && value !== "") params.set(key, String(value));
-  });
+// One client per selection section, since Limelight and Featured share the same admin endpoints
+function createProjectSelectionApi(basePath: string) {
+  return {
+    async search(query: LimelightSearchQuery, token: string) {
+      const params = new URLSearchParams();
+      Object.entries(query).forEach(([key, value]) => {
+        if (value !== undefined && value !== "") params.set(key, String(value));
+      });
 
-  const response = await apiFetch<LimelightSearchResponse>(
-    `/master/limelight-projects/search?${params}`,
-    { method: "GET", headers: authHeaders(token) },
-  );
+      const response = await apiFetch<LimelightSearchResponse>(`${basePath}/search?${params}`, {
+        method: "GET",
+        headers: authHeaders(token),
+      });
 
-  return { ...response, items: response.items.map(withImage) };
+      return { ...response, items: response.items.map(withImage) };
+    },
+
+    async fetchEntries(token: string) {
+      const response = await apiFetch<LimelightEntriesResponse>(basePath, {
+        method: "GET",
+        headers: authHeaders(token),
+      });
+
+      return { ...response, items: response.items.map(withImage) };
+    },
+
+    addProjects(projectIds: string[], token: string) {
+      return apiFetch<AddLimelightResult>(basePath, {
+        method: "POST",
+        headers: authHeaders(token),
+        body: { projectIds },
+      });
+    },
+
+    removeProject(projectId: string, token: string) {
+      return apiFetch<null>(`${basePath}/${projectId}`, {
+        method: "DELETE",
+        headers: authHeaders(token),
+      });
+    },
+
+    saveOrder(projectIds: string[], token: string) {
+      return apiFetch<null>(`${basePath}/order`, {
+        method: "PUT",
+        headers: authHeaders(token),
+        body: { projectIds },
+      });
+    },
+  };
 }
 
-export async function fetchLimelightEntries(token: string) {
-  const response = await apiFetch<LimelightEntriesResponse>("/master/limelight-projects", {
-    method: "GET",
-    headers: authHeaders(token),
-  });
+export type ProjectSelectionApi = ReturnType<typeof createProjectSelectionApi>;
 
-  return { ...response, items: response.items.map(withImage) };
-}
-
-export function addLimelightProjects(projectIds: string[], token: string) {
-  return apiFetch<AddLimelightResult>("/master/limelight-projects", {
-    method: "POST",
-    headers: authHeaders(token),
-    body: { projectIds },
-  });
-}
-
-export function removeLimelightProject(projectId: string, token: string) {
-  return apiFetch<null>(`/master/limelight-projects/${projectId}`, {
-    method: "DELETE",
-    headers: authHeaders(token),
-  });
-}
-
-export function saveLimelightOrder(projectIds: string[], token: string) {
-  return apiFetch<null>("/master/limelight-projects/order", {
-    method: "PUT",
-    headers: authHeaders(token),
-    body: { projectIds },
-  });
-}
+export const limelightProjectsApi = createProjectSelectionApi("/master/limelight-projects");
+export const featuredProjectsApi = createProjectSelectionApi("/master/featured-projects");

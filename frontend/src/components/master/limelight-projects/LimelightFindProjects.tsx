@@ -7,14 +7,16 @@ import LimelightResultCard from "./LimelightResultCard";
 import LimelightSelectionBar from "./LimelightSelectionBar";
 import { LIMELIGHT_GRID_CLASS, LimelightResultsSkeleton } from "./LimelightSkeletons";
 import { LIMELIGHT_SEARCH_PAGE_SIZE } from "./limelightShared";
+import type { ProjectSelectionConfig } from "./projectSelectionConfig";
 import type { useLimelightSearch } from "./useLimelightSearch";
 
 type LimelightFindProjectsProps = {
+  config: ProjectSelectionConfig;
   search: ReturnType<typeof useLimelightSearch>;
   onRequestAdd: () => void;
 };
 
-export default function LimelightFindProjects({ search, onRequestAdd }: LimelightFindProjectsProps) {
+export default function LimelightFindProjects({ config, search, onRequestAdd }: LimelightFindProjectsProps) {
   const {
     draft,
     setDraft,
@@ -34,6 +36,7 @@ export default function LimelightFindProjects({ search, onRequestAdd }: Limeligh
       <LimelightFilterPanel
         filters={draft}
         isLoading={isLoading}
+        config={config}
         onChange={setDraft}
         onSearch={search.search}
         onReset={search.reset}
@@ -85,6 +88,7 @@ export default function LimelightFindProjects({ search, onRequestAdd }: Limeligh
 
       <LimelightSelectionBar
         count={selected.size}
+        addLabel={`Add to ${config.name}`}
         isAdding={isAdding}
         onAdd={onRequestAdd}
         onClear={clearSelection}

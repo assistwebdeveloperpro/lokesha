@@ -1,6 +1,6 @@
 export function LimelightCardSkeleton() {
   return (
-    <div aria-hidden className="h-full animate-pulse rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+    <div aria-hidden className="h-full animate-pulse rounded-3xl border border-slate-200 bg-white p-3 shadow-xs">
       <div className="flex h-full flex-col gap-3 md:flex-row md:gap-4">
         <div className="aspect-16/10 w-full shrink-0 rounded-2xl bg-slate-200 md:aspect-auto md:min-h-96 md:w-[40%]" />
 

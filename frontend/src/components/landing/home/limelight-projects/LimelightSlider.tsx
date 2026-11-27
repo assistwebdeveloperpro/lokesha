@@ -16,18 +16,18 @@ import { cn } from "@/lib/utils";
 type LimelightSliderProps = {
   label: string;
   children: ReactNode;
+  slideClassName?: string;
 };
 
 const arrowClassName =
-  "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 opacity-0 shadow-lg transition hover:bg-slate-50 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-navy-blue group-hover/slider:enabled:opacity-100 disabled:pointer-events-none md:flex";
+  "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 opacity-0 shadow-md transition hover:bg-slate-50 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-navy-blue group-hover/slider:enabled:opacity-100 disabled:pointer-events-none md:flex";
 
 const DRAG_THRESHOLD = 5;
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function LimelightSlider({ label, children }: LimelightSliderProps) {
+export function LimelightSlider({ label, children, slideClassName }: LimelightSliderProps) {
   const trackRef = useRef<HTMLUListElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const dragRef = useRef<{ startX: number; startScroll: number; active: boolean } | null>(null);
@@ -46,8 +46,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
     const maxScroll = track.scrollWidth - track.clientWidth;
     setCanScrollPrev(track.scrollLeft > 1);
     setCanScrollNext(track.scrollLeft < maxScroll - 1);
-    setActiveIndex(track.scrollLeft >= maxScroll - 1 ? slides.length - 1 : Math.round(track.scrollLeft / getStride()));
-  }, [getStride, slides.length]);
+  }, []);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -59,15 +58,22 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
     return () => observer.disconnect();
   }, [syncPosition]);
 
-  const scrollToIndex = useCallback(
-    (index: number) => {
-      const target = Math.min(Math.max(index, 0), slides.length - 1);
-      trackRef.current?.scrollTo({
-        left: target * getStride(),
+  const scrollByDirection = useCallback(
+    (direction: 1 | -1) => {
+      const track = trackRef.current;
+      if (!track) return;
+
+      const stride = getStride();
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const index =
+        direction === 1 ? Math.floor((track.scrollLeft + 1) / stride) + 1 : Math.ceil((track.scrollLeft - 1) / stride) - 1;
+
+      track.scrollTo({
+        left: Math.min(Math.max(index * stride, 0), maxScroll),
         behavior: prefersReducedMotion() ? "auto" : "smooth",
       });
     },
-    [getStride, slides.length],
+    [getStride],
   );
 
   const handlePointerDown = (event: PointerEvent<HTMLUListElement>) => {
@@ -98,7 +104,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
 
     event.preventDefault();
-    scrollToIndex(activeIndex + (event.key === "ArrowRight" ? 1 : -1));
+    scrollByDirection(event.key === "ArrowRight" ? 1 : -1);
   };
 
   return (
@@ -126,7 +132,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
               aria-label={`${index + 1} of ${slides.length}`}
               className={cn(
                 "shrink-0 snap-start",
-                slides.length === 1 ? "w-full" : "w-[90%] lg:w-[80%]",
+                slideClassName ?? (slides.length === 1 ? "w-full" : "w-[90%] lg:w-[80%]"),
               )}
             >
               {slide}
@@ -146,7 +152,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
           type="button"
           aria-label="Previous project"
           disabled={!canScrollPrev}
-          onClick={() => scrollToIndex(activeIndex - 1)}
+          onClick={() => scrollByDirection(-1)}
           className={cn(arrowClassName, "left-2")}
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -155,7 +161,7 @@ export function LimelightSlider({ label, children }: LimelightSliderProps) {
           type="button"
           aria-label="Next project"
           disabled={!canScrollNext}
-          onClick={() => scrollToIndex(activeIndex + 1)}
+          onClick={() => scrollByDirection(1)}
           className={cn(arrowClassName, "right-2")}
         >
           <ChevronRight className="h-5 w-5" aria-hidden />

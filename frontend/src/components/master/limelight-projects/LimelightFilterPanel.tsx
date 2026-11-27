@@ -4,18 +4,20 @@ import { Filter, RotateCcw, Search } from "lucide-react";
 import type { FormEvent } from "react";
 import CustomDropdown, { type DropdownOption } from "@/components/shared/CustomDropdown";
 import { getDropdownFilterStyle } from "@/components/shared/ui/filterWidth";
-import { POSSESSION_OPTIONS, type LimelightFilters } from "./limelightShared";
+import { LISTED_BY_OPTIONS, POSSESSION_OPTIONS, type LimelightFilters } from "./limelightShared";
+import type { ProjectSelectionConfig } from "./projectSelectionConfig";
 
 type LimelightFilterPanelProps = {
   filters: LimelightFilters;
   isLoading: boolean;
+  config: ProjectSelectionConfig;
   onChange: (filters: LimelightFilters) => void;
   onSearch: () => void;
   onReset: () => void;
 };
 
 type TextKey = "keyword" | "city" | "locality";
-type SelectKey = "possessionStatus";
+type SelectKey = "possessionStatus" | "listedBy";
 
 const inputClassName =
   "w-full min-h-11 rounded-xl border border-slate-200/90 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition placeholder:font-normal placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20";
@@ -28,11 +30,13 @@ const TEXT_FIELDS: { key: TextKey; label: string; placeholder: string }[] = [
 
 const SELECT_FIELDS: { key: SelectKey; label: string; options: DropdownOption[] }[] = [
   { key: "possessionStatus", label: "Possession status", options: POSSESSION_OPTIONS },
+  { key: "listedBy", label: "Property listed by", options: LISTED_BY_OPTIONS },
 ];
 
 export default function LimelightFilterPanel({
   filters,
   isLoading,
+  config,
   onChange,
   onSearch,
   onReset,
@@ -53,7 +57,7 @@ export default function LimelightFilterPanel({
         </span>
         <div>
           <h2 className="font-display text-lg font-bold text-slate-900">Find Projects</h2>
-          <p className="text-sm text-slate-500">Only published projects can be added to Limelight</p>
+          <p className="text-sm text-slate-500">Only published projects can be added to {config.name}</p>
         </div>
       </div>
 
@@ -79,7 +83,7 @@ export default function LimelightFilterPanel({
           </div>
         ))}
 
-        {SELECT_FIELDS.map(({ key, label, options }) => (
+        {SELECT_FIELDS.filter(({ key }) => config.showListedByFilter || key !== "listedBy").map(({ key, label, options }) => (
           <div key={key} className="min-w-0" style={getDropdownFilterStyle(label, options)}>
             <CustomDropdown
               id={`limelight-filter-${key}`}

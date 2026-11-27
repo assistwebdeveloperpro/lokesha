@@ -25,7 +25,7 @@ function buildViewAllHref({ listingType, category, city }: LimelightProjectsFilt
 function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {
   return (
     <header className="grid grid-cols-[1fr_auto] items-center px-2 gap-x-4 gap-y-1">
-      <h2 className="font-display flex min-w-0 items-center gap-3 text-xl font-bold text-slate-900 sm:text-2xl">
+      <h2 className="font-display flex min-w-0 items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 md:text-2xl">
         <span
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-500"
           aria-hidden
@@ -39,7 +39,7 @@ function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {
       </p>
       <Link
         href={buildViewAllHref(filters)}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg text-sm font-semibold text-sky-600 transition hover:text-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg text-sm sm:text-[16px] font-semibold text-sky-600 transition hover:text-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
       >
         View All
         <ArrowRight className="h-4 w-4" aria-hidden />
@@ -54,8 +54,8 @@ export function LimelightSection() {
   if (!isVisible || (!isLoading && projects.length === 0)) return null;
 
   return (
-    <section aria-label={SECTION_TITLE} className="w-full bg-slate-50/60">
-      <div className="mx-auto w-full max-w-360 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+    <section aria-label={SECTION_TITLE} className="w-full">
+      <div className="mx-auto w-full max-w-360 px-4 pt-8 pb-6 sm:px-6 sm:pt-8 sm:pb-6 lg:px-8">
         <LimelightHeader filters={filters} />
 
         <div className="mt-3" aria-busy={isLoading}>

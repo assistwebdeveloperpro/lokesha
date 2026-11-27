@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Sparkles, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -18,15 +18,30 @@ import {
   PropertySearchListError,
   PropertySearchListSkeleton,
 } from "@/components/landing/property-search/property-list/PropertySearchListStatus";
-import type { LimelightProjectsFilters } from "@/services/limelightProjects.service";
+import { fetchLimelightProjects, type LimelightProjectsFilters } from "@/services/limelightProjects.service";
 import { getSameStateCityOptions, resolveCityName } from "./limelightCities";
-import { useLimelightProjectsPage } from "./useLimelightProjectsPage";
+import { useLimelightProjectsPage, type FetchProjectsPage } from "./useLimelightProjectsPage";
+
+// What differs between the pages that list the projects an admin selected
+export type ProjectsPageConfig = {
+  title: string;
+  path: string;
+  icon: LucideIcon;
+  fetchPage: FetchProjectsPage;
+};
+
+const LIMELIGHT_PAGE: ProjectsPageConfig = {
+  title: "Limelight Projects",
+  path: "/property/limelight-projects",
+  icon: Sparkles,
+  fetchPage: fetchLimelightProjects,
+};
 
 const PAGE_SIZE = 30;
 const CONTAINER = "mx-auto w-full max-w-360 px-2 sm:px-4 lg:px-6";
 const GRID = "lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-x-8 xl:grid-cols-[minmax(0,1fr)_20rem]";
 
-function LimelightBreadcrumbs({ city }: { city: string }) {
+function LimelightBreadcrumbs({ title, city }: { title: string; city: string }) {
   return (
     <nav aria-label="Breadcrumb" className="pb-2 pt-4 sm:pt-6">
       <ol className="flex flex-wrap items-center gap-1 text-xs text-slate-600 sm:text-sm">
@@ -37,24 +52,24 @@ function LimelightBreadcrumbs({ city }: { city: string }) {
           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
         </li>
         <li aria-current="page" className="font-medium text-sky-600">
-          Limelight Projects in {city}
+          {title} in {city}
         </li>
       </ol>
     </nav>
   );
 }
 
-function LimelightEmptyState({ city }: { city: string }) {
+function LimelightEmptyState({ title, icon: Icon, city }: { title: string; icon: LucideIcon; city: string }) {
   return (
     <div
       role="status"
       className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center shadow-sm"
     >
       <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-orange-500" aria-hidden>
-        <Sparkles className="h-6 w-6" />
+        <Icon className="h-6 w-6" />
       </span>
       <p className="text-sm font-medium text-slate-700 sm:text-base">
-        No limelight projects available in {city} right now
+        No {title.toLowerCase()} available in {city} right now
       </p>
       <p className="text-sm text-slate-500">Try selecting another city from the dropdown above.</p>
       <Link
@@ -68,11 +83,13 @@ function LimelightEmptyState({ city }: { city: string }) {
 }
 
 function LimelightResultsHeader({
+  title,
   city,
   total,
   cityOptions,
   onCityChange,
 }: {
+  title: string;
   city: string;
   total: number | null;
   cityOptions: DropdownOption[];
@@ -91,7 +108,7 @@ function LimelightResultsHeader({
             <span className="mx-2 font-normal text-slate-300" aria-hidden>
               |
             </span>
-            Limelight Projects in {city}
+            {title} in {city}
           </>
         )}
       </h1>
@@ -112,19 +129,23 @@ function LimelightResultsHeader({
 }
 
 function LimelightProjectsResults({
+  page: pageConfig,
   city,
   filters,
   onCityChange,
 }: {
+  page: ProjectsPageConfig;
   city: string;
   filters: LimelightProjectsFilters;
   onCityChange: (city: string) => void;
 }) {
   const [page, setPage] = useState(1);
-  const { data, error, isLoading, retry } = useLimelightProjectsPage(page, PAGE_SIZE, {
-    ...filters,
-    city,
-  });
+  const { data, error, isLoading, retry } = useLimelightProjectsPage(
+    page,
+    PAGE_SIZE,
+    { ...filters, city },
+    pageConfig.fetchPage,
+  );
   const cityOptions = useMemo(() => getSameStateCityOptions(city), [city]);
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
@@ -137,10 +158,11 @@ function LimelightProjectsResults({
   return (
     <div className="flex w-full flex-col pb-8">
       <div className={CONTAINER}>
-        <LimelightBreadcrumbs city={city} />
+        <LimelightBreadcrumbs title={pageConfig.title} city={city} />
       </div>
 
       <LimelightResultsHeader
+        title={pageConfig.title}
         city={city}
         total={data ? total : null}
         cityOptions={cityOptions}
@@ -155,10 +177,10 @@ function LimelightProjectsResults({
             ) : !data ? (
               <PropertySearchListSkeleton />
             ) : items.length === 0 ? (
-              <LimelightEmptyState city={city} />
+              <LimelightEmptyState title={pageConfig.title} icon={pageConfig.icon} city={city} />
             ) : (
               <div className={isLoading ? "opacity-60 transition-opacity" : undefined}>
-                <section aria-label="Limelight projects">
+                <section aria-label={pageConfig.title}>
                   <ul className="space-y-4 sm:space-y-5">
                     {items.map((project, index) => (
                       <li key={project.id}>
@@ -185,7 +207,13 @@ function LimelightProjectsResults({
   );
 }
 
-export function LimelightProjectsContent({ filters }: { filters: LimelightProjectsFilters }) {
+export function LimelightProjectsContent({
+  filters,
+  page = LIMELIGHT_PAGE,
+}: {
+  filters: LimelightProjectsFilters;
+  page?: ProjectsPageConfig;
+}) {
   const router = useRouter();
   const headerCity = useHeaderCity();
   const fallbackCity = headerCity === ALL_INDIA_LABEL ? DEFAULT_SELECTED_CITY : headerCity;
@@ -196,13 +224,14 @@ export function LimelightProjectsContent({ filters }: { filters: LimelightProjec
     if (filters.listingType) params.set("listingType", filters.listingType);
     if (filters.category) params.set("category", filters.category);
     params.set("city", nextCity);
-    router.replace(`/property/limelight-projects?${params}`, { scroll: false });
+    router.replace(`${page.path}?${params}`, { scroll: false });
   };
 
   // Keyed by city so a new city never shows the previous city's projects or page number
   return (
     <LimelightProjectsResults
       key={city}
+      page={page}
       city={city}
       filters={filters}
       onCityChange={handleCityChange}

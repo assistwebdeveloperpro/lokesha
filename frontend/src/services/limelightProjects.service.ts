@@ -21,19 +21,26 @@ export type LimelightProjectsFilters = {
   city?: string;
 };
 
+type ProjectsPageQuery = { page: number; pageSize: number } & LimelightProjectsFilters;
+
+const LIMELIGHT_ENDPOINT = "/limelight-projects";
+
 // Walks every page so the slider shows all the projects the admin selected
-export async function fetchAllLimelightProjects(
+export async function fetchAllProjectPages(
+  endpoint: string,
   filters: LimelightProjectsFilters = {},
   signal?: AbortSignal,
 ) {
-  const first = await fetchLimelightProjects(
+  const first = await fetchProjectsPage(
+    endpoint,
     { page: 1, pageSize: ALL_PROJECTS_PAGE_SIZE, ...filters },
     signal,
   );
   const pageCount = Math.ceil(first.total / first.pageSize);
   const rest = await Promise.all(
     Array.from({ length: Math.max(pageCount - 1, 0) }, (_, index) =>
-      fetchLimelightProjects(
+      fetchProjectsPage(
+        endpoint,
         { page: index + 2, pageSize: ALL_PROJECTS_PAGE_SIZE, ...filters },
         signal,
       ),
@@ -43,8 +50,15 @@ export async function fetchAllLimelightProjects(
   return [first, ...rest].flatMap(({ items }) => items);
 }
 
-export async function fetchLimelightProjects(
-  query: { page: number; pageSize: number } & LimelightProjectsFilters,
+export const fetchAllLimelightProjects = (filters?: LimelightProjectsFilters, signal?: AbortSignal) =>
+  fetchAllProjectPages(LIMELIGHT_ENDPOINT, filters, signal);
+
+export const fetchLimelightProjects = (query: ProjectsPageQuery, signal?: AbortSignal) =>
+  fetchProjectsPage(LIMELIGHT_ENDPOINT, query, signal);
+
+export async function fetchProjectsPage(
+  endpoint: string,
+  query: ProjectsPageQuery,
   signal?: AbortSignal,
 ) {
   const params = new URLSearchParams({
@@ -55,7 +69,7 @@ export async function fetchLimelightProjects(
   if (query.category) params.set("category", query.category);
   if (query.city) params.set("city", query.city);
 
-  const response = await apiFetch<LimelightProjectsResponse>(`/limelight-projects?${params}`, {
+  const response = await apiFetch<LimelightProjectsResponse>(`${endpoint}?${params}`, {
     method: "GET",
     signal,
   });

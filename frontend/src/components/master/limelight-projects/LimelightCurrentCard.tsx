@@ -43,7 +43,7 @@ export default function LimelightCurrentCard({
         <h3 className="font-display truncate text-base font-bold text-slate-900">{entry.projectName}</h3>
         <p className="truncate text-sm text-slate-600">{entry.builderName ?? "Builder not available"}</p>
         <p className="flex items-center gap-1.5 text-sm text-slate-500">
-          <MapPin className="h-4 w-4 shrink-0 text-red-500" aria-hidden />
+          <MapPin className="h-4 w-4 shrink-0 text-sky-500" aria-hidden />
           <span className="truncate">{formatProjectLocation(entry)}</span>
         </p>
         <p className="pt-1 text-sm font-semibold text-slate-900">{formatProjectPrice(entry)}</p>

@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/shared/ui/ToastProvider";
-import {
-  addLimelightProjects,
-  searchLimelightProjects,
-  type LimelightSearchResult,
-} from "@/services/adminLimelightProjects.service";
+import type { LimelightSearchResult } from "@/services/adminLimelightProjects.service";
 import { ApiError } from "@/services/apiClient";
 import { DEFAULT_LIMELIGHT_FILTERS, pluralizeProjects, toSearchQuery, type LimelightFilters } from "./limelightShared";
+import type { ProjectSelectionConfig } from "./projectSelectionConfig";
 import { useAdminRequest } from "./useAdminRequest";
 
 const LOAD_ERROR = "We could not load the projects. Please try again.";
@@ -19,7 +16,8 @@ type SearchState = { items: LimelightSearchResult[]; total: number };
 const errorMessage = (failure: unknown, fallback: string) =>
   failure instanceof ApiError ? failure.message : fallback;
 
-export function useLimelightSearch(refreshKey: number, onAdded: () => void) {
+export function useLimelightSearch(config: ProjectSelectionConfig, refreshKey: number, onAdded: () => void) {
+  const { name, api } = config;
   const { showToast } = useToast();
   const runRequest = useAdminRequest();
   const [draft, setDraft] = useState<LimelightFilters>(DEFAULT_LIMELIGHT_FILTERS);
@@ -36,7 +34,7 @@ export function useLimelightSearch(refreshKey: number, onAdded: () => void) {
   useEffect(() => {
     let cancelled = false;
 
-    runRequest((token) => searchLimelightProjects(toSearchQuery(applied, page), token))
+    runRequest((token) => api.search(toSearchQuery(applied, page), token))
       .then((response) => {
         if (cancelled || !response) return;
         setResult({ items: response.items, total: response.total });
@@ -52,7 +50,7 @@ export function useLimelightSearch(refreshKey: number, onAdded: () => void) {
     return () => {
       cancelled = true;
     };
-  }, [applied, page, reloadToken, refreshKey, runRequest]);
+  }, [api, applied, page, reloadToken, refreshKey, runRequest]);
 
   const reload = useCallback(() => {
     setIsLoading(true);
@@ -93,10 +91,10 @@ export function useLimelightSearch(refreshKey: number, onAdded: () => void) {
 
     setIsAdding(true);
     try {
-      const added = await runRequest((token) => addLimelightProjects([...selected.keys()], token));
+      const added = await runRequest((token) => api.addProjects([...selected.keys()], token));
       if (!added) return false;
 
-      showToast(`${pluralizeProjects(added.added)} added to Limelight`);
+      showToast(`${pluralizeProjects(added.added)} added to ${name}`);
       clearSelection();
       reload();
       onAdded();
