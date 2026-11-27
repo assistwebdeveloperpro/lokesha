@@ -20,7 +20,7 @@ type ProjectSliderProps = {
 };
 
 const arrowClassName =
-  "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 opacity-0 shadow-md transition hover:bg-slate-50 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-navy-blue group-hover/slider:enabled:opacity-100 disabled:pointer-events-none md:flex";
+  "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-gray-400 bg-white text-slate-700 opacity-0 shadow-md transition hover:bg-slate-50 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-navy-blue group-hover/slider:enabled:opacity-100 disabled:pointer-events-none md:flex";
 
 const DRAG_THRESHOLD = 5;
 

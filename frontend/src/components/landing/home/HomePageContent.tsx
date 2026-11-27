@@ -7,6 +7,7 @@ import { IconicSection } from "./iconic-projects/IconicSection";
 import { LimelightSection } from "./limelight-projects/LimelightSection";
 import { NewlyLaunchedSection } from "./newly-launched-projects/NewlyLaunchedSection";
 import { PopularSection } from "./popular-projects/PopularSection";
+import { WhyChooseSection } from "./why-choose-us/WhyChooseSection";
 
 export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
   return (
@@ -18,7 +19,8 @@ export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
         <FeaturedSection />
         <IconicSection />
         <PopularSection />
-        <NewlyLaunchedSection />
+        <WhyChooseSection />
+        <NewlyLaunchedSection />  
       </main>
       <LocationAutoDetect />
     </div>
