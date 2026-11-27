@@ -38,6 +38,7 @@ function mockRepositories(leads, total = leads.length) {
   repository.findSentLeads.mockResolvedValue(leads);
   repository.countSentLeads.mockResolvedValue(total);
   searchRepository.findCardsByPropertyIds.mockResolvedValue([{ id: "p1", title: "Sky Heights", member_ids: ["p1"] }]);
+  searchRepository.findCardsOfPropertyIds.mockResolvedValue([{ id: "p1", title: "Sky Heights", member_ids: ["p1"] }]);
   searchRepository.findCardExtras.mockResolvedValue({ media: [], variants: [], reraRows: [] });
 }
 
@@ -81,12 +82,13 @@ describe("listLeads", () => {
     expect(repository.countSentLeads).toHaveBeenCalledWith(USER_ID);
   });
 
-  it("keeps unavailable properties readable without loading a card", async () => {
+  it("keeps unavailable properties readable with their own title and number", async () => {
     mockRepositories([buildLead({ status: "closed" })]);
 
     const [item] = (await listLeads(USER_ID, query)).items;
 
     expect(searchRepository.findCardsByPropertyIds).not.toHaveBeenCalled();
+    expect(searchRepository.findCardsOfPropertyIds).toHaveBeenCalledWith(["p1"], "residential");
     expect(item.isAvailable).toBe(false);
     expect(item.property).toEqual({
       id: "p1",
@@ -97,6 +99,15 @@ describe("listLeads", () => {
       locality: "Bopal",
       city: "Ahmedabad",
     });
+  });
+
+  it("falls back to the lead's own property fields when an unavailable card is gone", async () => {
+    mockRepositories([buildLead({ status: "closed" })]);
+    searchRepository.findCardsOfPropertyIds.mockResolvedValue([]);
+
+    const [item] = (await listLeads(USER_ID, query)).items;
+
+    expect(item.property).toMatchObject({ id: "p1", title: "2 BHK Flat", listingNumber: "100001" });
   });
 
   describe("when a lead is requested", () => {

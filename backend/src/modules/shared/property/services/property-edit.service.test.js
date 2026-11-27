@@ -194,8 +194,9 @@ describe("updateProperty", () => {
     });
   });
 
-  it("sends a published listing back to review", async () => {
+  it("sends a published listing back to review when its content changed", async () => {
     editRepository.findPropertyForUpdate.mockResolvedValue(locked({ status: "published" }));
+    editRepository.findContentSnapshot.mockResolvedValueOnce("before").mockResolvedValueOnce("after");
 
     const result = await service.updateProperty(user, PROPERTY_ID, { payload: buildPayload() });
 
@@ -204,6 +205,18 @@ describe("updateProperty", () => {
       mockTrx,
       expect.objectContaining({ from_status: "published", to_status: "pending", reason: "Edited by owner" })
     );
+  });
+
+  it("keeps a published listing live when the save changed nothing", async () => {
+    const updatedAt = new Date("2026-11-20T10:00:00.000Z");
+    editRepository.findPropertyForUpdate.mockResolvedValue(locked({ status: "published", updated_at: updatedAt }));
+    editRepository.findContentSnapshot.mockResolvedValue("same");
+
+    const result = await service.updateProperty(user, PROPERTY_ID, { payload: buildPayload() });
+
+    expect(result.status).toBe("published");
+    expect(editRepository.restoreUpdatedAt).toHaveBeenCalledWith(mockTrx, PROPERTY_ID, updatedAt);
+    expect(writeRepository.insertStatusHistory).not.toHaveBeenCalled();
   });
 
   it("keeps the location highlights of an agent listing editable by an admin", async () => {

@@ -1,4 +1,4 @@
-const limelightRepository = require("./limelight-projects.repository");
+const repository = require("./limelight-projects.repository");
 const readRepository = require("../../../shared/property/repositories/property-read.repository");
 const mapper = require("../../../shared/property/mappers/property.mapper");
 const { PROPERTY_TYPE_TO_DB } = require("../../../shared/property/constants/property.constants");
@@ -6,6 +6,8 @@ const { AppError } = require("../../../shared/property/utils/property.errors");
 const landingService = require("../../../landing/limelight-projects/limelight-projects.service");
 const searchRepository = require("../../../landing/property-search/property-search.repository");
 const searchMapper = require("../../../landing/property-search/property-search.mapper");
+
+const SECTION_NAME = "Limelight";
 
 const toNumberOrNull = (value) => (value === null || value === undefined ? null : Number(value));
 
@@ -53,75 +55,67 @@ async function findDetailsSources(projectIds) {
   );
 }
 
-// `name` is the section the admin manages, used in the error messages
-function createProjectSelectionService({ repository, name }) {
-  async function searchProjects({ page, limit, ...query }) {
-    const filters = { ...query, propertyType: query.propertyType ? PROPERTY_TYPE_TO_DB[query.propertyType] : undefined };
+async function searchProjects({ page, limit, ...query }) {
+  const filters = { ...query, propertyType: query.propertyType ? PROPERTY_TYPE_TO_DB[query.propertyType] : undefined };
 
-    const [rows, total] = await Promise.all([
-      repository.findEligibleProjects(filters, { limit, offset: (page - 1) * limit }),
-      repository.countEligibleProjects(filters),
-    ]);
-    const [mainImage, detailsSources] = await Promise.all([
-      findMainImages(rows),
-      findDetailsSources(rows.map((row) => row.project_id)),
-    ]);
+  const [rows, total] = await Promise.all([
+    repository.findEligibleProjects(filters, { limit, offset: (page - 1) * limit }),
+    repository.countEligibleProjects(filters),
+  ]);
+  const [mainImage, detailsSources] = await Promise.all([
+    findMainImages(rows),
+    findDetailsSources(rows.map((row) => row.project_id)),
+  ]);
 
-    return {
-      items: rows.map((row) => ({
-        ...toProjectDto(row, mainImage),
-        listingNumber: Number(row.listing_number),
-        detailsSource: detailsSources.get(row.project_id) ?? null,
-        alreadyAdded: row.already_added,
-      })),
-      page,
-      limit,
-      total,
-    };
-  }
-
-  async function listEntries() {
-    const rows = await repository.findEntries();
-    const mainImage = await findMainImages(rows);
-
-    return {
-      items: rows.map((row, index) => ({
-        ...toProjectDto(row, mainImage),
-        position: index + 1,
-        isVisible: row.is_visible,
-      })),
-      total: rows.length,
-    };
-  }
-
-  async function addProjects(projectIds, adminId) {
-    const eligibleIds = new Set(await repository.findEligibleProjectIds(projectIds));
-    if (projectIds.some((id) => !eligibleIds.has(id))) {
-      throw new AppError(`Only published builder projects can be added to ${name}`, 400);
-    }
-
-    const added = await repository.insertEntries(projectIds, adminId);
-    return { added: added.length, skipped: projectIds.length - added.length };
-  }
-
-  async function removeProject(projectId) {
-    const removed = await repository.deleteEntry(projectId);
-    if (!removed) {
-      throw new AppError(`Project is not in ${name}`, 404);
-    }
-  }
-
-  async function saveOrder(projectIds) {
-    const saved = await repository.replaceOrder(projectIds);
-    if (!saved) {
-      throw new AppError(`${name} projects changed, refresh and try again`, 409);
-    }
-  }
-
-  return { searchProjects, listEntries, addProjects, removeProject, saveOrder };
+  return {
+    items: rows.map((row) => ({
+      ...toProjectDto(row, mainImage),
+      listingNumber: Number(row.listing_number),
+      detailsSource: detailsSources.get(row.project_id) ?? null,
+      alreadyAdded: row.already_added,
+    })),
+    page,
+    limit,
+    total,
+  };
 }
 
-module.exports = {
-  ...createProjectSelectionService({ repository: limelightRepository, name: "Limelight" }),
-  createProjectSelectionService,
-};
+async function listEntries() {
+  const rows = await repository.findEntries();
+  const mainImage = await findMainImages(rows);
+
+  return {
+    items: rows.map((row, index) => ({
+      ...toProjectDto(row, mainImage),
+      position: index + 1,
+      isVisible: row.is_visible,
+    })),
+    total: rows.length,
+  };
+}
+
+async function addProjects(projectIds, adminId) {
+  const eligibleIds = new Set(await repository.findEligibleProjectIds(projectIds));
+  if (projectIds.some((id) => !eligibleIds.has(id))) {
+    throw new AppError(`Only published builder projects can be added to ${SECTION_NAME}`, 400);
+  }
+
+  const added = await repository.insertEntries(projectIds, adminId);
+  return { added: added.length, skipped: projectIds.length - added.length };
+}
+
+async function removeProject(projectId) {
+  const removed = await repository.deleteEntry(projectId);
+  if (!removed) {
+    throw new AppError(`Project is not in ${SECTION_NAME}`, 404);
+  }
+}
+
+async function saveOrder(projectIds) {
+  const saved = await repository.replaceOrder(projectIds);
+  if (!saved) {
+    throw new AppError(`${SECTION_NAME} projects changed, refresh and try again`, 409);
+  }
+}
+
+module.exports = { searchProjects, listEntries, addProjects, removeProject, saveOrder };
