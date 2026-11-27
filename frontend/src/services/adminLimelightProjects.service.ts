@@ -114,3 +114,4 @@ export type ProjectSelectionApi = ReturnType<typeof createProjectSelectionApi>;
 export const limelightProjectsApi = createProjectSelectionApi("/master/limelight-projects");
 export const featuredProjectsApi = createProjectSelectionApi("/master/featured-projects");
 export const iconicProjectsApi = createProjectSelectionApi("/master/iconic-projects");
+export const popularProjectsApi = createProjectSelectionApi("/master/popular-projects");

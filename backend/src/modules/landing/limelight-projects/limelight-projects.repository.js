@@ -2,7 +2,7 @@ const { db } = require("../../../config/db");
 const { CATEGORY_TO_DB } = require("../property-search/property-search.constants");
 const { whereCity } = require("../property-search/property-search.filters");
 
-// Published properties of a project, narrowed by the optional listing type, category and city
+// Published properties of a project
 function publishedProperties(filters = {}) {
   const query = db("properties as p").where("p.status", "published");
   if (filters.listingType) query.where("p.listing_type", filters.listingType);
@@ -13,7 +13,6 @@ function publishedProperties(filters = {}) {
 
 // One repository per selection table, so Limelight and Featured projects share the same queries
 function createProjectSelectionRepository(table) {
-  // Entries whose project still has a matching published property, in the admin-set order
   function visibleEntries(filters) {
     return db(`${table} as sp`)
       .join("builder_projects as bp", "bp.id", "sp.builder_project_id")

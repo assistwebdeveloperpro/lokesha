@@ -1,8 +1,9 @@
-import { Gem, Sparkles, Star, type LucideIcon } from "lucide-react";
+import { Flame, Gem, Sparkles, Star, type LucideIcon } from "lucide-react";
 import {
   featuredProjectsApi,
   iconicProjectsApi,
   limelightProjectsApi,
+  popularProjectsApi,
   type ProjectSelectionApi,
 } from "@/services/adminLimelightProjects.service";
 
@@ -47,4 +48,15 @@ export const ICONIC_SELECTION: ProjectSelectionConfig = {
   icon: Gem,
   showListedByFilter: true,
   api: iconicProjectsApi,
+};
+
+export const POPULAR_SELECTION: ProjectSelectionConfig = {
+  name: "Popular Projects",
+  pageTitle: "Popular Projects",
+  pageSubtitle:
+    "Manage and organize residential projects shown as popular on the homepage.",
+  currentTitle: "Selected Popular Projects",
+  icon: Flame,
+  showListedByFilter: true,
+  api: popularProjectsApi,
 };

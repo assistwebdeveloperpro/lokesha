@@ -5,6 +5,7 @@ import type { HeroBannerInitialSelection } from "./hero-banner/useHeroBannerFilt
 import { FeaturedSection } from "./featured-projects/FeaturedSection";
 import { IconicSection } from "./iconic-projects/IconicSection";
 import { LimelightSection } from "./limelight-projects/LimelightSection";
+import { PopularSection } from "./popular-projects/PopularSection";
 
 export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
   return (
@@ -15,6 +16,7 @@ export function HomePageContent(initialSelection: HeroBannerInitialSelection) {
         <LimelightSection />
         <FeaturedSection />
         <IconicSection />
+        <PopularSection />
       </main>
       <LocationAutoDetect />
     </div>
