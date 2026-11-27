@@ -4,7 +4,7 @@ export const HERO_DESCRIPTION =
 export const NEW_PROJECTS_HREF = "/new-projects";
 
 export const TAB_LIST_CLASS =
-  "flex w-full min-w-0 flex-nowrap items-stretch overflow-x-auto whitespace-nowrap scroll-smooth pt-3 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden";
+  "flex w-full min-w-0 flex-nowrap items-stretch overflow-x-auto touch-pan-x whitespace-nowrap pt-3 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden";
 
 export const FOCUS_RING =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400";

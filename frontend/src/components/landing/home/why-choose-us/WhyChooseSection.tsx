@@ -39,7 +39,7 @@ const FEATURES: WhyChooseFeature[] = [
 
 export function WhyChooseSection() {
   return (
-    <section aria-label={SECTION_TITLE} className="my-7 w-full bg-linear-to-r-navy-blue">
+    <section aria-label={SECTION_TITLE} className=" w-full bg-linear-to-r-navy-blue">
       <div className="relative overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.35),transparent_60%)]"

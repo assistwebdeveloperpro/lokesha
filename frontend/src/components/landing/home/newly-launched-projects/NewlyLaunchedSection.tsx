@@ -32,7 +32,7 @@ export function NewlyLaunchedSection() {
   if (!isVisible || (!isLoading && projects.length === 0)) return null;
 
   return (
-    <section aria-label={SECTION_TITLE} className="w-full">
+    <section aria-label={SECTION_TITLE} className="w-full py-8">
       <div className="mx-auto w-full max-w-360 px-4 py-6 sm:px-6 sm:py-6 lg:px-8">
         <header className="flex items-center justify-between gap-4 px-2">
           <h2 className="section-title flex min-w-0 items-center gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import {
   CATEGORIES,
   CATEGORY_TAB_DEFAULT,
@@ -21,8 +21,63 @@ export function HeroCategoryTabs({
   activeCategory,
   onSelect,
 }: HeroCategoryTabsProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    let startX = 0;
+    let startScroll = 0;
+    let dragging = false;
+    let moved = false;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      dragging = true;
+      moved = false;
+      startX = event.clientX;
+      startScroll = list.scrollLeft;
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      const delta = event.clientX - startX;
+      if (Math.abs(delta) > 4) moved = true;
+      list.scrollLeft = startScroll - delta;
+    };
+    const onPointerUp = () => {
+      dragging = false;
+    };
+    const onClickCapture = (event: MouseEvent) => {
+      if (!moved) return;
+      event.preventDefault();
+      event.stopPropagation();
+      moved = false;
+    };
+    const onWheel = (event: WheelEvent) => {
+      if (list.scrollWidth <= list.clientWidth) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      event.preventDefault();
+      list.scrollLeft += event.deltaY;
+    };
+
+    list.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    list.addEventListener("click", onClickCapture, true);
+    list.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      list.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      list.removeEventListener("click", onClickCapture, true);
+      list.removeEventListener("wheel", onWheel);
+    };
+  }, []);
+
   return (
     <div
+      ref={listRef}
       className={`${TAB_LIST_CLASS} border-b border-slate-200`}
       role="tablist"
       aria-label="Property categories"
