@@ -34,7 +34,7 @@ export function FeaturedSection() {
     <section aria-label={SECTION_TITLE} className="w-full">
       <div className="mx-auto w-full max-w-360 px-4 py-6 sm:px-6 sm:py-6 lg:px-8">
         <header className="flex items-center justify-between gap-4 px-2">
-          <h2 className="font-display flex min-w-0 items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 md:text-2xl">
+          <h2 className="section-title flex min-w-0 items-center gap-3">
             <span
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-500"
               aria-hidden

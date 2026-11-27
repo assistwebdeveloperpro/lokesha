@@ -18,6 +18,7 @@ export type LimelightFilters = {
   priceMax: string;
   possessionStatus: string;
   listedBy: string;
+  launchPeriod: string;
 };
 
 export const DEFAULT_LIMELIGHT_FILTERS: LimelightFilters = {
@@ -30,6 +31,7 @@ export const DEFAULT_LIMELIGHT_FILTERS: LimelightFilters = {
   priceMax: "",
   possessionStatus: ALL,
   listedBy: ALL,
+  launchPeriod: ALL,
 };
 
 export const BHK_OPTIONS: DropdownOption[] = [
@@ -50,6 +52,16 @@ export const LISTED_BY_OPTIONS: DropdownOption[] = [
   { value: "lokesha_staff", label: "Lokesha Staff" },
 ];
 
+export const LAUNCH_PERIOD_OPTIONS: DropdownOption[] = [
+  { value: ALL, label: "Any time" },
+  { value: "1-month", label: "Within 1 month" },
+  { value: "3-months", label: "Within 3 months" },
+  { value: "6-months", label: "Within 6 months" },
+  { value: "9-months", label: "Within 9 months" },
+  { value: "1-year", label: "Within a year" },
+  { value: "over-1-year", label: "More than 1 year" },
+];
+
 const toLacRupees = (value: string) => (value.trim() === "" ? undefined : String(Math.round(Number(value) * LAC)));
 const emptyToUndefined = (value: string) => (value.trim() === "" ? undefined : value.trim());
 const allToUndefined = (value: string) => (value === ALL ? undefined : value);
@@ -67,6 +79,7 @@ export function toSearchQuery(filters: LimelightFilters, page: number): Limeligh
     priceMax: toLacRupees(filters.priceMax),
     possessionStatus: allToUndefined(filters.possessionStatus),
     listedBy: allToUndefined(filters.listedBy),
+    launchPeriod: allToUndefined(filters.launchPeriod),
   };
 }
 

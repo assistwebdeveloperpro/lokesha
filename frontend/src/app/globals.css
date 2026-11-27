@@ -35,6 +35,29 @@ body {
   letter-spacing: -0.025em;
 }
 
+
+.section-title {
+  font-family: "Montserrat", system-ui, sans-serif;
+  line-height: 1.75rem;
+  font-size:1.20rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+
+@media (min-width: 640px) {
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .section-title {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
 .text-small {
   font-size: 0.8125rem;
   line-height: 1.5;

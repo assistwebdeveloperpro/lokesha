@@ -34,6 +34,7 @@ describe("toSearchQuery", () => {
       priceMax: undefined,
       possessionStatus: undefined,
       listedBy: undefined,
+      launchPeriod: undefined,
     });
   });
 

@@ -35,6 +35,7 @@ export type LimelightSearchQuery = {
   priceMax?: string;
   possessionStatus?: string;
   listedBy?: string;
+  launchPeriod?: string;
 };
 
 export type LimelightSearchResponse = {
@@ -115,3 +116,4 @@ export const limelightProjectsApi = createProjectSelectionApi("/master/limelight
 export const featuredProjectsApi = createProjectSelectionApi("/master/featured-projects");
 export const iconicProjectsApi = createProjectSelectionApi("/master/iconic-projects");
 export const popularProjectsApi = createProjectSelectionApi("/master/popular-projects");
+export const newlyLaunchedProjectsApi = createProjectSelectionApi("/master/newly-launched-projects");

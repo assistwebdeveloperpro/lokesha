@@ -25,7 +25,7 @@ function buildViewAllHref({ listingType, category, city }: LimelightProjectsFilt
 function LimelightHeader({ filters }: { filters: LimelightProjectsFilters }) {
   return (
     <header className="grid grid-cols-[1fr_auto] items-center px-2 gap-x-4 gap-y-1">
-      <h2 className="font-display flex min-w-0 items-center gap-3 text-lg sm:text-xl font-bold text-slate-900 md:text-2xl">
+      <h2 className="section-title flex min-w-0 items-center gap-3">
         <span
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-500"
           aria-hidden

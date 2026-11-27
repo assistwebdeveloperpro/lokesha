@@ -44,6 +44,8 @@ const iconicProjectsRoutes = require("./modules/landing/iconic-projects/iconic-p
 const adminIconicProjectsRoutes = require("./modules/master/dashboard/iconic-projects/iconic-projects.routes");
 const popularProjectsRoutes = require("./modules/landing/popular-projects/popular-projects.routes");
 const adminPopularProjectsRoutes = require("./modules/master/dashboard/popular-projects/popular-projects.routes");
+const newlyLaunchedProjectsRoutes = require("./modules/landing/newly-launched-projects/newly-launched-projects.routes");
+const adminNewlyLaunchedProjectsRoutes = require("./modules/master/dashboard/newly-launched-projects/newly-launched-projects.routes");
 const razorpayWebhookRoutes =require("./modules/landing/razorpay-webhook/razorpay-webhook.routes");
 const { LIMITS } = require("./modules/shared/property/constants/property.constants");
 const { scheduleDraftCleanup } = require("./modules/shared/property/services/property-cleanup.service");
@@ -92,6 +94,7 @@ app.use("/api/limelight-projects", limelightProjectsRoutes);
 app.use("/api/featured-projects", featuredProjectsRoutes);
 app.use("/api/iconic-projects", iconicProjectsRoutes);
 app.use("/api/popular-projects", popularProjectsRoutes);
+app.use("/api/newly-launched-projects", newlyLaunchedProjectsRoutes);
 
 app.use("/api/master/auth", adminAuthRoutes);
 app.use("/api/master/post-property", adminPostPropertyRoutes);
@@ -103,6 +106,7 @@ app.use("/api/master/limelight-projects", adminLimelightProjectsRoutes);
 app.use("/api/master/featured-projects", adminFeaturedProjectsRoutes);
 app.use("/api/master/iconic-projects", adminIconicProjectsRoutes);
 app.use("/api/master/popular-projects", adminPopularProjectsRoutes);
+app.use("/api/master/newly-launched-projects", adminNewlyLaunchedProjectsRoutes);
 app.use("/api/master/subscription/packages", subscriptionPackagesRoutes);
 app.use("/api/master/subscription/users", subscriptionUsersRoutes);
 app.use("/api/master/subscription/transactions", subscriptionTransactionsRoutes);
